@@ -41,7 +41,9 @@ pub struct GoogleCloudDocumentaiUiv1beta3AutoLabelDocumentsMetadata {
 
 /// The response proto of AutoLabelDocuments method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiUiv1beta3AutoLabelDocumentsResponse {}
+pub struct GoogleCloudDocumentaiUiv1beta3AutoLabelDocumentsResponse {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -67,7 +69,9 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsMetadata {
 
 /// Response of the delete documents operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsResponse {}
+pub struct GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsResponse {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -93,7 +97,9 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsMetadata {
 
 /// Response of the batch move documents operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsResponse {}
+pub struct GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsResponse {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -113,7 +119,9 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadata {
 
 /// Response of the batch update documents operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsResponse {}
+pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsResponse {
+    pub value: serde_json::Value,
+}
 
 /// The long-running operation metadata for the CreateLabelerPool method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -162,7 +170,9 @@ pub struct GoogleCloudDocumentaiUiv1beta3DeployProcessorVersionMetadata {
 
 /// Response message for the DeployProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiUiv1beta3DeployProcessorVersionResponse {}
+pub struct GoogleCloudDocumentaiUiv1beta3DeployProcessorVersionResponse {
+    pub value: serde_json::Value,
+}
 
 /// The long-running operation metadata for the DisableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -175,7 +185,9 @@ pub struct GoogleCloudDocumentaiUiv1beta3DisableProcessorMetadata {
 
 /// Response message for the DisableProcessor method. Intentionally empty proto for adding fields in future.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiUiv1beta3DisableProcessorResponse {}
+pub struct GoogleCloudDocumentaiUiv1beta3DisableProcessorResponse {
+    pub value: serde_json::Value,
+}
 
 /// The long-running operation metadata for the EnableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -188,7 +200,9 @@ pub struct GoogleCloudDocumentaiUiv1beta3EnableProcessorMetadata {
 
 /// Response message for the EnableProcessor method. Intentionally empty proto for adding fields in future.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiUiv1beta3EnableProcessorResponse {}
+pub struct GoogleCloudDocumentaiUiv1beta3EnableProcessorResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata of the EvaluateProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -230,7 +244,9 @@ pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsMetadata {
 
 /// The response proto of ExportDocuments method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsResponse {}
+pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata message associated with the ExportProcessorVersion operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -277,7 +293,9 @@ pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsMetadata {
 
 /// Response of the import document operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsResponse {}
+pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsResponse {
+    pub value: serde_json::Value,
+}
 
 /// The long-running operation metadata for the ImportProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -418,7 +436,9 @@ pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadata {
 
 /// The response proto of ResyncDataset method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetResponse {}
+pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata of the sample documents operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -456,7 +476,9 @@ pub struct GoogleCloudDocumentaiUiv1beta3SetDefaultProcessorVersionMetadata {
 
 /// Response message for the SetDefaultProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiUiv1beta3SetDefaultProcessorVersionResponse {}
+pub struct GoogleCloudDocumentaiUiv1beta3SetDefaultProcessorVersionResponse {
+    pub value: serde_json::Value,
+}
 
 /// The metadata that represents a processor version being created.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -496,7 +518,9 @@ pub struct GoogleCloudDocumentaiUiv1beta3UndeployProcessorVersionMetadata {
 
 /// Response message for the UndeployProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiUiv1beta3UndeployProcessorVersionResponse {}
+pub struct GoogleCloudDocumentaiUiv1beta3UndeployProcessorVersionResponse {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDocumentaiUiv1beta3UpdateDatasetOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -578,7 +602,9 @@ pub struct GoogleCloudDocumentaiV1BatchProcessRequest {
 
 /// Response message for BatchProcessDocuments.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1BatchProcessResponse {}
+pub struct GoogleCloudDocumentaiV1BatchProcessResponse {
+    pub value: serde_json::Value,
+}
 
 /// The long-running operation metadata for the DeleteProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -606,11 +632,15 @@ pub struct GoogleCloudDocumentaiV1DeployProcessorVersionMetadata {
 
 /// Request message for the DeployProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DeployProcessorVersionRequest {}
+pub struct GoogleCloudDocumentaiV1DeployProcessorVersionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for the DeployProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DeployProcessorVersionResponse {}
+pub struct GoogleCloudDocumentaiV1DeployProcessorVersionResponse {
+    pub value: serde_json::Value,
+}
 
 /// The long-running operation metadata for the DisableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -622,11 +652,15 @@ pub struct GoogleCloudDocumentaiV1DisableProcessorMetadata {
 
 /// Request message for the DisableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DisableProcessorRequest {}
+pub struct GoogleCloudDocumentaiV1DisableProcessorRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for the DisableProcessor method. Intentionally empty proto for adding fields in future.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1DisableProcessorResponse {}
+pub struct GoogleCloudDocumentaiV1DisableProcessorResponse {
+    pub value: serde_json::Value,
+}
 
 /// The long-running operation metadata for the EnableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -638,11 +672,15 @@ pub struct GoogleCloudDocumentaiV1EnableProcessorMetadata {
 
 /// Request message for the EnableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1EnableProcessorRequest {}
+pub struct GoogleCloudDocumentaiV1EnableProcessorRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for the EnableProcessor method. Intentionally empty proto for adding fields in future.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1EnableProcessorResponse {}
+pub struct GoogleCloudDocumentaiV1EnableProcessorResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata of the EvaluateProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -880,7 +918,9 @@ pub struct GoogleCloudDocumentaiV1SetDefaultProcessorVersionRequest {
 
 /// Response message for the SetDefaultProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1SetDefaultProcessorVersionResponse {}
+pub struct GoogleCloudDocumentaiV1SetDefaultProcessorVersionResponse {
+    pub value: serde_json::Value,
+}
 
 /// The metadata that represents a processor version being created.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -946,11 +986,15 @@ pub struct GoogleCloudDocumentaiV1UndeployProcessorVersionMetadata {
 
 /// Request message for the UndeployProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1UndeployProcessorVersionRequest {}
+pub struct GoogleCloudDocumentaiV1UndeployProcessorVersionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for the UndeployProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1UndeployProcessorVersionResponse {}
+pub struct GoogleCloudDocumentaiV1UndeployProcessorVersionResponse {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -976,7 +1020,9 @@ pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadata {
 
 /// Response of the delete documents operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsResponse {}
+pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsResponse {
+    pub value: serde_json::Value,
+}
 
 /// The long-running operation metadata for BatchProcessDocuments.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1002,7 +1048,9 @@ pub struct GoogleCloudDocumentaiV1beta3BatchProcessMetadata {
 
 /// Response message for BatchProcessDocuments.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1beta3BatchProcessResponse {}
+pub struct GoogleCloudDocumentaiV1beta3BatchProcessResponse {
+    pub value: serde_json::Value,
+}
 
 /// A singleton resource under a Processor which configures a collection of documents.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1029,12 +1077,9 @@ pub struct GoogleCloudDocumentaiV1beta3Dataset {
     pub state: ::core::option::Option<String>,
     /// Optional. Unmanaged dataset configuration. Use this configuration if the dataset documents are managed by the document service internally (not user-managed).
     #[serde(default, rename = "unmanagedDatasetConfig")]
-    pub unmanaged_dataset_config: ::core::option::Option<serde_json::Value>,
+    pub unmanaged_dataset_config:
+        ::core::option::Option<GoogleCloudDocumentaiV1beta3DatasetUnmanagedDatasetConfig>,
 }
-
-/// Configuration specific to an unmanaged dataset.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1beta3DatasetUnmanagedDatasetConfig {}
 
 /// The long-running operation metadata for the DeleteProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1065,7 +1110,9 @@ pub struct GoogleCloudDocumentaiV1beta3DeployProcessorVersionMetadata {
 
 /// Response message for the DeployProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1beta3DeployProcessorVersionResponse {}
+pub struct GoogleCloudDocumentaiV1beta3DeployProcessorVersionResponse {
+    pub value: serde_json::Value,
+}
 
 /// The long-running operation metadata for the DisableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1078,7 +1125,9 @@ pub struct GoogleCloudDocumentaiV1beta3DisableProcessorMetadata {
 
 /// Response message for the DisableProcessor method. Intentionally empty proto for adding fields in future.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1beta3DisableProcessorResponse {}
+pub struct GoogleCloudDocumentaiV1beta3DisableProcessorResponse {
+    pub value: serde_json::Value,
+}
 
 /// The long-running operation metadata for the EnableProcessor method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1091,7 +1140,9 @@ pub struct GoogleCloudDocumentaiV1beta3EnableProcessorMetadata {
 
 /// Response message for the EnableProcessor method. Intentionally empty proto for adding fields in future.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1beta3EnableProcessorResponse {}
+pub struct GoogleCloudDocumentaiV1beta3EnableProcessorResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata of the EvaluateProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1136,7 +1187,9 @@ pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsMetadata {
 
 /// Response of the import document operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsResponse {}
+pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsResponse {
+    pub value: serde_json::Value,
+}
 
 /// The long-running operation metadata for the ImportProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1295,7 +1348,9 @@ pub struct GoogleCloudDocumentaiV1beta3SetDefaultProcessorVersionMetadata {
 
 /// Response message for the SetDefaultProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1beta3SetDefaultProcessorVersionResponse {}
+pub struct GoogleCloudDocumentaiV1beta3SetDefaultProcessorVersionResponse {
+    pub value: serde_json::Value,
+}
 
 /// The metadata that represents a processor version being created.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1335,7 +1390,9 @@ pub struct GoogleCloudDocumentaiV1beta3UndeployProcessorVersionMetadata {
 
 /// Response message for the UndeployProcessorVersion method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDocumentaiV1beta3UndeployProcessorVersionResponse {}
+pub struct GoogleCloudDocumentaiV1beta3UndeployProcessorVersionResponse {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDocumentaiV1beta3UpdateDatasetOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1382,7 +1439,9 @@ pub struct GoogleLongrunningListOperationsResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// Next ID: 9
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2043,6 +2102,12 @@ pub struct GoogleCloudDocumentaiV1beta3DatasetGCSManagedConfig {
     /// Required. The Cloud Storage URI (a directory) where the documents belonging to the dataset must be stored.
     #[serde(default, rename = "gcsPrefix")]
     pub gcs_prefix: ::core::option::Option<GoogleCloudDocumentaiV1beta3GcsPrefix>,
+}
+
+/// Configuration specific to an unmanaged dataset.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDocumentaiV1beta3DatasetUnmanagedDatasetConfig {
+    pub value: serde_json::Value,
 }
 
 /// The validation status of each import config. Status is set to an error if there are no documents to import in the import_config, or OK if the operation will try to proceed with at least one document.

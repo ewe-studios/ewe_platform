@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,18 @@ use serde::Serialize;
 
 pub fn androidpublisher_applications_data_safety_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     body: &SafetyLabelsUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/dataSafety",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -71,8 +72,11 @@ pub fn androidpublisher_applications_data_safety_builder(
 pub fn androidpublisher_applications_data_safety_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SafetyLabelsUpdateResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SafetyLabelsUpdateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -183,8 +187,11 @@ pub fn androidpublisher_applications_data_safety(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_applications_data_safety_builder(client, &args.packageName, &args.body)?;
+    let builder = androidpublisher_applications_data_safety_builder(
+        client,
+        args.packageName.clone(),
+        &args.body,
+    )?;
     androidpublisher_applications_data_safety_execute(builder)
 }
 
@@ -196,14 +203,14 @@ pub fn androidpublisher_applications_data_safety(
 
 pub fn androidpublisher_applications_device_tier_configs_create_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     allowUnknownDevices: Option<bool>,
     body: &DeviceTierConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/deviceTierConfigs",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
@@ -213,9 +220,9 @@ pub fn androidpublisher_applications_device_tier_configs_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -251,8 +258,11 @@ pub fn androidpublisher_applications_device_tier_configs_create_builder(
 pub fn androidpublisher_applications_device_tier_configs_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DeviceTierConfig>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeviceTierConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -363,8 +373,8 @@ pub fn androidpublisher_applications_device_tier_configs_create(
 > {
     let builder = androidpublisher_applications_device_tier_configs_create_builder(
         client,
-        &args.packageName,
-        args.allowUnknownDevices,
+        args.packageName.clone(),
+        args.allowUnknownDevices.clone(),
         &args.body,
     )?;
     androidpublisher_applications_device_tier_configs_create_execute(builder)
@@ -378,19 +388,19 @@ pub fn androidpublisher_applications_device_tier_configs_create(
 
 pub fn androidpublisher_applications_device_tier_configs_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    deviceTierConfigId: &str,
+    packageName: String,
+    deviceTierConfigId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/deviceTierConfigs/{}",
-        packageName,
-        deviceTierConfigId,
+        packageName.as_str(),
+        deviceTierConfigId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -420,8 +430,11 @@ pub fn androidpublisher_applications_device_tier_configs_get_builder(
 pub fn androidpublisher_applications_device_tier_configs_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DeviceTierConfig>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeviceTierConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -530,363 +543,10 @@ pub fn androidpublisher_applications_device_tier_configs_get(
 > {
     let builder = androidpublisher_applications_device_tier_configs_get_builder(
         client,
-        &args.packageName,
-        &args.deviceTierConfigId,
+        args.packageName.clone(),
+        args.deviceTierConfigId.clone(),
     )?;
     androidpublisher_applications_device_tier_configs_get_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
-/// Returns created device tier configs, ordered by descending creation time.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_applications_device_tier_configs_list_execute()` to send, or `androidpublisher_applications_device_tier_configs_list` for simplest API.
-
-pub fn androidpublisher_applications_device_tier_configs_list_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/deviceTierConfigs",
-        packageName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
-/// Returns created device tier configs, ordered by descending creation time.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_applications_device_tier_configs_list_execute()` or `androidpublisher_applications_device_tier_configs_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_applications_device_tier_configs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_applications_device_tier_configs_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListDeviceTierConfigsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListDeviceTierConfigsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
-/// Returns created device tier configs, ordered by descending creation time.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_applications_device_tier_configs_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_applications_device_tier_configs_list_task()`.
-/// For the simplest API, use `androidpublisher_applications_device_tier_configs_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_applications_device_tier_configs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_applications_device_tier_configs_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListDeviceTierConfigsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_applications_device_tier_configs_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_applications_device_tier_configs_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherApplicationsDeviceTierConfigsListArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/deviceTierConfigs
-/// Returns created device tier configs, ordered by descending creation time.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_applications_device_tier_configs_list_builder()` + `androidpublisher_applications_device_tier_configs_list_execute()`.
-/// For task-level control, use `androidpublisher_applications_device_tier_configs_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_applications_device_tier_configs_list(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherApplicationsDeviceTierConfigsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListDeviceTierConfigsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_applications_device_tier_configs_list_builder(
-        client,
-        &args.packageName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    androidpublisher_applications_device_tier_configs_list_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{applicationsId}/tracks/{tracksId}/releases
-/// Returns the list of all releases for a given track. This excludes any releases that are obsolete.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_applications_tracks_releases_list_execute()` to send, or `androidpublisher_applications_tracks_releases_list` for simplest API.
-
-pub fn androidpublisher_applications_tracks_releases_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/tracks/{}/releases",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{applicationsId}/tracks/{tracksId}/releases
-/// Returns the list of all releases for a given track. This excludes any releases that are obsolete.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_applications_tracks_releases_list_execute()` or `androidpublisher_applications_tracks_releases_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_applications_tracks_releases_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_applications_tracks_releases_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListReleaseSummariesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListReleaseSummariesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{applicationsId}/tracks/{tracksId}/releases
-/// Returns the list of all releases for a given track. This excludes any releases that are obsolete.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_applications_tracks_releases_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_applications_tracks_releases_list_task()`.
-/// For the simplest API, use `androidpublisher_applications_tracks_releases_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_applications_tracks_releases_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_applications_tracks_releases_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListReleaseSummariesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_applications_tracks_releases_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_applications_tracks_releases_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherApplicationsTracksReleasesListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-}
-
-/// GET androidpublisher/v3/applications/{applicationsId}/tracks/{tracksId}/releases
-/// Returns the list of all releases for a given track. This excludes any releases that are obsolete.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_applications_tracks_releases_list_builder()` + `androidpublisher_applications_tracks_releases_list_execute()`.
-/// For task-level control, use `androidpublisher_applications_tracks_releases_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_applications_tracks_releases_list(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherApplicationsTracksReleasesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListReleaseSummariesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_applications_tracks_releases_list_builder(client, &args.parent)?;
-    androidpublisher_applications_tracks_releases_list_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/appRecoveries/{appRecoveryId}:addTargeting
@@ -897,20 +557,20 @@ pub fn androidpublisher_applications_tracks_releases_list(
 
 pub fn androidpublisher_apprecovery_add_targeting_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    appRecoveryId: &str,
+    packageName: String,
+    appRecoveryId: String,
     body: &AddTargetingRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries/{}:addTargeting",
-        packageName,
-        appRecoveryId,
+        packageName.as_str(),
+        appRecoveryId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -942,8 +602,11 @@ pub fn androidpublisher_apprecovery_add_targeting_builder(
 pub fn androidpublisher_apprecovery_add_targeting_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AddTargetingResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AddTargetingResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1054,8 +717,8 @@ pub fn androidpublisher_apprecovery_add_targeting(
 > {
     let builder = androidpublisher_apprecovery_add_targeting_builder(
         client,
-        &args.packageName,
-        &args.appRecoveryId,
+        args.packageName.clone(),
+        args.appRecoveryId.clone(),
         &args.body,
     )?;
     androidpublisher_apprecovery_add_targeting_execute(builder)
@@ -1069,20 +732,20 @@ pub fn androidpublisher_apprecovery_add_targeting(
 
 pub fn androidpublisher_apprecovery_cancel_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    appRecoveryId: &str,
+    packageName: String,
+    appRecoveryId: String,
     body: &CancelAppRecoveryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries/{}:cancel",
-        packageName,
-        appRecoveryId,
+        packageName.as_str(),
+        appRecoveryId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1114,8 +777,11 @@ pub fn androidpublisher_apprecovery_cancel_builder(
 pub fn androidpublisher_apprecovery_cancel_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CancelAppRecoveryResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CancelAppRecoveryResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1226,8 +892,8 @@ pub fn androidpublisher_apprecovery_cancel(
 > {
     let builder = androidpublisher_apprecovery_cancel_builder(
         client,
-        &args.packageName,
-        &args.appRecoveryId,
+        args.packageName.clone(),
+        args.appRecoveryId.clone(),
         &args.body,
     )?;
     androidpublisher_apprecovery_cancel_execute(builder)
@@ -1241,18 +907,18 @@ pub fn androidpublisher_apprecovery_cancel(
 
 pub fn androidpublisher_apprecovery_create_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     body: &CreateDraftAppRecoveryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1284,8 +950,11 @@ pub fn androidpublisher_apprecovery_create_builder(
 pub fn androidpublisher_apprecovery_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AppRecoveryAction>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppRecoveryAction>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1393,7 +1062,7 @@ pub fn androidpublisher_apprecovery_create(
     ApiError,
 > {
     let builder =
-        androidpublisher_apprecovery_create_builder(client, &args.packageName, &args.body)?;
+        androidpublisher_apprecovery_create_builder(client, args.packageName.clone(), &args.body)?;
     androidpublisher_apprecovery_create_execute(builder)
 }
 
@@ -1405,20 +1074,20 @@ pub fn androidpublisher_apprecovery_create(
 
 pub fn androidpublisher_apprecovery_deploy_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    appRecoveryId: &str,
+    packageName: String,
+    appRecoveryId: String,
     body: &DeployAppRecoveryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries/{}:deploy",
-        packageName,
-        appRecoveryId,
+        packageName.as_str(),
+        appRecoveryId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1450,8 +1119,11 @@ pub fn androidpublisher_apprecovery_deploy_builder(
 pub fn androidpublisher_apprecovery_deploy_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DeployAppRecoveryResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeployAppRecoveryResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1562,187 +1234,11 @@ pub fn androidpublisher_apprecovery_deploy(
 > {
     let builder = androidpublisher_apprecovery_deploy_builder(
         client,
-        &args.packageName,
-        &args.appRecoveryId,
+        args.packageName.clone(),
+        args.appRecoveryId.clone(),
         &args.body,
     )?;
     androidpublisher_apprecovery_deploy_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries
-/// List all app recovery action resources associated with a particular package name and app version.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_apprecovery_list_execute()` to send, or `androidpublisher_apprecovery_list` for simplest API.
-
-pub fn androidpublisher_apprecovery_list_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    versionCode: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/appRecoveries",
-        packageName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = versionCode {
-        query_parts.push(format!("versionCode={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries
-/// List all app recovery action resources associated with a particular package name and app version.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_apprecovery_list_execute()` or `androidpublisher_apprecovery_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_apprecovery_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_apprecovery_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListAppRecoveriesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListAppRecoveriesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries
-/// List all app recovery action resources associated with a particular package name and app version.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_apprecovery_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_apprecovery_list_task()`.
-/// For the simplest API, use `androidpublisher_apprecovery_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_apprecovery_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_apprecovery_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListAppRecoveriesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_apprecovery_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_apprecovery_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherApprecoveryListArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Query parameter: versionCode
-    pub versionCode: Option<String>,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/appRecoveries
-/// List all app recovery action resources associated with a particular package name and app version.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_apprecovery_list_builder()` + `androidpublisher_apprecovery_list_execute()`.
-/// For task-level control, use `androidpublisher_apprecovery_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_apprecovery_list(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherApprecoveryListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListAppRecoveriesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_apprecovery_list_builder(
-        client,
-        &args.packageName,
-        args.versionCode.as_deref(),
-    )?;
-    androidpublisher_apprecovery_list_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}:commit
@@ -1753,16 +1249,16 @@ pub fn androidpublisher_apprecovery_list(
 
 pub fn androidpublisher_edits_commit_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    changesInReviewBehavior: Option<&str>,
+    packageName: String,
+    editId: String,
+    changesInReviewBehavior: Option<String>,
     changesNotSentForReview: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}:commit",
-        packageName,
-        editId,
+        packageName.as_str(),
+        editId.as_str(),
     );
 
     // Build request
@@ -1775,9 +1271,9 @@ pub fn androidpublisher_edits_commit_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1811,7 +1307,12 @@ pub fn androidpublisher_edits_commit_builder(
 pub fn androidpublisher_edits_commit_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppEdit>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1919,10 +1420,10 @@ pub fn androidpublisher_edits_commit(
 > {
     let builder = androidpublisher_edits_commit_builder(
         client,
-        &args.packageName,
-        &args.editId,
-        args.changesInReviewBehavior.as_deref(),
-        args.changesNotSentForReview,
+        args.packageName.clone(),
+        args.editId.clone(),
+        args.changesInReviewBehavior.clone(),
+        args.changesNotSentForReview.clone(),
     )?;
     androidpublisher_edits_commit_execute(builder)
 }
@@ -1935,18 +1436,19 @@ pub fn androidpublisher_edits_commit(
 
 pub fn androidpublisher_edits_delete_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    packageName: String,
+    editId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}",
-        packageName, editId,
+        packageName.as_str(),
+        editId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1976,7 +1478,12 @@ pub fn androidpublisher_edits_delete_builder(
 pub fn androidpublisher_edits_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2075,163 +1582,12 @@ pub fn androidpublisher_edits_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_delete_builder(client, &args.packageName, &args.editId)?;
+    let builder = androidpublisher_edits_delete_builder(
+        client,
+        args.packageName.clone(),
+        args.editId.clone(),
+    )?;
     androidpublisher_edits_delete_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}
-/// Gets an app edit.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_get_execute()` to send, or `androidpublisher_edits_get` for simplest API.
-
-pub fn androidpublisher_edits_get_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}",
-        packageName, editId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}
-/// Gets an app edit.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_get_execute()` or `androidpublisher_edits_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AppEdit = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}
-/// Gets an app edit.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_get_task()`.
-/// For the simplest API, use `androidpublisher_edits_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsGetArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}
-/// Gets an app edit.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_get_builder()` + `androidpublisher_edits_get_execute()`.
-/// For task-level control, use `androidpublisher_edits_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_get(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_get_builder(client, &args.packageName, &args.editId)?;
-    androidpublisher_edits_get_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/edits
@@ -2242,18 +1598,18 @@ pub fn androidpublisher_edits_get(
 
 pub fn androidpublisher_edits_insert_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     body: &AppEdit,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2285,7 +1641,12 @@ pub fn androidpublisher_edits_insert_builder(
 pub fn androidpublisher_edits_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppEdit>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2387,7 +1748,8 @@ pub fn androidpublisher_edits_insert(
     impl StreamIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_insert_builder(client, &args.packageName, &args.body)?;
+    let builder =
+        androidpublisher_edits_insert_builder(client, args.packageName.clone(), &args.body)?;
     androidpublisher_edits_insert_execute(builder)
 }
 
@@ -2399,19 +1761,19 @@ pub fn androidpublisher_edits_insert(
 
 pub fn androidpublisher_edits_validate_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    packageName: String,
+    editId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}:validate",
-        packageName,
-        editId,
+        packageName.as_str(),
+        editId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2441,7 +1803,12 @@ pub fn androidpublisher_edits_validate_builder(
 pub fn androidpublisher_edits_validate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppEdit>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2543,7 +1910,11 @@ pub fn androidpublisher_edits_validate(
     impl StreamIterator<D = Result<ApiResponse<AppEdit>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_edits_validate_builder(client, &args.packageName, &args.editId)?;
+    let builder = androidpublisher_edits_validate_builder(
+        client,
+        args.packageName.clone(),
+        args.editId.clone(),
+    )?;
     androidpublisher_edits_validate_execute(builder)
 }
 
@@ -2555,20 +1926,20 @@ pub fn androidpublisher_edits_validate(
 
 pub fn androidpublisher_edits_apks_addexternallyhosted_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    packageName: String,
+    editId: String,
     body: &ApksAddExternallyHostedRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/externallyHosted",
-        packageName,
-        editId,
+        packageName.as_str(),
+        editId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2601,8 +1972,9 @@ pub fn androidpublisher_edits_apks_addexternallyhosted_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ApksAddExternallyHostedResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ApksAddExternallyHostedResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2718,8 +2090,8 @@ pub fn androidpublisher_edits_apks_addexternallyhosted(
 > {
     let builder = androidpublisher_edits_apks_addexternallyhosted_builder(
         client,
-        &args.packageName,
-        &args.editId,
+        args.packageName.clone(),
+        args.editId.clone(),
         &args.body,
     )?;
     androidpublisher_edits_apks_addexternallyhosted_execute(builder)
@@ -2733,18 +2105,19 @@ pub fn androidpublisher_edits_apks_addexternallyhosted(
 
 pub fn androidpublisher_edits_apks_list_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    packageName: String,
+    editId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks",
-        packageName, editId,
+        packageName.as_str(),
+        editId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2774,8 +2147,11 @@ pub fn androidpublisher_edits_apks_list_builder(
 pub fn androidpublisher_edits_apks_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ApksListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ApksListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2882,165 +2258,12 @@ pub fn androidpublisher_edits_apks_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_edits_apks_list_builder(client, &args.packageName, &args.editId)?;
+    let builder = androidpublisher_edits_apks_list_builder(
+        client,
+        args.packageName.clone(),
+        args.editId.clone(),
+    )?;
     androidpublisher_edits_apks_list_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks
-/// Uploads an APK and adds to the current edit.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_apks_upload_execute()` to send, or `androidpublisher_edits_apks_upload` for simplest API.
-
-pub fn androidpublisher_edits_apks_upload_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks",
-        packageName, editId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks
-/// Uploads an APK and adds to the current edit.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_apks_upload_execute()` or `androidpublisher_edits_apks_upload`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_apks_upload_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_apks_upload_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Apk>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Apk = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks
-/// Uploads an APK and adds to the current edit.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_apks_upload_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_apks_upload_task()`.
-/// For the simplest API, use `androidpublisher_edits_apks_upload()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_apks_upload_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_apks_upload_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Apk>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_apks_upload_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_apks_upload`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsApksUploadArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks
-/// Uploads an APK and adds to the current edit.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_apks_upload_builder()` + `androidpublisher_edits_apks_upload_execute()`.
-/// For task-level control, use `androidpublisher_edits_apks_upload_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_apks_upload(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsApksUploadArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Apk>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        androidpublisher_edits_apks_upload_builder(client, &args.packageName, &args.editId)?;
-    androidpublisher_edits_apks_upload_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/bundles
@@ -3051,19 +2274,19 @@ pub fn androidpublisher_edits_apks_upload(
 
 pub fn androidpublisher_edits_bundles_list_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    packageName: String,
+    editId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/bundles",
-        packageName,
-        editId,
+        packageName.as_str(),
+        editId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3093,8 +2316,11 @@ pub fn androidpublisher_edits_bundles_list_builder(
 pub fn androidpublisher_edits_bundles_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BundlesListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BundlesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3201,191 +2427,12 @@ pub fn androidpublisher_edits_bundles_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_edits_bundles_list_builder(client, &args.packageName, &args.editId)?;
-    androidpublisher_edits_bundles_list_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/bundles
-/// Uploads a new Android App Bundle to this edit. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_bundles_upload_execute()` to send, or `androidpublisher_edits_bundles_upload` for simplest API.
-
-pub fn androidpublisher_edits_bundles_upload_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    ackBundleInstallationWarning: Option<bool>,
-    deviceTierConfigId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/bundles",
-        packageName,
-        editId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = ackBundleInstallationWarning {
-        query_parts.push(format!("ackBundleInstallationWarning={}", val));
-    }
-    if let Some(val) = deviceTierConfigId {
-        query_parts.push(format!("deviceTierConfigId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/bundles
-/// Uploads a new Android App Bundle to this edit. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_bundles_upload_execute()` or `androidpublisher_edits_bundles_upload`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_bundles_upload_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_bundles_upload_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Bundle>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Bundle = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/bundles
-/// Uploads a new Android App Bundle to this edit. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_bundles_upload_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_bundles_upload_task()`.
-/// For the simplest API, use `androidpublisher_edits_bundles_upload()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_bundles_upload_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_bundles_upload_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Bundle>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_bundles_upload_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_bundles_upload`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsBundlesUploadArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Query parameter: ackBundleInstallationWarning
-    pub ackBundleInstallationWarning: Option<bool>,
-    /// Query parameter: deviceTierConfigId
-    pub deviceTierConfigId: Option<String>,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/bundles
-/// Uploads a new Android App Bundle to this edit. If you are using the Google API client libraries, please increase the timeout of the http request before calling this endpoint (a timeout of 2 minutes is recommended). See [Timeouts and Errors](<https://developers.google.`com/api-client-library/java/google-api-java-client/errors`>) for an example in java.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_bundles_upload_builder()` + `androidpublisher_edits_bundles_upload_execute()`.
-/// For task-level control, use `androidpublisher_edits_bundles_upload_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_bundles_upload(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsBundlesUploadArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Bundle>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_bundles_upload_builder(
+    let builder = androidpublisher_edits_bundles_list_builder(
         client,
-        &args.packageName,
-        &args.editId,
-        args.ackBundleInstallationWarning,
-        args.deviceTierConfigId.as_deref(),
+        args.packageName.clone(),
+        args.editId.clone(),
     )?;
-    androidpublisher_edits_bundles_upload_execute(builder)
+    androidpublisher_edits_bundles_list_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/countryAvailability/{track}
@@ -3396,21 +2443,21 @@ pub fn androidpublisher_edits_bundles_upload(
 
 pub fn androidpublisher_edits_countryavailability_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    track: &str,
+    packageName: String,
+    editId: String,
+    track: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/countryAvailability/{}",
-        packageName,
-        editId,
-        track,
+        packageName.as_str(),
+        editId.as_str(),
+        track.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3440,8 +2487,11 @@ pub fn androidpublisher_edits_countryavailability_get_builder(
 pub fn androidpublisher_edits_countryavailability_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TrackCountryAvailability>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TrackCountryAvailability>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3552,9 +2602,9 @@ pub fn androidpublisher_edits_countryavailability_get(
 > {
     let builder = androidpublisher_edits_countryavailability_get_builder(
         client,
-        &args.packageName,
-        &args.editId,
-        &args.track,
+        args.packageName.clone(),
+        args.editId.clone(),
+        args.track.clone(),
     )?;
     androidpublisher_edits_countryavailability_get_execute(builder)
 }
@@ -3567,23 +2617,23 @@ pub fn androidpublisher_edits_countryavailability_get(
 
 pub fn androidpublisher_edits_deobfuscationfiles_upload_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    apkVersionCode: &str,
-    deobfuscationFileType: &str,
+    packageName: String,
+    editId: String,
+    apkVersionCode: String,
+    deobfuscationFileType: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/deobfuscationFiles/{}",
-        packageName,
-        editId,
-        apkVersionCode,
-        deobfuscationFileType,
+        packageName.as_str(),
+        editId.as_str(),
+        apkVersionCode.as_str(),
+        deobfuscationFileType.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3614,8 +2664,9 @@ pub fn androidpublisher_edits_deobfuscationfiles_upload_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<DeobfuscationFilesUploadResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<DeobfuscationFilesUploadResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3733,10 +2784,10 @@ pub fn androidpublisher_edits_deobfuscationfiles_upload(
 > {
     let builder = androidpublisher_edits_deobfuscationfiles_upload_builder(
         client,
-        &args.packageName,
-        &args.editId,
-        &args.apkVersionCode,
-        &args.deobfuscationFileType,
+        args.packageName.clone(),
+        args.editId.clone(),
+        args.apkVersionCode.clone(),
+        args.deobfuscationFileType.clone(),
     )?;
     androidpublisher_edits_deobfuscationfiles_upload_execute(builder)
 }
@@ -3749,19 +2800,19 @@ pub fn androidpublisher_edits_deobfuscationfiles_upload(
 
 pub fn androidpublisher_edits_details_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    packageName: String,
+    editId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/details",
-        packageName,
-        editId,
+        packageName.as_str(),
+        editId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3791,7 +2842,12 @@ pub fn androidpublisher_edits_details_get_builder(
 pub fn androidpublisher_edits_details_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppDetails>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3893,341 +2949,12 @@ pub fn androidpublisher_edits_details_get(
     impl StreamIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_edits_details_get_builder(client, &args.packageName, &args.editId)?;
+    let builder = androidpublisher_edits_details_get_builder(
+        client,
+        args.packageName.clone(),
+        args.editId.clone(),
+    )?;
     androidpublisher_edits_details_get_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/details
-/// Patches details of an app.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_details_patch_execute()` to send, or `androidpublisher_edits_details_patch` for simplest API.
-
-pub fn androidpublisher_edits_details_patch_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    body: &AppDetails,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/details",
-        packageName,
-        editId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/details
-/// Patches details of an app.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_details_patch_execute()` or `androidpublisher_edits_details_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_details_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_details_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AppDetails = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/details
-/// Patches details of an app.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_details_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_details_patch_task()`.
-/// For the simplest API, use `androidpublisher_edits_details_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_details_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_details_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_details_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_details_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsDetailsPatchArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Request body.
-    pub body: AppDetails,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/details
-/// Patches details of an app.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_details_patch_builder()` + `androidpublisher_edits_details_patch_execute()`.
-/// For task-level control, use `androidpublisher_edits_details_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_details_patch(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsDetailsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_details_patch_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.body,
-    )?;
-    androidpublisher_edits_details_patch_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/details
-/// Updates details of an app.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_details_update_execute()` to send, or `androidpublisher_edits_details_update` for simplest API.
-
-pub fn androidpublisher_edits_details_update_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    body: &AppDetails,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/details",
-        packageName,
-        editId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/details
-/// Updates details of an app.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_details_update_execute()` or `androidpublisher_edits_details_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_details_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_details_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AppDetails = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/details
-/// Updates details of an app.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_details_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_details_update_task()`.
-/// For the simplest API, use `androidpublisher_edits_details_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_details_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_details_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_details_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_details_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsDetailsUpdateArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Request body.
-    pub body: AppDetails,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/details
-/// Updates details of an app.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_details_update_builder()` + `androidpublisher_edits_details_update_execute()`.
-/// For task-level control, use `androidpublisher_edits_details_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_details_update(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsDetailsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AppDetails>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_details_update_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.body,
-    )?;
-    androidpublisher_edits_details_update_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
@@ -4238,23 +2965,23 @@ pub fn androidpublisher_edits_details_update(
 
 pub fn androidpublisher_edits_expansionfiles_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    apkVersionCode: &str,
-    expansionFileType: &str,
+    packageName: String,
+    editId: String,
+    apkVersionCode: String,
+    expansionFileType: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/expansionFiles/{}",
-        packageName,
-        editId,
-        apkVersionCode,
-        expansionFileType,
+        packageName.as_str(),
+        editId.as_str(),
+        apkVersionCode.as_str(),
+        expansionFileType.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4284,7 +3011,12 @@ pub fn androidpublisher_edits_expansionfiles_get_builder(
 pub fn androidpublisher_edits_expansionfiles_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ExpansionFile>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExpansionFile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4396,554 +3128,12 @@ pub fn androidpublisher_edits_expansionfiles_get(
 > {
     let builder = androidpublisher_edits_expansionfiles_get_builder(
         client,
-        &args.packageName,
-        &args.editId,
-        &args.apkVersionCode,
-        &args.expansionFileType,
+        args.packageName.clone(),
+        args.editId.clone(),
+        args.apkVersionCode.clone(),
+        args.expansionFileType.clone(),
     )?;
     androidpublisher_edits_expansionfiles_get_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Patches the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_expansionfiles_patch_execute()` to send, or `androidpublisher_edits_expansionfiles_patch` for simplest API.
-
-pub fn androidpublisher_edits_expansionfiles_patch_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    apkVersionCode: &str,
-    expansionFileType: &str,
-    body: &ExpansionFile,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/expansionFiles/{}",
-        packageName,
-        editId,
-        apkVersionCode,
-        expansionFileType,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Patches the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_expansionfiles_patch_execute()` or `androidpublisher_edits_expansionfiles_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_expansionfiles_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_expansionfiles_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ExpansionFile>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ExpansionFile = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Patches the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_expansionfiles_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_expansionfiles_patch_task()`.
-/// For the simplest API, use `androidpublisher_edits_expansionfiles_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_expansionfiles_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_expansionfiles_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ExpansionFile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_expansionfiles_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_expansionfiles_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsExpansionfilesPatchArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Path parameter: apkVersionCode
-    pub apkVersionCode: String,
-    /// Path parameter: expansionFileType
-    pub expansionFileType: String,
-    /// Request body.
-    pub body: ExpansionFile,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Patches the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_expansionfiles_patch_builder()` + `androidpublisher_edits_expansionfiles_patch_execute()`.
-/// For task-level control, use `androidpublisher_edits_expansionfiles_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_expansionfiles_patch(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsExpansionfilesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ExpansionFile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_expansionfiles_patch_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.apkVersionCode,
-        &args.expansionFileType,
-        &args.body,
-    )?;
-    androidpublisher_edits_expansionfiles_patch_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Updates the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_expansionfiles_update_execute()` to send, or `androidpublisher_edits_expansionfiles_update` for simplest API.
-
-pub fn androidpublisher_edits_expansionfiles_update_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    apkVersionCode: &str,
-    expansionFileType: &str,
-    body: &ExpansionFile,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/expansionFiles/{}",
-        packageName,
-        editId,
-        apkVersionCode,
-        expansionFileType,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Updates the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_expansionfiles_update_execute()` or `androidpublisher_edits_expansionfiles_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_expansionfiles_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_expansionfiles_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ExpansionFile>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ExpansionFile = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Updates the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_expansionfiles_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_expansionfiles_update_task()`.
-/// For the simplest API, use `androidpublisher_edits_expansionfiles_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_expansionfiles_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_expansionfiles_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ExpansionFile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_expansionfiles_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_expansionfiles_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsExpansionfilesUpdateArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Path parameter: apkVersionCode
-    pub apkVersionCode: String,
-    /// Path parameter: expansionFileType
-    pub expansionFileType: String,
-    /// Request body.
-    pub body: ExpansionFile,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Updates the APK's expansion file configuration to reference another APK's expansion file. To add a new expansion file use the Upload method.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_expansionfiles_update_builder()` + `androidpublisher_edits_expansionfiles_update_execute()`.
-/// For task-level control, use `androidpublisher_edits_expansionfiles_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_expansionfiles_update(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsExpansionfilesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ExpansionFile>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_expansionfiles_update_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.apkVersionCode,
-        &args.expansionFileType,
-        &args.body,
-    )?;
-    androidpublisher_edits_expansionfiles_update_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Uploads a new expansion file and attaches to the specified APK.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_expansionfiles_upload_execute()` to send, or `androidpublisher_edits_expansionfiles_upload` for simplest API.
-
-pub fn androidpublisher_edits_expansionfiles_upload_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    apkVersionCode: &str,
-    expansionFileType: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/apks/{}/expansionFiles/{}",
-        packageName,
-        editId,
-        apkVersionCode,
-        expansionFileType,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Uploads a new expansion file and attaches to the specified APK.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_expansionfiles_upload_execute()` or `androidpublisher_edits_expansionfiles_upload`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_expansionfiles_upload_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_expansionfiles_upload_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ExpansionFilesUploadResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ExpansionFilesUploadResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Uploads a new expansion file and attaches to the specified APK.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_expansionfiles_upload_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_expansionfiles_upload_task()`.
-/// For the simplest API, use `androidpublisher_edits_expansionfiles_upload()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_expansionfiles_upload_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_expansionfiles_upload_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ExpansionFilesUploadResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_expansionfiles_upload_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_expansionfiles_upload`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsExpansionfilesUploadArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Path parameter: apkVersionCode
-    pub apkVersionCode: String,
-    /// Path parameter: expansionFileType
-    pub expansionFileType: String,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/apks/{apkVersionCode}/expansionFiles/{expansionFileType}
-/// Uploads a new expansion file and attaches to the specified APK.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_expansionfiles_upload_builder()` + `androidpublisher_edits_expansionfiles_upload_execute()`.
-/// For task-level control, use `androidpublisher_edits_expansionfiles_upload_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_expansionfiles_upload(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsExpansionfilesUploadArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ExpansionFilesUploadResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_expansionfiles_upload_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.apkVersionCode,
-        &args.expansionFileType,
-    )?;
-    androidpublisher_edits_expansionfiles_upload_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}/{imageId}
@@ -4954,25 +3144,25 @@ pub fn androidpublisher_edits_expansionfiles_upload(
 
 pub fn androidpublisher_edits_images_delete_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
-    imageType: &str,
-    imageId: &str,
+    packageName: String,
+    editId: String,
+    language: String,
+    imageType: String,
+    imageId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}/{}/{}",
-        packageName,
-        editId,
-        language,
-        imageType,
-        imageId,
+        packageName.as_str(),
+        editId.as_str(),
+        language.as_str(),
+        imageType.as_str(),
+        imageId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5002,7 +3192,12 @@ pub fn androidpublisher_edits_images_delete_builder(
 pub fn androidpublisher_edits_images_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5109,11 +3304,11 @@ pub fn androidpublisher_edits_images_delete(
 > {
     let builder = androidpublisher_edits_images_delete_builder(
         client,
-        &args.packageName,
-        &args.editId,
-        &args.language,
-        &args.imageType,
-        &args.imageId,
+        args.packageName.clone(),
+        args.editId.clone(),
+        args.language.clone(),
+        args.imageType.clone(),
+        args.imageId.clone(),
     )?;
     androidpublisher_edits_images_delete_execute(builder)
 }
@@ -5126,23 +3321,23 @@ pub fn androidpublisher_edits_images_delete(
 
 pub fn androidpublisher_edits_images_deleteall_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
-    imageType: &str,
+    packageName: String,
+    editId: String,
+    language: String,
+    imageType: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}/{}",
-        packageName,
-        editId,
-        language,
-        imageType,
+        packageName.as_str(),
+        editId.as_str(),
+        language.as_str(),
+        imageType.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5172,8 +3367,11 @@ pub fn androidpublisher_edits_images_deleteall_builder(
 pub fn androidpublisher_edits_images_deleteall_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ImagesDeleteAllResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ImagesDeleteAllResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5286,364 +3484,12 @@ pub fn androidpublisher_edits_images_deleteall(
 > {
     let builder = androidpublisher_edits_images_deleteall_builder(
         client,
-        &args.packageName,
-        &args.editId,
-        &args.language,
-        &args.imageType,
+        args.packageName.clone(),
+        args.editId.clone(),
+        args.language.clone(),
+        args.imageType.clone(),
     )?;
     androidpublisher_edits_images_deleteall_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
-/// Lists all images. The response may be empty.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_images_list_execute()` to send, or `androidpublisher_edits_images_list` for simplest API.
-
-pub fn androidpublisher_edits_images_list_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
-    imageType: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}/{}",
-        packageName,
-        editId,
-        language,
-        imageType,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
-/// Lists all images. The response may be empty.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_images_list_execute()` or `androidpublisher_edits_images_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_images_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_images_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ImagesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ImagesListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
-/// Lists all images. The response may be empty.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_images_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_images_list_task()`.
-/// For the simplest API, use `androidpublisher_edits_images_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_images_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_images_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ImagesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_images_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_images_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsImagesListArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Path parameter: language
-    pub language: String,
-    /// Path parameter: imageType
-    pub imageType: String,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
-/// Lists all images. The response may be empty.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_images_list_builder()` + `androidpublisher_edits_images_list_execute()`.
-/// For task-level control, use `androidpublisher_edits_images_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_images_list(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsImagesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ImagesListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_images_list_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.language,
-        &args.imageType,
-    )?;
-    androidpublisher_edits_images_list_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
-/// Uploads an image of the specified language and image type, and adds to the edit.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_images_upload_execute()` to send, or `androidpublisher_edits_images_upload` for simplest API.
-
-pub fn androidpublisher_edits_images_upload_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
-    imageType: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}/{}",
-        packageName,
-        editId,
-        language,
-        imageType,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
-/// Uploads an image of the specified language and image type, and adds to the edit.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_images_upload_execute()` or `androidpublisher_edits_images_upload`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_images_upload_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_images_upload_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ImagesUploadResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ImagesUploadResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
-/// Uploads an image of the specified language and image type, and adds to the edit.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_images_upload_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_images_upload_task()`.
-/// For the simplest API, use `androidpublisher_edits_images_upload()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_images_upload_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_images_upload_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ImagesUploadResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_images_upload_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_images_upload`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsImagesUploadArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Path parameter: language
-    pub language: String,
-    /// Path parameter: imageType
-    pub imageType: String,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}/{imageType}
-/// Uploads an image of the specified language and image type, and adds to the edit.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_images_upload_builder()` + `androidpublisher_edits_images_upload_execute()`.
-/// For task-level control, use `androidpublisher_edits_images_upload_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_images_upload(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsImagesUploadArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ImagesUploadResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_images_upload_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.language,
-        &args.imageType,
-    )?;
-    androidpublisher_edits_images_upload_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
@@ -5654,21 +3500,21 @@ pub fn androidpublisher_edits_images_upload(
 
 pub fn androidpublisher_edits_listings_delete_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
+    packageName: String,
+    editId: String,
+    language: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}",
-        packageName,
-        editId,
-        language,
+        packageName.as_str(),
+        editId.as_str(),
+        language.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5698,7 +3544,12 @@ pub fn androidpublisher_edits_listings_delete_builder(
 pub fn androidpublisher_edits_listings_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5801,9 +3652,9 @@ pub fn androidpublisher_edits_listings_delete(
 > {
     let builder = androidpublisher_edits_listings_delete_builder(
         client,
-        &args.packageName,
-        &args.editId,
-        &args.language,
+        args.packageName.clone(),
+        args.editId.clone(),
+        args.language.clone(),
     )?;
     androidpublisher_edits_listings_delete_execute(builder)
 }
@@ -5816,19 +3667,19 @@ pub fn androidpublisher_edits_listings_delete(
 
 pub fn androidpublisher_edits_listings_deleteall_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    packageName: String,
+    editId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings",
-        packageName,
-        editId,
+        packageName.as_str(),
+        editId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5858,7 +3709,12 @@ pub fn androidpublisher_edits_listings_deleteall_builder(
 pub fn androidpublisher_edits_listings_deleteall_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5957,679 +3813,12 @@ pub fn androidpublisher_edits_listings_deleteall(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_edits_listings_deleteall_builder(client, &args.packageName, &args.editId)?;
+    let builder = androidpublisher_edits_listings_deleteall_builder(
+        client,
+        args.packageName.clone(),
+        args.editId.clone(),
+    )?;
     androidpublisher_edits_listings_deleteall_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
-/// Gets a localized store listing.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_listings_get_execute()` to send, or `androidpublisher_edits_listings_get` for simplest API.
-
-pub fn androidpublisher_edits_listings_get_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}",
-        packageName,
-        editId,
-        language,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
-/// Gets a localized store listing.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_listings_get_execute()` or `androidpublisher_edits_listings_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_listings_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Listing = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
-/// Gets a localized store listing.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_listings_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_listings_get_task()`.
-/// For the simplest API, use `androidpublisher_edits_listings_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_listings_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_listings_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_listings_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsListingsGetArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Path parameter: language
-    pub language: String,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
-/// Gets a localized store listing.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_listings_get_builder()` + `androidpublisher_edits_listings_get_execute()`.
-/// For task-level control, use `androidpublisher_edits_listings_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_listings_get(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsListingsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_listings_get_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.language,
-    )?;
-    androidpublisher_edits_listings_get_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
-/// Lists all localized store listings.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_listings_list_execute()` to send, or `androidpublisher_edits_listings_list` for simplest API.
-
-pub fn androidpublisher_edits_listings_list_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings",
-        packageName,
-        editId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
-/// Lists all localized store listings.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_listings_list_execute()` or `androidpublisher_edits_listings_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_listings_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListingsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListingsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
-/// Lists all localized store listings.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_listings_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_listings_list_task()`.
-/// For the simplest API, use `androidpublisher_edits_listings_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_listings_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListingsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_listings_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_listings_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsListingsListArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings
-/// Lists all localized store listings.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_listings_list_builder()` + `androidpublisher_edits_listings_list_execute()`.
-/// For task-level control, use `androidpublisher_edits_listings_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_listings_list(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsListingsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListingsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        androidpublisher_edits_listings_list_builder(client, &args.packageName, &args.editId)?;
-    androidpublisher_edits_listings_list_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
-/// Patches a localized store listing.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_listings_patch_execute()` to send, or `androidpublisher_edits_listings_patch` for simplest API.
-
-pub fn androidpublisher_edits_listings_patch_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
-    body: &Listing,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}",
-        packageName,
-        editId,
-        language,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
-/// Patches a localized store listing.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_listings_patch_execute()` or `androidpublisher_edits_listings_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_listings_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Listing = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
-/// Patches a localized store listing.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_listings_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_listings_patch_task()`.
-/// For the simplest API, use `androidpublisher_edits_listings_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_listings_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_listings_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_listings_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsListingsPatchArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Path parameter: language
-    pub language: String,
-    /// Request body.
-    pub body: Listing,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
-/// Patches a localized store listing.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_listings_patch_builder()` + `androidpublisher_edits_listings_patch_execute()`.
-/// For task-level control, use `androidpublisher_edits_listings_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_listings_patch(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsListingsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_listings_patch_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.language,
-        &args.body,
-    )?;
-    androidpublisher_edits_listings_patch_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
-/// Creates or updates a localized store listing.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_listings_update_execute()` to send, or `androidpublisher_edits_listings_update` for simplest API.
-
-pub fn androidpublisher_edits_listings_update_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    language: &str,
-    body: &Listing,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/listings/{}",
-        packageName,
-        editId,
-        language,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
-/// Creates or updates a localized store listing.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_listings_update_execute()` or `androidpublisher_edits_listings_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_listings_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Listing = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
-/// Creates or updates a localized store listing.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_listings_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_listings_update_task()`.
-/// For the simplest API, use `androidpublisher_edits_listings_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_listings_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_listings_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_listings_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_listings_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsListingsUpdateArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Path parameter: language
-    pub language: String,
-    /// Request body.
-    pub body: Listing,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/listings/{language}
-/// Creates or updates a localized store listing.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_listings_update_builder()` + `androidpublisher_edits_listings_update_execute()`.
-/// For task-level control, use `androidpublisher_edits_listings_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_listings_update(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsListingsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Listing>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_listings_update_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.language,
-        &args.body,
-    )?;
-    androidpublisher_edits_listings_update_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
@@ -6640,21 +3829,21 @@ pub fn androidpublisher_edits_listings_update(
 
 pub fn androidpublisher_edits_testers_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    track: &str,
+    packageName: String,
+    editId: String,
+    track: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/testers/{}",
-        packageName,
-        editId,
-        track,
+        packageName.as_str(),
+        editId.as_str(),
+        track.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6684,7 +3873,12 @@ pub fn androidpublisher_edits_testers_get_builder(
 pub fn androidpublisher_edits_testers_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Testers>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Testers>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6790,353 +3984,11 @@ pub fn androidpublisher_edits_testers_get(
 > {
     let builder = androidpublisher_edits_testers_get_builder(
         client,
-        &args.packageName,
-        &args.editId,
-        &args.track,
+        args.packageName.clone(),
+        args.editId.clone(),
+        args.track.clone(),
     )?;
     androidpublisher_edits_testers_get_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
-/// Patches testers. Note: Testers resource does not support email lists.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_testers_patch_execute()` to send, or `androidpublisher_edits_testers_patch` for simplest API.
-
-pub fn androidpublisher_edits_testers_patch_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    track: &str,
-    body: &Testers,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/testers/{}",
-        packageName,
-        editId,
-        track,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
-/// Patches testers. Note: Testers resource does not support email lists.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_testers_patch_execute()` or `androidpublisher_edits_testers_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_testers_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_testers_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Testers>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Testers = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
-/// Patches testers. Note: Testers resource does not support email lists.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_testers_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_testers_patch_task()`.
-/// For the simplest API, use `androidpublisher_edits_testers_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_testers_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_testers_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Testers>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_testers_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_testers_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsTestersPatchArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Path parameter: track
-    pub track: String,
-    /// Request body.
-    pub body: Testers,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
-/// Patches testers. Note: Testers resource does not support email lists.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_testers_patch_builder()` + `androidpublisher_edits_testers_patch_execute()`.
-/// For task-level control, use `androidpublisher_edits_testers_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_testers_patch(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsTestersPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Testers>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_testers_patch_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.track,
-        &args.body,
-    )?;
-    androidpublisher_edits_testers_patch_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
-/// Updates testers. Note: Testers resource does not support email lists.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_testers_update_execute()` to send, or `androidpublisher_edits_testers_update` for simplest API.
-
-pub fn androidpublisher_edits_testers_update_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    track: &str,
-    body: &Testers,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/testers/{}",
-        packageName,
-        editId,
-        track,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
-/// Updates testers. Note: Testers resource does not support email lists.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_testers_update_execute()` or `androidpublisher_edits_testers_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_testers_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_testers_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Testers>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Testers = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
-/// Updates testers. Note: Testers resource does not support email lists.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_testers_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_testers_update_task()`.
-/// For the simplest API, use `androidpublisher_edits_testers_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_testers_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_testers_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Testers>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_testers_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_testers_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsTestersUpdateArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Path parameter: track
-    pub track: String,
-    /// Request body.
-    pub body: Testers,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/testers/{track}
-/// Updates testers. Note: Testers resource does not support email lists.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_testers_update_builder()` + `androidpublisher_edits_testers_update_execute()`.
-/// For task-level control, use `androidpublisher_edits_testers_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_testers_update(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsTestersUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Testers>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_testers_update_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.track,
-        &args.body,
-    )?;
-    androidpublisher_edits_testers_update_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
@@ -7147,20 +3999,20 @@ pub fn androidpublisher_edits_testers_update(
 
 pub fn androidpublisher_edits_tracks_create_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
+    packageName: String,
+    editId: String,
     body: &TrackConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks",
-        packageName,
-        editId,
+        packageName.as_str(),
+        editId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -7192,7 +4044,12 @@ pub fn androidpublisher_edits_tracks_create_builder(
 pub fn androidpublisher_edits_tracks_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Track>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7298,8 +4155,8 @@ pub fn androidpublisher_edits_tracks_create(
 > {
     let builder = androidpublisher_edits_tracks_create_builder(
         client,
-        &args.packageName,
-        &args.editId,
+        args.packageName.clone(),
+        args.editId.clone(),
         &args.body,
     )?;
     androidpublisher_edits_tracks_create_execute(builder)
@@ -7313,21 +4170,21 @@ pub fn androidpublisher_edits_tracks_create(
 
 pub fn androidpublisher_edits_tracks_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    track: &str,
+    packageName: String,
+    editId: String,
+    track: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks/{}",
-        packageName,
-        editId,
-        track,
+        packageName.as_str(),
+        editId.as_str(),
+        track.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7357,7 +4214,12 @@ pub fn androidpublisher_edits_tracks_get_builder(
 pub fn androidpublisher_edits_tracks_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Track>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7463,516 +4325,11 @@ pub fn androidpublisher_edits_tracks_get(
 > {
     let builder = androidpublisher_edits_tracks_get_builder(
         client,
-        &args.packageName,
-        &args.editId,
-        &args.track,
+        args.packageName.clone(),
+        args.editId.clone(),
+        args.track.clone(),
     )?;
     androidpublisher_edits_tracks_get_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
-/// Lists all tracks.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_tracks_list_execute()` to send, or `androidpublisher_edits_tracks_list` for simplest API.
-
-pub fn androidpublisher_edits_tracks_list_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks",
-        packageName,
-        editId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
-/// Lists all tracks.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_tracks_list_execute()` or `androidpublisher_edits_tracks_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_tracks_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_tracks_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TracksListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TracksListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
-/// Lists all tracks.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_tracks_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_tracks_list_task()`.
-/// For the simplest API, use `androidpublisher_edits_tracks_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_tracks_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_tracks_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TracksListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_tracks_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_tracks_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsTracksListArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks
-/// Lists all tracks.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_tracks_list_builder()` + `androidpublisher_edits_tracks_list_execute()`.
-/// For task-level control, use `androidpublisher_edits_tracks_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_tracks_list(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsTracksListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TracksListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        androidpublisher_edits_tracks_list_builder(client, &args.packageName, &args.editId)?;
-    androidpublisher_edits_tracks_list_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
-/// Patches a track.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_tracks_patch_execute()` to send, or `androidpublisher_edits_tracks_patch` for simplest API.
-
-pub fn androidpublisher_edits_tracks_patch_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    track: &str,
-    body: &Track,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks/{}",
-        packageName,
-        editId,
-        track,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
-/// Patches a track.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_tracks_patch_execute()` or `androidpublisher_edits_tracks_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_tracks_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_tracks_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Track = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
-/// Patches a track.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_tracks_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_tracks_patch_task()`.
-/// For the simplest API, use `androidpublisher_edits_tracks_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_tracks_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_tracks_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_tracks_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_tracks_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsTracksPatchArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Path parameter: track
-    pub track: String,
-    /// Request body.
-    pub body: Track,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
-/// Patches a track.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_tracks_patch_builder()` + `androidpublisher_edits_tracks_patch_execute()`.
-/// For task-level control, use `androidpublisher_edits_tracks_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_tracks_patch(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsTracksPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_tracks_patch_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.track,
-        &args.body,
-    )?;
-    androidpublisher_edits_tracks_patch_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
-/// Updates a track.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_edits_tracks_update_execute()` to send, or `androidpublisher_edits_tracks_update` for simplest API.
-
-pub fn androidpublisher_edits_tracks_update_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    editId: &str,
-    track: &str,
-    body: &Track,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/edits/{}/tracks/{}",
-        packageName,
-        editId,
-        track,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
-/// Updates a track.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_edits_tracks_update_execute()` or `androidpublisher_edits_tracks_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_tracks_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_tracks_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Track = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
-/// Updates a track.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_edits_tracks_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_edits_tracks_update_task()`.
-/// For the simplest API, use `androidpublisher_edits_tracks_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_edits_tracks_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_edits_tracks_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_edits_tracks_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_edits_tracks_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherEditsTracksUpdateArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: editId
-    pub editId: String,
-    /// Path parameter: track
-    pub track: String,
-    /// Request body.
-    pub body: Track,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/edits/{editId}/tracks/{track}
-/// Updates a track.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_edits_tracks_update_builder()` + `androidpublisher_edits_tracks_update_execute()`.
-/// For task-level control, use `androidpublisher_edits_tracks_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_edits_tracks_update(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherEditsTracksUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Track>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_edits_tracks_update_builder(
-        client,
-        &args.packageName,
-        &args.editId,
-        &args.track,
-        &args.body,
-    )?;
-    androidpublisher_edits_tracks_update_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions
@@ -7983,14 +4340,13 @@ pub fn androidpublisher_edits_tracks_update(
 
 pub fn androidpublisher_externaltransactions_createexternaltransaction_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    externalTransactionId: Option<&str>,
+    parent: String,
+    externalTransactionId: Option<String>,
     body: &ExternalTransaction,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/externalTransactions",
-        parent,
     );
 
     // Build request
@@ -8000,9 +4356,9 @@ pub fn androidpublisher_externaltransactions_createexternaltransaction_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -8038,8 +4394,11 @@ pub fn androidpublisher_externaltransactions_createexternaltransaction_builder(
 pub fn androidpublisher_externaltransactions_createexternaltransaction_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ExternalTransaction>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ExternalTransaction>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -8150,335 +4509,11 @@ pub fn androidpublisher_externaltransactions_createexternaltransaction(
 > {
     let builder = androidpublisher_externaltransactions_createexternaltransaction_builder(
         client,
-        &args.parent,
-        args.externalTransactionId.as_deref(),
+        args.parent.clone(),
+        args.externalTransactionId.clone(),
         &args.body,
     )?;
     androidpublisher_externaltransactions_createexternaltransaction_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}
-/// Gets an existing external transaction.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_externaltransactions_getexternaltransaction_execute()` to send, or `androidpublisher_externaltransactions_getexternaltransaction` for simplest API.
-
-pub fn androidpublisher_externaltransactions_getexternaltransaction_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/externalTransactions/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}
-/// Gets an existing external transaction.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_externaltransactions_getexternaltransaction_execute()` or `androidpublisher_externaltransactions_getexternaltransaction`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_externaltransactions_getexternaltransaction_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_externaltransactions_getexternaltransaction_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ExternalTransaction>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ExternalTransaction = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}
-/// Gets an existing external transaction.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_externaltransactions_getexternaltransaction_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_externaltransactions_getexternaltransaction_task()`.
-/// For the simplest API, use `androidpublisher_externaltransactions_getexternaltransaction()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_externaltransactions_getexternaltransaction_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_externaltransactions_getexternaltransaction_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ExternalTransaction>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_externaltransactions_getexternaltransaction_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_externaltransactions_getexternaltransaction`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherExternaltransactionsGetexternaltransactionArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}
-/// Gets an existing external transaction.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_externaltransactions_getexternaltransaction_builder()` + `androidpublisher_externaltransactions_getexternaltransaction_execute()`.
-/// For task-level control, use `androidpublisher_externaltransactions_getexternaltransaction_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_externaltransactions_getexternaltransaction(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherExternaltransactionsGetexternaltransactionArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ExternalTransaction>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        androidpublisher_externaltransactions_getexternaltransaction_builder(client, &args.name)?;
-    androidpublisher_externaltransactions_getexternaltransaction_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}:refund
-/// Refunds or partially refunds an existing external transaction.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_externaltransactions_refundexternaltransaction_execute()` to send, or `androidpublisher_externaltransactions_refundexternaltransaction` for simplest API.
-
-pub fn androidpublisher_externaltransactions_refundexternaltransaction_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &RefundExternalTransactionRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/externalTransactions/{}:refund",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}:refund
-/// Refunds or partially refunds an existing external transaction.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_externaltransactions_refundexternaltransaction_execute()` or `androidpublisher_externaltransactions_refundexternaltransaction`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_externaltransactions_refundexternaltransaction_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_externaltransactions_refundexternaltransaction_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ExternalTransaction>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ExternalTransaction = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}:refund
-/// Refunds or partially refunds an existing external transaction.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_externaltransactions_refundexternaltransaction_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_externaltransactions_refundexternaltransaction_task()`.
-/// For the simplest API, use `androidpublisher_externaltransactions_refundexternaltransaction()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_externaltransactions_refundexternaltransaction_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_externaltransactions_refundexternaltransaction_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ExternalTransaction>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_externaltransactions_refundexternaltransaction_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_externaltransactions_refundexternaltransaction`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherExternaltransactionsRefundexternaltransactionArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: RefundExternalTransactionRequest,
-}
-
-/// GET androidpublisher/v3/applications/{applicationsId}/externalTransactions/{externalTransactionsId}:refund
-/// Refunds or partially refunds an existing external transaction.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_externaltransactions_refundexternaltransaction_builder()` + `androidpublisher_externaltransactions_refundexternaltransaction_execute()`.
-/// For task-level control, use `androidpublisher_externaltransactions_refundexternaltransaction_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_externaltransactions_refundexternaltransaction(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherExternaltransactionsRefundexternaltransactionArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ExternalTransaction>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_externaltransactions_refundexternaltransaction_builder(
-        client, &args.name, &args.body,
-    )?;
-    androidpublisher_externaltransactions_refundexternaltransaction_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/generatedApks/{versionCode}/downloads/{downloadId}:download
@@ -8489,21 +4524,21 @@ pub fn androidpublisher_externaltransactions_refundexternaltransaction(
 
 pub fn androidpublisher_generatedapks_download_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    versionCode: &str,
-    downloadId: &str,
+    packageName: String,
+    versionCode: String,
+    downloadId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/generatedApks/{}/downloads/{}:download",
-        packageName,
-        versionCode,
-        downloadId,
+        packageName.as_str(),
+        versionCode.as_str(),
+        downloadId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -8533,7 +4568,12 @@ pub fn androidpublisher_generatedapks_download_builder(
 pub fn androidpublisher_generatedapks_download_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8636,9 +4676,9 @@ pub fn androidpublisher_generatedapks_download(
 > {
     let builder = androidpublisher_generatedapks_download_builder(
         client,
-        &args.packageName,
-        &args.versionCode,
-        &args.downloadId,
+        args.packageName.clone(),
+        args.versionCode.clone(),
+        args.downloadId.clone(),
     )?;
     androidpublisher_generatedapks_download_execute(builder)
 }
@@ -8651,19 +4691,19 @@ pub fn androidpublisher_generatedapks_download(
 
 pub fn androidpublisher_generatedapks_list_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    versionCode: &str,
+    packageName: String,
+    versionCode: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/generatedApks/{}",
-        packageName,
-        versionCode,
+        packageName.as_str(),
+        versionCode.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -8693,8 +4733,11 @@ pub fn androidpublisher_generatedapks_list_builder(
 pub fn androidpublisher_generatedapks_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GeneratedApksListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GeneratedApksListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -8801,491 +4844,12 @@ pub fn androidpublisher_generatedapks_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_generatedapks_list_builder(client, &args.packageName, &args.versionCode)?;
-    androidpublisher_generatedapks_list_execute(builder)
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants
-/// Grant access for a user to the given package.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_grants_create_execute()` to send, or `androidpublisher_grants_create` for simplest API.
-
-pub fn androidpublisher_grants_create_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    body: &Grant,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{}/grants",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants
-/// Grant access for a user to the given package.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_grants_create_execute()` or `androidpublisher_grants_create`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_grants_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_grants_create_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Grant>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Grant = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants
-/// Grant access for a user to the given package.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_grants_create_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_grants_create_task()`.
-/// For the simplest API, use `androidpublisher_grants_create()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_grants_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_grants_create_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Grant>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_grants_create_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_grants_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherGrantsCreateArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Request body.
-    pub body: Grant,
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants
-/// Grant access for a user to the given package.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_grants_create_builder()` + `androidpublisher_grants_create_execute()`.
-/// For task-level control, use `androidpublisher_grants_create_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_grants_create(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherGrantsCreateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Grant>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_grants_create_builder(client, &args.parent, &args.body)?;
-    androidpublisher_grants_create_execute(builder)
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
-/// Removes all access for the user to the given package or developer account.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_grants_delete_execute()` to send, or `androidpublisher_grants_delete` for simplest API.
-
-pub fn androidpublisher_grants_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{}/grants/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
-/// Removes all access for the user to the given package or developer account.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_grants_delete_execute()` or `androidpublisher_grants_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_grants_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_grants_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
-/// Removes all access for the user to the given package or developer account.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_grants_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_grants_delete_task()`.
-/// For the simplest API, use `androidpublisher_grants_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_grants_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_grants_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_grants_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_grants_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherGrantsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
-/// Removes all access for the user to the given package or developer account.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_grants_delete_builder()` + `androidpublisher_grants_delete_execute()`.
-/// For task-level control, use `androidpublisher_grants_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_grants_delete(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherGrantsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_grants_delete_builder(client, &args.name)?;
-    androidpublisher_grants_delete_execute(builder)
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
-/// Updates access for the user to the given package.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_grants_patch_execute()` to send, or `androidpublisher_grants_patch` for simplest API.
-
-pub fn androidpublisher_grants_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Grant,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{}/grants/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
-/// Updates access for the user to the given package.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_grants_patch_execute()` or `androidpublisher_grants_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_grants_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_grants_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Grant>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Grant = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
-/// Updates access for the user to the given package.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_grants_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_grants_patch_task()`.
-/// For the simplest API, use `androidpublisher_grants_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_grants_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_grants_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Grant>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_grants_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_grants_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherGrantsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Grant,
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}/grants/{grantsId}
-/// Updates access for the user to the given package.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_grants_patch_builder()` + `androidpublisher_grants_patch_execute()`.
-/// For task-level control, use `androidpublisher_grants_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_grants_patch(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherGrantsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Grant>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_grants_patch_builder(
+    let builder = androidpublisher_generatedapks_list_builder(
         client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
+        args.packageName.clone(),
+        args.versionCode.clone(),
     )?;
-    androidpublisher_grants_patch_execute(builder)
+    androidpublisher_generatedapks_list_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/inappproducts:batchDelete
@@ -9296,18 +4860,18 @@ pub fn androidpublisher_grants_patch(
 
 pub fn androidpublisher_inappproducts_batch_delete_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     body: &InappproductsBatchDeleteRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts:batchDelete",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -9339,7 +4903,12 @@ pub fn androidpublisher_inappproducts_batch_delete_builder(
 pub fn androidpublisher_inappproducts_batch_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9438,8 +5007,11 @@ pub fn androidpublisher_inappproducts_batch_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_inappproducts_batch_delete_builder(client, &args.packageName, &args.body)?;
+    let builder = androidpublisher_inappproducts_batch_delete_builder(
+        client,
+        args.packageName.clone(),
+        &args.body,
+    )?;
     androidpublisher_inappproducts_batch_delete_execute(builder)
 }
 
@@ -9451,13 +5023,13 @@ pub fn androidpublisher_inappproducts_batch_delete(
 
 pub fn androidpublisher_inappproducts_batch_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    sku: Option<&str>,
+    packageName: String,
+    sku: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts:batchGet",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
@@ -9467,9 +5039,9 @@ pub fn androidpublisher_inappproducts_batch_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -9504,8 +5076,9 @@ pub fn androidpublisher_inappproducts_batch_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<InappproductsBatchGetResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<InappproductsBatchGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -9619,8 +5192,8 @@ pub fn androidpublisher_inappproducts_batch_get(
 > {
     let builder = androidpublisher_inappproducts_batch_get_builder(
         client,
-        &args.packageName,
-        args.sku.as_deref(),
+        args.packageName.clone(),
+        args.sku.clone(),
     )?;
     androidpublisher_inappproducts_batch_get_execute(builder)
 }
@@ -9633,18 +5206,18 @@ pub fn androidpublisher_inappproducts_batch_get(
 
 pub fn androidpublisher_inappproducts_batch_update_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     body: &InappproductsBatchUpdateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts:batchUpdate",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -9677,8 +5250,9 @@ pub fn androidpublisher_inappproducts_batch_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<InappproductsBatchUpdateResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<InappproductsBatchUpdateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -9790,8 +5364,11 @@ pub fn androidpublisher_inappproducts_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_inappproducts_batch_update_builder(client, &args.packageName, &args.body)?;
+    let builder = androidpublisher_inappproducts_batch_update_builder(
+        client,
+        args.packageName.clone(),
+        &args.body,
+    )?;
     androidpublisher_inappproducts_batch_update_execute(builder)
 }
 
@@ -9803,15 +5380,15 @@ pub fn androidpublisher_inappproducts_batch_update(
 
 pub fn androidpublisher_inappproducts_delete_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    sku: &str,
-    latencyTolerance: Option<&str>,
+    packageName: String,
+    sku: String,
+    latencyTolerance: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts/{}",
-        packageName,
-        sku,
+        packageName.as_str(),
+        sku.as_str(),
     );
 
     // Build request
@@ -9821,9 +5398,9 @@ pub fn androidpublisher_inappproducts_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -9857,7 +5434,12 @@ pub fn androidpublisher_inappproducts_delete_builder(
 pub fn androidpublisher_inappproducts_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9960,171 +5542,11 @@ pub fn androidpublisher_inappproducts_delete(
 > {
     let builder = androidpublisher_inappproducts_delete_builder(
         client,
-        &args.packageName,
-        &args.sku,
-        args.latencyTolerance.as_deref(),
+        args.packageName.clone(),
+        args.sku.clone(),
+        args.latencyTolerance.clone(),
     )?;
     androidpublisher_inappproducts_delete_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
-/// Gets an in-app product, which can be a managed product or a subscription. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_inappproducts_get_execute()` to send, or `androidpublisher_inappproducts_get` for simplest API.
-
-pub fn androidpublisher_inappproducts_get_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    sku: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts/{}",
-        packageName,
-        sku,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
-/// Gets an in-app product, which can be a managed product or a subscription. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_inappproducts_get_execute()` or `androidpublisher_inappproducts_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_inappproducts_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: InAppProduct = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
-/// Gets an in-app product, which can be a managed product or a subscription. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_inappproducts_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_inappproducts_get_task()`.
-/// For the simplest API, use `androidpublisher_inappproducts_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_inappproducts_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_inappproducts_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_inappproducts_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherInappproductsGetArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: sku
-    pub sku: String,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
-/// Gets an in-app product, which can be a managed product or a subscription. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_inappproducts_get_builder()` + `androidpublisher_inappproducts_get_execute()`.
-/// For task-level control, use `androidpublisher_inappproducts_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_inappproducts_get(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherInappproductsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_inappproducts_get_builder(client, &args.packageName, &args.sku)?;
-    androidpublisher_inappproducts_get_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/inappproducts
@@ -10135,14 +5557,14 @@ pub fn androidpublisher_inappproducts_get(
 
 pub fn androidpublisher_inappproducts_insert_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     autoConvertMissingPrices: Option<bool>,
     body: &InAppProduct,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
@@ -10152,9 +5574,9 @@ pub fn androidpublisher_inappproducts_insert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -10190,7 +5612,12 @@ pub fn androidpublisher_inappproducts_insert_builder(
 pub fn androidpublisher_inappproducts_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InAppProduct>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -10300,592 +5727,11 @@ pub fn androidpublisher_inappproducts_insert(
 > {
     let builder = androidpublisher_inappproducts_insert_builder(
         client,
-        &args.packageName,
-        args.autoConvertMissingPrices,
+        args.packageName.clone(),
+        args.autoConvertMissingPrices.clone(),
         &args.body,
     )?;
     androidpublisher_inappproducts_insert_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts
-/// Lists all in-app products - both managed products and subscriptions. If an app has a large number of in-app products, the response may be paginated. In this case the response field `tokenPagination`.`nextPageToken` will be set and the caller should provide its value as a token request parameter to retrieve the next page. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_inappproducts_list_execute()` to send, or `androidpublisher_inappproducts_list` for simplest API.
-
-pub fn androidpublisher_inappproducts_list_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    maxResults: Option<i32>,
-    startIndex: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts",
-        packageName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = startIndex {
-        query_parts.push(format!("startIndex={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts
-/// Lists all in-app products - both managed products and subscriptions. If an app has a large number of in-app products, the response may be paginated. In this case the response field `tokenPagination`.`nextPageToken` will be set and the caller should provide its value as a token request parameter to retrieve the next page. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_inappproducts_list_execute()` or `androidpublisher_inappproducts_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_inappproducts_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<InappproductsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: InappproductsListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts
-/// Lists all in-app products - both managed products and subscriptions. If an app has a large number of in-app products, the response may be paginated. In this case the response field `tokenPagination`.`nextPageToken` will be set and the caller should provide its value as a token request parameter to retrieve the next page. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_inappproducts_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_inappproducts_list_task()`.
-/// For the simplest API, use `androidpublisher_inappproducts_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_inappproducts_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<InappproductsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_inappproducts_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_inappproducts_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherInappproductsListArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: startIndex
-    pub startIndex: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts
-/// Lists all in-app products - both managed products and subscriptions. If an app has a large number of in-app products, the response may be paginated. In this case the response field `tokenPagination`.`nextPageToken` will be set and the caller should provide its value as a token request parameter to retrieve the next page. This method should no longer be used to retrieve subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_inappproducts_list_builder()` + `androidpublisher_inappproducts_list_execute()`.
-/// For task-level control, use `androidpublisher_inappproducts_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_inappproducts_list(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherInappproductsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<InappproductsListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_inappproducts_list_builder(
-        client,
-        &args.packageName,
-        args.maxResults,
-        args.startIndex,
-        args.token.as_deref(),
-    )?;
-    androidpublisher_inappproducts_list_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
-/// Patches an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_inappproducts_patch_execute()` to send, or `androidpublisher_inappproducts_patch` for simplest API.
-
-pub fn androidpublisher_inappproducts_patch_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    sku: &str,
-    autoConvertMissingPrices: Option<bool>,
-    latencyTolerance: Option<&str>,
-    body: &InAppProduct,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts/{}",
-        packageName,
-        sku,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = autoConvertMissingPrices {
-        query_parts.push(format!("autoConvertMissingPrices={}", val));
-    }
-    if let Some(val) = latencyTolerance {
-        query_parts.push(format!("latencyTolerance={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
-/// Patches an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_inappproducts_patch_execute()` or `androidpublisher_inappproducts_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_inappproducts_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: InAppProduct = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
-/// Patches an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_inappproducts_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_inappproducts_patch_task()`.
-/// For the simplest API, use `androidpublisher_inappproducts_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_inappproducts_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_inappproducts_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_inappproducts_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherInappproductsPatchArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: sku
-    pub sku: String,
-    /// Query parameter: autoConvertMissingPrices
-    pub autoConvertMissingPrices: Option<bool>,
-    /// Query parameter: latencyTolerance
-    pub latencyTolerance: Option<String>,
-    /// Request body.
-    pub body: InAppProduct,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
-/// Patches an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_inappproducts_patch_builder()` + `androidpublisher_inappproducts_patch_execute()`.
-/// For task-level control, use `androidpublisher_inappproducts_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_inappproducts_patch(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherInappproductsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_inappproducts_patch_builder(
-        client,
-        &args.packageName,
-        &args.sku,
-        args.autoConvertMissingPrices,
-        args.latencyTolerance.as_deref(),
-        &args.body,
-    )?;
-    androidpublisher_inappproducts_patch_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
-/// Updates an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_inappproducts_update_execute()` to send, or `androidpublisher_inappproducts_update` for simplest API.
-
-pub fn androidpublisher_inappproducts_update_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    sku: &str,
-    allowMissing: Option<bool>,
-    autoConvertMissingPrices: Option<bool>,
-    latencyTolerance: Option<&str>,
-    body: &InAppProduct,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/inappproducts/{}",
-        packageName,
-        sku,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = allowMissing {
-        query_parts.push(format!("allowMissing={}", val));
-    }
-    if let Some(val) = autoConvertMissingPrices {
-        query_parts.push(format!("autoConvertMissingPrices={}", val));
-    }
-    if let Some(val) = latencyTolerance {
-        query_parts.push(format!("latencyTolerance={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
-/// Updates an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_inappproducts_update_execute()` or `androidpublisher_inappproducts_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_inappproducts_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: InAppProduct = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
-/// Updates an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_inappproducts_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_inappproducts_update_task()`.
-/// For the simplest API, use `androidpublisher_inappproducts_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_inappproducts_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_inappproducts_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_inappproducts_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_inappproducts_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherInappproductsUpdateArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: sku
-    pub sku: String,
-    /// Query parameter: allowMissing
-    pub allowMissing: Option<bool>,
-    /// Query parameter: autoConvertMissingPrices
-    pub autoConvertMissingPrices: Option<bool>,
-    /// Query parameter: latencyTolerance
-    pub latencyTolerance: Option<String>,
-    /// Request body.
-    pub body: InAppProduct,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/inappproducts/{sku}
-/// Updates an in-app product (a managed product or a subscription). This method should no longer be used to update subscriptions. See [this article](<https://android-developers.googleblog.`com/2023/06/changes-to-google-play-developer-api-june-2023`.html>) for more information.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_inappproducts_update_builder()` + `androidpublisher_inappproducts_update_execute()`.
-/// For task-level control, use `androidpublisher_inappproducts_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_inappproducts_update(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherInappproductsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<InAppProduct>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_inappproducts_update_builder(
-        client,
-        &args.packageName,
-        &args.sku,
-        args.allowMissing,
-        args.autoConvertMissingPrices,
-        args.latencyTolerance.as_deref(),
-        &args.body,
-    )?;
-    androidpublisher_inappproducts_update_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/internalappsharing/{packageName}/artifacts/apk
@@ -10896,17 +5742,17 @@ pub fn androidpublisher_inappproducts_update(
 
 pub fn androidpublisher_internalappsharingartifacts_uploadapk_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/internalappsharing/{}/artifacts/apk",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -10936,8 +5782,11 @@ pub fn androidpublisher_internalappsharingartifacts_uploadapk_builder(
 pub fn androidpublisher_internalappsharingartifacts_uploadapk_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<InternalAppSharingArtifact>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InternalAppSharingArtifact>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -11046,8 +5895,10 @@ pub fn androidpublisher_internalappsharingartifacts_uploadapk(
         + 'static,
     ApiError,
 > {
-    let builder =
-        androidpublisher_internalappsharingartifacts_uploadapk_builder(client, &args.packageName)?;
+    let builder = androidpublisher_internalappsharingartifacts_uploadapk_builder(
+        client,
+        args.packageName.clone(),
+    )?;
     androidpublisher_internalappsharingartifacts_uploadapk_execute(builder)
 }
 
@@ -11059,17 +5910,17 @@ pub fn androidpublisher_internalappsharingartifacts_uploadapk(
 
 pub fn androidpublisher_internalappsharingartifacts_uploadbundle_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/internalappsharing/{}/artifacts/bundle",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -11099,8 +5950,11 @@ pub fn androidpublisher_internalappsharingartifacts_uploadbundle_builder(
 pub fn androidpublisher_internalappsharingartifacts_uploadbundle_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<InternalAppSharingArtifact>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<InternalAppSharingArtifact>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -11211,7 +6065,7 @@ pub fn androidpublisher_internalappsharingartifacts_uploadbundle(
 > {
     let builder = androidpublisher_internalappsharingartifacts_uploadbundle_builder(
         client,
-        &args.packageName,
+        args.packageName.clone(),
     )?;
     androidpublisher_internalappsharingartifacts_uploadbundle_execute(builder)
 }
@@ -11224,18 +6078,18 @@ pub fn androidpublisher_internalappsharingartifacts_uploadbundle(
 
 pub fn androidpublisher_monetization_convert_region_prices_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     body: &ConvertRegionPricesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/pricing:convertRegionPrices",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -11267,8 +6121,11 @@ pub fn androidpublisher_monetization_convert_region_prices_builder(
 pub fn androidpublisher_monetization_convert_region_prices_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ConvertRegionPricesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ConvertRegionPricesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -11381,7 +6238,7 @@ pub fn androidpublisher_monetization_convert_region_prices(
 > {
     let builder = androidpublisher_monetization_convert_region_prices_builder(
         client,
-        &args.packageName,
+        args.packageName.clone(),
         &args.body,
     )?;
     androidpublisher_monetization_convert_region_prices_execute(builder)
@@ -11395,18 +6252,18 @@ pub fn androidpublisher_monetization_convert_region_prices(
 
 pub fn androidpublisher_monetization_onetimeproducts_batch_delete_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     body: &BatchDeleteOneTimeProductsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts:batchDelete",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -11438,7 +6295,12 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_delete_builder(
 pub fn androidpublisher_monetization_onetimeproducts_batch_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11539,7 +6401,7 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_delete(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_batch_delete_builder(
         client,
-        &args.packageName,
+        args.packageName.clone(),
         &args.body,
     )?;
     androidpublisher_monetization_onetimeproducts_batch_delete_execute(builder)
@@ -11553,13 +6415,13 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_delete(
 
 pub fn androidpublisher_monetization_onetimeproducts_batch_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productIds: Option<&str>,
+    packageName: String,
+    productIds: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts:batchGet",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
@@ -11569,9 +6431,9 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -11606,8 +6468,9 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchGetOneTimeProductsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchGetOneTimeProductsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -11721,8 +6584,8 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_get(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_batch_get_builder(
         client,
-        &args.packageName,
-        args.productIds.as_deref(),
+        args.packageName.clone(),
+        args.productIds.clone(),
     )?;
     androidpublisher_monetization_onetimeproducts_batch_get_execute(builder)
 }
@@ -11735,18 +6598,18 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_get(
 
 pub fn androidpublisher_monetization_onetimeproducts_batch_update_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     body: &BatchUpdateOneTimeProductsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts:batchUpdate",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -11779,8 +6642,9 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchUpdateOneTimeProductsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchUpdateOneTimeProductsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -11894,7 +6758,7 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_update(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_batch_update_builder(
         client,
-        &args.packageName,
+        args.packageName.clone(),
         &args.body,
     )?;
     androidpublisher_monetization_onetimeproducts_batch_update_execute(builder)
@@ -11908,15 +6772,15 @@ pub fn androidpublisher_monetization_onetimeproducts_batch_update(
 
 pub fn androidpublisher_monetization_onetimeproducts_delete_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    latencyTolerance: Option<&str>,
+    packageName: String,
+    productId: String,
+    latencyTolerance: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}",
-        packageName,
-        productId,
+        packageName.as_str(),
+        productId.as_str(),
     );
 
     // Build request
@@ -11926,9 +6790,9 @@ pub fn androidpublisher_monetization_onetimeproducts_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -11962,7 +6826,12 @@ pub fn androidpublisher_monetization_onetimeproducts_delete_builder(
 pub fn androidpublisher_monetization_onetimeproducts_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -12065,177 +6934,11 @@ pub fn androidpublisher_monetization_onetimeproducts_delete(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_delete_builder(
         client,
-        &args.packageName,
-        &args.productId,
-        args.latencyTolerance.as_deref(),
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.latencyTolerance.clone(),
     )?;
     androidpublisher_monetization_onetimeproducts_delete_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
-/// Reads a single one-time product.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_monetization_onetimeproducts_get_execute()` to send, or `androidpublisher_monetization_onetimeproducts_get` for simplest API.
-
-pub fn androidpublisher_monetization_onetimeproducts_get_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}",
-        packageName,
-        productId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
-/// Reads a single one-time product.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_monetization_onetimeproducts_get_execute()` or `androidpublisher_monetization_onetimeproducts_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_onetimeproducts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_monetization_onetimeproducts_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OneTimeProduct>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: OneTimeProduct = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
-/// Reads a single one-time product.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_monetization_onetimeproducts_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_monetization_onetimeproducts_get_task()`.
-/// For the simplest API, use `androidpublisher_monetization_onetimeproducts_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_onetimeproducts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_monetization_onetimeproducts_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OneTimeProduct>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_monetization_onetimeproducts_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_monetization_onetimeproducts_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherMonetizationOnetimeproductsGetArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: productId
-    pub productId: String,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts/{productId}
-/// Reads a single one-time product.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_monetization_onetimeproducts_get_builder()` + `androidpublisher_monetization_onetimeproducts_get_execute()`.
-/// For task-level control, use `androidpublisher_monetization_onetimeproducts_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_monetization_onetimeproducts_get(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherMonetizationOnetimeproductsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OneTimeProduct>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_monetization_onetimeproducts_get_builder(
-        client,
-        &args.packageName,
-        &args.productId,
-    )?;
-    androidpublisher_monetization_onetimeproducts_get_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/oneTimeProducts
@@ -12246,14 +6949,14 @@ pub fn androidpublisher_monetization_onetimeproducts_get(
 
 pub fn androidpublisher_monetization_onetimeproducts_list_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
@@ -12266,9 +6969,9 @@ pub fn androidpublisher_monetization_onetimeproducts_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -12302,8 +7005,11 @@ pub fn androidpublisher_monetization_onetimeproducts_list_builder(
 pub fn androidpublisher_monetization_onetimeproducts_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListOneTimeProductsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOneTimeProductsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -12418,9 +7124,9 @@ pub fn androidpublisher_monetization_onetimeproducts_list(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_list_builder(
         client,
-        &args.packageName,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.packageName.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     androidpublisher_monetization_onetimeproducts_list_execute(builder)
 }
@@ -12433,19 +7139,19 @@ pub fn androidpublisher_monetization_onetimeproducts_list(
 
 pub fn androidpublisher_monetization_onetimeproducts_patch_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
+    packageName: String,
+    productId: String,
     allowMissing: Option<bool>,
-    latencyTolerance: Option<&str>,
-    regionsVersion_version: Option<&str>,
-    updateMask: Option<&str>,
+    latencyTolerance: Option<String>,
+    regionsVersion_version: Option<String>,
+    updateMask: Option<String>,
     body: &OneTimeProduct,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/onetimeproducts/{}",
-        packageName,
-        productId,
+        packageName.as_str(),
+        productId.as_str(),
     );
 
     // Build request
@@ -12457,16 +7163,16 @@ pub fn androidpublisher_monetization_onetimeproducts_patch_builder(
         query_parts.push(format!("latencyTolerance={}", val));
     }
     if let Some(val) = regionsVersion_version {
-        query_parts.push(format!("regionsVersion_version={}", val));
+        query_parts.push(format!("regionsVersion.version={}", val));
     }
     if let Some(val) = updateMask {
         query_parts.push(format!("updateMask={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -12502,8 +7208,11 @@ pub fn androidpublisher_monetization_onetimeproducts_patch_builder(
 pub fn androidpublisher_monetization_onetimeproducts_patch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OneTimeProduct>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OneTimeProduct>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -12622,12 +7331,12 @@ pub fn androidpublisher_monetization_onetimeproducts_patch(
 > {
     let builder = androidpublisher_monetization_onetimeproducts_patch_builder(
         client,
-        &args.packageName,
-        &args.productId,
-        args.allowMissing,
-        args.latencyTolerance.as_deref(),
-        args.regionsVersion_version.as_deref(),
-        args.updateMask.as_deref(),
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.allowMissing.clone(),
+        args.latencyTolerance.clone(),
+        args.regionsVersion_version.clone(),
+        args.updateMask.clone(),
         &args.body,
     )?;
     androidpublisher_monetization_onetimeproducts_patch_execute(builder)
@@ -12641,20 +7350,20 @@ pub fn androidpublisher_monetization_onetimeproducts_patch(
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
+    packageName: String,
+    productId: String,
     body: &BatchDeletePurchaseOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions:batchDelete",
-        packageName,
-        productId,
+        packageName.as_str(),
+        productId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -12686,7 +7395,12 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_dele
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -12791,8 +7505,8 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_dele
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete_builder(
             client,
-            &args.packageName,
-            &args.productId,
+            args.packageName.clone(),
+            args.productId.clone(),
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_batch_delete_execute(builder)
@@ -12806,20 +7520,20 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_dele
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
+    packageName: String,
+    productId: String,
     body: &BatchUpdatePurchaseOptionStatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions:batchUpdateStates",
-        packageName,
-        productId,
+        packageName.as_str(),
+        productId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -12852,8 +7566,9 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_upda
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchUpdatePurchaseOptionStatesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchUpdatePurchaseOptionStatesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -12974,8 +7689,8 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_upda
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states_builder(
             client,
-            &args.packageName,
-            &args.productId,
+            args.packageName.clone(),
+            args.productId.clone(),
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_batch_update_states_execute(
@@ -12991,24 +7706,24 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_batch_upda
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
-    offerId: &str,
+    packageName: String,
+    productId: String,
+    purchaseOptionId: String,
+    offerId: String,
     body: &ActivateOneTimeProductOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers/{}:activate",
-        packageName,
-        productId,
-        purchaseOptionId,
-        offerId,
+        packageName.as_str(),
+        productId.as_str(),
+        purchaseOptionId.as_str(),
+        offerId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -13040,8 +7755,11 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_act
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OneTimeProductOffer>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OneTimeProductOffer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -13159,10 +7877,10 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_act
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate_builder(
             client,
-            &args.packageName,
-            &args.productId,
-            &args.purchaseOptionId,
-            &args.offerId,
+            args.packageName.clone(),
+            args.productId.clone(),
+            args.purchaseOptionId.clone(),
+            args.offerId.clone(),
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_activate_execute(builder)
@@ -13176,22 +7894,22 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_act
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
+    packageName: String,
+    productId: String,
+    purchaseOptionId: String,
     body: &BatchDeleteOneTimeProductOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers:batchDelete",
-        packageName,
-        productId,
-        purchaseOptionId,
+        packageName.as_str(),
+        productId.as_str(),
+        purchaseOptionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -13223,7 +7941,12 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -13332,9 +8055,9 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete_builder(
             client,
-            &args.packageName,
-            &args.productId,
-            &args.purchaseOptionId,
+            args.packageName.clone(),
+            args.productId.clone(),
+            args.purchaseOptionId.clone(),
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_delete_execute(
@@ -13350,22 +8073,22 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
+    packageName: String,
+    productId: String,
+    purchaseOptionId: String,
     body: &BatchGetOneTimeProductOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers:batchGet",
-        packageName,
-        productId,
-        purchaseOptionId,
+        packageName.as_str(),
+        productId.as_str(),
+        purchaseOptionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -13398,8 +8121,9 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchGetOneTimeProductOffersResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchGetOneTimeProductOffersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -13521,9 +8245,9 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get_builder(
             client,
-            &args.packageName,
-            &args.productId,
-            &args.purchaseOptionId,
+            args.packageName.clone(),
+            args.productId.clone(),
+            args.purchaseOptionId.clone(),
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_get_execute(builder)
@@ -13537,22 +8261,22 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
+    packageName: String,
+    productId: String,
+    purchaseOptionId: String,
     body: &BatchUpdateOneTimeProductOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers:batchUpdate",
-        packageName,
-        productId,
-        purchaseOptionId,
+        packageName.as_str(),
+        productId.as_str(),
+        purchaseOptionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -13585,8 +8309,9 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchUpdateOneTimeProductOffersResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchUpdateOneTimeProductOffersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -13709,9 +8434,9 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_builder(
             client,
-            &args.packageName,
-            &args.productId,
-            &args.purchaseOptionId,
+            args.packageName.clone(),
+            args.productId.clone(),
+            args.purchaseOptionId.clone(),
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_execute(
@@ -13727,22 +8452,22 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
+    packageName: String,
+    productId: String,
+    purchaseOptionId: String,
     body: &BatchUpdateOneTimeProductOfferStatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers:batchUpdateStates",
-        packageName,
-        productId,
-        purchaseOptionId,
+        packageName.as_str(),
+        productId.as_str(),
+        purchaseOptionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -13775,8 +8500,9 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchUpdateOneTimeProductOfferStatesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchUpdateOneTimeProductOfferStatesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -13893,7 +8619,7 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
         + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_builder(client, &args.packageName, &args.productId, &args.purchaseOptionId, &args.body)?;
+    let builder = androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_builder(client, args.packageName.clone(), args.productId.clone(), args.purchaseOptionId.clone(), &args.body)?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_batch_update_states_execute(builder)
 }
 
@@ -13905,24 +8631,24 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_bat
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
-    offerId: &str,
+    packageName: String,
+    productId: String,
+    purchaseOptionId: String,
+    offerId: String,
     body: &CancelOneTimeProductOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers/{}:cancel",
-        packageName,
-        productId,
-        purchaseOptionId,
-        offerId,
+        packageName.as_str(),
+        productId.as_str(),
+        purchaseOptionId.as_str(),
+        offerId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -13954,8 +8680,11 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_can
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OneTimeProductOffer>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OneTimeProductOffer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -14072,10 +8801,10 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_can
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel_builder(
             client,
-            &args.packageName,
-            &args.productId,
-            &args.purchaseOptionId,
-            &args.offerId,
+            args.packageName.clone(),
+            args.productId.clone(),
+            args.purchaseOptionId.clone(),
+            args.offerId.clone(),
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_cancel_execute(builder)
@@ -14089,24 +8818,24 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_can
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
-    offerId: &str,
+    packageName: String,
+    productId: String,
+    purchaseOptionId: String,
+    offerId: String,
     body: &DeactivateOneTimeProductOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers/{}:deactivate",
-        packageName,
-        productId,
-        purchaseOptionId,
-        offerId,
+        packageName.as_str(),
+        productId.as_str(),
+        purchaseOptionId.as_str(),
+        offerId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -14138,8 +8867,11 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_dea
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OneTimeProductOffer>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OneTimeProductOffer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -14258,10 +8990,10 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_dea
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate_builder(
             client,
-            &args.packageName,
-            &args.productId,
-            &args.purchaseOptionId,
-            &args.offerId,
+            args.packageName.clone(),
+            args.productId.clone(),
+            args.purchaseOptionId.clone(),
+            args.offerId.clone(),
             &args.body,
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_deactivate_execute(
@@ -14277,18 +9009,18 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_dea
 
 pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_list_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    purchaseOptionId: &str,
+    packageName: String,
+    productId: String,
+    purchaseOptionId: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/oneTimeProducts/{}/purchaseOptions/{}/offers",
-        packageName,
-        productId,
-        purchaseOptionId,
+        packageName.as_str(),
+        productId.as_str(),
+        purchaseOptionId.as_str(),
     );
 
     // Build request
@@ -14301,9 +9033,9 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_lis
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -14338,8 +9070,9 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_lis
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListOneTimeProductOffersResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListOneTimeProductOffersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -14461,11 +9194,11 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_lis
     let builder =
         androidpublisher_monetization_onetimeproducts_purchase_options_offers_list_builder(
             client,
-            &args.packageName,
-            &args.productId,
-            &args.purchaseOptionId,
-            args.pageSize,
-            args.pageToken.as_deref(),
+            args.packageName.clone(),
+            args.productId.clone(),
+            args.purchaseOptionId.clone(),
+            args.pageSize.clone(),
+            args.pageToken.clone(),
         )?;
     androidpublisher_monetization_onetimeproducts_purchase_options_offers_list_execute(builder)
 }
@@ -14478,20 +9211,20 @@ pub fn androidpublisher_monetization_onetimeproducts_purchase_options_offers_lis
 
 pub fn androidpublisher_monetization_subscriptions_archive_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
+    packageName: String,
+    productId: String,
     body: &ArchiveSubscriptionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}:archive",
-        packageName,
-        productId,
+        packageName.as_str(),
+        productId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -14523,7 +9256,12 @@ pub fn androidpublisher_monetization_subscriptions_archive_builder(
 pub fn androidpublisher_monetization_subscriptions_archive_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -14633,8 +9371,8 @@ pub fn androidpublisher_monetization_subscriptions_archive(
 > {
     let builder = androidpublisher_monetization_subscriptions_archive_builder(
         client,
-        &args.packageName,
-        &args.productId,
+        args.packageName.clone(),
+        args.productId.clone(),
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_archive_execute(builder)
@@ -14648,13 +9386,13 @@ pub fn androidpublisher_monetization_subscriptions_archive(
 
 pub fn androidpublisher_monetization_subscriptions_batch_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productIds: Option<&str>,
+    packageName: String,
+    productIds: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions:batchGet",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
@@ -14664,9 +9402,9 @@ pub fn androidpublisher_monetization_subscriptions_batch_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -14701,8 +9439,9 @@ pub fn androidpublisher_monetization_subscriptions_batch_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchGetSubscriptionsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchGetSubscriptionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -14816,8 +9555,8 @@ pub fn androidpublisher_monetization_subscriptions_batch_get(
 > {
     let builder = androidpublisher_monetization_subscriptions_batch_get_builder(
         client,
-        &args.packageName,
-        args.productIds.as_deref(),
+        args.packageName.clone(),
+        args.productIds.clone(),
     )?;
     androidpublisher_monetization_subscriptions_batch_get_execute(builder)
 }
@@ -14830,18 +9569,18 @@ pub fn androidpublisher_monetization_subscriptions_batch_get(
 
 pub fn androidpublisher_monetization_subscriptions_batch_update_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     body: &BatchUpdateSubscriptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions:batchUpdate",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -14874,8 +9613,9 @@ pub fn androidpublisher_monetization_subscriptions_batch_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchUpdateSubscriptionsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchUpdateSubscriptionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -14989,7 +9729,7 @@ pub fn androidpublisher_monetization_subscriptions_batch_update(
 > {
     let builder = androidpublisher_monetization_subscriptions_batch_update_builder(
         client,
-        &args.packageName,
+        args.packageName.clone(),
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_batch_update_execute(builder)
@@ -15003,15 +9743,15 @@ pub fn androidpublisher_monetization_subscriptions_batch_update(
 
 pub fn androidpublisher_monetization_subscriptions_create_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: Option<&str>,
-    regionsVersion_version: Option<&str>,
+    packageName: String,
+    productId: Option<String>,
+    regionsVersion_version: Option<String>,
     body: &Subscription,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
@@ -15020,13 +9760,13 @@ pub fn androidpublisher_monetization_subscriptions_create_builder(
         query_parts.push(format!("productId={}", val));
     }
     if let Some(val) = regionsVersion_version {
-        query_parts.push(format!("regionsVersion_version={}", val));
+        query_parts.push(format!("regionsVersion.version={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -15062,7 +9802,12 @@ pub fn androidpublisher_monetization_subscriptions_create_builder(
 pub fn androidpublisher_monetization_subscriptions_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -15174,9 +9919,9 @@ pub fn androidpublisher_monetization_subscriptions_create(
 > {
     let builder = androidpublisher_monetization_subscriptions_create_builder(
         client,
-        &args.packageName,
-        args.productId.as_deref(),
-        args.regionsVersion_version.as_deref(),
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.regionsVersion_version.clone(),
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_create_execute(builder)
@@ -15190,19 +9935,19 @@ pub fn androidpublisher_monetization_subscriptions_create(
 
 pub fn androidpublisher_monetization_subscriptions_delete_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
+    packageName: String,
+    productId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}",
-        packageName,
-        productId,
+        packageName.as_str(),
+        productId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -15232,7 +9977,12 @@ pub fn androidpublisher_monetization_subscriptions_delete_builder(
 pub fn androidpublisher_monetization_subscriptions_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -15333,570 +10083,10 @@ pub fn androidpublisher_monetization_subscriptions_delete(
 > {
     let builder = androidpublisher_monetization_subscriptions_delete_builder(
         client,
-        &args.packageName,
-        &args.productId,
+        args.packageName.clone(),
+        args.productId.clone(),
     )?;
     androidpublisher_monetization_subscriptions_delete_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
-/// Reads a single subscription.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_monetization_subscriptions_get_execute()` to send, or `androidpublisher_monetization_subscriptions_get` for simplest API.
-
-pub fn androidpublisher_monetization_subscriptions_get_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}",
-        packageName,
-        productId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
-/// Reads a single subscription.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_monetization_subscriptions_get_execute()` or `androidpublisher_monetization_subscriptions_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_monetization_subscriptions_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Subscription = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
-/// Reads a single subscription.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_monetization_subscriptions_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_monetization_subscriptions_get_task()`.
-/// For the simplest API, use `androidpublisher_monetization_subscriptions_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_monetization_subscriptions_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_monetization_subscriptions_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_monetization_subscriptions_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherMonetizationSubscriptionsGetArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: productId
-    pub productId: String,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
-/// Reads a single subscription.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_monetization_subscriptions_get_builder()` + `androidpublisher_monetization_subscriptions_get_execute()`.
-/// For task-level control, use `androidpublisher_monetization_subscriptions_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_monetization_subscriptions_get(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherMonetizationSubscriptionsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_monetization_subscriptions_get_builder(
-        client,
-        &args.packageName,
-        &args.productId,
-    )?;
-    androidpublisher_monetization_subscriptions_get_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions
-/// Lists all subscriptions under a given app.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_monetization_subscriptions_list_execute()` to send, or `androidpublisher_monetization_subscriptions_list` for simplest API.
-
-pub fn androidpublisher_monetization_subscriptions_list_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showArchived: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions",
-        packageName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = showArchived {
-        query_parts.push(format!("showArchived={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions
-/// Lists all subscriptions under a given app.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_monetization_subscriptions_list_execute()` or `androidpublisher_monetization_subscriptions_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_monetization_subscriptions_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListSubscriptionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListSubscriptionsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions
-/// Lists all subscriptions under a given app.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_monetization_subscriptions_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_monetization_subscriptions_list_task()`.
-/// For the simplest API, use `androidpublisher_monetization_subscriptions_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_monetization_subscriptions_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListSubscriptionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_monetization_subscriptions_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_monetization_subscriptions_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherMonetizationSubscriptionsListArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: showArchived
-    pub showArchived: Option<bool>,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions
-/// Lists all subscriptions under a given app.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_monetization_subscriptions_list_builder()` + `androidpublisher_monetization_subscriptions_list_execute()`.
-/// For task-level control, use `androidpublisher_monetization_subscriptions_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_monetization_subscriptions_list(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherMonetizationSubscriptionsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListSubscriptionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_monetization_subscriptions_list_builder(
-        client,
-        &args.packageName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.showArchived,
-    )?;
-    androidpublisher_monetization_subscriptions_list_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
-/// Updates an existing subscription.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_monetization_subscriptions_patch_execute()` to send, or `androidpublisher_monetization_subscriptions_patch` for simplest API.
-
-pub fn androidpublisher_monetization_subscriptions_patch_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    allowMissing: Option<bool>,
-    latencyTolerance: Option<&str>,
-    regionsVersion_version: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Subscription,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}",
-        packageName,
-        productId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = allowMissing {
-        query_parts.push(format!("allowMissing={}", val));
-    }
-    if let Some(val) = latencyTolerance {
-        query_parts.push(format!("latencyTolerance={}", val));
-    }
-    if let Some(val) = regionsVersion_version {
-        query_parts.push(format!("regionsVersion_version={}", val));
-    }
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
-/// Updates an existing subscription.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_monetization_subscriptions_patch_execute()` or `androidpublisher_monetization_subscriptions_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_monetization_subscriptions_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Subscription = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
-/// Updates an existing subscription.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_monetization_subscriptions_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_monetization_subscriptions_patch_task()`.
-/// For the simplest API, use `androidpublisher_monetization_subscriptions_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_monetization_subscriptions_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_monetization_subscriptions_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_monetization_subscriptions_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherMonetizationSubscriptionsPatchArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: productId
-    pub productId: String,
-    /// Query parameter: allowMissing
-    pub allowMissing: Option<bool>,
-    /// Query parameter: latencyTolerance
-    pub latencyTolerance: Option<String>,
-    /// Query parameter: regionsVersion_version
-    pub regionsVersion_version: Option<String>,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Subscription,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}
-/// Updates an existing subscription.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_monetization_subscriptions_patch_builder()` + `androidpublisher_monetization_subscriptions_patch_execute()`.
-/// For task-level control, use `androidpublisher_monetization_subscriptions_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_monetization_subscriptions_patch(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherMonetizationSubscriptionsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_monetization_subscriptions_patch_builder(
-        client,
-        &args.packageName,
-        &args.productId,
-        args.allowMissing,
-        args.latencyTolerance.as_deref(),
-        args.regionsVersion_version.as_deref(),
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    androidpublisher_monetization_subscriptions_patch_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}:activate
@@ -15907,22 +10097,22 @@ pub fn androidpublisher_monetization_subscriptions_patch(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_activate_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
+    packageName: String,
+    productId: String,
+    basePlanId: String,
     body: &ActivateBasePlanRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}:activate",
-        packageName,
-        productId,
-        basePlanId,
+        packageName.as_str(),
+        productId.as_str(),
+        basePlanId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -15954,7 +10144,12 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_activate_builder(
 pub fn androidpublisher_monetization_subscriptions_base_plans_activate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -16066,9 +10261,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_activate(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_activate_builder(
         client,
-        &args.packageName,
-        &args.productId,
-        &args.basePlanId,
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.basePlanId.clone(),
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_activate_execute(builder)
@@ -16082,20 +10277,20 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_activate(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
+    packageName: String,
+    productId: String,
     body: &BatchMigrateBasePlanPricesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans:batchMigratePrices",
-        packageName,
-        productId,
+        packageName.as_str(),
+        productId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -16128,8 +10323,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_pric
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchMigrateBasePlanPricesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchMigrateBasePlanPricesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -16247,8 +10443,8 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_pric
     let builder =
         androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices_builder(
             client,
-            &args.packageName,
-            &args.productId,
+            args.packageName.clone(),
+            args.productId.clone(),
             &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_batch_migrate_prices_execute(builder)
@@ -16262,20 +10458,20 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_migrate_pric
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_states_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
+    packageName: String,
+    productId: String,
     body: &BatchUpdateBasePlanStatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans:batchUpdateStates",
-        packageName,
-        productId,
+        packageName.as_str(),
+        productId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -16308,8 +10504,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_state
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchUpdateBasePlanStatesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchUpdateBasePlanStatesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -16427,8 +10624,8 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_state
     let builder =
         androidpublisher_monetization_subscriptions_base_plans_batch_update_states_builder(
             client,
-            &args.packageName,
-            &args.productId,
+            args.packageName.clone(),
+            args.productId.clone(),
             &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_batch_update_states_execute(builder)
@@ -16442,22 +10639,22 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_batch_update_state
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
+    packageName: String,
+    productId: String,
+    basePlanId: String,
     body: &DeactivateBasePlanRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}:deactivate",
-        packageName,
-        productId,
-        basePlanId,
+        packageName.as_str(),
+        productId.as_str(),
+        basePlanId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -16489,7 +10686,12 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate_builder
 pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -16601,9 +10803,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_deactivate_builder(
         client,
-        &args.packageName,
-        &args.productId,
-        &args.basePlanId,
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.basePlanId.clone(),
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_deactivate_execute(builder)
@@ -16617,21 +10819,21 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_deactivate(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_delete_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
+    packageName: String,
+    productId: String,
+    basePlanId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}",
-        packageName,
-        productId,
-        basePlanId,
+        packageName.as_str(),
+        productId.as_str(),
+        basePlanId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -16661,7 +10863,12 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_delete_builder(
 pub fn androidpublisher_monetization_subscriptions_base_plans_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -16764,9 +10971,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_delete(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_delete_builder(
         client,
-        &args.packageName,
-        &args.productId,
-        &args.basePlanId,
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.basePlanId.clone(),
     )?;
     androidpublisher_monetization_subscriptions_base_plans_delete_execute(builder)
 }
@@ -16779,22 +10986,22 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_delete(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
+    packageName: String,
+    productId: String,
+    basePlanId: String,
     body: &MigrateBasePlanPricesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}:migratePrices",
-        packageName,
-        productId,
-        basePlanId,
+        packageName.as_str(),
+        productId.as_str(),
+        basePlanId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -16827,8 +11034,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices_tas
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<MigrateBasePlanPricesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<MigrateBasePlanPricesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -16946,9 +11154,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_migrate_prices_builder(
         client,
-        &args.packageName,
-        &args.productId,
-        &args.basePlanId,
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.basePlanId.clone(),
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_migrate_prices_execute(builder)
@@ -16962,24 +11170,24 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_migrate_prices(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    offerId: &str,
+    packageName: String,
+    productId: String,
+    basePlanId: String,
+    offerId: String,
     body: &ActivateSubscriptionOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}:activate",
-        packageName,
-        productId,
-        basePlanId,
-        offerId,
+        packageName.as_str(),
+        productId.as_str(),
+        basePlanId.as_str(),
+        offerId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -17011,8 +11219,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate_bu
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionOffer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -17128,10 +11339,10 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_activate_builder(
         client,
-        &args.packageName,
-        &args.productId,
-        &args.basePlanId,
-        &args.offerId,
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.basePlanId.clone(),
+        args.offerId.clone(),
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_activate_execute(builder)
@@ -17145,22 +11356,22 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_activate(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
+    packageName: String,
+    productId: String,
+    basePlanId: String,
     body: &BatchGetSubscriptionOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers:batchGet",
-        packageName,
-        productId,
-        basePlanId,
+        packageName.as_str(),
+        productId.as_str(),
+        basePlanId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -17193,8 +11404,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_t
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchGetSubscriptionOffersResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchGetSubscriptionOffersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -17313,9 +11525,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_builder(
         client,
-        &args.packageName,
-        &args.productId,
-        &args.basePlanId,
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.basePlanId.clone(),
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_batch_get_execute(builder)
@@ -17329,22 +11541,22 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_get(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
+    packageName: String,
+    productId: String,
+    basePlanId: String,
     body: &BatchUpdateSubscriptionOffersRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers:batchUpdate",
-        packageName,
-        productId,
-        basePlanId,
+        packageName.as_str(),
+        productId.as_str(),
+        basePlanId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -17377,8 +11589,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchUpdateSubscriptionOffersResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchUpdateSubscriptionOffersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -17498,9 +11711,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
     let builder =
         androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_builder(
             client,
-            &args.packageName,
-            &args.productId,
-            &args.basePlanId,
+            args.packageName.clone(),
+            args.productId.clone(),
+            args.basePlanId.clone(),
             &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_execute(builder)
@@ -17514,22 +11727,22 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
+    packageName: String,
+    productId: String,
+    basePlanId: String,
     body: &BatchUpdateSubscriptionOfferStatesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers:batchUpdateStates",
-        packageName,
-        productId,
-        basePlanId,
+        packageName.as_str(),
+        productId.as_str(),
+        basePlanId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -17562,8 +11775,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchUpdateSubscriptionOfferStatesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchUpdateSubscriptionOfferStatesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -17686,9 +11900,9 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
     let builder =
         androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states_builder(
             client,
-            &args.packageName,
-            &args.productId,
-            &args.basePlanId,
+            args.packageName.clone(),
+            args.productId.clone(),
+            args.basePlanId.clone(),
             &args.body,
         )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_batch_update_states_execute(
@@ -17704,19 +11918,19 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_batch_updat
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    offerId: Option<&str>,
-    regionsVersion_version: Option<&str>,
+    packageName: String,
+    productId: String,
+    basePlanId: String,
+    offerId: Option<String>,
+    regionsVersion_version: Option<String>,
     body: &SubscriptionOffer,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers",
-        packageName,
-        productId,
-        basePlanId,
+        packageName.as_str(),
+        productId.as_str(),
+        basePlanId.as_str(),
     );
 
     // Build request
@@ -17725,13 +11939,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create_buil
         query_parts.push(format!("offerId={}", val));
     }
     if let Some(val) = regionsVersion_version {
-        query_parts.push(format!("regionsVersion_version={}", val));
+        query_parts.push(format!("regionsVersion.version={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -17767,8 +11981,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create_buil
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionOffer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -17885,11 +12102,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_create_builder(
         client,
-        &args.packageName,
-        &args.productId,
-        &args.basePlanId,
-        args.offerId.as_deref(),
-        args.regionsVersion_version.as_deref(),
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.basePlanId.clone(),
+        args.offerId.clone(),
+        args.regionsVersion_version.clone(),
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_create_execute(builder)
@@ -17903,24 +12120,24 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_create(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    offerId: &str,
+    packageName: String,
+    productId: String,
+    basePlanId: String,
+    offerId: String,
     body: &DeactivateSubscriptionOfferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}:deactivate",
-        packageName,
-        productId,
-        basePlanId,
-        offerId,
+        packageName.as_str(),
+        productId.as_str(),
+        basePlanId.as_str(),
+        offerId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -17952,8 +12169,11 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionOffer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -18069,10 +12289,10 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_builder(
         client,
-        &args.packageName,
-        &args.productId,
-        &args.basePlanId,
-        &args.offerId,
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.basePlanId.clone(),
+        args.offerId.clone(),
         &args.body,
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_deactivate_execute(builder)
@@ -18086,23 +12306,23 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_deactivate(
 
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    offerId: &str,
+    packageName: String,
+    productId: String,
+    basePlanId: String,
+    offerId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}",
-        packageName,
-        productId,
-        basePlanId,
-        offerId,
+        packageName.as_str(),
+        productId.as_str(),
+        basePlanId.as_str(),
+        offerId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -18132,7 +12352,12 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete_buil
 pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -18237,605 +12462,12 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_delete(
 > {
     let builder = androidpublisher_monetization_subscriptions_base_plans_offers_delete_builder(
         client,
-        &args.packageName,
-        &args.productId,
-        &args.basePlanId,
-        &args.offerId,
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.basePlanId.clone(),
+        args.offerId.clone(),
     )?;
     androidpublisher_monetization_subscriptions_base_plans_offers_delete_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
-/// Reads a single offer
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_monetization_subscriptions_base_plans_offers_get_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_get` for simplest API.
-
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    offerId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}",
-        packageName,
-        productId,
-        basePlanId,
-        offerId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
-/// Reads a single offer
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_monetization_subscriptions_base_plans_offers_get_execute()` or `androidpublisher_monetization_subscriptions_base_plans_offers_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_base_plans_offers_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: SubscriptionOffer = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
-/// Reads a single offer
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_monetization_subscriptions_base_plans_offers_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_monetization_subscriptions_base_plans_offers_get_task()`.
-/// For the simplest API, use `androidpublisher_monetization_subscriptions_base_plans_offers_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_base_plans_offers_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_monetization_subscriptions_base_plans_offers_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersGetArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: productId
-    pub productId: String,
-    /// Path parameter: basePlanId
-    pub basePlanId: String,
-    /// Path parameter: offerId
-    pub offerId: String,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
-/// Reads a single offer
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_monetization_subscriptions_base_plans_offers_get_builder()` + `androidpublisher_monetization_subscriptions_base_plans_offers_get_execute()`.
-/// For task-level control, use `androidpublisher_monetization_subscriptions_base_plans_offers_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_get(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_monetization_subscriptions_base_plans_offers_get_builder(
-        client,
-        &args.packageName,
-        &args.productId,
-        &args.basePlanId,
-        &args.offerId,
-    )?;
-    androidpublisher_monetization_subscriptions_base_plans_offers_get_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
-/// Lists all offers under a given subscription.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_monetization_subscriptions_base_plans_offers_list_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_list` for simplest API.
-
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers",
-        packageName,
-        productId,
-        basePlanId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
-/// Lists all offers under a given subscription.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_monetization_subscriptions_base_plans_offers_list_execute()` or `androidpublisher_monetization_subscriptions_base_plans_offers_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_base_plans_offers_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListSubscriptionOffersResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListSubscriptionOffersResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
-/// Lists all offers under a given subscription.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_monetization_subscriptions_base_plans_offers_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_monetization_subscriptions_base_plans_offers_list_task()`.
-/// For the simplest API, use `androidpublisher_monetization_subscriptions_base_plans_offers_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_base_plans_offers_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListSubscriptionOffersResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_monetization_subscriptions_base_plans_offers_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersListArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: productId
-    pub productId: String,
-    /// Path parameter: basePlanId
-    pub basePlanId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers
-/// Lists all offers under a given subscription.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_monetization_subscriptions_base_plans_offers_list_builder()` + `androidpublisher_monetization_subscriptions_base_plans_offers_list_execute()`.
-/// For task-level control, use `androidpublisher_monetization_subscriptions_base_plans_offers_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_list(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListSubscriptionOffersResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_monetization_subscriptions_base_plans_offers_list_builder(
-        client,
-        &args.packageName,
-        &args.productId,
-        &args.basePlanId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    androidpublisher_monetization_subscriptions_base_plans_offers_list_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
-/// Updates an existing subscription offer.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_monetization_subscriptions_base_plans_offers_patch_execute()` to send, or `androidpublisher_monetization_subscriptions_base_plans_offers_patch` for simplest API.
-
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    basePlanId: &str,
-    offerId: &str,
-    allowMissing: Option<bool>,
-    latencyTolerance: Option<&str>,
-    regionsVersion_version: Option<&str>,
-    updateMask: Option<&str>,
-    body: &SubscriptionOffer,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/subscriptions/{}/basePlans/{}/offers/{}",
-        packageName,
-        productId,
-        basePlanId,
-        offerId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = allowMissing {
-        query_parts.push(format!("allowMissing={}", val));
-    }
-    if let Some(val) = latencyTolerance {
-        query_parts.push(format!("latencyTolerance={}", val));
-    }
-    if let Some(val) = regionsVersion_version {
-        query_parts.push(format!("regionsVersion_version={}", val));
-    }
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
-/// Updates an existing subscription offer.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_monetization_subscriptions_base_plans_offers_patch_execute()` or `androidpublisher_monetization_subscriptions_base_plans_offers_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: SubscriptionOffer = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
-/// Updates an existing subscription offer.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_monetization_subscriptions_base_plans_offers_patch_task()`.
-/// For the simplest API, use `androidpublisher_monetization_subscriptions_base_plans_offers_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_monetization_subscriptions_base_plans_offers_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_monetization_subscriptions_base_plans_offers_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherMonetizationSubscriptionsBasePlansOffersPatchArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: productId
-    pub productId: String,
-    /// Path parameter: basePlanId
-    pub basePlanId: String,
-    /// Path parameter: offerId
-    pub offerId: String,
-    /// Query parameter: allowMissing
-    pub allowMissing: Option<bool>,
-    /// Query parameter: latencyTolerance
-    pub latencyTolerance: Option<String>,
-    /// Query parameter: regionsVersion_version
-    pub regionsVersion_version: Option<String>,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: SubscriptionOffer,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/subscriptions/{productId}/basePlans/{basePlanId}/offers/{offerId}
-/// Updates an existing subscription offer.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder()` + `androidpublisher_monetization_subscriptions_base_plans_offers_patch_execute()`.
-/// For task-level control, use `androidpublisher_monetization_subscriptions_base_plans_offers_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherMonetizationSubscriptionsBasePlansOffersPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SubscriptionOffer>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_monetization_subscriptions_base_plans_offers_patch_builder(
-        client,
-        &args.packageName,
-        &args.productId,
-        &args.basePlanId,
-        &args.offerId,
-        args.allowMissing,
-        args.latencyTolerance.as_deref(),
-        args.regionsVersion_version.as_deref(),
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    androidpublisher_monetization_subscriptions_base_plans_offers_patch_execute(builder)
 }
 
 /// GET androidpublisher/v3/applications/{packageName}/orders:batchGet
@@ -18846,13 +12478,13 @@ pub fn androidpublisher_monetization_subscriptions_base_plans_offers_patch(
 
 pub fn androidpublisher_orders_batchget_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    orderIds: Option<&str>,
+    packageName: String,
+    orderIds: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/orders:batchGet",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
@@ -18862,9 +12494,9 @@ pub fn androidpublisher_orders_batchget_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -18898,8 +12530,11 @@ pub fn androidpublisher_orders_batchget_builder(
 pub fn androidpublisher_orders_batchget_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BatchGetOrdersResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchGetOrdersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -19008,8 +12643,8 @@ pub fn androidpublisher_orders_batchget(
 > {
     let builder = androidpublisher_orders_batchget_builder(
         client,
-        &args.packageName,
-        args.orderIds.as_deref(),
+        args.packageName.clone(),
+        args.orderIds.clone(),
     )?;
     androidpublisher_orders_batchget_execute(builder)
 }
@@ -19022,18 +12657,19 @@ pub fn androidpublisher_orders_batchget(
 
 pub fn androidpublisher_orders_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    orderId: &str,
+    packageName: String,
+    orderId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/orders/{}",
-        packageName, orderId,
+        packageName.as_str(),
+        orderId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -19063,7 +12699,12 @@ pub fn androidpublisher_orders_get_builder(
 pub fn androidpublisher_orders_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Order>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Order>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -19165,7 +12806,11 @@ pub fn androidpublisher_orders_get(
     impl StreamIterator<D = Result<ApiResponse<Order>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_orders_get_builder(client, &args.packageName, &args.orderId)?;
+    let builder = androidpublisher_orders_get_builder(
+        client,
+        args.packageName.clone(),
+        args.orderId.clone(),
+    )?;
     androidpublisher_orders_get_execute(builder)
 }
 
@@ -19177,15 +12822,15 @@ pub fn androidpublisher_orders_get(
 
 pub fn androidpublisher_orders_refund_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    orderId: &str,
+    packageName: String,
+    orderId: String,
     revoke: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/orders/{}:refund",
-        packageName,
-        orderId,
+        packageName.as_str(),
+        orderId.as_str(),
     );
 
     // Build request
@@ -19195,9 +12840,9 @@ pub fn androidpublisher_orders_refund_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -19231,7 +12876,12 @@ pub fn androidpublisher_orders_refund_builder(
 pub fn androidpublisher_orders_refund_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -19334,9 +12984,9 @@ pub fn androidpublisher_orders_refund(
 > {
     let builder = androidpublisher_orders_refund_builder(
         client,
-        &args.packageName,
-        &args.orderId,
-        args.revoke,
+        args.packageName.clone(),
+        args.orderId.clone(),
+        args.revoke.clone(),
     )?;
     androidpublisher_orders_refund_execute(builder)
 }
@@ -19349,22 +12999,22 @@ pub fn androidpublisher_orders_refund(
 
 pub fn androidpublisher_purchases_products_acknowledge_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    token: &str,
+    packageName: String,
+    productId: String,
+    token: String,
     body: &ProductPurchasesAcknowledgeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/products/{}/tokens/{}:acknowledge",
-        packageName,
-        productId,
-        token,
+        packageName.as_str(),
+        productId.as_str(),
+        token.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -19396,7 +13046,12 @@ pub fn androidpublisher_purchases_products_acknowledge_builder(
 pub fn androidpublisher_purchases_products_acknowledge_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -19501,9 +13156,9 @@ pub fn androidpublisher_purchases_products_acknowledge(
 > {
     let builder = androidpublisher_purchases_products_acknowledge_builder(
         client,
-        &args.packageName,
-        &args.productId,
-        &args.token,
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.token.clone(),
         &args.body,
     )?;
     androidpublisher_purchases_products_acknowledge_execute(builder)
@@ -19517,21 +13172,21 @@ pub fn androidpublisher_purchases_products_acknowledge(
 
 pub fn androidpublisher_purchases_products_consume_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    token: &str,
+    packageName: String,
+    productId: String,
+    token: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/products/{}/tokens/{}:consume",
-        packageName,
-        productId,
-        token,
+        packageName.as_str(),
+        productId.as_str(),
+        token.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -19561,7 +13216,12 @@ pub fn androidpublisher_purchases_products_consume_builder(
 pub fn androidpublisher_purchases_products_consume_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -19664,9 +13324,9 @@ pub fn androidpublisher_purchases_products_consume(
 > {
     let builder = androidpublisher_purchases_products_consume_builder(
         client,
-        &args.packageName,
-        &args.productId,
-        &args.token,
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.token.clone(),
     )?;
     androidpublisher_purchases_products_consume_execute(builder)
 }
@@ -19679,21 +13339,21 @@ pub fn androidpublisher_purchases_products_consume(
 
 pub fn androidpublisher_purchases_products_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    productId: &str,
-    token: &str,
+    packageName: String,
+    productId: String,
+    token: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/products/{}/tokens/{}",
-        packageName,
-        productId,
-        token,
+        packageName.as_str(),
+        productId.as_str(),
+        token.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -19723,8 +13383,11 @@ pub fn androidpublisher_purchases_products_get_builder(
 pub fn androidpublisher_purchases_products_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProductPurchase>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProductPurchase>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -19835,9 +13498,9 @@ pub fn androidpublisher_purchases_products_get(
 > {
     let builder = androidpublisher_purchases_products_get_builder(
         client,
-        &args.packageName,
-        &args.productId,
-        &args.token,
+        args.packageName.clone(),
+        args.productId.clone(),
+        args.token.clone(),
     )?;
     androidpublisher_purchases_products_get_execute(builder)
 }
@@ -19850,19 +13513,19 @@ pub fn androidpublisher_purchases_products_get(
 
 pub fn androidpublisher_purchases_productsv2_getproductpurchasev2_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    token: &str,
+    packageName: String,
+    token: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/productsv2/tokens/{}",
-        packageName,
-        token,
+        packageName.as_str(),
+        token.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -19892,8 +13555,11 @@ pub fn androidpublisher_purchases_productsv2_getproductpurchasev2_builder(
 pub fn androidpublisher_purchases_productsv2_getproductpurchasev2_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProductPurchaseV2>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProductPurchaseV2>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -20002,8 +13668,8 @@ pub fn androidpublisher_purchases_productsv2_getproductpurchasev2(
 > {
     let builder = androidpublisher_purchases_productsv2_getproductpurchasev2_builder(
         client,
-        &args.packageName,
-        &args.token,
+        args.packageName.clone(),
+        args.token.clone(),
     )?;
     androidpublisher_purchases_productsv2_getproductpurchasev2_execute(builder)
 }
@@ -20016,22 +13682,22 @@ pub fn androidpublisher_purchases_productsv2_getproductpurchasev2(
 
 pub fn androidpublisher_purchases_subscriptions_acknowledge_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    subscriptionId: &str,
-    token: &str,
+    packageName: String,
+    subscriptionId: String,
+    token: String,
     body: &SubscriptionPurchasesAcknowledgeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:acknowledge",
-        packageName,
-        subscriptionId,
-        token,
+        packageName.as_str(),
+        subscriptionId.as_str(),
+        token.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -20063,7 +13729,12 @@ pub fn androidpublisher_purchases_subscriptions_acknowledge_builder(
 pub fn androidpublisher_purchases_subscriptions_acknowledge_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -20168,9 +13839,9 @@ pub fn androidpublisher_purchases_subscriptions_acknowledge(
 > {
     let builder = androidpublisher_purchases_subscriptions_acknowledge_builder(
         client,
-        &args.packageName,
-        &args.subscriptionId,
-        &args.token,
+        args.packageName.clone(),
+        args.subscriptionId.clone(),
+        args.token.clone(),
         &args.body,
     )?;
     androidpublisher_purchases_subscriptions_acknowledge_execute(builder)
@@ -20184,21 +13855,21 @@ pub fn androidpublisher_purchases_subscriptions_acknowledge(
 
 pub fn androidpublisher_purchases_subscriptions_cancel_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    subscriptionId: &str,
-    token: &str,
+    packageName: String,
+    subscriptionId: String,
+    token: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:cancel",
-        packageName,
-        subscriptionId,
-        token,
+        packageName.as_str(),
+        subscriptionId.as_str(),
+        token.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -20228,7 +13899,12 @@ pub fn androidpublisher_purchases_subscriptions_cancel_builder(
 pub fn androidpublisher_purchases_subscriptions_cancel_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -20331,9 +14007,9 @@ pub fn androidpublisher_purchases_subscriptions_cancel(
 > {
     let builder = androidpublisher_purchases_subscriptions_cancel_builder(
         client,
-        &args.packageName,
-        &args.subscriptionId,
-        &args.token,
+        args.packageName.clone(),
+        args.subscriptionId.clone(),
+        args.token.clone(),
     )?;
     androidpublisher_purchases_subscriptions_cancel_execute(builder)
 }
@@ -20346,22 +14022,22 @@ pub fn androidpublisher_purchases_subscriptions_cancel(
 
 pub fn androidpublisher_purchases_subscriptions_defer_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    subscriptionId: &str,
-    token: &str,
+    packageName: String,
+    subscriptionId: String,
+    token: String,
     body: &SubscriptionPurchasesDeferRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:defer",
-        packageName,
-        subscriptionId,
-        token,
+        packageName.as_str(),
+        subscriptionId.as_str(),
+        token.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -20394,8 +14070,9 @@ pub fn androidpublisher_purchases_subscriptions_defer_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<SubscriptionPurchasesDeferResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<SubscriptionPurchasesDeferResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -20513,9 +14190,9 @@ pub fn androidpublisher_purchases_subscriptions_defer(
 > {
     let builder = androidpublisher_purchases_subscriptions_defer_builder(
         client,
-        &args.packageName,
-        &args.subscriptionId,
-        &args.token,
+        args.packageName.clone(),
+        args.subscriptionId.clone(),
+        args.token.clone(),
         &args.body,
     )?;
     androidpublisher_purchases_subscriptions_defer_execute(builder)
@@ -20529,21 +14206,21 @@ pub fn androidpublisher_purchases_subscriptions_defer(
 
 pub fn androidpublisher_purchases_subscriptions_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    subscriptionId: &str,
-    token: &str,
+    packageName: String,
+    subscriptionId: String,
+    token: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}",
-        packageName,
-        subscriptionId,
-        token,
+        packageName.as_str(),
+        subscriptionId.as_str(),
+        token.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -20573,8 +14250,11 @@ pub fn androidpublisher_purchases_subscriptions_get_builder(
 pub fn androidpublisher_purchases_subscriptions_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SubscriptionPurchase>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionPurchase>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -20685,9 +14365,9 @@ pub fn androidpublisher_purchases_subscriptions_get(
 > {
     let builder = androidpublisher_purchases_subscriptions_get_builder(
         client,
-        &args.packageName,
-        &args.subscriptionId,
-        &args.token,
+        args.packageName.clone(),
+        args.subscriptionId.clone(),
+        args.token.clone(),
     )?;
     androidpublisher_purchases_subscriptions_get_execute(builder)
 }
@@ -20700,21 +14380,21 @@ pub fn androidpublisher_purchases_subscriptions_get(
 
 pub fn androidpublisher_purchases_subscriptions_refund_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    subscriptionId: &str,
-    token: &str,
+    packageName: String,
+    subscriptionId: String,
+    token: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:refund",
-        packageName,
-        subscriptionId,
-        token,
+        packageName.as_str(),
+        subscriptionId.as_str(),
+        token.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -20744,7 +14424,12 @@ pub fn androidpublisher_purchases_subscriptions_refund_builder(
 pub fn androidpublisher_purchases_subscriptions_refund_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -20847,9 +14532,9 @@ pub fn androidpublisher_purchases_subscriptions_refund(
 > {
     let builder = androidpublisher_purchases_subscriptions_refund_builder(
         client,
-        &args.packageName,
-        &args.subscriptionId,
-        &args.token,
+        args.packageName.clone(),
+        args.subscriptionId.clone(),
+        args.token.clone(),
     )?;
     androidpublisher_purchases_subscriptions_refund_execute(builder)
 }
@@ -20862,21 +14547,21 @@ pub fn androidpublisher_purchases_subscriptions_refund(
 
 pub fn androidpublisher_purchases_subscriptions_revoke_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    subscriptionId: &str,
-    token: &str,
+    packageName: String,
+    subscriptionId: String,
+    token: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptions/{}/tokens/{}:revoke",
-        packageName,
-        subscriptionId,
-        token,
+        packageName.as_str(),
+        subscriptionId.as_str(),
+        token.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -20906,7 +14591,12 @@ pub fn androidpublisher_purchases_subscriptions_revoke_builder(
 pub fn androidpublisher_purchases_subscriptions_revoke_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -21009,9 +14699,9 @@ pub fn androidpublisher_purchases_subscriptions_revoke(
 > {
     let builder = androidpublisher_purchases_subscriptions_revoke_builder(
         client,
-        &args.packageName,
-        &args.subscriptionId,
-        &args.token,
+        args.packageName.clone(),
+        args.subscriptionId.clone(),
+        args.token.clone(),
     )?;
     androidpublisher_purchases_subscriptions_revoke_execute(builder)
 }
@@ -21024,20 +14714,20 @@ pub fn androidpublisher_purchases_subscriptions_revoke(
 
 pub fn androidpublisher_purchases_subscriptionsv2_cancel_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    token: &str,
+    packageName: String,
+    token: String,
     body: &CancelSubscriptionPurchaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptionsv2/tokens/{}:cancel",
-        packageName,
-        token,
+        packageName.as_str(),
+        token.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -21070,8 +14760,9 @@ pub fn androidpublisher_purchases_subscriptionsv2_cancel_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<CancelSubscriptionPurchaseResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<CancelSubscriptionPurchaseResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -21187,8 +14878,8 @@ pub fn androidpublisher_purchases_subscriptionsv2_cancel(
 > {
     let builder = androidpublisher_purchases_subscriptionsv2_cancel_builder(
         client,
-        &args.packageName,
-        &args.token,
+        args.packageName.clone(),
+        args.token.clone(),
         &args.body,
     )?;
     androidpublisher_purchases_subscriptionsv2_cancel_execute(builder)
@@ -21202,20 +14893,20 @@ pub fn androidpublisher_purchases_subscriptionsv2_cancel(
 
 pub fn androidpublisher_purchases_subscriptionsv2_defer_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    token: &str,
+    packageName: String,
+    token: String,
     body: &DeferSubscriptionPurchaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptionsv2/tokens/{}:defer",
-        packageName,
-        token,
+        packageName.as_str(),
+        token.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -21248,8 +14939,9 @@ pub fn androidpublisher_purchases_subscriptionsv2_defer_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<DeferSubscriptionPurchaseResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<DeferSubscriptionPurchaseResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -21365,8 +15057,8 @@ pub fn androidpublisher_purchases_subscriptionsv2_defer(
 > {
     let builder = androidpublisher_purchases_subscriptionsv2_defer_builder(
         client,
-        &args.packageName,
-        &args.token,
+        args.packageName.clone(),
+        args.token.clone(),
         &args.body,
     )?;
     androidpublisher_purchases_subscriptionsv2_defer_execute(builder)
@@ -21380,19 +15072,19 @@ pub fn androidpublisher_purchases_subscriptionsv2_defer(
 
 pub fn androidpublisher_purchases_subscriptionsv2_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    token: &str,
+    packageName: String,
+    token: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptionsv2/tokens/{}",
-        packageName,
-        token,
+        packageName.as_str(),
+        token.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -21422,8 +15114,11 @@ pub fn androidpublisher_purchases_subscriptionsv2_get_builder(
 pub fn androidpublisher_purchases_subscriptionsv2_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SubscriptionPurchaseV2>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SubscriptionPurchaseV2>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -21532,8 +15227,8 @@ pub fn androidpublisher_purchases_subscriptionsv2_get(
 > {
     let builder = androidpublisher_purchases_subscriptionsv2_get_builder(
         client,
-        &args.packageName,
-        &args.token,
+        args.packageName.clone(),
+        args.token.clone(),
     )?;
     androidpublisher_purchases_subscriptionsv2_get_execute(builder)
 }
@@ -21546,20 +15241,20 @@ pub fn androidpublisher_purchases_subscriptionsv2_get(
 
 pub fn androidpublisher_purchases_subscriptionsv2_revoke_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    token: &str,
+    packageName: String,
+    token: String,
     body: &RevokeSubscriptionPurchaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/subscriptionsv2/tokens/{}:revoke",
-        packageName,
-        token,
+        packageName.as_str(),
+        token.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -21592,8 +15287,9 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<RevokeSubscriptionPurchaseResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<RevokeSubscriptionPurchaseResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -21709,8 +15405,8 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke(
 > {
     let builder = androidpublisher_purchases_subscriptionsv2_revoke_builder(
         client,
-        &args.packageName,
-        &args.token,
+        args.packageName.clone(),
+        args.token.clone(),
         &args.body,
     )?;
     androidpublisher_purchases_subscriptionsv2_revoke_execute(builder)
@@ -21724,19 +15420,19 @@ pub fn androidpublisher_purchases_subscriptionsv2_revoke(
 
 pub fn androidpublisher_purchases_voidedpurchases_list_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    endTime: Option<&str>,
+    packageName: String,
+    endTime: Option<String>,
     includeQuantityBasedPartialRefund: Option<bool>,
     maxResults: Option<i32>,
     startIndex: Option<i32>,
-    startTime: Option<&str>,
-    token: Option<&str>,
+    startTime: Option<String>,
+    token: Option<String>,
     type_rs: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/purchases/voidedpurchases",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
@@ -21764,9 +15460,9 @@ pub fn androidpublisher_purchases_voidedpurchases_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -21800,8 +15496,11 @@ pub fn androidpublisher_purchases_voidedpurchases_list_builder(
 pub fn androidpublisher_purchases_voidedpurchases_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<VoidedPurchasesListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VoidedPurchasesListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -21926,14 +15625,14 @@ pub fn androidpublisher_purchases_voidedpurchases_list(
 > {
     let builder = androidpublisher_purchases_voidedpurchases_list_builder(
         client,
-        &args.packageName,
-        args.endTime.as_deref(),
-        args.includeQuantityBasedPartialRefund,
-        args.maxResults,
-        args.startIndex,
-        args.startTime.as_deref(),
-        args.token.as_deref(),
-        args.type_rs,
+        args.packageName.clone(),
+        args.endTime.clone(),
+        args.includeQuantityBasedPartialRefund.clone(),
+        args.maxResults.clone(),
+        args.startIndex.clone(),
+        args.startTime.clone(),
+        args.token.clone(),
+        args.type_rs.clone(),
     )?;
     androidpublisher_purchases_voidedpurchases_list_execute(builder)
 }
@@ -21946,14 +15645,15 @@ pub fn androidpublisher_purchases_voidedpurchases_list(
 
 pub fn androidpublisher_reviews_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    reviewId: &str,
-    translationLanguage: Option<&str>,
+    packageName: String,
+    reviewId: String,
+    translationLanguage: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/reviews/{}",
-        packageName, reviewId,
+        packageName.as_str(),
+        reviewId.as_str(),
     );
 
     // Build request
@@ -21963,9 +15663,9 @@ pub fn androidpublisher_reviews_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -21999,7 +15699,12 @@ pub fn androidpublisher_reviews_get_builder(
 pub fn androidpublisher_reviews_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Review>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Review>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -22105,9 +15810,9 @@ pub fn androidpublisher_reviews_get(
 > {
     let builder = androidpublisher_reviews_get_builder(
         client,
-        &args.packageName,
-        &args.reviewId,
-        args.translationLanguage.as_deref(),
+        args.packageName.clone(),
+        args.reviewId.clone(),
+        args.translationLanguage.clone(),
     )?;
     androidpublisher_reviews_get_execute(builder)
 }
@@ -22120,16 +15825,16 @@ pub fn androidpublisher_reviews_get(
 
 pub fn androidpublisher_reviews_list_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     maxResults: Option<i32>,
     startIndex: Option<i32>,
-    token: Option<&str>,
-    translationLanguage: Option<&str>,
+    token: Option<String>,
+    translationLanguage: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/reviews",
-        packageName,
+        packageName.as_str(),
     );
 
     // Build request
@@ -22148,9 +15853,9 @@ pub fn androidpublisher_reviews_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -22184,8 +15889,11 @@ pub fn androidpublisher_reviews_list_builder(
 pub fn androidpublisher_reviews_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ReviewsListResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ReviewsListResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -22300,11 +16008,11 @@ pub fn androidpublisher_reviews_list(
 > {
     let builder = androidpublisher_reviews_list_builder(
         client,
-        &args.packageName,
-        args.maxResults,
-        args.startIndex,
-        args.token.as_deref(),
-        args.translationLanguage.as_deref(),
+        args.packageName.clone(),
+        args.maxResults.clone(),
+        args.startIndex.clone(),
+        args.token.clone(),
+        args.translationLanguage.clone(),
     )?;
     androidpublisher_reviews_list_execute(builder)
 }
@@ -22317,20 +16025,20 @@ pub fn androidpublisher_reviews_list(
 
 pub fn androidpublisher_reviews_reply_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    reviewId: &str,
+    packageName: String,
+    reviewId: String,
     body: &ReviewsReplyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/reviews/{}:reply",
-        packageName,
-        reviewId,
+        packageName.as_str(),
+        reviewId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -22362,8 +16070,11 @@ pub fn androidpublisher_reviews_reply_builder(
 pub fn androidpublisher_reviews_reply_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ReviewsReplyResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ReviewsReplyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -22474,8 +16185,8 @@ pub fn androidpublisher_reviews_reply(
 > {
     let builder = androidpublisher_reviews_reply_builder(
         client,
-        &args.packageName,
-        &args.reviewId,
+        args.packageName.clone(),
+        args.reviewId.clone(),
         &args.body,
     )?;
     androidpublisher_reviews_reply_execute(builder)
@@ -22489,20 +16200,20 @@ pub fn androidpublisher_reviews_reply(
 
 pub fn androidpublisher_systemapks_variants_create_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    versionCode: &str,
+    packageName: String,
+    versionCode: String,
     body: &Variant,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/systemApks/{}/variants",
-        packageName,
-        versionCode,
+        packageName.as_str(),
+        versionCode.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -22534,7 +16245,12 @@ pub fn androidpublisher_systemapks_variants_create_builder(
 pub fn androidpublisher_systemapks_variants_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Variant>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Variant>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -22640,8 +16356,8 @@ pub fn androidpublisher_systemapks_variants_create(
 > {
     let builder = androidpublisher_systemapks_variants_create_builder(
         client,
-        &args.packageName,
-        &args.versionCode,
+        args.packageName.clone(),
+        args.versionCode.clone(),
         &args.body,
     )?;
     androidpublisher_systemapks_variants_create_execute(builder)
@@ -22655,21 +16371,21 @@ pub fn androidpublisher_systemapks_variants_create(
 
 pub fn androidpublisher_systemapks_variants_download_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    versionCode: &str,
-    variantId: &str,
+    packageName: String,
+    versionCode: String,
+    variantId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/systemApks/{}/variants/{}:download",
-        packageName,
-        versionCode,
-        variantId,
+        packageName.as_str(),
+        versionCode.as_str(),
+        variantId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -22699,7 +16415,12 @@ pub fn androidpublisher_systemapks_variants_download_builder(
 pub fn androidpublisher_systemapks_variants_download_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -22802,9 +16523,9 @@ pub fn androidpublisher_systemapks_variants_download(
 > {
     let builder = androidpublisher_systemapks_variants_download_builder(
         client,
-        &args.packageName,
-        &args.versionCode,
-        &args.variantId,
+        args.packageName.clone(),
+        args.versionCode.clone(),
+        args.variantId.clone(),
     )?;
     androidpublisher_systemapks_variants_download_execute(builder)
 }
@@ -22817,21 +16538,21 @@ pub fn androidpublisher_systemapks_variants_download(
 
 pub fn androidpublisher_systemapks_variants_get_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
-    versionCode: &str,
-    variantId: &str,
+    packageName: String,
+    versionCode: String,
+    variantId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/systemApks/{}/variants/{}",
-        packageName,
-        versionCode,
-        variantId,
+        packageName.as_str(),
+        versionCode.as_str(),
+        variantId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -22861,7 +16582,12 @@ pub fn androidpublisher_systemapks_variants_get_builder(
 pub fn androidpublisher_systemapks_variants_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Variant>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Variant>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -22967,177 +16693,11 @@ pub fn androidpublisher_systemapks_variants_get(
 > {
     let builder = androidpublisher_systemapks_variants_get_builder(
         client,
-        &args.packageName,
-        &args.versionCode,
-        &args.variantId,
+        args.packageName.clone(),
+        args.versionCode.clone(),
+        args.variantId.clone(),
     )?;
     androidpublisher_systemapks_variants_get_execute(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
-/// Returns the list of previously created system APK variants.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_systemapks_variants_list_execute()` to send, or `androidpublisher_systemapks_variants_list` for simplest API.
-
-pub fn androidpublisher_systemapks_variants_list_builder(
-    client: &SimpleHttpClient,
-    packageName: &str,
-    versionCode: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/{}/systemApks/{}/variants",
-        packageName,
-        versionCode,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
-/// Returns the list of previously created system APK variants.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_systemapks_variants_list_execute()` or `androidpublisher_systemapks_variants_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_systemapks_variants_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_systemapks_variants_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SystemApksListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: SystemApksListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
-/// Returns the list of previously created system APK variants.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_systemapks_variants_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_systemapks_variants_list_task()`.
-/// For the simplest API, use `androidpublisher_systemapks_variants_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_systemapks_variants_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_systemapks_variants_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SystemApksListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_systemapks_variants_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_systemapks_variants_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherSystemapksVariantsListArgs {
-    /// Path parameter: packageName
-    pub packageName: String,
-    /// Path parameter: versionCode
-    pub versionCode: String,
-}
-
-/// GET androidpublisher/v3/applications/{packageName}/systemApks/{versionCode}/variants
-/// Returns the list of previously created system APK variants.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_systemapks_variants_list_builder()` + `androidpublisher_systemapks_variants_list_execute()`.
-/// For task-level control, use `androidpublisher_systemapks_variants_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_systemapks_variants_list(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherSystemapksVariantsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SystemApksListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_systemapks_variants_list_builder(
-        client,
-        &args.packageName,
-        &args.versionCode,
-    )?;
-    androidpublisher_systemapks_variants_list_execute(builder)
 }
 
 /// GET androidpublisher/v3/developers/{developersId}/users
@@ -23148,18 +16708,16 @@ pub fn androidpublisher_systemapks_variants_list(
 
 pub fn androidpublisher_users_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &User,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -23191,7 +16749,12 @@ pub fn androidpublisher_users_create_builder(
 pub fn androidpublisher_users_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<User>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -23293,514 +16856,6 @@ pub fn androidpublisher_users_create(
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = androidpublisher_users_create_builder(client, &args.parent, &args.body)?;
+    let builder = androidpublisher_users_create_builder(client, args.parent.clone(), &args.body)?;
     androidpublisher_users_create_execute(builder)
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}
-/// Removes all access for the user to the given developer account.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_users_delete_execute()` to send, or `androidpublisher_users_delete` for simplest API.
-
-pub fn androidpublisher_users_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}
-/// Removes all access for the user to the given developer account.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_users_delete_execute()` or `androidpublisher_users_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_users_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_users_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: (),
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}
-/// Removes all access for the user to the given developer account.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_users_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_users_delete_task()`.
-/// For the simplest API, use `androidpublisher_users_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_users_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_users_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_users_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_users_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherUsersDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}
-/// Removes all access for the user to the given developer account.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_users_delete_builder()` + `androidpublisher_users_delete_execute()`.
-/// For task-level control, use `androidpublisher_users_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_users_delete(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherUsersDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_users_delete_builder(client, &args.name)?;
-    androidpublisher_users_delete_execute(builder)
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users
-/// Lists all users with access to a developer account.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_users_list_execute()` to send, or `androidpublisher_users_list` for simplest API.
-
-pub fn androidpublisher_users_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users
-/// Lists all users with access to a developer account.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_users_list_execute()` or `androidpublisher_users_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_users_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_users_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListUsersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListUsersResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users
-/// Lists all users with access to a developer account.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_users_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_users_list_task()`.
-/// For the simplest API, use `androidpublisher_users_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_users_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_users_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListUsersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_users_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_users_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherUsersListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users
-/// Lists all users with access to a developer account.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_users_list_builder()` + `androidpublisher_users_list_execute()`.
-/// For task-level control, use `androidpublisher_users_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_users_list(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherUsersListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListUsersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_users_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    androidpublisher_users_list_execute(builder)
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}
-/// Updates access for the user to the developer account.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `androidpublisher_users_patch_execute()` to send, or `androidpublisher_users_patch` for simplest API.
-
-pub fn androidpublisher_users_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &User,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://androidpublisher.googleapis.com/androidpublisher/v3/developers/{}/users/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}
-/// Updates access for the user to the developer account.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `androidpublisher_users_patch_execute()` or `androidpublisher_users_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_users_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_users_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: User = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}
-/// Updates access for the user to the developer account.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `androidpublisher_users_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `androidpublisher_users_patch_task()`.
-/// For the simplest API, use `androidpublisher_users_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `androidpublisher_users_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn androidpublisher_users_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = androidpublisher_users_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`androidpublisher_users_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AndroidpublisherUsersPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: User,
-}
-
-/// GET androidpublisher/v3/developers/{developersId}/users/{usersId}
-/// Updates access for the user to the developer account.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `androidpublisher_users_patch_builder()` + `androidpublisher_users_patch_execute()`.
-/// For task-level control, use `androidpublisher_users_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn androidpublisher_users_patch(
-    client: &SimpleHttpClient,
-    args: &AndroidpublisherUsersPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = androidpublisher_users_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    androidpublisher_users_patch_execute(builder)
 }

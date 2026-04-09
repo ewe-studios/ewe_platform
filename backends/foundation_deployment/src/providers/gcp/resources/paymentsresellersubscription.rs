@@ -157,7 +157,9 @@ pub struct ResumeSubscriptionResponse {
 
 /// Request to suspend a subscription.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SuspendSubscriptionRequest {}
+pub struct SuspendSubscriptionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response that contains the suspended subscription.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -169,7 +171,9 @@ pub struct SuspendSubscriptionResponse {
 
 /// Request to revoke a cancellation request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UndoCancelSubscriptionRequest {}
+pub struct UndoCancelSubscriptionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response that contains the updated subscription resource.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

@@ -11,10 +11,6 @@ use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// Describes a budget amount targeted to the last Filter.calendar_period spend. At this time, the amount is automatically 100% of the last calendar period''s spend; that is, there are no other options yet. LastPeriodAmount cannot be set for a budget configured with a Filter.custom_period.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBillingBudgetsV1LastPeriodAmount {}
-
 /// Response for ListBudgets
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBillingBudgetsV1ListBudgetsResponse {
@@ -28,7 +24,9 @@ pub struct GoogleCloudBillingBudgetsV1ListBudgetsResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// A budget is a plan that describes what you expect to spend on Cloud projects, plus the rules to execute as spend is tracked against that plan, (for example, send an alert when 90% of the target spend is met). The budget time period is configurable, with options such as month (default), quarter, year, or custom time period.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -65,7 +63,7 @@ pub struct GoogleCloudBillingBudgetsV1Budget {
 pub struct GoogleCloudBillingBudgetsV1BudgetAmount {
     /// Use the last period''s actual spend as the budget for the present period. LastPeriodAmount can only be set when the budget''s time period is a Filter.calendar_period. It cannot be set in combination with Filter.custom_period.
     #[serde(default, rename = "lastPeriodAmount")]
-    pub last_period_amount: ::core::option::Option<serde_json::Value>,
+    pub last_period_amount: ::core::option::Option<GoogleCloudBillingBudgetsV1LastPeriodAmount>,
     /// A specified amount to use as the budget. currency_code is optional. If specified when creating a budget, it must match the currency of the billing account. If specified when updating a budget, it must match the currency_code of the existing budget. The currency_code is provided on output.
     #[serde(default, rename = "specifiedAmount")]
     pub specified_amount: ::core::option::Option<GoogleTypeMoney>,
@@ -132,6 +130,12 @@ pub struct GoogleCloudBillingBudgetsV1ThresholdRule {
     /// Required. Send an alert when this threshold is exceeded. This is a 1.0-based percentage, so 0.5 = 50%. Validation: non-negative number.
     #[serde(default, rename = "thresholdPercent")]
     pub threshold_percent: ::core::option::Option<f64>,
+}
+
+/// Describes a budget amount targeted to the last Filter.calendar_period spend. At this time, the amount is automatically 100% of the last calendar period''s spend; that is, there are no other options yet. LastPeriodAmount cannot be set for a budget configured with a Filter.custom_period.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBillingBudgetsV1LastPeriodAmount {
+    pub value: serde_json::Value,
 }
 
 /// Represents an amount of money with its currency type.

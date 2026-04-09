@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,18 @@ use serde::Serialize;
 
 pub fn walletobjects_eventticketclass_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass/{}/addMessage",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -72,8 +73,9 @@ pub fn walletobjects_eventticketclass_addmessage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<EventTicketClassAddMessageResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<EventTicketClassAddMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -185,8 +187,11 @@ pub fn walletobjects_eventticketclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_eventticketclass_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_eventticketclass_addmessage_builder(
+        client,
+        args.resourceId.clone(),
+        &args.body,
+    )?;
     walletobjects_eventticketclass_addmessage_execute(builder)
 }
 
@@ -198,17 +203,17 @@ pub fn walletobjects_eventticketclass_addmessage(
 
 pub fn walletobjects_eventticketclass_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -238,8 +243,11 @@ pub fn walletobjects_eventticketclass_get_builder(
 pub fn walletobjects_eventticketclass_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EventTicketClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -344,7 +352,7 @@ pub fn walletobjects_eventticketclass_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketclass_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_eventticketclass_get_builder(client, args.resourceId.clone())?;
     walletobjects_eventticketclass_get_execute(builder)
 }
 
@@ -359,11 +367,12 @@ pub fn walletobjects_eventticketclass_insert_builder(
     body: &EventTicketClass,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass",);
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -395,8 +404,11 @@ pub fn walletobjects_eventticketclass_insert_builder(
 pub fn walletobjects_eventticketclass_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EventTicketClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -505,523 +517,6 @@ pub fn walletobjects_eventticketclass_insert(
     walletobjects_eventticketclass_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/eventTicketClass
-/// Returns a list of all event ticket classes for a given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_eventticketclass_list_execute()` to send, or `walletobjects_eventticketclass_list` for simplest API.
-
-pub fn walletobjects_eventticketclass_list_builder(
-    client: &SimpleHttpClient,
-    issuerId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = issuerId {
-        query_parts.push(format!("issuerId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/eventTicketClass
-/// Returns a list of all event ticket classes for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_eventticketclass_list_execute()` or `walletobjects_eventticketclass_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketclass_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_eventticketclass_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<EventTicketClassListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EventTicketClassListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/eventTicketClass
-/// Returns a list of all event ticket classes for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_eventticketclass_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_eventticketclass_list_task()`.
-/// For the simplest API, use `walletobjects_eventticketclass_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketclass_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_eventticketclass_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<EventTicketClassListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_eventticketclass_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_eventticketclass_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsEventticketclassListArgs {
-    /// Query parameter: issuerId
-    pub issuerId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET walletobjects/v1/eventTicketClass
-/// Returns a list of all event ticket classes for a given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_eventticketclass_list_builder()` + `walletobjects_eventticketclass_list_execute()`.
-/// For task-level control, use `walletobjects_eventticketclass_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_eventticketclass_list(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsEventticketclassListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<EventTicketClassListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_eventticketclass_list_builder(
-        client,
-        args.issuerId.as_deref(),
-        args.maxResults,
-        args.token.as_deref(),
-    )?;
-    walletobjects_eventticketclass_list_execute(builder)
-}
-
-/// GET walletobjects/v1/eventTicketClass/{resourceId}
-/// Updates the event ticket class referenced by the given class ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_eventticketclass_patch_execute()` to send, or `walletobjects_eventticketclass_patch` for simplest API.
-
-pub fn walletobjects_eventticketclass_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &EventTicketClass,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/eventTicketClass/{resourceId}
-/// Updates the event ticket class referenced by the given class ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_eventticketclass_patch_execute()` or `walletobjects_eventticketclass_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketclass_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_eventticketclass_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EventTicketClass = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/eventTicketClass/{resourceId}
-/// Updates the event ticket class referenced by the given class ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_eventticketclass_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_eventticketclass_patch_task()`.
-/// For the simplest API, use `walletobjects_eventticketclass_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketclass_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_eventticketclass_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_eventticketclass_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_eventticketclass_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsEventticketclassPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: EventTicketClass,
-}
-
-/// GET walletobjects/v1/eventTicketClass/{resourceId}
-/// Updates the event ticket class referenced by the given class ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_eventticketclass_patch_builder()` + `walletobjects_eventticketclass_patch_execute()`.
-/// For task-level control, use `walletobjects_eventticketclass_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_eventticketclass_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsEventticketclassPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        walletobjects_eventticketclass_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_eventticketclass_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/eventTicketClass/{resourceId}
-/// Updates the event ticket class referenced by the given class ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_eventticketclass_update_execute()` to send, or `walletobjects_eventticketclass_update` for simplest API.
-
-pub fn walletobjects_eventticketclass_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &EventTicketClass,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketClass/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/eventTicketClass/{resourceId}
-/// Updates the event ticket class referenced by the given class ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_eventticketclass_update_execute()` or `walletobjects_eventticketclass_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketclass_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_eventticketclass_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EventTicketClass = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/eventTicketClass/{resourceId}
-/// Updates the event ticket class referenced by the given class ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_eventticketclass_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_eventticketclass_update_task()`.
-/// For the simplest API, use `walletobjects_eventticketclass_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketclass_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_eventticketclass_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_eventticketclass_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_eventticketclass_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsEventticketclassUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: EventTicketClass,
-}
-
-/// GET walletobjects/v1/eventTicketClass/{resourceId}
-/// Updates the event ticket class referenced by the given class ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_eventticketclass_update_builder()` + `walletobjects_eventticketclass_update_execute()`.
-/// For task-level control, use `walletobjects_eventticketclass_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_eventticketclass_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsEventticketclassUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTicketClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        walletobjects_eventticketclass_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_eventticketclass_update_execute(builder)
-}
-
 /// GET walletobjects/v1/eventTicketObject/{resourceId}/addMessage
 /// Adds a message to the event ticket object referenced by the given object ID.
 ///
@@ -1030,18 +525,18 @@ pub fn walletobjects_eventticketclass_update(
 
 pub fn walletobjects_eventticketobject_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}/addMessage",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1074,8 +569,9 @@ pub fn walletobjects_eventticketobject_addmessage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<EventTicketObjectAddMessageResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<EventTicketObjectAddMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1187,8 +683,11 @@ pub fn walletobjects_eventticketobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_eventticketobject_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_eventticketobject_addmessage_builder(
+        client,
+        args.resourceId.clone(),
+        &args.body,
+    )?;
     walletobjects_eventticketobject_addmessage_execute(builder)
 }
 
@@ -1200,17 +699,17 @@ pub fn walletobjects_eventticketobject_addmessage(
 
 pub fn walletobjects_eventticketobject_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1240,8 +739,11 @@ pub fn walletobjects_eventticketobject_get_builder(
 pub fn walletobjects_eventticketobject_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EventTicketObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1346,7 +848,7 @@ pub fn walletobjects_eventticketobject_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_eventticketobject_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_eventticketobject_get_builder(client, args.resourceId.clone())?;
     walletobjects_eventticketobject_get_execute(builder)
 }
 
@@ -1361,11 +863,12 @@ pub fn walletobjects_eventticketobject_insert_builder(
     body: &EventTicketObject,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject",);
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1397,8 +900,11 @@ pub fn walletobjects_eventticketobject_insert_builder(
 pub fn walletobjects_eventticketobject_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EventTicketObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1507,195 +1013,6 @@ pub fn walletobjects_eventticketobject_insert(
     walletobjects_eventticketobject_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/eventTicketObject
-/// Returns a list of all event ticket objects for a given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_eventticketobject_list_execute()` to send, or `walletobjects_eventticketobject_list` for simplest API.
-
-pub fn walletobjects_eventticketobject_list_builder(
-    client: &SimpleHttpClient,
-    classId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = classId {
-        query_parts.push(format!("classId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/eventTicketObject
-/// Returns a list of all event ticket objects for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_eventticketobject_list_execute()` or `walletobjects_eventticketobject_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketobject_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_eventticketobject_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<EventTicketObjectListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EventTicketObjectListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/eventTicketObject
-/// Returns a list of all event ticket objects for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_eventticketobject_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_eventticketobject_list_task()`.
-/// For the simplest API, use `walletobjects_eventticketobject_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketobject_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_eventticketobject_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<EventTicketObjectListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_eventticketobject_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_eventticketobject_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsEventticketobjectListArgs {
-    /// Query parameter: classId
-    pub classId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET walletobjects/v1/eventTicketObject
-/// Returns a list of all event ticket objects for a given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_eventticketobject_list_builder()` + `walletobjects_eventticketobject_list_execute()`.
-/// For task-level control, use `walletobjects_eventticketobject_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_eventticketobject_list(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsEventticketobjectListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<EventTicketObjectListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_eventticketobject_list_builder(
-        client,
-        args.classId.as_deref(),
-        args.maxResults,
-        args.token.as_deref(),
-    )?;
-    walletobjects_eventticketobject_list_execute(builder)
-}
-
 /// GET walletobjects/v1/eventTicketObject/{resourceId}/modifyLinkedOfferObjects
 /// Deprecated: Use Auto Linked Passes instead. Modifies linked offer objects for the event ticket object with the given ID.
 ///
@@ -1704,18 +1021,18 @@ pub fn walletobjects_eventticketobject_list(
 
 pub fn walletobjects_eventticketobject_modifylinkedofferobjects_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &ModifyLinkedOfferObjectsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}/modifyLinkedOfferObjects",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1747,8 +1064,11 @@ pub fn walletobjects_eventticketobject_modifylinkedofferobjects_builder(
 pub fn walletobjects_eventticketobject_modifylinkedofferobjects_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EventTicketObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1857,338 +1177,10 @@ pub fn walletobjects_eventticketobject_modifylinkedofferobjects(
 > {
     let builder = walletobjects_eventticketobject_modifylinkedofferobjects_builder(
         client,
-        &args.resourceId,
+        args.resourceId.clone(),
         &args.body,
     )?;
     walletobjects_eventticketobject_modifylinkedofferobjects_execute(builder)
-}
-
-/// GET walletobjects/v1/eventTicketObject/{resourceId}
-/// Updates the event ticket object referenced by the given object ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_eventticketobject_patch_execute()` to send, or `walletobjects_eventticketobject_patch` for simplest API.
-
-pub fn walletobjects_eventticketobject_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &EventTicketObject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/eventTicketObject/{resourceId}
-/// Updates the event ticket object referenced by the given object ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_eventticketobject_patch_execute()` or `walletobjects_eventticketobject_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketobject_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_eventticketobject_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EventTicketObject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/eventTicketObject/{resourceId}
-/// Updates the event ticket object referenced by the given object ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_eventticketobject_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_eventticketobject_patch_task()`.
-/// For the simplest API, use `walletobjects_eventticketobject_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketobject_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_eventticketobject_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_eventticketobject_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_eventticketobject_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsEventticketobjectPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: EventTicketObject,
-}
-
-/// GET walletobjects/v1/eventTicketObject/{resourceId}
-/// Updates the event ticket object referenced by the given object ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_eventticketobject_patch_builder()` + `walletobjects_eventticketobject_patch_execute()`.
-/// For task-level control, use `walletobjects_eventticketobject_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_eventticketobject_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsEventticketobjectPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        walletobjects_eventticketobject_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_eventticketobject_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/eventTicketObject/{resourceId}
-/// Updates the event ticket object referenced by the given object ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_eventticketobject_update_execute()` to send, or `walletobjects_eventticketobject_update` for simplest API.
-
-pub fn walletobjects_eventticketobject_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &EventTicketObject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/eventTicketObject/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/eventTicketObject/{resourceId}
-/// Updates the event ticket object referenced by the given object ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_eventticketobject_update_execute()` or `walletobjects_eventticketobject_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketobject_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_eventticketobject_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EventTicketObject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/eventTicketObject/{resourceId}
-/// Updates the event ticket object referenced by the given object ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_eventticketobject_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_eventticketobject_update_task()`.
-/// For the simplest API, use `walletobjects_eventticketobject_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_eventticketobject_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_eventticketobject_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_eventticketobject_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_eventticketobject_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsEventticketobjectUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: EventTicketObject,
-}
-
-/// GET walletobjects/v1/eventTicketObject/{resourceId}
-/// Updates the event ticket object referenced by the given object ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_eventticketobject_update_builder()` + `walletobjects_eventticketobject_update_execute()`.
-/// For task-level control, use `walletobjects_eventticketobject_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_eventticketobject_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsEventticketobjectUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EventTicketObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        walletobjects_eventticketobject_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_eventticketobject_update_execute(builder)
 }
 
 /// GET walletobjects/v1/flightClass/{resourceId}/addMessage
@@ -2199,18 +1191,18 @@ pub fn walletobjects_eventticketobject_update(
 
 pub fn walletobjects_flightclass_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightClass/{}/addMessage",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2243,8 +1235,9 @@ pub fn walletobjects_flightclass_addmessage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<FlightClassAddMessageResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<FlightClassAddMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2357,7 +1350,7 @@ pub fn walletobjects_flightclass_addmessage(
     ApiError,
 > {
     let builder =
-        walletobjects_flightclass_addmessage_builder(client, &args.resourceId, &args.body)?;
+        walletobjects_flightclass_addmessage_builder(client, args.resourceId.clone(), &args.body)?;
     walletobjects_flightclass_addmessage_execute(builder)
 }
 
@@ -2369,17 +1362,17 @@ pub fn walletobjects_flightclass_addmessage(
 
 pub fn walletobjects_flightclass_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightClass/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2409,7 +1402,12 @@ pub fn walletobjects_flightclass_get_builder(
 pub fn walletobjects_flightclass_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FlightClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2509,7 +1507,7 @@ pub fn walletobjects_flightclass_get(
     impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightclass_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_flightclass_get_builder(client, args.resourceId.clone())?;
     walletobjects_flightclass_get_execute(builder)
 }
 
@@ -2524,11 +1522,12 @@ pub fn walletobjects_flightclass_insert_builder(
     body: &FlightClass,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/flightClass",);
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/flightClass",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2560,7 +1559,12 @@ pub fn walletobjects_flightclass_insert_builder(
 pub fn walletobjects_flightclass_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FlightClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2664,503 +1668,6 @@ pub fn walletobjects_flightclass_insert(
     walletobjects_flightclass_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/flightClass
-/// Returns a list of all flight classes for a given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_flightclass_list_execute()` to send, or `walletobjects_flightclass_list` for simplest API.
-
-pub fn walletobjects_flightclass_list_builder(
-    client: &SimpleHttpClient,
-    issuerId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/flightClass",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = issuerId {
-        query_parts.push(format!("issuerId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/flightClass
-/// Returns a list of all flight classes for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_flightclass_list_execute()` or `walletobjects_flightclass_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightclass_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_flightclass_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FlightClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FlightClassListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/flightClass
-/// Returns a list of all flight classes for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_flightclass_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_flightclass_list_task()`.
-/// For the simplest API, use `walletobjects_flightclass_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightclass_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_flightclass_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FlightClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_flightclass_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_flightclass_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsFlightclassListArgs {
-    /// Query parameter: issuerId
-    pub issuerId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET walletobjects/v1/flightClass
-/// Returns a list of all flight classes for a given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_flightclass_list_builder()` + `walletobjects_flightclass_list_execute()`.
-/// For task-level control, use `walletobjects_flightclass_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_flightclass_list(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsFlightclassListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FlightClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_flightclass_list_builder(
-        client,
-        args.issuerId.as_deref(),
-        args.maxResults,
-        args.token.as_deref(),
-    )?;
-    walletobjects_flightclass_list_execute(builder)
-}
-
-/// GET walletobjects/v1/flightClass/{resourceId}
-/// Updates the flight class referenced by the given class ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_flightclass_patch_execute()` to send, or `walletobjects_flightclass_patch` for simplest API.
-
-pub fn walletobjects_flightclass_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &FlightClass,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/flightClass/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/flightClass/{resourceId}
-/// Updates the flight class referenced by the given class ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_flightclass_patch_execute()` or `walletobjects_flightclass_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightclass_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_flightclass_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FlightClass = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/flightClass/{resourceId}
-/// Updates the flight class referenced by the given class ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_flightclass_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_flightclass_patch_task()`.
-/// For the simplest API, use `walletobjects_flightclass_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightclass_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_flightclass_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = walletobjects_flightclass_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_flightclass_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsFlightclassPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: FlightClass,
-}
-
-/// GET walletobjects/v1/flightClass/{resourceId}
-/// Updates the flight class referenced by the given class ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_flightclass_patch_builder()` + `walletobjects_flightclass_patch_execute()`.
-/// For task-level control, use `walletobjects_flightclass_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_flightclass_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsFlightclassPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_flightclass_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_flightclass_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/flightClass/{resourceId}
-/// Updates the flight class referenced by the given class ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_flightclass_update_execute()` to send, or `walletobjects_flightclass_update` for simplest API.
-
-pub fn walletobjects_flightclass_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &FlightClass,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/flightClass/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/flightClass/{resourceId}
-/// Updates the flight class referenced by the given class ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_flightclass_update_execute()` or `walletobjects_flightclass_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightclass_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_flightclass_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FlightClass = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/flightClass/{resourceId}
-/// Updates the flight class referenced by the given class ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_flightclass_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_flightclass_update_task()`.
-/// For the simplest API, use `walletobjects_flightclass_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightclass_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_flightclass_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = walletobjects_flightclass_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_flightclass_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsFlightclassUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: FlightClass,
-}
-
-/// GET walletobjects/v1/flightClass/{resourceId}
-/// Updates the flight class referenced by the given class ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_flightclass_update_builder()` + `walletobjects_flightclass_update_execute()`.
-/// For task-level control, use `walletobjects_flightclass_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_flightclass_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsFlightclassUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FlightClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_flightclass_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_flightclass_update_execute(builder)
-}
-
 /// GET walletobjects/v1/flightObject/{resourceId}/addMessage
 /// Adds a message to the flight object referenced by the given object ID.
 ///
@@ -3169,18 +1676,18 @@ pub fn walletobjects_flightclass_update(
 
 pub fn walletobjects_flightobject_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightObject/{}/addMessage",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3213,8 +1720,9 @@ pub fn walletobjects_flightobject_addmessage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<FlightObjectAddMessageResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<FlightObjectAddMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3327,7 +1835,7 @@ pub fn walletobjects_flightobject_addmessage(
     ApiError,
 > {
     let builder =
-        walletobjects_flightobject_addmessage_builder(client, &args.resourceId, &args.body)?;
+        walletobjects_flightobject_addmessage_builder(client, args.resourceId.clone(), &args.body)?;
     walletobjects_flightobject_addmessage_execute(builder)
 }
 
@@ -3339,17 +1847,17 @@ pub fn walletobjects_flightobject_addmessage(
 
 pub fn walletobjects_flightobject_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/flightObject/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3379,7 +1887,12 @@ pub fn walletobjects_flightobject_get_builder(
 pub fn walletobjects_flightobject_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FlightObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3483,7 +1996,7 @@ pub fn walletobjects_flightobject_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_flightobject_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_flightobject_get_builder(client, args.resourceId.clone())?;
     walletobjects_flightobject_get_execute(builder)
 }
 
@@ -3498,11 +2011,12 @@ pub fn walletobjects_flightobject_insert_builder(
     body: &FlightObject,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/flightObject",);
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/flightObject",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3534,7 +2048,12 @@ pub fn walletobjects_flightobject_insert_builder(
 pub fn walletobjects_flightobject_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FlightObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3642,511 +2161,6 @@ pub fn walletobjects_flightobject_insert(
     walletobjects_flightobject_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/flightObject
-/// Returns a list of all flight objects for a given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_flightobject_list_execute()` to send, or `walletobjects_flightobject_list` for simplest API.
-
-pub fn walletobjects_flightobject_list_builder(
-    client: &SimpleHttpClient,
-    classId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/flightObject",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = classId {
-        query_parts.push(format!("classId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/flightObject
-/// Returns a list of all flight objects for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_flightobject_list_execute()` or `walletobjects_flightobject_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightobject_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_flightobject_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FlightObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FlightObjectListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/flightObject
-/// Returns a list of all flight objects for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_flightobject_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_flightobject_list_task()`.
-/// For the simplest API, use `walletobjects_flightobject_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightobject_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_flightobject_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FlightObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_flightobject_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_flightobject_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsFlightobjectListArgs {
-    /// Query parameter: classId
-    pub classId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET walletobjects/v1/flightObject
-/// Returns a list of all flight objects for a given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_flightobject_list_builder()` + `walletobjects_flightobject_list_execute()`.
-/// For task-level control, use `walletobjects_flightobject_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_flightobject_list(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsFlightobjectListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FlightObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_flightobject_list_builder(
-        client,
-        args.classId.as_deref(),
-        args.maxResults,
-        args.token.as_deref(),
-    )?;
-    walletobjects_flightobject_list_execute(builder)
-}
-
-/// GET walletobjects/v1/flightObject/{resourceId}
-/// Updates the flight object referenced by the given object ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_flightobject_patch_execute()` to send, or `walletobjects_flightobject_patch` for simplest API.
-
-pub fn walletobjects_flightobject_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &FlightObject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/flightObject/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/flightObject/{resourceId}
-/// Updates the flight object referenced by the given object ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_flightobject_patch_execute()` or `walletobjects_flightobject_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightobject_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_flightobject_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FlightObject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/flightObject/{resourceId}
-/// Updates the flight object referenced by the given object ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_flightobject_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_flightobject_patch_task()`.
-/// For the simplest API, use `walletobjects_flightobject_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightobject_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_flightobject_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_flightobject_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_flightobject_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsFlightobjectPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: FlightObject,
-}
-
-/// GET walletobjects/v1/flightObject/{resourceId}
-/// Updates the flight object referenced by the given object ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_flightobject_patch_builder()` + `walletobjects_flightobject_patch_execute()`.
-/// For task-level control, use `walletobjects_flightobject_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_flightobject_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsFlightobjectPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_flightobject_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_flightobject_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/flightObject/{resourceId}
-/// Updates the flight object referenced by the given object ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_flightobject_update_execute()` to send, or `walletobjects_flightobject_update` for simplest API.
-
-pub fn walletobjects_flightobject_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &FlightObject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/flightObject/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/flightObject/{resourceId}
-/// Updates the flight object referenced by the given object ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_flightobject_update_execute()` or `walletobjects_flightobject_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightobject_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_flightobject_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FlightObject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/flightObject/{resourceId}
-/// Updates the flight object referenced by the given object ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_flightobject_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_flightobject_update_task()`.
-/// For the simplest API, use `walletobjects_flightobject_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_flightobject_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_flightobject_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_flightobject_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_flightobject_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsFlightobjectUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: FlightObject,
-}
-
-/// GET walletobjects/v1/flightObject/{resourceId}
-/// Updates the flight object referenced by the given object ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_flightobject_update_builder()` + `walletobjects_flightobject_update_execute()`.
-/// For task-level control, use `walletobjects_flightobject_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_flightobject_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsFlightobjectUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FlightObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_flightobject_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_flightobject_update_execute(builder)
-}
-
 /// GET walletobjects/v1/genericClass/{resourceId}/addMessage
 /// Adds a message to the generic class referenced by the given class ID.
 ///
@@ -4155,18 +2169,18 @@ pub fn walletobjects_flightobject_update(
 
 pub fn walletobjects_genericclass_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericClass/{}/addMessage",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4199,8 +2213,9 @@ pub fn walletobjects_genericclass_addmessage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GenericClassAddMessageResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GenericClassAddMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -4313,7 +2328,7 @@ pub fn walletobjects_genericclass_addmessage(
     ApiError,
 > {
     let builder =
-        walletobjects_genericclass_addmessage_builder(client, &args.resourceId, &args.body)?;
+        walletobjects_genericclass_addmessage_builder(client, args.resourceId.clone(), &args.body)?;
     walletobjects_genericclass_addmessage_execute(builder)
 }
 
@@ -4325,17 +2340,17 @@ pub fn walletobjects_genericclass_addmessage(
 
 pub fn walletobjects_genericclass_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericClass/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4365,7 +2380,12 @@ pub fn walletobjects_genericclass_get_builder(
 pub fn walletobjects_genericclass_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenericClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4469,7 +2489,7 @@ pub fn walletobjects_genericclass_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericclass_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_genericclass_get_builder(client, args.resourceId.clone())?;
     walletobjects_genericclass_get_execute(builder)
 }
 
@@ -4484,11 +2504,12 @@ pub fn walletobjects_genericclass_insert_builder(
     body: &GenericClass,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/genericClass",);
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/genericClass",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4520,7 +2541,12 @@ pub fn walletobjects_genericclass_insert_builder(
 pub fn walletobjects_genericclass_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenericClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4628,511 +2654,6 @@ pub fn walletobjects_genericclass_insert(
     walletobjects_genericclass_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/genericClass
-/// Returns a list of all generic classes for a given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_genericclass_list_execute()` to send, or `walletobjects_genericclass_list` for simplest API.
-
-pub fn walletobjects_genericclass_list_builder(
-    client: &SimpleHttpClient,
-    issuerId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/genericClass",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = issuerId {
-        query_parts.push(format!("issuerId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/genericClass
-/// Returns a list of all generic classes for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_genericclass_list_execute()` or `walletobjects_genericclass_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericclass_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_genericclass_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GenericClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GenericClassListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/genericClass
-/// Returns a list of all generic classes for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_genericclass_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_genericclass_list_task()`.
-/// For the simplest API, use `walletobjects_genericclass_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericclass_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_genericclass_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GenericClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_genericclass_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_genericclass_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGenericclassListArgs {
-    /// Query parameter: issuerId
-    pub issuerId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET walletobjects/v1/genericClass
-/// Returns a list of all generic classes for a given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_genericclass_list_builder()` + `walletobjects_genericclass_list_execute()`.
-/// For task-level control, use `walletobjects_genericclass_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_genericclass_list(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsGenericclassListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GenericClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_genericclass_list_builder(
-        client,
-        args.issuerId.as_deref(),
-        args.maxResults,
-        args.token.as_deref(),
-    )?;
-    walletobjects_genericclass_list_execute(builder)
-}
-
-/// GET walletobjects/v1/genericClass/{resourceId}
-/// Updates the generic class referenced by the given class ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_genericclass_patch_execute()` to send, or `walletobjects_genericclass_patch` for simplest API.
-
-pub fn walletobjects_genericclass_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GenericClass,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/genericClass/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/genericClass/{resourceId}
-/// Updates the generic class referenced by the given class ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_genericclass_patch_execute()` or `walletobjects_genericclass_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericclass_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_genericclass_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GenericClass = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/genericClass/{resourceId}
-/// Updates the generic class referenced by the given class ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_genericclass_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_genericclass_patch_task()`.
-/// For the simplest API, use `walletobjects_genericclass_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericclass_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_genericclass_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_genericclass_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_genericclass_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGenericclassPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: GenericClass,
-}
-
-/// GET walletobjects/v1/genericClass/{resourceId}
-/// Updates the generic class referenced by the given class ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_genericclass_patch_builder()` + `walletobjects_genericclass_patch_execute()`.
-/// For task-level control, use `walletobjects_genericclass_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_genericclass_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsGenericclassPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_genericclass_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_genericclass_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/genericClass/{resourceId}
-/// Updates the Generic class referenced by the given class ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_genericclass_update_execute()` to send, or `walletobjects_genericclass_update` for simplest API.
-
-pub fn walletobjects_genericclass_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GenericClass,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/genericClass/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/genericClass/{resourceId}
-/// Updates the Generic class referenced by the given class ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_genericclass_update_execute()` or `walletobjects_genericclass_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericclass_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_genericclass_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GenericClass = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/genericClass/{resourceId}
-/// Updates the Generic class referenced by the given class ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_genericclass_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_genericclass_update_task()`.
-/// For the simplest API, use `walletobjects_genericclass_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericclass_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_genericclass_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_genericclass_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_genericclass_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGenericclassUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: GenericClass,
-}
-
-/// GET walletobjects/v1/genericClass/{resourceId}
-/// Updates the Generic class referenced by the given class ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_genericclass_update_builder()` + `walletobjects_genericclass_update_execute()`.
-/// For task-level control, use `walletobjects_genericclass_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_genericclass_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsGenericclassUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GenericClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_genericclass_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_genericclass_update_execute(builder)
-}
-
 /// GET walletobjects/v1/genericObject/{resourceId}/addMessage
 /// Adds a message to the generic object referenced by the given object ID.
 ///
@@ -5141,18 +2662,18 @@ pub fn walletobjects_genericclass_update(
 
 pub fn walletobjects_genericobject_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericObject/{}/addMessage",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5185,8 +2706,9 @@ pub fn walletobjects_genericobject_addmessage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GenericObjectAddMessageResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GenericObjectAddMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -5298,8 +2820,11 @@ pub fn walletobjects_genericobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_genericobject_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_genericobject_addmessage_builder(
+        client,
+        args.resourceId.clone(),
+        &args.body,
+    )?;
     walletobjects_genericobject_addmessage_execute(builder)
 }
 
@@ -5311,17 +2836,17 @@ pub fn walletobjects_genericobject_addmessage(
 
 pub fn walletobjects_genericobject_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/genericObject/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5351,7 +2876,12 @@ pub fn walletobjects_genericobject_get_builder(
 pub fn walletobjects_genericobject_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenericObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5455,7 +2985,7 @@ pub fn walletobjects_genericobject_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_genericobject_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_genericobject_get_builder(client, args.resourceId.clone())?;
     walletobjects_genericobject_get_execute(builder)
 }
 
@@ -5470,11 +3000,12 @@ pub fn walletobjects_genericobject_insert_builder(
     body: &GenericObject,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/genericObject",);
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/genericObject",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5506,7 +3037,12 @@ pub fn walletobjects_genericobject_insert_builder(
 pub fn walletobjects_genericobject_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenericObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5614,511 +3150,6 @@ pub fn walletobjects_genericobject_insert(
     walletobjects_genericobject_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/genericObject
-/// Returns a list of all generic objects for a given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_genericobject_list_execute()` to send, or `walletobjects_genericobject_list` for simplest API.
-
-pub fn walletobjects_genericobject_list_builder(
-    client: &SimpleHttpClient,
-    classId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/genericObject",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = classId {
-        query_parts.push(format!("classId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/genericObject
-/// Returns a list of all generic objects for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_genericobject_list_execute()` or `walletobjects_genericobject_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericobject_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_genericobject_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GenericObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GenericObjectListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/genericObject
-/// Returns a list of all generic objects for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_genericobject_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_genericobject_list_task()`.
-/// For the simplest API, use `walletobjects_genericobject_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericobject_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_genericobject_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GenericObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_genericobject_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_genericobject_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGenericobjectListArgs {
-    /// Query parameter: classId
-    pub classId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET walletobjects/v1/genericObject
-/// Returns a list of all generic objects for a given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_genericobject_list_builder()` + `walletobjects_genericobject_list_execute()`.
-/// For task-level control, use `walletobjects_genericobject_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_genericobject_list(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsGenericobjectListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GenericObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_genericobject_list_builder(
-        client,
-        args.classId.as_deref(),
-        args.maxResults,
-        args.token.as_deref(),
-    )?;
-    walletobjects_genericobject_list_execute(builder)
-}
-
-/// GET walletobjects/v1/genericObject/{resourceId}
-/// Updates the generic object referenced by the given object ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_genericobject_patch_execute()` to send, or `walletobjects_genericobject_patch` for simplest API.
-
-pub fn walletobjects_genericobject_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GenericObject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/genericObject/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/genericObject/{resourceId}
-/// Updates the generic object referenced by the given object ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_genericobject_patch_execute()` or `walletobjects_genericobject_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericobject_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_genericobject_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GenericObject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/genericObject/{resourceId}
-/// Updates the generic object referenced by the given object ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_genericobject_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_genericobject_patch_task()`.
-/// For the simplest API, use `walletobjects_genericobject_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericobject_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_genericobject_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_genericobject_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_genericobject_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGenericobjectPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: GenericObject,
-}
-
-/// GET walletobjects/v1/genericObject/{resourceId}
-/// Updates the generic object referenced by the given object ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_genericobject_patch_builder()` + `walletobjects_genericobject_patch_execute()`.
-/// For task-level control, use `walletobjects_genericobject_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_genericobject_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsGenericobjectPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_genericobject_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_genericobject_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/genericObject/{resourceId}
-/// Updates the generic object referenced by the given object ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_genericobject_update_execute()` to send, or `walletobjects_genericobject_update` for simplest API.
-
-pub fn walletobjects_genericobject_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GenericObject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/genericObject/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/genericObject/{resourceId}
-/// Updates the generic object referenced by the given object ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_genericobject_update_execute()` or `walletobjects_genericobject_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericobject_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_genericobject_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GenericObject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/genericObject/{resourceId}
-/// Updates the generic object referenced by the given object ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_genericobject_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_genericobject_update_task()`.
-/// For the simplest API, use `walletobjects_genericobject_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_genericobject_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_genericobject_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_genericobject_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_genericobject_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGenericobjectUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: GenericObject,
-}
-
-/// GET walletobjects/v1/genericObject/{resourceId}
-/// Updates the generic object referenced by the given object ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_genericobject_update_builder()` + `walletobjects_genericobject_update_execute()`.
-/// For task-level control, use `walletobjects_genericobject_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_genericobject_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsGenericobjectUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GenericObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_genericobject_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_genericobject_update_execute(builder)
-}
-
 /// GET walletobjects/v1/giftCardClass/{resourceId}/addMessage
 /// Adds a message to the gift card class referenced by the given class ID.
 ///
@@ -6127,18 +3158,18 @@ pub fn walletobjects_genericobject_update(
 
 pub fn walletobjects_giftcardclass_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass/{}/addMessage",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6171,8 +3202,9 @@ pub fn walletobjects_giftcardclass_addmessage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GiftCardClassAddMessageResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GiftCardClassAddMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -6284,8 +3316,11 @@ pub fn walletobjects_giftcardclass_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_giftcardclass_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_giftcardclass_addmessage_builder(
+        client,
+        args.resourceId.clone(),
+        &args.body,
+    )?;
     walletobjects_giftcardclass_addmessage_execute(builder)
 }
 
@@ -6297,17 +3332,17 @@ pub fn walletobjects_giftcardclass_addmessage(
 
 pub fn walletobjects_giftcardclass_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6337,7 +3372,12 @@ pub fn walletobjects_giftcardclass_get_builder(
 pub fn walletobjects_giftcardclass_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GiftCardClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6441,7 +3481,7 @@ pub fn walletobjects_giftcardclass_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardclass_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_giftcardclass_get_builder(client, args.resourceId.clone())?;
     walletobjects_giftcardclass_get_execute(builder)
 }
 
@@ -6456,11 +3496,12 @@ pub fn walletobjects_giftcardclass_insert_builder(
     body: &GiftCardClass,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass",);
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6492,7 +3533,12 @@ pub fn walletobjects_giftcardclass_insert_builder(
 pub fn walletobjects_giftcardclass_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GiftCardClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6600,511 +3646,6 @@ pub fn walletobjects_giftcardclass_insert(
     walletobjects_giftcardclass_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/giftCardClass
-/// Returns a list of all gift card classes for a given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_giftcardclass_list_execute()` to send, or `walletobjects_giftcardclass_list` for simplest API.
-
-pub fn walletobjects_giftcardclass_list_builder(
-    client: &SimpleHttpClient,
-    issuerId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = issuerId {
-        query_parts.push(format!("issuerId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/giftCardClass
-/// Returns a list of all gift card classes for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_giftcardclass_list_execute()` or `walletobjects_giftcardclass_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardclass_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_giftcardclass_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GiftCardClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GiftCardClassListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/giftCardClass
-/// Returns a list of all gift card classes for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_giftcardclass_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_giftcardclass_list_task()`.
-/// For the simplest API, use `walletobjects_giftcardclass_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardclass_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_giftcardclass_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GiftCardClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_giftcardclass_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_giftcardclass_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGiftcardclassListArgs {
-    /// Query parameter: issuerId
-    pub issuerId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET walletobjects/v1/giftCardClass
-/// Returns a list of all gift card classes for a given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_giftcardclass_list_builder()` + `walletobjects_giftcardclass_list_execute()`.
-/// For task-level control, use `walletobjects_giftcardclass_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_giftcardclass_list(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsGiftcardclassListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GiftCardClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_giftcardclass_list_builder(
-        client,
-        args.issuerId.as_deref(),
-        args.maxResults,
-        args.token.as_deref(),
-    )?;
-    walletobjects_giftcardclass_list_execute(builder)
-}
-
-/// GET walletobjects/v1/giftCardClass/{resourceId}
-/// Updates the gift card class referenced by the given class ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_giftcardclass_patch_execute()` to send, or `walletobjects_giftcardclass_patch` for simplest API.
-
-pub fn walletobjects_giftcardclass_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GiftCardClass,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/giftCardClass/{resourceId}
-/// Updates the gift card class referenced by the given class ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_giftcardclass_patch_execute()` or `walletobjects_giftcardclass_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardclass_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_giftcardclass_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GiftCardClass = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/giftCardClass/{resourceId}
-/// Updates the gift card class referenced by the given class ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_giftcardclass_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_giftcardclass_patch_task()`.
-/// For the simplest API, use `walletobjects_giftcardclass_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardclass_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_giftcardclass_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_giftcardclass_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_giftcardclass_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGiftcardclassPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: GiftCardClass,
-}
-
-/// GET walletobjects/v1/giftCardClass/{resourceId}
-/// Updates the gift card class referenced by the given class ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_giftcardclass_patch_builder()` + `walletobjects_giftcardclass_patch_execute()`.
-/// For task-level control, use `walletobjects_giftcardclass_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_giftcardclass_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsGiftcardclassPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_giftcardclass_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_giftcardclass_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/giftCardClass/{resourceId}
-/// Updates the gift card class referenced by the given class ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_giftcardclass_update_execute()` to send, or `walletobjects_giftcardclass_update` for simplest API.
-
-pub fn walletobjects_giftcardclass_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GiftCardClass,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/giftCardClass/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/giftCardClass/{resourceId}
-/// Updates the gift card class referenced by the given class ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_giftcardclass_update_execute()` or `walletobjects_giftcardclass_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardclass_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_giftcardclass_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GiftCardClass = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/giftCardClass/{resourceId}
-/// Updates the gift card class referenced by the given class ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_giftcardclass_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_giftcardclass_update_task()`.
-/// For the simplest API, use `walletobjects_giftcardclass_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardclass_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_giftcardclass_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_giftcardclass_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_giftcardclass_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGiftcardclassUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: GiftCardClass,
-}
-
-/// GET walletobjects/v1/giftCardClass/{resourceId}
-/// Updates the gift card class referenced by the given class ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_giftcardclass_update_builder()` + `walletobjects_giftcardclass_update_execute()`.
-/// For task-level control, use `walletobjects_giftcardclass_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_giftcardclass_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsGiftcardclassUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GiftCardClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_giftcardclass_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_giftcardclass_update_execute(builder)
-}
-
 /// GET walletobjects/v1/giftCardObject/{resourceId}/addMessage
 /// Adds a message to the gift card object referenced by the given object ID.
 ///
@@ -7113,18 +3654,18 @@ pub fn walletobjects_giftcardclass_update(
 
 pub fn walletobjects_giftcardobject_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject/{}/addMessage",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -7157,8 +3698,9 @@ pub fn walletobjects_giftcardobject_addmessage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GiftCardObjectAddMessageResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GiftCardObjectAddMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -7270,8 +3812,11 @@ pub fn walletobjects_giftcardobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_giftcardobject_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_giftcardobject_addmessage_builder(
+        client,
+        args.resourceId.clone(),
+        &args.body,
+    )?;
     walletobjects_giftcardobject_addmessage_execute(builder)
 }
 
@@ -7283,17 +3828,17 @@ pub fn walletobjects_giftcardobject_addmessage(
 
 pub fn walletobjects_giftcardobject_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7323,8 +3868,11 @@ pub fn walletobjects_giftcardobject_get_builder(
 pub fn walletobjects_giftcardobject_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GiftCardObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7429,7 +3977,7 @@ pub fn walletobjects_giftcardobject_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_giftcardobject_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_giftcardobject_get_builder(client, args.resourceId.clone())?;
     walletobjects_giftcardobject_get_execute(builder)
 }
 
@@ -7444,11 +3992,12 @@ pub fn walletobjects_giftcardobject_insert_builder(
     body: &GiftCardObject,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject",);
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -7480,8 +4029,11 @@ pub fn walletobjects_giftcardobject_insert_builder(
 pub fn walletobjects_giftcardobject_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GiftCardObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7590,520 +4142,6 @@ pub fn walletobjects_giftcardobject_insert(
     walletobjects_giftcardobject_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/giftCardObject
-/// Returns a list of all gift card objects for a given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_giftcardobject_list_execute()` to send, or `walletobjects_giftcardobject_list` for simplest API.
-
-pub fn walletobjects_giftcardobject_list_builder(
-    client: &SimpleHttpClient,
-    classId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = classId {
-        query_parts.push(format!("classId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/giftCardObject
-/// Returns a list of all gift card objects for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_giftcardobject_list_execute()` or `walletobjects_giftcardobject_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardobject_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_giftcardobject_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GiftCardObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GiftCardObjectListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/giftCardObject
-/// Returns a list of all gift card objects for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_giftcardobject_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_giftcardobject_list_task()`.
-/// For the simplest API, use `walletobjects_giftcardobject_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardobject_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_giftcardobject_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GiftCardObjectListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_giftcardobject_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_giftcardobject_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGiftcardobjectListArgs {
-    /// Query parameter: classId
-    pub classId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET walletobjects/v1/giftCardObject
-/// Returns a list of all gift card objects for a given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_giftcardobject_list_builder()` + `walletobjects_giftcardobject_list_execute()`.
-/// For task-level control, use `walletobjects_giftcardobject_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_giftcardobject_list(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsGiftcardobjectListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GiftCardObjectListResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_giftcardobject_list_builder(
-        client,
-        args.classId.as_deref(),
-        args.maxResults,
-        args.token.as_deref(),
-    )?;
-    walletobjects_giftcardobject_list_execute(builder)
-}
-
-/// GET walletobjects/v1/giftCardObject/{resourceId}
-/// Updates the gift card object referenced by the given object ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_giftcardobject_patch_execute()` to send, or `walletobjects_giftcardobject_patch` for simplest API.
-
-pub fn walletobjects_giftcardobject_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GiftCardObject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/giftCardObject/{resourceId}
-/// Updates the gift card object referenced by the given object ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_giftcardobject_patch_execute()` or `walletobjects_giftcardobject_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardobject_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_giftcardobject_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GiftCardObject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/giftCardObject/{resourceId}
-/// Updates the gift card object referenced by the given object ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_giftcardobject_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_giftcardobject_patch_task()`.
-/// For the simplest API, use `walletobjects_giftcardobject_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardobject_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_giftcardobject_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_giftcardobject_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_giftcardobject_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGiftcardobjectPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: GiftCardObject,
-}
-
-/// GET walletobjects/v1/giftCardObject/{resourceId}
-/// Updates the gift card object referenced by the given object ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_giftcardobject_patch_builder()` + `walletobjects_giftcardobject_patch_execute()`.
-/// For task-level control, use `walletobjects_giftcardobject_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_giftcardobject_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsGiftcardobjectPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_giftcardobject_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_giftcardobject_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/giftCardObject/{resourceId}
-/// Updates the gift card object referenced by the given object ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_giftcardobject_update_execute()` to send, or `walletobjects_giftcardobject_update` for simplest API.
-
-pub fn walletobjects_giftcardobject_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &GiftCardObject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/giftCardObject/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/giftCardObject/{resourceId}
-/// Updates the gift card object referenced by the given object ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_giftcardobject_update_execute()` or `walletobjects_giftcardobject_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardobject_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_giftcardobject_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GiftCardObject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/giftCardObject/{resourceId}
-/// Updates the gift card object referenced by the given object ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_giftcardobject_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_giftcardobject_update_task()`.
-/// For the simplest API, use `walletobjects_giftcardobject_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_giftcardobject_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_giftcardobject_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_giftcardobject_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_giftcardobject_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsGiftcardobjectUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: GiftCardObject,
-}
-
-/// GET walletobjects/v1/giftCardObject/{resourceId}
-/// Updates the gift card object referenced by the given object ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_giftcardobject_update_builder()` + `walletobjects_giftcardobject_update_execute()`.
-/// For task-level control, use `walletobjects_giftcardobject_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_giftcardobject_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsGiftcardobjectUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GiftCardObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        walletobjects_giftcardobject_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_giftcardobject_update_execute(builder)
-}
-
 /// GET walletobjects/v1/issuer/{resourceId}
 /// Returns the issuer with the given issuer ID.
 ///
@@ -8112,17 +4150,17 @@ pub fn walletobjects_giftcardobject_update(
 
 pub fn walletobjects_issuer_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/issuer/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -8152,7 +4190,12 @@ pub fn walletobjects_issuer_get_builder(
 pub fn walletobjects_issuer_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Issuer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8252,7 +4295,7 @@ pub fn walletobjects_issuer_get(
     impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_issuer_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_issuer_get_builder(client, args.resourceId.clone())?;
     walletobjects_issuer_get_execute(builder)
 }
 
@@ -8267,11 +4310,11 @@ pub fn walletobjects_issuer_insert_builder(
     body: &Issuer,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/issuer",);
+    let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/issuer",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8303,7 +4346,12 @@ pub fn walletobjects_issuer_insert_builder(
 pub fn walletobjects_issuer_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Issuer>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8407,466 +4455,6 @@ pub fn walletobjects_issuer_insert(
     walletobjects_issuer_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/issuer
-/// Returns a list of all issuers shared to the caller.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_issuer_list_execute()` to send, or `walletobjects_issuer_list` for simplest API.
-
-pub fn walletobjects_issuer_list_builder(
-    client: &SimpleHttpClient,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/issuer",);
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/issuer
-/// Returns a list of all issuers shared to the caller.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_issuer_list_execute()` or `walletobjects_issuer_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_issuer_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_issuer_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<IssuerListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: IssuerListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/issuer
-/// Returns a list of all issuers shared to the caller.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_issuer_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_issuer_list_task()`.
-/// For the simplest API, use `walletobjects_issuer_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_issuer_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_issuer_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<IssuerListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_issuer_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/issuer
-/// Returns a list of all issuers shared to the caller.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_issuer_list_builder()` + `walletobjects_issuer_list_execute()`.
-/// For task-level control, use `walletobjects_issuer_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_issuer_list(
-    client: &SimpleHttpClient,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<IssuerListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_issuer_list_builder(client)?;
-    walletobjects_issuer_list_execute(builder)
-}
-
-/// GET walletobjects/v1/issuer/{resourceId}
-/// Updates the issuer referenced by the given issuer ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_issuer_patch_execute()` to send, or `walletobjects_issuer_patch` for simplest API.
-
-pub fn walletobjects_issuer_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &Issuer,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/issuer/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/issuer/{resourceId}
-/// Updates the issuer referenced by the given issuer ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_issuer_patch_execute()` or `walletobjects_issuer_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_issuer_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_issuer_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Issuer = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/issuer/{resourceId}
-/// Updates the issuer referenced by the given issuer ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_issuer_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_issuer_patch_task()`.
-/// For the simplest API, use `walletobjects_issuer_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_issuer_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_issuer_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = walletobjects_issuer_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_issuer_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsIssuerPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: Issuer,
-}
-
-/// GET walletobjects/v1/issuer/{resourceId}
-/// Updates the issuer referenced by the given issuer ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_issuer_patch_builder()` + `walletobjects_issuer_patch_execute()`.
-/// For task-level control, use `walletobjects_issuer_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_issuer_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsIssuerPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_issuer_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_issuer_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/issuer/{resourceId}
-/// Updates the issuer referenced by the given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_issuer_update_execute()` to send, or `walletobjects_issuer_update` for simplest API.
-
-pub fn walletobjects_issuer_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &Issuer,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/issuer/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/issuer/{resourceId}
-/// Updates the issuer referenced by the given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_issuer_update_execute()` or `walletobjects_issuer_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_issuer_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_issuer_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Issuer = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/issuer/{resourceId}
-/// Updates the issuer referenced by the given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_issuer_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_issuer_update_task()`.
-/// For the simplest API, use `walletobjects_issuer_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_issuer_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_issuer_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = walletobjects_issuer_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_issuer_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsIssuerUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: Issuer,
-}
-
-/// GET walletobjects/v1/issuer/{resourceId}
-/// Updates the issuer referenced by the given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_issuer_update_builder()` + `walletobjects_issuer_update_execute()`.
-/// For task-level control, use `walletobjects_issuer_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_issuer_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsIssuerUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Issuer>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_issuer_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_issuer_update_execute(builder)
-}
-
 /// GET walletobjects/v1/jwt
 /// Inserts the resources in the JWT.
 ///
@@ -8878,11 +4466,11 @@ pub fn walletobjects_jwt_insert_builder(
     body: &JwtResource,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/jwt",);
+    let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/jwt",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -8914,8 +4502,11 @@ pub fn walletobjects_jwt_insert_builder(
 pub fn walletobjects_jwt_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<JwtInsertResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<JwtInsertResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -9032,18 +4623,18 @@ pub fn walletobjects_jwt_insert(
 
 pub fn walletobjects_loyaltyclass_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass/{}/addMessage",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -9076,8 +4667,9 @@ pub fn walletobjects_loyaltyclass_addmessage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<LoyaltyClassAddMessageResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<LoyaltyClassAddMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -9190,7 +4782,7 @@ pub fn walletobjects_loyaltyclass_addmessage(
     ApiError,
 > {
     let builder =
-        walletobjects_loyaltyclass_addmessage_builder(client, &args.resourceId, &args.body)?;
+        walletobjects_loyaltyclass_addmessage_builder(client, args.resourceId.clone(), &args.body)?;
     walletobjects_loyaltyclass_addmessage_execute(builder)
 }
 
@@ -9202,17 +4794,17 @@ pub fn walletobjects_loyaltyclass_addmessage(
 
 pub fn walletobjects_loyaltyclass_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -9242,7 +4834,12 @@ pub fn walletobjects_loyaltyclass_get_builder(
 pub fn walletobjects_loyaltyclass_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LoyaltyClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9346,7 +4943,7 @@ pub fn walletobjects_loyaltyclass_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyclass_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_loyaltyclass_get_builder(client, args.resourceId.clone())?;
     walletobjects_loyaltyclass_get_execute(builder)
 }
 
@@ -9361,11 +4958,12 @@ pub fn walletobjects_loyaltyclass_insert_builder(
     body: &LoyaltyClass,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass",);
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -9397,7 +4995,12 @@ pub fn walletobjects_loyaltyclass_insert_builder(
 pub fn walletobjects_loyaltyclass_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LoyaltyClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9505,511 +5108,6 @@ pub fn walletobjects_loyaltyclass_insert(
     walletobjects_loyaltyclass_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/loyaltyClass
-/// Returns a list of all loyalty classes for a given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_loyaltyclass_list_execute()` to send, or `walletobjects_loyaltyclass_list` for simplest API.
-
-pub fn walletobjects_loyaltyclass_list_builder(
-    client: &SimpleHttpClient,
-    issuerId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = issuerId {
-        query_parts.push(format!("issuerId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/loyaltyClass
-/// Returns a list of all loyalty classes for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_loyaltyclass_list_execute()` or `walletobjects_loyaltyclass_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyclass_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_loyaltyclass_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LoyaltyClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: LoyaltyClassListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/loyaltyClass
-/// Returns a list of all loyalty classes for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_loyaltyclass_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_loyaltyclass_list_task()`.
-/// For the simplest API, use `walletobjects_loyaltyclass_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyclass_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_loyaltyclass_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LoyaltyClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_loyaltyclass_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_loyaltyclass_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsLoyaltyclassListArgs {
-    /// Query parameter: issuerId
-    pub issuerId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET walletobjects/v1/loyaltyClass
-/// Returns a list of all loyalty classes for a given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_loyaltyclass_list_builder()` + `walletobjects_loyaltyclass_list_execute()`.
-/// For task-level control, use `walletobjects_loyaltyclass_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_loyaltyclass_list(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsLoyaltyclassListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LoyaltyClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_loyaltyclass_list_builder(
-        client,
-        args.issuerId.as_deref(),
-        args.maxResults,
-        args.token.as_deref(),
-    )?;
-    walletobjects_loyaltyclass_list_execute(builder)
-}
-
-/// GET walletobjects/v1/loyaltyClass/{resourceId}
-/// Updates the loyalty class referenced by the given class ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_loyaltyclass_patch_execute()` to send, or `walletobjects_loyaltyclass_patch` for simplest API.
-
-pub fn walletobjects_loyaltyclass_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &LoyaltyClass,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/loyaltyClass/{resourceId}
-/// Updates the loyalty class referenced by the given class ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_loyaltyclass_patch_execute()` or `walletobjects_loyaltyclass_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyclass_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_loyaltyclass_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: LoyaltyClass = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/loyaltyClass/{resourceId}
-/// Updates the loyalty class referenced by the given class ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_loyaltyclass_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_loyaltyclass_patch_task()`.
-/// For the simplest API, use `walletobjects_loyaltyclass_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyclass_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_loyaltyclass_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_loyaltyclass_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_loyaltyclass_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsLoyaltyclassPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: LoyaltyClass,
-}
-
-/// GET walletobjects/v1/loyaltyClass/{resourceId}
-/// Updates the loyalty class referenced by the given class ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_loyaltyclass_patch_builder()` + `walletobjects_loyaltyclass_patch_execute()`.
-/// For task-level control, use `walletobjects_loyaltyclass_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_loyaltyclass_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsLoyaltyclassPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_loyaltyclass_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_loyaltyclass_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/loyaltyClass/{resourceId}
-/// Updates the loyalty class referenced by the given class ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_loyaltyclass_update_execute()` to send, or `walletobjects_loyaltyclass_update` for simplest API.
-
-pub fn walletobjects_loyaltyclass_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &LoyaltyClass,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyClass/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/loyaltyClass/{resourceId}
-/// Updates the loyalty class referenced by the given class ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_loyaltyclass_update_execute()` or `walletobjects_loyaltyclass_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyclass_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_loyaltyclass_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: LoyaltyClass = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/loyaltyClass/{resourceId}
-/// Updates the loyalty class referenced by the given class ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_loyaltyclass_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_loyaltyclass_update_task()`.
-/// For the simplest API, use `walletobjects_loyaltyclass_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyclass_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_loyaltyclass_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_loyaltyclass_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_loyaltyclass_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsLoyaltyclassUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: LoyaltyClass,
-}
-
-/// GET walletobjects/v1/loyaltyClass/{resourceId}
-/// Updates the loyalty class referenced by the given class ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_loyaltyclass_update_builder()` + `walletobjects_loyaltyclass_update_execute()`.
-/// For task-level control, use `walletobjects_loyaltyclass_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_loyaltyclass_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsLoyaltyclassUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LoyaltyClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_loyaltyclass_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_loyaltyclass_update_execute(builder)
-}
-
 /// GET walletobjects/v1/loyaltyObject/{resourceId}/addMessage
 /// Adds a message to the loyalty object referenced by the given object ID.
 ///
@@ -10018,18 +5116,18 @@ pub fn walletobjects_loyaltyclass_update(
 
 pub fn walletobjects_loyaltyobject_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}/addMessage",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -10062,8 +5160,9 @@ pub fn walletobjects_loyaltyobject_addmessage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<LoyaltyObjectAddMessageResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<LoyaltyObjectAddMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -10175,8 +5274,11 @@ pub fn walletobjects_loyaltyobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_loyaltyobject_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_loyaltyobject_addmessage_builder(
+        client,
+        args.resourceId.clone(),
+        &args.body,
+    )?;
     walletobjects_loyaltyobject_addmessage_execute(builder)
 }
 
@@ -10188,17 +5290,17 @@ pub fn walletobjects_loyaltyobject_addmessage(
 
 pub fn walletobjects_loyaltyobject_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -10228,7 +5330,12 @@ pub fn walletobjects_loyaltyobject_get_builder(
 pub fn walletobjects_loyaltyobject_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LoyaltyObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -10332,7 +5439,7 @@ pub fn walletobjects_loyaltyobject_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_loyaltyobject_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_loyaltyobject_get_builder(client, args.resourceId.clone())?;
     walletobjects_loyaltyobject_get_execute(builder)
 }
 
@@ -10347,11 +5454,12 @@ pub fn walletobjects_loyaltyobject_insert_builder(
     body: &LoyaltyObject,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject",);
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -10383,7 +5491,12 @@ pub fn walletobjects_loyaltyobject_insert_builder(
 pub fn walletobjects_loyaltyobject_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LoyaltyObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -10491,189 +5604,6 @@ pub fn walletobjects_loyaltyobject_insert(
     walletobjects_loyaltyobject_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/loyaltyObject
-/// Returns a list of all loyalty objects for a given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_loyaltyobject_list_execute()` to send, or `walletobjects_loyaltyobject_list` for simplest API.
-
-pub fn walletobjects_loyaltyobject_list_builder(
-    client: &SimpleHttpClient,
-    classId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = classId {
-        query_parts.push(format!("classId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/loyaltyObject
-/// Returns a list of all loyalty objects for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_loyaltyobject_list_execute()` or `walletobjects_loyaltyobject_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyobject_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_loyaltyobject_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LoyaltyObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: LoyaltyObjectListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/loyaltyObject
-/// Returns a list of all loyalty objects for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_loyaltyobject_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_loyaltyobject_list_task()`.
-/// For the simplest API, use `walletobjects_loyaltyobject_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyobject_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_loyaltyobject_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LoyaltyObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_loyaltyobject_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_loyaltyobject_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsLoyaltyobjectListArgs {
-    /// Query parameter: classId
-    pub classId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET walletobjects/v1/loyaltyObject
-/// Returns a list of all loyalty objects for a given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_loyaltyobject_list_builder()` + `walletobjects_loyaltyobject_list_execute()`.
-/// For task-level control, use `walletobjects_loyaltyobject_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_loyaltyobject_list(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsLoyaltyobjectListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LoyaltyObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_loyaltyobject_list_builder(
-        client,
-        args.classId.as_deref(),
-        args.maxResults,
-        args.token.as_deref(),
-    )?;
-    walletobjects_loyaltyobject_list_execute(builder)
-}
-
 /// GET walletobjects/v1/loyaltyObject/{resourceId}/modifyLinkedOfferObjects
 /// Deprecated: Use Auto Linked Passes instead. Modifies linked offer objects for the loyalty object with the given ID.
 ///
@@ -10682,18 +5612,18 @@ pub fn walletobjects_loyaltyobject_list(
 
 pub fn walletobjects_loyaltyobject_modifylinkedofferobjects_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &ModifyLinkedOfferObjectsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}/modifyLinkedOfferObjects",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -10725,7 +5655,12 @@ pub fn walletobjects_loyaltyobject_modifylinkedofferobjects_builder(
 pub fn walletobjects_loyaltyobject_modifylinkedofferobjects_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LoyaltyObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -10833,332 +5768,10 @@ pub fn walletobjects_loyaltyobject_modifylinkedofferobjects(
 > {
     let builder = walletobjects_loyaltyobject_modifylinkedofferobjects_builder(
         client,
-        &args.resourceId,
+        args.resourceId.clone(),
         &args.body,
     )?;
     walletobjects_loyaltyobject_modifylinkedofferobjects_execute(builder)
-}
-
-/// GET walletobjects/v1/loyaltyObject/{resourceId}
-/// Updates the loyalty object referenced by the given object ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_loyaltyobject_patch_execute()` to send, or `walletobjects_loyaltyobject_patch` for simplest API.
-
-pub fn walletobjects_loyaltyobject_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &LoyaltyObject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/loyaltyObject/{resourceId}
-/// Updates the loyalty object referenced by the given object ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_loyaltyobject_patch_execute()` or `walletobjects_loyaltyobject_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyobject_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_loyaltyobject_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: LoyaltyObject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/loyaltyObject/{resourceId}
-/// Updates the loyalty object referenced by the given object ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_loyaltyobject_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_loyaltyobject_patch_task()`.
-/// For the simplest API, use `walletobjects_loyaltyobject_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyobject_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_loyaltyobject_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_loyaltyobject_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_loyaltyobject_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsLoyaltyobjectPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: LoyaltyObject,
-}
-
-/// GET walletobjects/v1/loyaltyObject/{resourceId}
-/// Updates the loyalty object referenced by the given object ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_loyaltyobject_patch_builder()` + `walletobjects_loyaltyobject_patch_execute()`.
-/// For task-level control, use `walletobjects_loyaltyobject_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_loyaltyobject_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsLoyaltyobjectPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_loyaltyobject_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_loyaltyobject_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/loyaltyObject/{resourceId}
-/// Updates the loyalty object referenced by the given object ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_loyaltyobject_update_execute()` to send, or `walletobjects_loyaltyobject_update` for simplest API.
-
-pub fn walletobjects_loyaltyobject_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &LoyaltyObject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/loyaltyObject/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/loyaltyObject/{resourceId}
-/// Updates the loyalty object referenced by the given object ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_loyaltyobject_update_execute()` or `walletobjects_loyaltyobject_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyobject_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_loyaltyobject_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: LoyaltyObject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/loyaltyObject/{resourceId}
-/// Updates the loyalty object referenced by the given object ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_loyaltyobject_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_loyaltyobject_update_task()`.
-/// For the simplest API, use `walletobjects_loyaltyobject_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_loyaltyobject_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_loyaltyobject_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_loyaltyobject_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_loyaltyobject_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsLoyaltyobjectUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: LoyaltyObject,
-}
-
-/// GET walletobjects/v1/loyaltyObject/{resourceId}
-/// Updates the loyalty object referenced by the given object ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_loyaltyobject_update_builder()` + `walletobjects_loyaltyobject_update_execute()`.
-/// For task-level control, use `walletobjects_loyaltyobject_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_loyaltyobject_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsLoyaltyobjectUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<LoyaltyObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_loyaltyobject_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_loyaltyobject_update_execute(builder)
 }
 
 /// GET walletobjects/v1/transitObject/{resourceId}/downloadRotatingBarcodeValues
@@ -11169,17 +5782,17 @@ pub fn walletobjects_loyaltyobject_update(
 
 pub fn walletobjects_media_download_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}/downloadRotatingBarcodeValues",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -11209,7 +5822,12 @@ pub fn walletobjects_media_download_builder(
 pub fn walletobjects_media_download_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Media>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Media>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11309,7 +5927,7 @@ pub fn walletobjects_media_download(
     impl StreamIterator<D = Result<ApiResponse<Media>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_media_download_builder(client, &args.resourceId)?;
+    let builder = walletobjects_media_download_builder(client, args.resourceId.clone())?;
     walletobjects_media_download_execute(builder)
 }
 
@@ -11321,18 +5939,18 @@ pub fn walletobjects_media_download(
 
 pub fn walletobjects_media_upload_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &TransitObjectUploadRotatingBarcodeValuesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}/uploadRotatingBarcodeValues",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -11365,8 +5983,9 @@ pub fn walletobjects_media_upload_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<TransitObjectUploadRotatingBarcodeValuesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<TransitObjectUploadRotatingBarcodeValuesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -11479,7 +6098,7 @@ pub fn walletobjects_media_upload(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_media_upload_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_media_upload_builder(client, args.resourceId.clone(), &args.body)?;
     walletobjects_media_upload_execute(builder)
 }
 
@@ -11491,18 +6110,18 @@ pub fn walletobjects_media_upload(
 
 pub fn walletobjects_offerclass_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerClass/{}/addMessage",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -11535,8 +6154,9 @@ pub fn walletobjects_offerclass_addmessage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<OfferClassAddMessageResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<OfferClassAddMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -11649,7 +6269,7 @@ pub fn walletobjects_offerclass_addmessage(
     ApiError,
 > {
     let builder =
-        walletobjects_offerclass_addmessage_builder(client, &args.resourceId, &args.body)?;
+        walletobjects_offerclass_addmessage_builder(client, args.resourceId.clone(), &args.body)?;
     walletobjects_offerclass_addmessage_execute(builder)
 }
 
@@ -11661,17 +6281,17 @@ pub fn walletobjects_offerclass_addmessage(
 
 pub fn walletobjects_offerclass_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerClass/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -11701,7 +6321,12 @@ pub fn walletobjects_offerclass_get_builder(
 pub fn walletobjects_offerclass_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OfferClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11801,7 +6426,7 @@ pub fn walletobjects_offerclass_get(
     impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerclass_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_offerclass_get_builder(client, args.resourceId.clone())?;
     walletobjects_offerclass_get_execute(builder)
 }
 
@@ -11816,11 +6441,11 @@ pub fn walletobjects_offerclass_insert_builder(
     body: &OfferClass,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/offerClass",);
+    let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/offerClass",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -11852,7 +6477,12 @@ pub fn walletobjects_offerclass_insert_builder(
 pub fn walletobjects_offerclass_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OfferClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11956,503 +6586,6 @@ pub fn walletobjects_offerclass_insert(
     walletobjects_offerclass_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/offerClass
-/// Returns a list of all offer classes for a given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_offerclass_list_execute()` to send, or `walletobjects_offerclass_list` for simplest API.
-
-pub fn walletobjects_offerclass_list_builder(
-    client: &SimpleHttpClient,
-    issuerId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/offerClass",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = issuerId {
-        query_parts.push(format!("issuerId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/offerClass
-/// Returns a list of all offer classes for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_offerclass_list_execute()` or `walletobjects_offerclass_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerclass_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_offerclass_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OfferClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: OfferClassListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/offerClass
-/// Returns a list of all offer classes for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_offerclass_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_offerclass_list_task()`.
-/// For the simplest API, use `walletobjects_offerclass_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerclass_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_offerclass_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OfferClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_offerclass_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_offerclass_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsOfferclassListArgs {
-    /// Query parameter: issuerId
-    pub issuerId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET walletobjects/v1/offerClass
-/// Returns a list of all offer classes for a given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_offerclass_list_builder()` + `walletobjects_offerclass_list_execute()`.
-/// For task-level control, use `walletobjects_offerclass_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_offerclass_list(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsOfferclassListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OfferClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_offerclass_list_builder(
-        client,
-        args.issuerId.as_deref(),
-        args.maxResults,
-        args.token.as_deref(),
-    )?;
-    walletobjects_offerclass_list_execute(builder)
-}
-
-/// GET walletobjects/v1/offerClass/{resourceId}
-/// Updates the offer class referenced by the given class ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_offerclass_patch_execute()` to send, or `walletobjects_offerclass_patch` for simplest API.
-
-pub fn walletobjects_offerclass_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &OfferClass,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/offerClass/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/offerClass/{resourceId}
-/// Updates the offer class referenced by the given class ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_offerclass_patch_execute()` or `walletobjects_offerclass_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerclass_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_offerclass_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: OfferClass = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/offerClass/{resourceId}
-/// Updates the offer class referenced by the given class ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_offerclass_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_offerclass_patch_task()`.
-/// For the simplest API, use `walletobjects_offerclass_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerclass_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_offerclass_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = walletobjects_offerclass_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_offerclass_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsOfferclassPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: OfferClass,
-}
-
-/// GET walletobjects/v1/offerClass/{resourceId}
-/// Updates the offer class referenced by the given class ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_offerclass_patch_builder()` + `walletobjects_offerclass_patch_execute()`.
-/// For task-level control, use `walletobjects_offerclass_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_offerclass_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsOfferclassPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_offerclass_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_offerclass_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/offerClass/{resourceId}
-/// Updates the offer class referenced by the given class ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_offerclass_update_execute()` to send, or `walletobjects_offerclass_update` for simplest API.
-
-pub fn walletobjects_offerclass_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &OfferClass,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/offerClass/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/offerClass/{resourceId}
-/// Updates the offer class referenced by the given class ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_offerclass_update_execute()` or `walletobjects_offerclass_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerclass_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_offerclass_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: OfferClass = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/offerClass/{resourceId}
-/// Updates the offer class referenced by the given class ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_offerclass_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_offerclass_update_task()`.
-/// For the simplest API, use `walletobjects_offerclass_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerclass_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_offerclass_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = walletobjects_offerclass_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_offerclass_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsOfferclassUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: OfferClass,
-}
-
-/// GET walletobjects/v1/offerClass/{resourceId}
-/// Updates the offer class referenced by the given class ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_offerclass_update_builder()` + `walletobjects_offerclass_update_execute()`.
-/// For task-level control, use `walletobjects_offerclass_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_offerclass_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsOfferclassUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OfferClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_offerclass_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_offerclass_update_execute(builder)
-}
-
 /// GET walletobjects/v1/offerObject/{resourceId}/addMessage
 /// Adds a message to the offer object referenced by the given object ID.
 ///
@@ -12461,18 +6594,18 @@ pub fn walletobjects_offerclass_update(
 
 pub fn walletobjects_offerobject_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerObject/{}/addMessage",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -12505,8 +6638,9 @@ pub fn walletobjects_offerobject_addmessage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<OfferObjectAddMessageResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<OfferObjectAddMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -12619,7 +6753,7 @@ pub fn walletobjects_offerobject_addmessage(
     ApiError,
 > {
     let builder =
-        walletobjects_offerobject_addmessage_builder(client, &args.resourceId, &args.body)?;
+        walletobjects_offerobject_addmessage_builder(client, args.resourceId.clone(), &args.body)?;
     walletobjects_offerobject_addmessage_execute(builder)
 }
 
@@ -12631,17 +6765,17 @@ pub fn walletobjects_offerobject_addmessage(
 
 pub fn walletobjects_offerobject_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/offerObject/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -12671,7 +6805,12 @@ pub fn walletobjects_offerobject_get_builder(
 pub fn walletobjects_offerobject_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OfferObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -12771,7 +6910,7 @@ pub fn walletobjects_offerobject_get(
     impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_offerobject_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_offerobject_get_builder(client, args.resourceId.clone())?;
     walletobjects_offerobject_get_execute(builder)
 }
 
@@ -12786,11 +6925,12 @@ pub fn walletobjects_offerobject_insert_builder(
     body: &OfferObject,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/offerObject",);
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/offerObject",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -12822,7 +6962,12 @@ pub fn walletobjects_offerobject_insert_builder(
 pub fn walletobjects_offerobject_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<OfferObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -12926,503 +7071,6 @@ pub fn walletobjects_offerobject_insert(
     walletobjects_offerobject_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/offerObject
-/// Returns a list of all offer objects for a given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_offerobject_list_execute()` to send, or `walletobjects_offerobject_list` for simplest API.
-
-pub fn walletobjects_offerobject_list_builder(
-    client: &SimpleHttpClient,
-    classId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/offerObject",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = classId {
-        query_parts.push(format!("classId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/offerObject
-/// Returns a list of all offer objects for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_offerobject_list_execute()` or `walletobjects_offerobject_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerobject_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_offerobject_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OfferObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: OfferObjectListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/offerObject
-/// Returns a list of all offer objects for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_offerobject_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_offerobject_list_task()`.
-/// For the simplest API, use `walletobjects_offerobject_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerobject_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_offerobject_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OfferObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_offerobject_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_offerobject_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsOfferobjectListArgs {
-    /// Query parameter: classId
-    pub classId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET walletobjects/v1/offerObject
-/// Returns a list of all offer objects for a given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_offerobject_list_builder()` + `walletobjects_offerobject_list_execute()`.
-/// For task-level control, use `walletobjects_offerobject_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_offerobject_list(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsOfferobjectListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OfferObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_offerobject_list_builder(
-        client,
-        args.classId.as_deref(),
-        args.maxResults,
-        args.token.as_deref(),
-    )?;
-    walletobjects_offerobject_list_execute(builder)
-}
-
-/// GET walletobjects/v1/offerObject/{resourceId}
-/// Updates the offer object referenced by the given object ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_offerobject_patch_execute()` to send, or `walletobjects_offerobject_patch` for simplest API.
-
-pub fn walletobjects_offerobject_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &OfferObject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/offerObject/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/offerObject/{resourceId}
-/// Updates the offer object referenced by the given object ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_offerobject_patch_execute()` or `walletobjects_offerobject_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerobject_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_offerobject_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: OfferObject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/offerObject/{resourceId}
-/// Updates the offer object referenced by the given object ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_offerobject_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_offerobject_patch_task()`.
-/// For the simplest API, use `walletobjects_offerobject_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerobject_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_offerobject_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = walletobjects_offerobject_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_offerobject_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsOfferobjectPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: OfferObject,
-}
-
-/// GET walletobjects/v1/offerObject/{resourceId}
-/// Updates the offer object referenced by the given object ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_offerobject_patch_builder()` + `walletobjects_offerobject_patch_execute()`.
-/// For task-level control, use `walletobjects_offerobject_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_offerobject_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsOfferobjectPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_offerobject_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_offerobject_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/offerObject/{resourceId}
-/// Updates the offer object referenced by the given object ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_offerobject_update_execute()` to send, or `walletobjects_offerobject_update` for simplest API.
-
-pub fn walletobjects_offerobject_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &OfferObject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/offerObject/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/offerObject/{resourceId}
-/// Updates the offer object referenced by the given object ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_offerobject_update_execute()` or `walletobjects_offerobject_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerobject_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_offerobject_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: OfferObject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/offerObject/{resourceId}
-/// Updates the offer object referenced by the given object ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_offerobject_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_offerobject_update_task()`.
-/// For the simplest API, use `walletobjects_offerobject_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_offerobject_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_offerobject_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = walletobjects_offerobject_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_offerobject_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsOfferobjectUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: OfferObject,
-}
-
-/// GET walletobjects/v1/offerObject/{resourceId}
-/// Updates the offer object referenced by the given object ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_offerobject_update_builder()` + `walletobjects_offerobject_update_execute()`.
-/// For task-level control, use `walletobjects_offerobject_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_offerobject_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsOfferobjectUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OfferObject>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_offerobject_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_offerobject_update_execute(builder)
-}
-
 /// GET walletobjects/v1/permissions/{resourceId}
 /// Returns the permissions for the given issuer id.
 ///
@@ -13431,17 +7079,17 @@ pub fn walletobjects_offerobject_update(
 
 pub fn walletobjects_permissions_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/permissions/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -13471,7 +7119,12 @@ pub fn walletobjects_permissions_get_builder(
 pub fn walletobjects_permissions_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Permissions>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Permissions>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -13571,165 +7224,8 @@ pub fn walletobjects_permissions_get(
     impl StreamIterator<D = Result<ApiResponse<Permissions>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = walletobjects_permissions_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_permissions_get_builder(client, args.resourceId.clone())?;
     walletobjects_permissions_get_execute(builder)
-}
-
-/// GET walletobjects/v1/permissions/{resourceId}
-/// Updates the permissions for the given issuer.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_permissions_update_execute()` to send, or `walletobjects_permissions_update` for simplest API.
-
-pub fn walletobjects_permissions_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &Permissions,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/permissions/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/permissions/{resourceId}
-/// Updates the permissions for the given issuer.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_permissions_update_execute()` or `walletobjects_permissions_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_permissions_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_permissions_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Permissions>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Permissions = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/permissions/{resourceId}
-/// Updates the permissions for the given issuer.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_permissions_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_permissions_update_task()`.
-/// For the simplest API, use `walletobjects_permissions_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_permissions_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_permissions_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Permissions>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = walletobjects_permissions_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_permissions_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsPermissionsUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: Permissions,
-}
-
-/// GET walletobjects/v1/permissions/{resourceId}
-/// Updates the permissions for the given issuer.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_permissions_update_builder()` + `walletobjects_permissions_update_execute()`.
-/// For task-level control, use `walletobjects_permissions_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_permissions_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsPermissionsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Permissions>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_permissions_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_permissions_update_execute(builder)
 }
 
 /// GET walletobjects/v1/smartTap
@@ -13743,11 +7239,11 @@ pub fn walletobjects_smarttap_insert_builder(
     body: &SmartTap,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/smartTap",);
+    let endpoint_url = format!("https://walletobjects.googleapis.com/walletobjects/v1/smartTap",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -13779,7 +7275,12 @@ pub fn walletobjects_smarttap_insert_builder(
 pub fn walletobjects_smarttap_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SmartTap>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SmartTap>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -13891,18 +7392,18 @@ pub fn walletobjects_smarttap_insert(
 
 pub fn walletobjects_transitclass_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitClass/{}/addMessage",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -13935,8 +7436,9 @@ pub fn walletobjects_transitclass_addmessage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<TransitClassAddMessageResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<TransitClassAddMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -14049,7 +7551,7 @@ pub fn walletobjects_transitclass_addmessage(
     ApiError,
 > {
     let builder =
-        walletobjects_transitclass_addmessage_builder(client, &args.resourceId, &args.body)?;
+        walletobjects_transitclass_addmessage_builder(client, args.resourceId.clone(), &args.body)?;
     walletobjects_transitclass_addmessage_execute(builder)
 }
 
@@ -14061,17 +7563,17 @@ pub fn walletobjects_transitclass_addmessage(
 
 pub fn walletobjects_transitclass_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitClass/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -14101,7 +7603,12 @@ pub fn walletobjects_transitclass_get_builder(
 pub fn walletobjects_transitclass_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransitClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -14205,7 +7712,7 @@ pub fn walletobjects_transitclass_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitclass_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_transitclass_get_builder(client, args.resourceId.clone())?;
     walletobjects_transitclass_get_execute(builder)
 }
 
@@ -14220,11 +7727,12 @@ pub fn walletobjects_transitclass_insert_builder(
     body: &TransitClass,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/transitClass",);
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/transitClass",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -14256,7 +7764,12 @@ pub fn walletobjects_transitclass_insert_builder(
 pub fn walletobjects_transitclass_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransitClass>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -14364,511 +7877,6 @@ pub fn walletobjects_transitclass_insert(
     walletobjects_transitclass_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/transitClass
-/// Returns a list of all transit classes for a given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_transitclass_list_execute()` to send, or `walletobjects_transitclass_list` for simplest API.
-
-pub fn walletobjects_transitclass_list_builder(
-    client: &SimpleHttpClient,
-    issuerId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/transitClass",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = issuerId {
-        query_parts.push(format!("issuerId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/transitClass
-/// Returns a list of all transit classes for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_transitclass_list_execute()` or `walletobjects_transitclass_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitclass_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_transitclass_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TransitClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TransitClassListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/transitClass
-/// Returns a list of all transit classes for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_transitclass_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_transitclass_list_task()`.
-/// For the simplest API, use `walletobjects_transitclass_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitclass_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_transitclass_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TransitClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_transitclass_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_transitclass_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsTransitclassListArgs {
-    /// Query parameter: issuerId
-    pub issuerId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET walletobjects/v1/transitClass
-/// Returns a list of all transit classes for a given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_transitclass_list_builder()` + `walletobjects_transitclass_list_execute()`.
-/// For task-level control, use `walletobjects_transitclass_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_transitclass_list(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsTransitclassListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TransitClassListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_transitclass_list_builder(
-        client,
-        args.issuerId.as_deref(),
-        args.maxResults,
-        args.token.as_deref(),
-    )?;
-    walletobjects_transitclass_list_execute(builder)
-}
-
-/// GET walletobjects/v1/transitClass/{resourceId}
-/// Updates the transit class referenced by the given class ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_transitclass_patch_execute()` to send, or `walletobjects_transitclass_patch` for simplest API.
-
-pub fn walletobjects_transitclass_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &TransitClass,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/transitClass/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/transitClass/{resourceId}
-/// Updates the transit class referenced by the given class ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_transitclass_patch_execute()` or `walletobjects_transitclass_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitclass_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_transitclass_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TransitClass = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/transitClass/{resourceId}
-/// Updates the transit class referenced by the given class ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_transitclass_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_transitclass_patch_task()`.
-/// For the simplest API, use `walletobjects_transitclass_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitclass_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_transitclass_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_transitclass_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_transitclass_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsTransitclassPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: TransitClass,
-}
-
-/// GET walletobjects/v1/transitClass/{resourceId}
-/// Updates the transit class referenced by the given class ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_transitclass_patch_builder()` + `walletobjects_transitclass_patch_execute()`.
-/// For task-level control, use `walletobjects_transitclass_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_transitclass_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsTransitclassPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_transitclass_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_transitclass_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/transitClass/{resourceId}
-/// Updates the transit class referenced by the given class ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_transitclass_update_execute()` to send, or `walletobjects_transitclass_update` for simplest API.
-
-pub fn walletobjects_transitclass_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &TransitClass,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/transitClass/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/transitClass/{resourceId}
-/// Updates the transit class referenced by the given class ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_transitclass_update_execute()` or `walletobjects_transitclass_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitclass_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_transitclass_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TransitClass = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/transitClass/{resourceId}
-/// Updates the transit class referenced by the given class ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_transitclass_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_transitclass_update_task()`.
-/// For the simplest API, use `walletobjects_transitclass_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitclass_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_transitclass_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_transitclass_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_transitclass_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsTransitclassUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: TransitClass,
-}
-
-/// GET walletobjects/v1/transitClass/{resourceId}
-/// Updates the transit class referenced by the given class ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_transitclass_update_builder()` + `walletobjects_transitclass_update_execute()`.
-/// For task-level control, use `walletobjects_transitclass_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_transitclass_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsTransitclassUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TransitClass>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_transitclass_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_transitclass_update_execute(builder)
-}
-
 /// GET walletobjects/v1/transitObject/{resourceId}/addMessage
 /// Adds a message to the transit object referenced by the given object ID.
 ///
@@ -14877,18 +7885,18 @@ pub fn walletobjects_transitclass_update(
 
 pub fn walletobjects_transitobject_addmessage_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
     body: &AddMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}/addMessage",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -14921,8 +7929,9 @@ pub fn walletobjects_transitobject_addmessage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<TransitObjectAddMessageResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<TransitObjectAddMessageResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -15034,8 +8043,11 @@ pub fn walletobjects_transitobject_addmessage(
         + 'static,
     ApiError,
 > {
-    let builder =
-        walletobjects_transitobject_addmessage_builder(client, &args.resourceId, &args.body)?;
+    let builder = walletobjects_transitobject_addmessage_builder(
+        client,
+        args.resourceId.clone(),
+        &args.body,
+    )?;
     walletobjects_transitobject_addmessage_execute(builder)
 }
 
@@ -15047,17 +8059,17 @@ pub fn walletobjects_transitobject_addmessage(
 
 pub fn walletobjects_transitobject_get_builder(
     client: &SimpleHttpClient,
-    resourceId: &str,
+    resourceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}",
-        resourceId,
+        resourceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -15087,7 +8099,12 @@ pub fn walletobjects_transitobject_get_builder(
 pub fn walletobjects_transitobject_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransitObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -15191,7 +8208,7 @@ pub fn walletobjects_transitobject_get(
         + 'static,
     ApiError,
 > {
-    let builder = walletobjects_transitobject_get_builder(client, &args.resourceId)?;
+    let builder = walletobjects_transitobject_get_builder(client, args.resourceId.clone())?;
     walletobjects_transitobject_get_execute(builder)
 }
 
@@ -15206,11 +8223,12 @@ pub fn walletobjects_transitobject_insert_builder(
     body: &TransitObject,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/transitObject",);
+    let endpoint_url =
+        format!("https://walletobjects.googleapis.com/walletobjects/v1/transitObject",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -15242,7 +8260,12 @@ pub fn walletobjects_transitobject_insert_builder(
 pub fn walletobjects_transitobject_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TransitObject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -15350,511 +8373,6 @@ pub fn walletobjects_transitobject_insert(
     walletobjects_transitobject_insert_execute(builder)
 }
 
-/// GET walletobjects/v1/transitObject
-/// Returns a list of all transit objects for a given issuer ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_transitobject_list_execute()` to send, or `walletobjects_transitobject_list` for simplest API.
-
-pub fn walletobjects_transitobject_list_builder(
-    client: &SimpleHttpClient,
-    classId: Option<&str>,
-    maxResults: Option<i32>,
-    token: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://walletobjects.googleapis.com/walletobjects/v1/transitObject",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = classId {
-        query_parts.push(format!("classId={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = token {
-        query_parts.push(format!("token={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET walletobjects/v1/transitObject
-/// Returns a list of all transit objects for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_transitobject_list_execute()` or `walletobjects_transitobject_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitobject_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_transitobject_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TransitObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TransitObjectListResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/transitObject
-/// Returns a list of all transit objects for a given issuer ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_transitobject_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_transitobject_list_task()`.
-/// For the simplest API, use `walletobjects_transitobject_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitobject_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_transitobject_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TransitObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_transitobject_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_transitobject_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsTransitobjectListArgs {
-    /// Query parameter: classId
-    pub classId: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: token
-    pub token: Option<String>,
-}
-
-/// GET walletobjects/v1/transitObject
-/// Returns a list of all transit objects for a given issuer ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_transitobject_list_builder()` + `walletobjects_transitobject_list_execute()`.
-/// For task-level control, use `walletobjects_transitobject_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_transitobject_list(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsTransitobjectListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TransitObjectListResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_transitobject_list_builder(
-        client,
-        args.classId.as_deref(),
-        args.maxResults,
-        args.token.as_deref(),
-    )?;
-    walletobjects_transitobject_list_execute(builder)
-}
-
-/// GET walletobjects/v1/transitObject/{resourceId}
-/// Updates the transit object referenced by the given object ID. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_transitobject_patch_execute()` to send, or `walletobjects_transitobject_patch` for simplest API.
-
-pub fn walletobjects_transitobject_patch_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &TransitObject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/transitObject/{resourceId}
-/// Updates the transit object referenced by the given object ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_transitobject_patch_execute()` or `walletobjects_transitobject_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitobject_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_transitobject_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TransitObject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/transitObject/{resourceId}
-/// Updates the transit object referenced by the given object ID. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_transitobject_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_transitobject_patch_task()`.
-/// For the simplest API, use `walletobjects_transitobject_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitobject_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_transitobject_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_transitobject_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_transitobject_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsTransitobjectPatchArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: TransitObject,
-}
-
-/// GET walletobjects/v1/transitObject/{resourceId}
-/// Updates the transit object referenced by the given object ID. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_transitobject_patch_builder()` + `walletobjects_transitobject_patch_execute()`.
-/// For task-level control, use `walletobjects_transitobject_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_transitobject_patch(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsTransitobjectPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_transitobject_patch_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_transitobject_patch_execute(builder)
-}
-
-/// GET walletobjects/v1/transitObject/{resourceId}
-/// Updates the transit object referenced by the given object ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `walletobjects_transitobject_update_execute()` to send, or `walletobjects_transitobject_update` for simplest API.
-
-pub fn walletobjects_transitobject_update_builder(
-    client: &SimpleHttpClient,
-    resourceId: &str,
-    body: &TransitObject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://walletobjects.googleapis.com/walletobjects/v1/transitObject/{}",
-        resourceId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET walletobjects/v1/transitObject/{resourceId}
-/// Updates the transit object referenced by the given object ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `walletobjects_transitobject_update_execute()` or `walletobjects_transitobject_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitobject_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_transitobject_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TransitObject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET walletobjects/v1/transitObject/{resourceId}
-/// Updates the transit object referenced by the given object ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `walletobjects_transitobject_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `walletobjects_transitobject_update_task()`.
-/// For the simplest API, use `walletobjects_transitobject_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `walletobjects_transitobject_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn walletobjects_transitobject_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = walletobjects_transitobject_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`walletobjects_transitobject_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct WalletobjectsTransitobjectUpdateArgs {
-    /// Path parameter: resourceId
-    pub resourceId: String,
-    /// Request body.
-    pub body: TransitObject,
-}
-
-/// GET walletobjects/v1/transitObject/{resourceId}
-/// Updates the transit object referenced by the given object ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `walletobjects_transitobject_update_builder()` + `walletobjects_transitobject_update_execute()`.
-/// For task-level control, use `walletobjects_transitobject_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn walletobjects_transitobject_update(
-    client: &SimpleHttpClient,
-    args: &WalletobjectsTransitobjectUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TransitObject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = walletobjects_transitobject_update_builder(client, &args.resourceId, &args.body)?;
-    walletobjects_transitobject_update_execute(builder)
-}
-
 /// GET walletobjects/v1/privateContent/setPassUpdateNotice
 /// Provide Google with information about awaiting private pass update. This will allow Google to provide the update notification to the device that currently holds this pass.
 ///
@@ -15866,13 +8384,13 @@ pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice_bui
     body: &SetPassUpdateNoticeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://walletobjects.googleapis.com/walletobjects/v1/privateContent/setPassUpdateNotice",
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -15904,8 +8422,11 @@ pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice_bui
 pub fn walletobjects_walletobjects_v1_private_content_set_pass_update_notice_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SetPassUpdateNoticeResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SetPassUpdateNoticeResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {

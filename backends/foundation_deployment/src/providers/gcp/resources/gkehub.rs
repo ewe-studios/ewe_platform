@@ -13,11 +13,15 @@ use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The response message for Locations.ListLocations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -125,10 +129,6 @@ pub struct RBACRoleBindingActuationRBACRoleBindingState {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
-
-/// **RBAC RoleBinding Actuation**: The membership-specific input for RBACRoleBindingActuation feature.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RBACRoleBindingActuationSpec {}
 
 /// IdentityProviderStateDetail represents the state of an Identity Provider.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -266,7 +266,7 @@ pub struct FeatureSpec {
     pub policycontroller: ::core::option::Option<PolicyControllerSpec>,
     /// Rbacrolebindingactuation-specific FeatureSpec.
     #[serde(default)]
-    pub rbacrolebindingactuation: ::core::option::Option<serde_json::Value>,
+    pub rbacrolebindingactuation: ::core::option::Option<RBACRoleBindingActuationSpec>,
     /// ServiceMesh Feature Spec.
     #[serde(default)]
     pub servicemesh: ::core::option::Option<ServiceMeshSpec>,
@@ -363,6 +363,12 @@ pub struct PolicyControllerSpec {
     /// Version of Policy Controller installed.
     #[serde(default)]
     pub version: ::core::option::Option<String>,
+}
+
+/// **RBAC RoleBinding Actuation**: The membership-specific input for RBACRoleBindingActuation feature.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RBACRoleBindingActuationSpec {
+    pub value: serde_json::Value,
 }
 
 /// **Service Mesh**: Spec for a single Membership for the servicemesh feature

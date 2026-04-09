@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,16 +29,14 @@ use serde::Serialize;
 
 pub fn essentialcontacts_folders_contacts_compute_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    notificationCategories: Option<&str>,
+    parent: String,
+    notificationCategories: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/folders/{}/contacts:compute",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://essentialcontacts.googleapis.com/v1/folders/{}/contacts:compute",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -52,9 +51,9 @@ pub fn essentialcontacts_folders_contacts_compute_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -89,11 +88,12 @@ pub fn essentialcontacts_folders_contacts_compute_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleCloudEssentialcontactsV1ComputeContactsResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -218,10 +218,10 @@ pub fn essentialcontacts_folders_contacts_compute(
 > {
     let builder = essentialcontacts_folders_contacts_compute_builder(
         client,
-        &args.parent,
-        args.notificationCategories.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.notificationCategories.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     essentialcontacts_folders_contacts_compute_execute(builder)
 }
@@ -234,18 +234,15 @@ pub fn essentialcontacts_folders_contacts_compute(
 
 pub fn essentialcontacts_folders_contacts_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &GoogleCloudEssentialcontactsV1Contact,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/folders/{}/contacts",
-        parent,
-    );
+    let endpoint_url = format!("https://essentialcontacts.googleapis.com/v1/folders/{}/contacts",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -278,8 +275,9 @@ pub fn essentialcontacts_folders_contacts_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -392,708 +390,8 @@ pub fn essentialcontacts_folders_contacts_create(
     ApiError,
 > {
     let builder =
-        essentialcontacts_folders_contacts_create_builder(client, &args.parent, &args.body)?;
+        essentialcontacts_folders_contacts_create_builder(client, args.parent.clone(), &args.body)?;
     essentialcontacts_folders_contacts_create_execute(builder)
-}
-
-/// GET v1/folders/{foldersId}/contacts/{contactsId}
-/// Deletes a contact.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `essentialcontacts_folders_contacts_delete_execute()` to send, or `essentialcontacts_folders_contacts_delete` for simplest API.
-
-pub fn essentialcontacts_folders_contacts_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/folders/{}/contacts/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/folders/{foldersId}/contacts/{contactsId}
-/// Deletes a contact.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `essentialcontacts_folders_contacts_delete_execute()` or `essentialcontacts_folders_contacts_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_folders_contacts_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_folders_contacts_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/folders/{foldersId}/contacts/{contactsId}
-/// Deletes a contact.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `essentialcontacts_folders_contacts_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `essentialcontacts_folders_contacts_delete_task()`.
-/// For the simplest API, use `essentialcontacts_folders_contacts_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_folders_contacts_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn essentialcontacts_folders_contacts_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = essentialcontacts_folders_contacts_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`essentialcontacts_folders_contacts_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct EssentialcontactsFoldersContactsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/folders/{foldersId}/contacts/{contactsId}
-/// Deletes a contact.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `essentialcontacts_folders_contacts_delete_builder()` + `essentialcontacts_folders_contacts_delete_execute()`.
-/// For task-level control, use `essentialcontacts_folders_contacts_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_folders_contacts_delete(
-    client: &SimpleHttpClient,
-    args: &EssentialcontactsFoldersContactsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = essentialcontacts_folders_contacts_delete_builder(client, &args.name)?;
-    essentialcontacts_folders_contacts_delete_execute(builder)
-}
-
-/// GET v1/folders/{foldersId}/contacts/{contactsId}
-/// Gets a single contact.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `essentialcontacts_folders_contacts_get_execute()` to send, or `essentialcontacts_folders_contacts_get` for simplest API.
-
-pub fn essentialcontacts_folders_contacts_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/folders/{}/contacts/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/folders/{foldersId}/contacts/{contactsId}
-/// Gets a single contact.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `essentialcontacts_folders_contacts_get_execute()` or `essentialcontacts_folders_contacts_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_folders_contacts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_folders_contacts_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleCloudEssentialcontactsV1Contact = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/folders/{foldersId}/contacts/{contactsId}
-/// Gets a single contact.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `essentialcontacts_folders_contacts_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `essentialcontacts_folders_contacts_get_task()`.
-/// For the simplest API, use `essentialcontacts_folders_contacts_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_folders_contacts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn essentialcontacts_folders_contacts_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = essentialcontacts_folders_contacts_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`essentialcontacts_folders_contacts_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct EssentialcontactsFoldersContactsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/folders/{foldersId}/contacts/{contactsId}
-/// Gets a single contact.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `essentialcontacts_folders_contacts_get_builder()` + `essentialcontacts_folders_contacts_get_execute()`.
-/// For task-level control, use `essentialcontacts_folders_contacts_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_folders_contacts_get(
-    client: &SimpleHttpClient,
-    args: &EssentialcontactsFoldersContactsGetArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = essentialcontacts_folders_contacts_get_builder(client, &args.name)?;
-    essentialcontacts_folders_contacts_get_execute(builder)
-}
-
-/// GET v1/folders/{foldersId}/contacts
-/// Lists the contacts that have been set on a resource.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `essentialcontacts_folders_contacts_list_execute()` to send, or `essentialcontacts_folders_contacts_list` for simplest API.
-
-pub fn essentialcontacts_folders_contacts_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/folders/{}/contacts",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/folders/{foldersId}/contacts
-/// Lists the contacts that have been set on a resource.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `essentialcontacts_folders_contacts_list_execute()` or `essentialcontacts_folders_contacts_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_folders_contacts_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_folders_contacts_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1ListContactsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleCloudEssentialcontactsV1ListContactsResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/folders/{foldersId}/contacts
-/// Lists the contacts that have been set on a resource.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `essentialcontacts_folders_contacts_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `essentialcontacts_folders_contacts_list_task()`.
-/// For the simplest API, use `essentialcontacts_folders_contacts_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_folders_contacts_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn essentialcontacts_folders_contacts_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1ListContactsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = essentialcontacts_folders_contacts_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`essentialcontacts_folders_contacts_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct EssentialcontactsFoldersContactsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/folders/{foldersId}/contacts
-/// Lists the contacts that have been set on a resource.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `essentialcontacts_folders_contacts_list_builder()` + `essentialcontacts_folders_contacts_list_execute()`.
-/// For task-level control, use `essentialcontacts_folders_contacts_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_folders_contacts_list(
-    client: &SimpleHttpClient,
-    args: &EssentialcontactsFoldersContactsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1ListContactsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = essentialcontacts_folders_contacts_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    essentialcontacts_folders_contacts_list_execute(builder)
-}
-
-/// GET v1/folders/{foldersId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `essentialcontacts_folders_contacts_patch_execute()` to send, or `essentialcontacts_folders_contacts_patch` for simplest API.
-
-pub fn essentialcontacts_folders_contacts_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudEssentialcontactsV1Contact,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/folders/{}/contacts/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/folders/{foldersId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `essentialcontacts_folders_contacts_patch_execute()` or `essentialcontacts_folders_contacts_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_folders_contacts_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_folders_contacts_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleCloudEssentialcontactsV1Contact = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/folders/{foldersId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `essentialcontacts_folders_contacts_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `essentialcontacts_folders_contacts_patch_task()`.
-/// For the simplest API, use `essentialcontacts_folders_contacts_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_folders_contacts_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn essentialcontacts_folders_contacts_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = essentialcontacts_folders_contacts_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`essentialcontacts_folders_contacts_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct EssentialcontactsFoldersContactsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: GoogleCloudEssentialcontactsV1Contact,
-}
-
-/// GET v1/folders/{foldersId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `essentialcontacts_folders_contacts_patch_builder()` + `essentialcontacts_folders_contacts_patch_execute()`.
-/// For task-level control, use `essentialcontacts_folders_contacts_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_folders_contacts_patch(
-    client: &SimpleHttpClient,
-    args: &EssentialcontactsFoldersContactsPatchArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = essentialcontacts_folders_contacts_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    essentialcontacts_folders_contacts_patch_execute(builder)
 }
 
 /// GET v1/folders/{foldersId}/contacts:sendTestMessage
@@ -1104,18 +402,16 @@ pub fn essentialcontacts_folders_contacts_patch(
 
 pub fn essentialcontacts_folders_contacts_send_test_message_builder(
     client: &SimpleHttpClient,
-    resource: &str,
+    resource: String,
     body: &GoogleCloudEssentialcontactsV1SendTestMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/folders/{}/contacts:sendTestMessage",
-        resource,
-    );
+    let endpoint_url =
+        format!("https://essentialcontacts.googleapis.com/v1/folders/{}/contacts:sendTestMessage",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1147,8 +443,11 @@ pub fn essentialcontacts_folders_contacts_send_test_message_builder(
 pub fn essentialcontacts_folders_contacts_send_test_message_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1257,7 +556,7 @@ pub fn essentialcontacts_folders_contacts_send_test_message(
 > {
     let builder = essentialcontacts_folders_contacts_send_test_message_builder(
         client,
-        &args.resource,
+        args.resource.clone(),
         &args.body,
     )?;
     essentialcontacts_folders_contacts_send_test_message_execute(builder)
@@ -1271,16 +570,14 @@ pub fn essentialcontacts_folders_contacts_send_test_message(
 
 pub fn essentialcontacts_organizations_contacts_compute_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    notificationCategories: Option<&str>,
+    parent: String,
+    notificationCategories: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts:compute",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts:compute",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1295,9 +592,9 @@ pub fn essentialcontacts_organizations_contacts_compute_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1332,11 +629,12 @@ pub fn essentialcontacts_organizations_contacts_compute_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleCloudEssentialcontactsV1ComputeContactsResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1461,10 +759,10 @@ pub fn essentialcontacts_organizations_contacts_compute(
 > {
     let builder = essentialcontacts_organizations_contacts_compute_builder(
         client,
-        &args.parent,
-        args.notificationCategories.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.notificationCategories.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     essentialcontacts_organizations_contacts_compute_execute(builder)
 }
@@ -1477,18 +775,16 @@ pub fn essentialcontacts_organizations_contacts_compute(
 
 pub fn essentialcontacts_organizations_contacts_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &GoogleCloudEssentialcontactsV1Contact,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1521,8 +817,9 @@ pub fn essentialcontacts_organizations_contacts_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1634,709 +931,12 @@ pub fn essentialcontacts_organizations_contacts_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        essentialcontacts_organizations_contacts_create_builder(client, &args.parent, &args.body)?;
-    essentialcontacts_organizations_contacts_create_execute(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Deletes a contact.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `essentialcontacts_organizations_contacts_delete_execute()` to send, or `essentialcontacts_organizations_contacts_delete` for simplest API.
-
-pub fn essentialcontacts_organizations_contacts_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Deletes a contact.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `essentialcontacts_organizations_contacts_delete_execute()` or `essentialcontacts_organizations_contacts_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_organizations_contacts_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_organizations_contacts_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Deletes a contact.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `essentialcontacts_organizations_contacts_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `essentialcontacts_organizations_contacts_delete_task()`.
-/// For the simplest API, use `essentialcontacts_organizations_contacts_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_organizations_contacts_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn essentialcontacts_organizations_contacts_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = essentialcontacts_organizations_contacts_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`essentialcontacts_organizations_contacts_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct EssentialcontactsOrganizationsContactsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Deletes a contact.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `essentialcontacts_organizations_contacts_delete_builder()` + `essentialcontacts_organizations_contacts_delete_execute()`.
-/// For task-level control, use `essentialcontacts_organizations_contacts_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_organizations_contacts_delete(
-    client: &SimpleHttpClient,
-    args: &EssentialcontactsOrganizationsContactsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = essentialcontacts_organizations_contacts_delete_builder(client, &args.name)?;
-    essentialcontacts_organizations_contacts_delete_execute(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Gets a single contact.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `essentialcontacts_organizations_contacts_get_execute()` to send, or `essentialcontacts_organizations_contacts_get` for simplest API.
-
-pub fn essentialcontacts_organizations_contacts_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Gets a single contact.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `essentialcontacts_organizations_contacts_get_execute()` or `essentialcontacts_organizations_contacts_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_organizations_contacts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_organizations_contacts_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleCloudEssentialcontactsV1Contact = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Gets a single contact.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `essentialcontacts_organizations_contacts_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `essentialcontacts_organizations_contacts_get_task()`.
-/// For the simplest API, use `essentialcontacts_organizations_contacts_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_organizations_contacts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn essentialcontacts_organizations_contacts_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = essentialcontacts_organizations_contacts_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`essentialcontacts_organizations_contacts_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct EssentialcontactsOrganizationsContactsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Gets a single contact.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `essentialcontacts_organizations_contacts_get_builder()` + `essentialcontacts_organizations_contacts_get_execute()`.
-/// For task-level control, use `essentialcontacts_organizations_contacts_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_organizations_contacts_get(
-    client: &SimpleHttpClient,
-    args: &EssentialcontactsOrganizationsContactsGetArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = essentialcontacts_organizations_contacts_get_builder(client, &args.name)?;
-    essentialcontacts_organizations_contacts_get_execute(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/contacts
-/// Lists the contacts that have been set on a resource.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `essentialcontacts_organizations_contacts_list_execute()` to send, or `essentialcontacts_organizations_contacts_list` for simplest API.
-
-pub fn essentialcontacts_organizations_contacts_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/contacts
-/// Lists the contacts that have been set on a resource.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `essentialcontacts_organizations_contacts_list_execute()` or `essentialcontacts_organizations_contacts_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_organizations_contacts_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_organizations_contacts_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1ListContactsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleCloudEssentialcontactsV1ListContactsResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/organizations/{organizationsId}/contacts
-/// Lists the contacts that have been set on a resource.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `essentialcontacts_organizations_contacts_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `essentialcontacts_organizations_contacts_list_task()`.
-/// For the simplest API, use `essentialcontacts_organizations_contacts_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_organizations_contacts_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn essentialcontacts_organizations_contacts_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1ListContactsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = essentialcontacts_organizations_contacts_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`essentialcontacts_organizations_contacts_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct EssentialcontactsOrganizationsContactsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/organizations/{organizationsId}/contacts
-/// Lists the contacts that have been set on a resource.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `essentialcontacts_organizations_contacts_list_builder()` + `essentialcontacts_organizations_contacts_list_execute()`.
-/// For task-level control, use `essentialcontacts_organizations_contacts_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_organizations_contacts_list(
-    client: &SimpleHttpClient,
-    args: &EssentialcontactsOrganizationsContactsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1ListContactsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = essentialcontacts_organizations_contacts_list_builder(
+    let builder = essentialcontacts_organizations_contacts_create_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    essentialcontacts_organizations_contacts_list_execute(builder)
-}
-
-/// GET v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `essentialcontacts_organizations_contacts_patch_execute()` to send, or `essentialcontacts_organizations_contacts_patch` for simplest API.
-
-pub fn essentialcontacts_organizations_contacts_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudEssentialcontactsV1Contact,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `essentialcontacts_organizations_contacts_patch_execute()` or `essentialcontacts_organizations_contacts_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_organizations_contacts_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_organizations_contacts_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleCloudEssentialcontactsV1Contact = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `essentialcontacts_organizations_contacts_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `essentialcontacts_organizations_contacts_patch_task()`.
-/// For the simplest API, use `essentialcontacts_organizations_contacts_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_organizations_contacts_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn essentialcontacts_organizations_contacts_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = essentialcontacts_organizations_contacts_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`essentialcontacts_organizations_contacts_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct EssentialcontactsOrganizationsContactsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: GoogleCloudEssentialcontactsV1Contact,
-}
-
-/// GET v1/organizations/{organizationsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `essentialcontacts_organizations_contacts_patch_builder()` + `essentialcontacts_organizations_contacts_patch_execute()`.
-/// For task-level control, use `essentialcontacts_organizations_contacts_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_organizations_contacts_patch(
-    client: &SimpleHttpClient,
-    args: &EssentialcontactsOrganizationsContactsPatchArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = essentialcontacts_organizations_contacts_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
+        args.parent.clone(),
         &args.body,
     )?;
-    essentialcontacts_organizations_contacts_patch_execute(builder)
+    essentialcontacts_organizations_contacts_create_execute(builder)
 }
 
 /// GET v1/organizations/{organizationsId}/contacts:sendTestMessage
@@ -2347,18 +947,17 @@ pub fn essentialcontacts_organizations_contacts_patch(
 
 pub fn essentialcontacts_organizations_contacts_send_test_message_builder(
     client: &SimpleHttpClient,
-    resource: &str,
+    resource: String,
     body: &GoogleCloudEssentialcontactsV1SendTestMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/organizations/{}/contacts:sendTestMessage",
-        resource,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2390,8 +989,11 @@ pub fn essentialcontacts_organizations_contacts_send_test_message_builder(
 pub fn essentialcontacts_organizations_contacts_send_test_message_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2500,7 +1102,7 @@ pub fn essentialcontacts_organizations_contacts_send_test_message(
 > {
     let builder = essentialcontacts_organizations_contacts_send_test_message_builder(
         client,
-        &args.resource,
+        args.resource.clone(),
         &args.body,
     )?;
     essentialcontacts_organizations_contacts_send_test_message_execute(builder)
@@ -2514,16 +1116,14 @@ pub fn essentialcontacts_organizations_contacts_send_test_message(
 
 pub fn essentialcontacts_projects_contacts_compute_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    notificationCategories: Option<&str>,
+    parent: String,
+    notificationCategories: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/projects/{}/contacts:compute",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://essentialcontacts.googleapis.com/v1/projects/{}/contacts:compute",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2538,9 +1138,9 @@ pub fn essentialcontacts_projects_contacts_compute_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2575,11 +1175,12 @@ pub fn essentialcontacts_projects_contacts_compute_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleCloudEssentialcontactsV1ComputeContactsResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2704,10 +1305,10 @@ pub fn essentialcontacts_projects_contacts_compute(
 > {
     let builder = essentialcontacts_projects_contacts_compute_builder(
         client,
-        &args.parent,
-        args.notificationCategories.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.notificationCategories.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     essentialcontacts_projects_contacts_compute_execute(builder)
 }
@@ -2720,18 +1321,15 @@ pub fn essentialcontacts_projects_contacts_compute(
 
 pub fn essentialcontacts_projects_contacts_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &GoogleCloudEssentialcontactsV1Contact,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/projects/{}/contacts",
-        parent,
-    );
+    let endpoint_url = format!("https://essentialcontacts.googleapis.com/v1/projects/{}/contacts",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2764,8 +1362,9 @@ pub fn essentialcontacts_projects_contacts_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2877,709 +1476,12 @@ pub fn essentialcontacts_projects_contacts_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        essentialcontacts_projects_contacts_create_builder(client, &args.parent, &args.body)?;
-    essentialcontacts_projects_contacts_create_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/contacts/{contactsId}
-/// Deletes a contact.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `essentialcontacts_projects_contacts_delete_execute()` to send, or `essentialcontacts_projects_contacts_delete` for simplest API.
-
-pub fn essentialcontacts_projects_contacts_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/projects/{}/contacts/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/contacts/{contactsId}
-/// Deletes a contact.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `essentialcontacts_projects_contacts_delete_execute()` or `essentialcontacts_projects_contacts_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_projects_contacts_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_projects_contacts_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/contacts/{contactsId}
-/// Deletes a contact.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `essentialcontacts_projects_contacts_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `essentialcontacts_projects_contacts_delete_task()`.
-/// For the simplest API, use `essentialcontacts_projects_contacts_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_projects_contacts_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn essentialcontacts_projects_contacts_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = essentialcontacts_projects_contacts_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`essentialcontacts_projects_contacts_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct EssentialcontactsProjectsContactsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/projects/{projectsId}/contacts/{contactsId}
-/// Deletes a contact.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `essentialcontacts_projects_contacts_delete_builder()` + `essentialcontacts_projects_contacts_delete_execute()`.
-/// For task-level control, use `essentialcontacts_projects_contacts_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_projects_contacts_delete(
-    client: &SimpleHttpClient,
-    args: &EssentialcontactsProjectsContactsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = essentialcontacts_projects_contacts_delete_builder(client, &args.name)?;
-    essentialcontacts_projects_contacts_delete_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/contacts/{contactsId}
-/// Gets a single contact.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `essentialcontacts_projects_contacts_get_execute()` to send, or `essentialcontacts_projects_contacts_get` for simplest API.
-
-pub fn essentialcontacts_projects_contacts_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/projects/{}/contacts/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/contacts/{contactsId}
-/// Gets a single contact.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `essentialcontacts_projects_contacts_get_execute()` or `essentialcontacts_projects_contacts_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_projects_contacts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_projects_contacts_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleCloudEssentialcontactsV1Contact = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/contacts/{contactsId}
-/// Gets a single contact.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `essentialcontacts_projects_contacts_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `essentialcontacts_projects_contacts_get_task()`.
-/// For the simplest API, use `essentialcontacts_projects_contacts_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_projects_contacts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn essentialcontacts_projects_contacts_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = essentialcontacts_projects_contacts_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`essentialcontacts_projects_contacts_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct EssentialcontactsProjectsContactsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/projects/{projectsId}/contacts/{contactsId}
-/// Gets a single contact.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `essentialcontacts_projects_contacts_get_builder()` + `essentialcontacts_projects_contacts_get_execute()`.
-/// For task-level control, use `essentialcontacts_projects_contacts_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_projects_contacts_get(
-    client: &SimpleHttpClient,
-    args: &EssentialcontactsProjectsContactsGetArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = essentialcontacts_projects_contacts_get_builder(client, &args.name)?;
-    essentialcontacts_projects_contacts_get_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/contacts
-/// Lists the contacts that have been set on a resource.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `essentialcontacts_projects_contacts_list_execute()` to send, or `essentialcontacts_projects_contacts_list` for simplest API.
-
-pub fn essentialcontacts_projects_contacts_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/projects/{}/contacts",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/contacts
-/// Lists the contacts that have been set on a resource.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `essentialcontacts_projects_contacts_list_execute()` or `essentialcontacts_projects_contacts_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_projects_contacts_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_projects_contacts_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1ListContactsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleCloudEssentialcontactsV1ListContactsResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/contacts
-/// Lists the contacts that have been set on a resource.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `essentialcontacts_projects_contacts_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `essentialcontacts_projects_contacts_list_task()`.
-/// For the simplest API, use `essentialcontacts_projects_contacts_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_projects_contacts_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn essentialcontacts_projects_contacts_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1ListContactsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = essentialcontacts_projects_contacts_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`essentialcontacts_projects_contacts_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct EssentialcontactsProjectsContactsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/contacts
-/// Lists the contacts that have been set on a resource.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `essentialcontacts_projects_contacts_list_builder()` + `essentialcontacts_projects_contacts_list_execute()`.
-/// For task-level control, use `essentialcontacts_projects_contacts_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_projects_contacts_list(
-    client: &SimpleHttpClient,
-    args: &EssentialcontactsProjectsContactsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1ListContactsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = essentialcontacts_projects_contacts_list_builder(
+    let builder = essentialcontacts_projects_contacts_create_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    essentialcontacts_projects_contacts_list_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `essentialcontacts_projects_contacts_patch_execute()` to send, or `essentialcontacts_projects_contacts_patch` for simplest API.
-
-pub fn essentialcontacts_projects_contacts_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &GoogleCloudEssentialcontactsV1Contact,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://essentialcontacts.googleapis.com/v1/projects/{}/contacts/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `essentialcontacts_projects_contacts_patch_execute()` or `essentialcontacts_projects_contacts_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_projects_contacts_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_projects_contacts_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleCloudEssentialcontactsV1Contact = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `essentialcontacts_projects_contacts_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `essentialcontacts_projects_contacts_patch_task()`.
-/// For the simplest API, use `essentialcontacts_projects_contacts_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `essentialcontacts_projects_contacts_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn essentialcontacts_projects_contacts_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = essentialcontacts_projects_contacts_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`essentialcontacts_projects_contacts_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct EssentialcontactsProjectsContactsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: GoogleCloudEssentialcontactsV1Contact,
-}
-
-/// GET v1/projects/{projectsId}/contacts/{contactsId}
-/// Updates a contact. Note: A contact's email address cannot be changed.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `essentialcontacts_projects_contacts_patch_builder()` + `essentialcontacts_projects_contacts_patch_execute()`.
-/// For task-level control, use `essentialcontacts_projects_contacts_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn essentialcontacts_projects_contacts_patch(
-    client: &SimpleHttpClient,
-    args: &EssentialcontactsProjectsContactsPatchArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleCloudEssentialcontactsV1Contact>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = essentialcontacts_projects_contacts_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
+        args.parent.clone(),
         &args.body,
     )?;
-    essentialcontacts_projects_contacts_patch_execute(builder)
+    essentialcontacts_projects_contacts_create_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/contacts:sendTestMessage
@@ -3590,18 +1492,17 @@ pub fn essentialcontacts_projects_contacts_patch(
 
 pub fn essentialcontacts_projects_contacts_send_test_message_builder(
     client: &SimpleHttpClient,
-    resource: &str,
+    resource: String,
     body: &GoogleCloudEssentialcontactsV1SendTestMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://essentialcontacts.googleapis.com/v1/projects/{}/contacts:sendTestMessage",
-        resource,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3633,8 +1534,11 @@ pub fn essentialcontacts_projects_contacts_send_test_message_builder(
 pub fn essentialcontacts_projects_contacts_send_test_message_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3743,7 +1647,7 @@ pub fn essentialcontacts_projects_contacts_send_test_message(
 > {
     let builder = essentialcontacts_projects_contacts_send_test_message_builder(
         client,
-        &args.resource,
+        args.resource.clone(),
         &args.body,
     )?;
     essentialcontacts_projects_contacts_send_test_message_execute(builder)

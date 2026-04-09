@@ -27,7 +27,9 @@ pub struct GoogleCloudAssuredworkloadsV1AcknowledgeViolationRequest {
 
 /// Response for violation acknowledgement
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1AcknowledgeViolationResponse {}
+pub struct GoogleCloudAssuredworkloadsV1AcknowledgeViolationResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response containing the analysis results for the hypothetical resource move.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -90,11 +92,15 @@ pub struct GoogleCloudAssuredworkloadsV1CreateWorkloadOperationMetadata {
 
 /// Response for EnableComplianceUpdates endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1EnableComplianceUpdatesResponse {}
+pub struct GoogleCloudAssuredworkloadsV1EnableComplianceUpdatesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response for EnableResourceMonitoring endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1EnableResourceMonitoringResponse {}
+pub struct GoogleCloudAssuredworkloadsV1EnableResourceMonitoringResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response of ListViolations endpoint.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -166,7 +172,9 @@ pub struct GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesRequest {
 
 /// Response for restricting the list of allowed resources.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesResponse {}
+pub struct GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesResponse {
+    pub value: serde_json::Value,
+}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -184,7 +192,9 @@ pub struct GoogleLongrunningListOperationsResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// Represents move analysis results for an asset.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

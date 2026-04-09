@@ -11,10 +11,6 @@ use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// AdaptingOSStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdaptingOSStep {}
-
 /// Request message for ''AddGroupMigration'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddGroupMigrationRequest {
@@ -25,51 +21,45 @@ pub struct AddGroupMigrationRequest {
 
 /// Request message for ''CancelCloneJob'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelCloneJobRequest {}
+pub struct CancelCloneJobRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ''CancelCutoverJob'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelCutoverJobRequest {}
+pub struct CancelCutoverJobRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ''CancelDiskMigrationJob'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelDiskMigrationJobRequest {}
+pub struct CancelDiskMigrationJobRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ''CancelImageImportJob'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelImageImportJobRequest {}
+pub struct CancelImageImportJobRequest {
+    pub value: serde_json::Value,
+}
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
-
-/// CopyingSourceDiskSnapshotStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CopyingSourceDiskSnapshotStep {}
-
-/// CreatingImageStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreatingImageStep {}
-
-/// CreatingSourceDiskSnapshotStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreatingSourceDiskSnapshotStep {}
-
-/// Details for a disk only migration.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisksMigrationDisksTargetDefaults {}
-
-/// Details for a disks-only migration.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisksMigrationDisksTargetDetails {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ''ExtendMigrationRequest'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExtendMigrationRequest {}
+pub struct ExtendMigrationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for fetchInventory.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -107,19 +97,9 @@ pub struct FetchStorageInventoryResponse {
 
 /// Request message for ''FinalizeMigration'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FinalizeMigrationRequest {}
-
-/// InitializingImageImportStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InitializingImageImportStep {}
-
-/// InitializingReplicationStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InitializingReplicationStep {}
-
-/// InstantiatingMigratedVMStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstantiatingMigratedVMStep {}
+pub struct FinalizeMigrationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for ''ListCloneJobs'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -314,10 +294,6 @@ pub struct ListUtilizationReportsResponse {
     pub utilization_reports: ::core::option::Option<::std::vec::Vec<UtilizationReport>>,
 }
 
-/// LoadingImageSourceFilesStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LoadingImageSourceFilesStep {}
-
 /// Represents migration resource error information that can be used with google.rpc.Status message. MigrationError is used to present the user with error information in migration operations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MigrationError {
@@ -366,19 +342,9 @@ pub struct OperationMetadata {
 
 /// Request message for ''PauseMigration'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PauseMigrationRequest {}
-
-/// PostProcessingStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PostProcessingStep {}
-
-/// PreparingVMDisksStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreparingVMDisksStep {}
-
-/// ProvisioningTargetDiskStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProvisioningTargetDiskStep {}
+pub struct PauseMigrationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ''RemoveMigration'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -390,23 +356,21 @@ pub struct RemoveGroupMigrationRequest {
 
 /// Request message for ''ResumeMigration'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResumeMigrationRequest {}
+pub struct ResumeMigrationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ''RunDiskMigrationJobRequest'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RunDiskMigrationJobRequest {}
-
-/// ShuttingDownSourceVMStep contains specific step details.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ShuttingDownSourceVMStep {}
-
-/// Mentions that the machine image import is not using OS adaptation process.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SkipOsAdaptation {}
+pub struct RunDiskMigrationJobRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ''StartMigrationRequest'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StartMigrationRequest {}
+pub struct StartMigrationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ''UpgradeAppliance'' request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -940,16 +904,16 @@ pub struct AwsSourceDiskDetails {
 pub struct DiskMigrationStep {
     /// Copying source disk snapshot step.
     #[serde(default, rename = "copyingSourceDiskSnapshot")]
-    pub copying_source_disk_snapshot: ::core::option::Option<serde_json::Value>,
+    pub copying_source_disk_snapshot: ::core::option::Option<CopyingSourceDiskSnapshotStep>,
     /// Creating source disk snapshot step.
     #[serde(default, rename = "creatingSourceDiskSnapshot")]
-    pub creating_source_disk_snapshot: ::core::option::Option<serde_json::Value>,
+    pub creating_source_disk_snapshot: ::core::option::Option<CreatingSourceDiskSnapshotStep>,
     /// Output only. The time the step has ended.
     #[serde(default, rename = "endTime")]
     pub end_time: ::core::option::Option<String>,
     /// Creating target disk step.
     #[serde(default, rename = "provisioningTargetDisk")]
-    pub provisioning_target_disk: ::core::option::Option<serde_json::Value>,
+    pub provisioning_target_disk: ::core::option::Option<ProvisioningTargetDiskStep>,
     /// Output only. The time the step has started.
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<String>,
@@ -1058,7 +1022,7 @@ pub struct ComputeEngineDisksTargetDefaults {
     pub disks: ::core::option::Option<::std::vec::Vec<PersistentDiskDefaults>>,
     /// Details of the disk only migration target.
     #[serde(default, rename = "disksTargetDefaults")]
-    pub disks_target_defaults: ::core::option::Option<serde_json::Value>,
+    pub disks_target_defaults: ::core::option::Option<DisksMigrationDisksTargetDefaults>,
     /// The full path of the resource of type TargetProject which represents the Compute Engine project in which to create the Persistent Disks.
     #[serde(default, rename = "targetProject")]
     pub target_project: ::core::option::Option<String>,
@@ -1445,6 +1409,24 @@ pub struct ApplianceVersion {
     pub version: ::core::option::Option<String>,
 }
 
+/// CopyingSourceDiskSnapshotStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CopyingSourceDiskSnapshotStep {
+    pub value: serde_json::Value,
+}
+
+/// CreatingSourceDiskSnapshotStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreatingSourceDiskSnapshotStep {
+    pub value: serde_json::Value,
+}
+
+/// ProvisioningTargetDiskStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProvisioningTargetDiskStep {
+    pub value: serde_json::Value,
+}
+
 /// Compute Engine disk target details.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeEngineDisk {
@@ -1535,7 +1517,7 @@ pub struct MachineImageTargetDetails {
     pub single_region_storage: ::core::option::Option<bool>,
     /// Optional. Use to skip OS adaptation process.
     #[serde(default, rename = "skipOsAdaptation")]
-    pub skip_os_adaptation: ::core::option::Option<serde_json::Value>,
+    pub skip_os_adaptation: ::core::option::Option<SkipOsAdaptation>,
     /// Optional. The tags to apply to the instance created by the machine image.
     #[serde(default)]
     pub tags: ::core::option::Option<::std::vec::Vec<String>>,
@@ -1549,19 +1531,19 @@ pub struct MachineImageTargetDetails {
 pub struct ImageImportStep {
     /// Adapting OS step.
     #[serde(default, rename = "adaptingOs")]
-    pub adapting_os: ::core::option::Option<serde_json::Value>,
+    pub adapting_os: ::core::option::Option<AdaptingOSStep>,
     /// Creating image step.
     #[serde(default, rename = "creatingImage")]
-    pub creating_image: ::core::option::Option<serde_json::Value>,
+    pub creating_image: ::core::option::Option<CreatingImageStep>,
     /// Output only. The time the step has ended.
     #[serde(default, rename = "endTime")]
     pub end_time: ::core::option::Option<String>,
     /// Initializing step.
     #[serde(default)]
-    pub initializing: ::core::option::Option<serde_json::Value>,
+    pub initializing: ::core::option::Option<InitializingImageImportStep>,
     /// Loading source files step.
     #[serde(default, rename = "loadingSourceFiles")]
-    pub loading_source_files: ::core::option::Option<serde_json::Value>,
+    pub loading_source_files: ::core::option::Option<LoadingImageSourceFilesStep>,
     /// Output only. The time the step has started.
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<String>,
@@ -1616,6 +1598,12 @@ pub struct PersistentDiskDefaults {
     /// Optional. Details for attachment of the disk to a VM. Used when the disk is set to be attached to a target VM.
     #[serde(default, rename = "vmAttachmentDetails")]
     pub vm_attachment_details: ::core::option::Option<VmAttachmentDetails>,
+}
+
+/// Details for a disk only migration.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DisksMigrationDisksTargetDefaults {
+    pub value: serde_json::Value,
 }
 
 /// Details for creation of a VM that migrated data disks will be attached to.
@@ -1676,16 +1664,16 @@ pub struct DisksMigrationVmTargetDefaults {
 pub struct CloneStep {
     /// Adapting OS step.
     #[serde(default, rename = "adaptingOs")]
-    pub adapting_os: ::core::option::Option<serde_json::Value>,
+    pub adapting_os: ::core::option::Option<AdaptingOSStep>,
     /// The time the step has ended.
     #[serde(default, rename = "endTime")]
     pub end_time: ::core::option::Option<String>,
     /// Instantiating migrated VM step.
     #[serde(default, rename = "instantiatingMigratedVm")]
-    pub instantiating_migrated_vm: ::core::option::Option<serde_json::Value>,
+    pub instantiating_migrated_vm: ::core::option::Option<InstantiatingMigratedVMStep>,
     /// Preparing VM disks step.
     #[serde(default, rename = "preparingVmDisks")]
-    pub preparing_vm_disks: ::core::option::Option<serde_json::Value>,
+    pub preparing_vm_disks: ::core::option::Option<PreparingVMDisksStep>,
     /// The time the step has started.
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<String>,
@@ -1699,7 +1687,7 @@ pub struct ComputeEngineDisksTargetDetails {
     pub disks: ::core::option::Option<::std::vec::Vec<PersistentDisk>>,
     /// Details of the disks-only migration target.
     #[serde(default, rename = "disksTargetDetails")]
-    pub disks_target_details: ::core::option::Option<serde_json::Value>,
+    pub disks_target_details: ::core::option::Option<DisksMigrationDisksTargetDetails>,
     /// Details for the VM the migrated data disks are attached to.
     #[serde(default, rename = "vmTargetDetails")]
     pub vm_target_details: ::core::option::Option<DisksMigrationVmTargetDetails>,
@@ -1796,16 +1784,16 @@ pub struct CutoverStep {
     pub final_sync: ::core::option::Option<ReplicationCycle>,
     /// Instantiating migrated VM step.
     #[serde(default, rename = "instantiatingMigratedVm")]
-    pub instantiating_migrated_vm: ::core::option::Option<serde_json::Value>,
+    pub instantiating_migrated_vm: ::core::option::Option<InstantiatingMigratedVMStep>,
     /// Preparing VM disks step.
     #[serde(default, rename = "preparingVmDisks")]
-    pub preparing_vm_disks: ::core::option::Option<serde_json::Value>,
+    pub preparing_vm_disks: ::core::option::Option<PreparingVMDisksStep>,
     /// A replication cycle prior cutover step.
     #[serde(default, rename = "previousReplicationCycle")]
     pub previous_replication_cycle: ::core::option::Option<ReplicationCycle>,
     /// Shutting down VM step.
     #[serde(default, rename = "shuttingDownSourceVm")]
-    pub shutting_down_source_vm: ::core::option::Option<serde_json::Value>,
+    pub shutting_down_source_vm: ::core::option::Option<ShuttingDownSourceVMStep>,
     /// The time the step has started.
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<String>,
@@ -2006,6 +1994,30 @@ pub struct ShieldedInstanceConfig {
     pub secure_boot: ::core::option::Option<String>,
 }
 
+/// Mentions that the machine image import is not using OS adaptation process.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SkipOsAdaptation {
+    pub value: serde_json::Value,
+}
+
+/// CreatingImageStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreatingImageStep {
+    pub value: serde_json::Value,
+}
+
+/// InitializingImageImportStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InitializingImageImportStep {
+    pub value: serde_json::Value,
+}
+
+/// LoadingImageSourceFilesStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LoadingImageSourceFilesStep {
+    pub value: serde_json::Value,
+}
+
 /// Details for attachment of the disk to a VM.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmAttachmentDetails {
@@ -2034,6 +2046,12 @@ pub struct BootDiskDefaults {
     pub image: ::core::option::Option<DiskImageDefaults>,
 }
 
+/// AdaptingOSStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdaptingOSStep {
+    pub value: serde_json::Value,
+}
+
 /// Details of a created Persistent Disk.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersistentDisk {
@@ -2043,6 +2061,12 @@ pub struct PersistentDisk {
     /// The ordinal number of the source VM disk.
     #[serde(default, rename = "sourceDiskNumber")]
     pub source_disk_number: ::core::option::Option<i32>,
+}
+
+/// Details for a disks-only migration.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DisksMigrationDisksTargetDetails {
+    pub value: serde_json::Value,
 }
 
 /// Details for the VM created VM as part of disks migration.
@@ -2136,6 +2160,24 @@ pub struct ReplicationCycle {
     pub warnings: ::core::option::Option<::std::vec::Vec<MigrationWarning>>,
 }
 
+/// InstantiatingMigratedVMStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstantiatingMigratedVMStep {
+    pub value: serde_json::Value,
+}
+
+/// PreparingVMDisksStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreparingVMDisksStep {
+    pub value: serde_json::Value,
+}
+
+/// ShuttingDownSourceVMStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ShuttingDownSourceVMStep {
+    pub value: serde_json::Value,
+}
+
 /// AdaptationModifier a modifier to be used for configuration of the OS adaptation process.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdaptationModifier {
@@ -2199,10 +2241,10 @@ pub struct CycleStep {
     pub end_time: ::core::option::Option<String>,
     /// Initializing replication step.
     #[serde(default, rename = "initializingReplication")]
-    pub initializing_replication: ::core::option::Option<serde_json::Value>,
+    pub initializing_replication: ::core::option::Option<InitializingReplicationStep>,
     /// Post processing step.
     #[serde(default, rename = "postProcessing")]
-    pub post_processing: ::core::option::Option<serde_json::Value>,
+    pub post_processing: ::core::option::Option<PostProcessingStep>,
     /// Replicating step.
     #[serde(default)]
     pub replicating: ::core::option::Option<ReplicatingStep>,
@@ -2229,6 +2271,18 @@ pub struct MigrationWarning {
     /// The time the warning occurred.
     #[serde(default, rename = "warningTime")]
     pub warning_time: ::core::option::Option<String>,
+}
+
+/// InitializingReplicationStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InitializingReplicationStep {
+    pub value: serde_json::Value,
+}
+
+/// PostProcessingStep contains specific step details.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostProcessingStep {
+    pub value: serde_json::Value,
 }
 
 /// ReplicatingStep contains specific step details.

@@ -19,17 +19,17 @@ pub struct ANR {
     pub stack_trace: ::core::option::Option<StackTrace>,
 }
 
-/// Test Loops are tests that can be launched by the app itself, determining when to run by listening for an intent.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AndroidTestLoop {}
-
 /// There was an issue with the assets in this test.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AssetIssue {}
+pub struct AssetIssue {
+    pub value: serde_json::Value,
+}
 
 /// A suggestion to use deep links for a Robo run.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AvailableDeepLinks {}
+pub struct AvailableDeepLinks {
+    pub value: serde_json::Value,
+}
 
 /// The request must provide up to a maximum of 5000 samples to be created; a larger sample size will cause an INVALID_ARGUMENT error
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -64,11 +64,15 @@ pub struct CrashDialogError {
 
 /// A notification that Robo detected a splash screen provided by app (vs. Android OS splash screen).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DetectedAppSplashScreen {}
+pub struct DetectedAppSplashScreen {
+    pub value: serde_json::Value,
+}
 
 /// A warning that device ran out of memory
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeviceOutOfMemory {}
+pub struct DeviceOutOfMemory {
+    pub value: serde_json::Value,
+}
 
 /// Additional details about encountered login screens.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -94,7 +98,9 @@ pub struct EncounteredNonAndroidUiWidgetScreen {
 
 /// Failed to install the App.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FailedToInstall {}
+pub struct FailedToInstall {
+    pub value: serde_json::Value,
+}
 
 /// Additional details for a fatal exception.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -117,7 +123,9 @@ pub struct InAppPurchasesFound {
 
 /// A warning that Robo did not crawl potentially important parts of the app.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InsufficientCoverage {}
+pub struct InsufficientCoverage {
+    pub value: serde_json::Value,
+}
 
 /// Additional details for an iOS app crash.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -127,13 +135,11 @@ pub struct IosAppCrashed {
     pub stack_trace: ::core::option::Option<StackTrace>,
 }
 
-/// A Robo test for an iOS application.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IosRoboTest {}
-
 /// Failed to find the launcher activity of an app.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LauncherActivityNotFound {}
+pub struct LauncherActivityNotFound {
+    pub value: serde_json::Value,
+}
 
 /// Response message for EnvironmentService.ListEnvironments.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -248,11 +254,9 @@ pub struct ListTestCasesResponse {
 
 /// A warning that there were issues in logcat collection.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogcatCollectionError {}
-
-/// One dimension of the matrix of different runs of a step.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MatrixDimensionDefinition {}
+pub struct LogcatCollectionError {
+    pub value: serde_json::Value,
+}
 
 /// Additional details for a native crash.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -331,7 +335,9 @@ pub struct PerfMetricsSummary {
 
 /// A notification that Robo signed in with Google.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PerformedGoogleLogin {}
+pub struct PerformedGoogleLogin {
+    pub value: serde_json::Value,
+}
 
 /// A notification that Robo performed some monkey actions.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -380,10 +386,6 @@ pub struct StartActivityNotFound {
     pub uri: ::core::option::Option<String>,
 }
 
-/// Lightweight summary of a step within this execution.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StepSummary {}
-
 /// A warning that the screen hierarchy is deeper than the recommended threshold.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UIElementTooDeep {
@@ -400,7 +402,9 @@ pub struct UIElementTooDeep {
 
 /// Default unspecified warning.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UnspecifiedWarning {}
+pub struct UnspecifiedWarning {
+    pub value: serde_json::Value,
+}
 
 /// Additional details of an unused robodirective.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -475,7 +479,7 @@ pub struct Execution {
     pub creation_time: ::core::option::Option<Timestamp>,
     /// The dimensions along which different steps in this execution may vary. This must remain fixed over the life of the execution. Returns INVALID_ARGUMENT if this field is set in an update request. Returns INVALID_ARGUMENT if the same name occurs in more than one dimension_definition. Returns INVALID_ARGUMENT if the size of the list is over 100. - In response: present if set by create - In create request: optional - In update request: never set
     #[serde(default, rename = "dimensionDefinitions")]
-    pub dimension_definitions: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    pub dimension_definitions: ::core::option::Option<::std::vec::Vec<MatrixDimensionDefinition>>,
     /// A unique identifier within a History for this Execution. Returns INVALID_ARGUMENT if this field is set or overwritten by the caller. - In response always set - In create/update request: never set
     #[serde(default, rename = "executionId")]
     pub execution_id: ::core::option::Option<String>,
@@ -779,10 +783,16 @@ pub struct ResultsStorage {
 pub struct ShardSummary {
     /// Summaries of the steps belonging to the shard. With flaky_test_attempts enabled from TestExecutionService, more than one run (Step) can present. And the runs will be sorted by multistep_number.
     #[serde(default)]
-    pub runs: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    pub runs: ::core::option::Option<::std::vec::Vec<StepSummary>>,
     /// Merged result of the shard.
     #[serde(default, rename = "shardResult")]
     pub shard_result: ::core::option::Option<MergedResult>,
+}
+
+/// One dimension of the matrix of different runs of a step.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MatrixDimensionDefinition {
+    pub value: serde_json::Value,
 }
 
 /// The details about how to run the execution.
@@ -1003,6 +1013,12 @@ pub struct MemoryInfo {
     pub memory_total_in_kibibyte: ::core::option::Option<String>,
 }
 
+/// Lightweight summary of a step within this execution.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StepSummary {
+    pub value: serde_json::Value,
+}
+
 /// Merged test result for environment. If the environment has only one step (no reruns or shards), then the merged result is the same as the step result. If the environment has multiple shards and/or reruns, then the results of shards and reruns that belong to the same environment are merged into one environment result.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MergedResult {
@@ -1031,7 +1047,7 @@ pub struct AndroidTest {
     pub android_robo_test: ::core::option::Option<AndroidRoboTest>,
     /// An Android test loop.
     #[serde(default, rename = "androidTestLoop")]
-    pub android_test_loop: ::core::option::Option<serde_json::Value>,
+    pub android_test_loop: ::core::option::Option<AndroidTestLoop>,
     /// Max time a test is allowed to run before it is automatically cancelled.
     #[serde(default, rename = "testTimeout")]
     pub test_timeout: ::core::option::Option<Duration>,
@@ -1045,7 +1061,7 @@ pub struct IosTest {
     pub ios_app_info: ::core::option::Option<IosAppInfo>,
     /// An iOS Robo test.
     #[serde(default, rename = "iosRoboTest")]
-    pub ios_robo_test: ::core::option::Option<serde_json::Value>,
+    pub ios_robo_test: ::core::option::Option<IosRoboTest>,
     /// An iOS test loop.
     #[serde(default, rename = "iosTestLoop")]
     pub ios_test_loop: ::core::option::Option<IosTestLoop>,
@@ -1263,12 +1279,24 @@ pub struct AndroidRoboTest {
     pub max_steps: ::core::option::Option<i32>,
 }
 
+/// Test Loops are tests that can be launched by the app itself, determining when to run by listening for an intent.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AndroidTestLoop {
+    pub value: serde_json::Value,
+}
+
 /// iOS app information
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosAppInfo {
     /// The name of the app. Required
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+}
+
+/// A Robo test for an iOS application.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IosRoboTest {
+    pub value: serde_json::Value,
 }
 
 /// A game loop test of an iOS application.

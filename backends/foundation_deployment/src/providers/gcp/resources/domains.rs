@@ -55,7 +55,9 @@ pub struct ConfigureManagementSettingsRequest {
 
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). Request for the ExportRegistration method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExportRegistrationRequest {}
+pub struct ExportRegistrationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). Request for the ImportDomain method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -168,7 +170,9 @@ pub struct RenewDomainRequest {
 
 /// Request for the ResetAuthorizationCode method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResetAuthorizationCodeRequest {}
+pub struct ResetAuthorizationCodeRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for the RetrieveGoogleDomainsDnsRecords method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

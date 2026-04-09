@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// Metadata for the AddEnableRules method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddEnableRulesMetadata {}
+pub struct AddEnableRulesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The response message of AddEnableRules method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -28,7 +30,9 @@ pub struct AddEnableRulesResponse {
 
 /// Metadata for the AnalyzeConsumerPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnalyzeConsumerPolicyMetadata {}
+pub struct AnalyzeConsumerPolicyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The response of analyzing a consumer policy update.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -83,7 +87,9 @@ pub struct BatchGetServicesResponse {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Consumer Policy is a set of rules that define what services or service groups can be used for a cloud resource hierarchy.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -118,11 +124,15 @@ pub struct ContentSecurityPolicy {
 
 /// Metadata message that provides information such as progress, partial failures, and similar information on each GetOperation call of LRO returned by CreateAdminQuotaPolicy.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateAdminQuotaPolicyMetadata {}
+pub struct CreateAdminQuotaPolicyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata message that provides information such as progress, partial failures, and similar information on each GetOperation call of LRO returned by DeleteAdminQuotaPolicy.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteAdminQuotaPolicyMetadata {}
+pub struct DeleteAdminQuotaPolicyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for the DisableService method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -145,11 +155,15 @@ pub struct DisableServiceResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request message for the EnableService method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnableServiceRequest {}
+pub struct EnableServiceRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for the EnableService method. This response message is assigned to the response field of the returned Operation when that operation is done.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -161,7 +175,9 @@ pub struct EnableServiceResponse {
 
 /// Metadata for the GetServiceIdentity method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GetServiceIdentityMetadata {}
+pub struct GetServiceIdentityMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response message for getting service identity.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -311,11 +327,15 @@ pub struct GoogleApiServiceusageV2alphaConsumerPolicy {
 
 /// Metadata for the UpdateConsumerPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleApiServiceusageV2alphaUpdateConsumerPolicyMetadata {}
+pub struct GoogleApiServiceusageV2alphaUpdateConsumerPolicyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for the AnalyzeConsumerPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleApiServiceusageV2betaAnalyzeConsumerPolicyMetadata {}
+pub struct GoogleApiServiceusageV2betaAnalyzeConsumerPolicyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The response of analyzing a consumer policy update.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -369,15 +389,21 @@ pub struct GoogleApiServiceusageV2betaMcpPolicy {
 
 /// Metadata for the UpdateConsumerPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleApiServiceusageV2betaUpdateConsumerPolicyMetadata {}
+pub struct GoogleApiServiceusageV2betaUpdateConsumerPolicyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for the UpdateMcpPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleApiServiceusageV2betaUpdateMcpPolicyMetadata {}
+pub struct GoogleApiServiceusageV2betaUpdateMcpPolicyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata message that provides information such as progress, partial failures, and similar information on each GetOperation call of LRO returned by ImportAdminOverrides.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportAdminOverridesMetadata {}
+pub struct ImportAdminOverridesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response message for ImportAdminOverrides
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -389,7 +415,9 @@ pub struct ImportAdminOverridesResponse {
 
 /// Metadata message that provides information such as progress, partial failures, and similar information on each GetOperation call of LRO returned by ImportAdminQuotaPolicies.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportAdminQuotaPoliciesMetadata {}
+pub struct ImportAdminQuotaPoliciesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response message for ImportAdminQuotaPolicies
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -401,7 +429,9 @@ pub struct ImportAdminQuotaPoliciesResponse {
 
 /// Metadata message that provides information such as progress, partial failures, and similar information on each GetOperation call of LRO returned by ImportConsumerOverrides.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ImportConsumerOverridesMetadata {}
+pub struct ImportConsumerOverridesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response message for ImportConsumerOverrides
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -446,7 +476,9 @@ pub struct OperationMetadata {
 
 /// Metadata for the RemoveEnableRules method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoveEnableRulesMetadata {}
+pub struct RemoveEnableRulesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The response message of RemoveEnableRules method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -461,15 +493,21 @@ pub struct RemoveEnableRulesResponse {
 
 /// Metadata message that provides information such as progress, partial failures, and similar information on each GetOperation call of LRO returned by UpdateAdminQuotaPolicy.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateAdminQuotaPolicyMetadata {}
+pub struct UpdateAdminQuotaPolicyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for the UpdateConsumerPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateConsumerPolicyMetadata {}
+pub struct UpdateConsumerPolicyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for the UpdateContentSecurityPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateContentSecurityPolicyMetadata {}
+pub struct UpdateContentSecurityPolicyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// A message to group the analysis information.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

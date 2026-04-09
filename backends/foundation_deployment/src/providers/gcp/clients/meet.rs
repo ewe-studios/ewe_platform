@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,14 +29,14 @@ use serde::Serialize;
 
 pub fn meet_conference_records_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://meet.googleapis.com/v2/conferenceRecords/{}", name,);
+    let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -65,8 +66,11 @@ pub fn meet_conference_records_get_builder(
 pub fn meet_conference_records_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ConferenceRecord>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ConferenceRecord>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -171,7 +175,7 @@ pub fn meet_conference_records_get(
         + 'static,
     ApiError,
 > {
-    let builder = meet_conference_records_get_builder(client, &args.name)?;
+    let builder = meet_conference_records_get_builder(client, args.name.clone())?;
     meet_conference_records_get_execute(builder)
 }
 
@@ -183,12 +187,12 @@ pub fn meet_conference_records_get(
 
 pub fn meet_conference_records_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://meet.googleapis.com/v2/conferenceRecords",);
+    let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -203,9 +207,9 @@ pub fn meet_conference_records_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -240,8 +244,9 @@ pub fn meet_conference_records_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListConferenceRecordsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListConferenceRecordsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -357,163 +362,11 @@ pub fn meet_conference_records_list(
 > {
     let builder = meet_conference_records_list_builder(
         client,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     meet_conference_records_list_execute(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}
-/// Gets a participant by participant ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `meet_conference_records_participants_get_execute()` to send, or `meet_conference_records_participants_get` for simplest API.
-
-pub fn meet_conference_records_participants_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://meet.googleapis.com/v2/conferenceRecords/{}/participants/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}
-/// Gets a participant by participant ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `meet_conference_records_participants_get_execute()` or `meet_conference_records_participants_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_participants_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_participants_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Participant>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Participant = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}
-/// Gets a participant by participant ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `meet_conference_records_participants_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `meet_conference_records_participants_get_task()`.
-/// For the simplest API, use `meet_conference_records_participants_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_participants_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn meet_conference_records_participants_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Participant>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = meet_conference_records_participants_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`meet_conference_records_participants_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MeetConferenceRecordsParticipantsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}
-/// Gets a participant by participant ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `meet_conference_records_participants_get_builder()` + `meet_conference_records_participants_get_execute()`.
-/// For task-level control, use `meet_conference_records_participants_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_participants_get(
-    client: &SimpleHttpClient,
-    args: &MeetConferenceRecordsParticipantsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Participant>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = meet_conference_records_participants_get_builder(client, &args.name)?;
-    meet_conference_records_participants_get_execute(builder)
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/participants
@@ -524,16 +377,13 @@ pub fn meet_conference_records_participants_get(
 
 pub fn meet_conference_records_participants_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://meet.googleapis.com/v2/conferenceRecords/{}/participants",
-        parent,
-    );
+    let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords/{}/participants",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -548,9 +398,9 @@ pub fn meet_conference_records_participants_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -584,8 +434,11 @@ pub fn meet_conference_records_participants_list_builder(
 pub fn meet_conference_records_participants_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListParticipantsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListParticipantsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -698,519 +551,12 @@ pub fn meet_conference_records_participants_list(
 > {
     let builder = meet_conference_records_participants_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     meet_conference_records_participants_list_execute(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions/{participantSessionsId}
-/// Gets a participant session by participant session ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `meet_conference_records_participants_participant_sessions_get_execute()` to send, or `meet_conference_records_participants_participant_sessions_get` for simplest API.
-
-pub fn meet_conference_records_participants_participant_sessions_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://meet.googleapis.com/v2/conferenceRecords/{}/participants/{}/participantSessions/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions/{participantSessionsId}
-/// Gets a participant session by participant session ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `meet_conference_records_participants_participant_sessions_get_execute()` or `meet_conference_records_participants_participant_sessions_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_participants_participant_sessions_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_participants_participant_sessions_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ParticipantSession>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ParticipantSession = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions/{participantSessionsId}
-/// Gets a participant session by participant session ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `meet_conference_records_participants_participant_sessions_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `meet_conference_records_participants_participant_sessions_get_task()`.
-/// For the simplest API, use `meet_conference_records_participants_participant_sessions_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_participants_participant_sessions_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn meet_conference_records_participants_participant_sessions_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ParticipantSession>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = meet_conference_records_participants_participant_sessions_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`meet_conference_records_participants_participant_sessions_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MeetConferenceRecordsParticipantsParticipantSessionsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions/{participantSessionsId}
-/// Gets a participant session by participant session ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `meet_conference_records_participants_participant_sessions_get_builder()` + `meet_conference_records_participants_participant_sessions_get_execute()`.
-/// For task-level control, use `meet_conference_records_participants_participant_sessions_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_participants_participant_sessions_get(
-    client: &SimpleHttpClient,
-    args: &MeetConferenceRecordsParticipantsParticipantSessionsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ParticipantSession>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        meet_conference_records_participants_participant_sessions_get_builder(client, &args.name)?;
-    meet_conference_records_participants_participant_sessions_get_execute(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions
-/// Lists the participant sessions of a participant in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted this API defaults to 'participantsessions/*, next_page_token'.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `meet_conference_records_participants_participant_sessions_list_execute()` to send, or `meet_conference_records_participants_participant_sessions_list` for simplest API.
-
-pub fn meet_conference_records_participants_participant_sessions_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://meet.googleapis.com/v2/conferenceRecords/{}/participants/{}/participantSessions",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions
-/// Lists the participant sessions of a participant in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted this API defaults to 'participantsessions/*, next_page_token'.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `meet_conference_records_participants_participant_sessions_list_execute()` or `meet_conference_records_participants_participant_sessions_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_participants_participant_sessions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_participants_participant_sessions_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListParticipantSessionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListParticipantSessionsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions
-/// Lists the participant sessions of a participant in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted this API defaults to 'participantsessions/*, next_page_token'.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `meet_conference_records_participants_participant_sessions_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `meet_conference_records_participants_participant_sessions_list_task()`.
-/// For the simplest API, use `meet_conference_records_participants_participant_sessions_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_participants_participant_sessions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn meet_conference_records_participants_participant_sessions_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListParticipantSessionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = meet_conference_records_participants_participant_sessions_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`meet_conference_records_participants_participant_sessions_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MeetConferenceRecordsParticipantsParticipantSessionsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/participants/{participantsId}/participantSessions
-/// Lists the participant sessions of a participant in a conference record. By default, ordered by join time and in descending order. This API supports fields as standard parameters like every other API. However, when the fields request parameter is omitted this API defaults to 'participantsessions/*, next_page_token'.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `meet_conference_records_participants_participant_sessions_list_builder()` + `meet_conference_records_participants_participant_sessions_list_execute()`.
-/// For task-level control, use `meet_conference_records_participants_participant_sessions_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_participants_participant_sessions_list(
-    client: &SimpleHttpClient,
-    args: &MeetConferenceRecordsParticipantsParticipantSessionsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListParticipantSessionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = meet_conference_records_participants_participant_sessions_list_builder(
-        client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    meet_conference_records_participants_participant_sessions_list_execute(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/recordings/{recordingsId}
-/// Gets a recording by recording ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `meet_conference_records_recordings_get_execute()` to send, or `meet_conference_records_recordings_get` for simplest API.
-
-pub fn meet_conference_records_recordings_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://meet.googleapis.com/v2/conferenceRecords/{}/recordings/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/recordings/{recordingsId}
-/// Gets a recording by recording ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `meet_conference_records_recordings_get_execute()` or `meet_conference_records_recordings_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_recordings_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_recordings_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Recording>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Recording = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/recordings/{recordingsId}
-/// Gets a recording by recording ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `meet_conference_records_recordings_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `meet_conference_records_recordings_get_task()`.
-/// For the simplest API, use `meet_conference_records_recordings_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_recordings_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn meet_conference_records_recordings_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Recording>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = meet_conference_records_recordings_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`meet_conference_records_recordings_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MeetConferenceRecordsRecordingsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/recordings/{recordingsId}
-/// Gets a recording by recording ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `meet_conference_records_recordings_get_builder()` + `meet_conference_records_recordings_get_execute()`.
-/// For task-level control, use `meet_conference_records_recordings_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_recordings_get(
-    client: &SimpleHttpClient,
-    args: &MeetConferenceRecordsRecordingsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Recording>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = meet_conference_records_recordings_get_builder(client, &args.name)?;
-    meet_conference_records_recordings_get_execute(builder)
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/recordings
@@ -1221,15 +567,12 @@ pub fn meet_conference_records_recordings_get(
 
 pub fn meet_conference_records_recordings_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://meet.googleapis.com/v2/conferenceRecords/{}/recordings",
-        parent,
-    );
+    let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords/{}/recordings",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1241,9 +584,9 @@ pub fn meet_conference_records_recordings_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1277,8 +620,11 @@ pub fn meet_conference_records_recordings_list_builder(
 pub fn meet_conference_records_recordings_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListRecordingsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListRecordingsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1389,163 +735,11 @@ pub fn meet_conference_records_recordings_list(
 > {
     let builder = meet_conference_records_recordings_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     meet_conference_records_recordings_list_execute(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/smartNotes/{smartNotesId}
-/// Gets smart notes by smart note ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `meet_conference_records_smart_notes_get_execute()` to send, or `meet_conference_records_smart_notes_get` for simplest API.
-
-pub fn meet_conference_records_smart_notes_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://meet.googleapis.com/v2/conferenceRecords/{}/smartNotes/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/smartNotes/{smartNotesId}
-/// Gets smart notes by smart note ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `meet_conference_records_smart_notes_get_execute()` or `meet_conference_records_smart_notes_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_smart_notes_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_smart_notes_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SmartNote>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: SmartNote = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/smartNotes/{smartNotesId}
-/// Gets smart notes by smart note ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `meet_conference_records_smart_notes_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `meet_conference_records_smart_notes_get_task()`.
-/// For the simplest API, use `meet_conference_records_smart_notes_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_smart_notes_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn meet_conference_records_smart_notes_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SmartNote>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = meet_conference_records_smart_notes_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`meet_conference_records_smart_notes_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MeetConferenceRecordsSmartNotesGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/smartNotes/{smartNotesId}
-/// Gets smart notes by smart note ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `meet_conference_records_smart_notes_get_builder()` + `meet_conference_records_smart_notes_get_execute()`.
-/// For task-level control, use `meet_conference_records_smart_notes_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_smart_notes_get(
-    client: &SimpleHttpClient,
-    args: &MeetConferenceRecordsSmartNotesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SmartNote>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = meet_conference_records_smart_notes_get_builder(client, &args.name)?;
-    meet_conference_records_smart_notes_get_execute(builder)
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/smartNotes
@@ -1556,15 +750,12 @@ pub fn meet_conference_records_smart_notes_get(
 
 pub fn meet_conference_records_smart_notes_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://meet.googleapis.com/v2/conferenceRecords/{}/smartNotes",
-        parent,
-    );
+    let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords/{}/smartNotes",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1576,9 +767,9 @@ pub fn meet_conference_records_smart_notes_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1612,8 +803,11 @@ pub fn meet_conference_records_smart_notes_list_builder(
 pub fn meet_conference_records_smart_notes_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListSmartNotesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSmartNotesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1724,163 +918,11 @@ pub fn meet_conference_records_smart_notes_list(
 > {
     let builder = meet_conference_records_smart_notes_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     meet_conference_records_smart_notes_list_execute(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}
-/// Gets a transcript by transcript ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `meet_conference_records_transcripts_get_execute()` to send, or `meet_conference_records_transcripts_get` for simplest API.
-
-pub fn meet_conference_records_transcripts_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://meet.googleapis.com/v2/conferenceRecords/{}/transcripts/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}
-/// Gets a transcript by transcript ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `meet_conference_records_transcripts_get_execute()` or `meet_conference_records_transcripts_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_transcripts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_transcripts_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Transcript>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Transcript = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}
-/// Gets a transcript by transcript ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `meet_conference_records_transcripts_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `meet_conference_records_transcripts_get_task()`.
-/// For the simplest API, use `meet_conference_records_transcripts_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_transcripts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn meet_conference_records_transcripts_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Transcript>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = meet_conference_records_transcripts_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`meet_conference_records_transcripts_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MeetConferenceRecordsTranscriptsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}
-/// Gets a transcript by transcript ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `meet_conference_records_transcripts_get_builder()` + `meet_conference_records_transcripts_get_execute()`.
-/// For task-level control, use `meet_conference_records_transcripts_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_transcripts_get(
-    client: &SimpleHttpClient,
-    args: &MeetConferenceRecordsTranscriptsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Transcript>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = meet_conference_records_transcripts_get_builder(client, &args.name)?;
-    meet_conference_records_transcripts_get_execute(builder)
 }
 
 /// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts
@@ -1891,15 +933,12 @@ pub fn meet_conference_records_transcripts_get(
 
 pub fn meet_conference_records_transcripts_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://meet.googleapis.com/v2/conferenceRecords/{}/transcripts",
-        parent,
-    );
+    let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords/{}/transcripts",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1911,9 +950,9 @@ pub fn meet_conference_records_transcripts_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1947,8 +986,11 @@ pub fn meet_conference_records_transcripts_list_builder(
 pub fn meet_conference_records_transcripts_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListTranscriptsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTranscriptsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2059,358 +1101,11 @@ pub fn meet_conference_records_transcripts_list(
 > {
     let builder = meet_conference_records_transcripts_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     meet_conference_records_transcripts_list_execute(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}/entries/{entriesId}
-/// Gets a TranscriptEntry resource by entry ID. Note: The transcript entries returned by the Google Meet API might not match the transcription found in the Google Docs transcript file. This can occur when 1) we have interleaved speakers within milliseconds, or 2) the Google Docs transcript file is modified after generation.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `meet_conference_records_transcripts_entries_get_execute()` to send, or `meet_conference_records_transcripts_entries_get` for simplest API.
-
-pub fn meet_conference_records_transcripts_entries_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://meet.googleapis.com/v2/conferenceRecords/{}/transcripts/{}/entries/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}/entries/{entriesId}
-/// Gets a TranscriptEntry resource by entry ID. Note: The transcript entries returned by the Google Meet API might not match the transcription found in the Google Docs transcript file. This can occur when 1) we have interleaved speakers within milliseconds, or 2) the Google Docs transcript file is modified after generation.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `meet_conference_records_transcripts_entries_get_execute()` or `meet_conference_records_transcripts_entries_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_transcripts_entries_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_transcripts_entries_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TranscriptEntry>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TranscriptEntry = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}/entries/{entriesId}
-/// Gets a TranscriptEntry resource by entry ID. Note: The transcript entries returned by the Google Meet API might not match the transcription found in the Google Docs transcript file. This can occur when 1) we have interleaved speakers within milliseconds, or 2) the Google Docs transcript file is modified after generation.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `meet_conference_records_transcripts_entries_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `meet_conference_records_transcripts_entries_get_task()`.
-/// For the simplest API, use `meet_conference_records_transcripts_entries_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_transcripts_entries_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn meet_conference_records_transcripts_entries_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TranscriptEntry>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = meet_conference_records_transcripts_entries_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`meet_conference_records_transcripts_entries_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MeetConferenceRecordsTranscriptsEntriesGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}/entries/{entriesId}
-/// Gets a TranscriptEntry resource by entry ID. Note: The transcript entries returned by the Google Meet API might not match the transcription found in the Google Docs transcript file. This can occur when 1) we have interleaved speakers within milliseconds, or 2) the Google Docs transcript file is modified after generation.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `meet_conference_records_transcripts_entries_get_builder()` + `meet_conference_records_transcripts_entries_get_execute()`.
-/// For task-level control, use `meet_conference_records_transcripts_entries_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_transcripts_entries_get(
-    client: &SimpleHttpClient,
-    args: &MeetConferenceRecordsTranscriptsEntriesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TranscriptEntry>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = meet_conference_records_transcripts_entries_get_builder(client, &args.name)?;
-    meet_conference_records_transcripts_entries_get_execute(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}/entries
-/// Lists the structured transcript entries per transcript. By default, ordered by start time and in ascending order. Note: The transcript entries returned by the Google Meet API might not match the transcription found in the Google Docs transcript file. This can occur when 1) we have interleaved speakers within milliseconds, or 2) the Google Docs transcript file is modified after generation.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `meet_conference_records_transcripts_entries_list_execute()` to send, or `meet_conference_records_transcripts_entries_list` for simplest API.
-
-pub fn meet_conference_records_transcripts_entries_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://meet.googleapis.com/v2/conferenceRecords/{}/transcripts/{}/entries",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}/entries
-/// Lists the structured transcript entries per transcript. By default, ordered by start time and in ascending order. Note: The transcript entries returned by the Google Meet API might not match the transcription found in the Google Docs transcript file. This can occur when 1) we have interleaved speakers within milliseconds, or 2) the Google Docs transcript file is modified after generation.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `meet_conference_records_transcripts_entries_list_execute()` or `meet_conference_records_transcripts_entries_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_transcripts_entries_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_transcripts_entries_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListTranscriptEntriesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListTranscriptEntriesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}/entries
-/// Lists the structured transcript entries per transcript. By default, ordered by start time and in ascending order. Note: The transcript entries returned by the Google Meet API might not match the transcription found in the Google Docs transcript file. This can occur when 1) we have interleaved speakers within milliseconds, or 2) the Google Docs transcript file is modified after generation.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `meet_conference_records_transcripts_entries_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `meet_conference_records_transcripts_entries_list_task()`.
-/// For the simplest API, use `meet_conference_records_transcripts_entries_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_conference_records_transcripts_entries_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn meet_conference_records_transcripts_entries_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListTranscriptEntriesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = meet_conference_records_transcripts_entries_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`meet_conference_records_transcripts_entries_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MeetConferenceRecordsTranscriptsEntriesListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2/conferenceRecords/{conferenceRecordsId}/transcripts/{transcriptsId}/entries
-/// Lists the structured transcript entries per transcript. By default, ordered by start time and in ascending order. Note: The transcript entries returned by the Google Meet API might not match the transcription found in the Google Docs transcript file. This can occur when 1) we have interleaved speakers within milliseconds, or 2) the Google Docs transcript file is modified after generation.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `meet_conference_records_transcripts_entries_list_builder()` + `meet_conference_records_transcripts_entries_list_execute()`.
-/// For task-level control, use `meet_conference_records_transcripts_entries_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_conference_records_transcripts_entries_list(
-    client: &SimpleHttpClient,
-    args: &MeetConferenceRecordsTranscriptsEntriesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListTranscriptEntriesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = meet_conference_records_transcripts_entries_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    meet_conference_records_transcripts_entries_list_execute(builder)
 }
 
 /// GET v2/spaces
@@ -2424,11 +1119,11 @@ pub fn meet_spaces_create_builder(
     body: &Space,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://meet.googleapis.com/v2/spaces",);
+    let endpoint_url = format!("https://meet.googleapis.com/v2/spaces",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2460,7 +1155,12 @@ pub fn meet_spaces_create_builder(
 pub fn meet_spaces_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Space>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Space>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2572,18 +1272,15 @@ pub fn meet_spaces_create(
 
 pub fn meet_spaces_end_active_conference_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &EndActiveConferenceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://meet.googleapis.com/v2/spaces/{}:endActiveConference",
-        name,
-    );
+    let endpoint_url = format!("https://meet.googleapis.com/v2/spaces/{}:endActiveConference",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2615,7 +1312,12 @@ pub fn meet_spaces_end_active_conference_builder(
 pub fn meet_spaces_end_active_conference_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2717,7 +1419,7 @@ pub fn meet_spaces_end_active_conference(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = meet_spaces_end_active_conference_builder(client, &args.name, &args.body)?;
+    let builder = meet_spaces_end_active_conference_builder(client, args.name.clone(), &args.body)?;
     meet_spaces_end_active_conference_execute(builder)
 }
 
@@ -2729,14 +1431,14 @@ pub fn meet_spaces_end_active_conference(
 
 pub fn meet_spaces_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://meet.googleapis.com/v2/spaces/{}", name,);
+    let endpoint_url = format!("https://meet.googleapis.com/v2/spaces/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2766,7 +1468,12 @@ pub fn meet_spaces_get_builder(
 pub fn meet_spaces_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Space>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Space>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2866,175 +1573,6 @@ pub fn meet_spaces_get(
     impl StreamIterator<D = Result<ApiResponse<Space>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = meet_spaces_get_builder(client, &args.name)?;
+    let builder = meet_spaces_get_builder(client, args.name.clone())?;
     meet_spaces_get_execute(builder)
-}
-
-/// GET v2/spaces/{spacesId}
-/// Updates details about a meeting space. For an example, see [Update a meeting space](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#update-meeting-space>).
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `meet_spaces_patch_execute()` to send, or `meet_spaces_patch` for simplest API.
-
-pub fn meet_spaces_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Space,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://meet.googleapis.com/v2/spaces/{}", name,);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v2/spaces/{spacesId}
-/// Updates details about a meeting space. For an example, see [Update a meeting space](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#update-meeting-space>).
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `meet_spaces_patch_execute()` or `meet_spaces_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_spaces_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_spaces_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Space>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Space = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/spaces/{spacesId}
-/// Updates details about a meeting space. For an example, see [Update a meeting space](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#update-meeting-space>).
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `meet_spaces_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `meet_spaces_patch_task()`.
-/// For the simplest API, use `meet_spaces_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `meet_spaces_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn meet_spaces_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Space>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = meet_spaces_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`meet_spaces_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MeetSpacesPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Space,
-}
-
-/// GET v2/spaces/{spacesId}
-/// Updates details about a meeting space. For an example, see [Update a meeting space](<https://developers.google.`com/workspace/meet/api/guides/meeting-spaces`#update-meeting-space>).
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `meet_spaces_patch_builder()` + `meet_spaces_patch_execute()`.
-/// For task-level control, use `meet_spaces_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn meet_spaces_patch(
-    client: &SimpleHttpClient,
-    args: &MeetSpacesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Space>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        meet_spaces_patch_builder(client, &args.name, args.updateMask.as_deref(), &args.body)?;
-    meet_spaces_patch_execute(builder)
 }

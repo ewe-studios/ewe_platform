@@ -21,11 +21,15 @@ pub struct AttachTrustRequest {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// CheckMigrationPermissionRequest is the request message for CheckMigrationPermission method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckMigrationPermissionRequest {}
+pub struct CheckMigrationPermissionRequest {
+    pub value: serde_json::Value,
+}
 
 /// CheckMigrationPermissionResponse is the response message for CheckMigrationPermission method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -48,7 +52,9 @@ pub struct DetachTrustRequest {
 
 /// DisableMigrationRequest is the request message for DisableMigration method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisableMigrationRequest {}
+pub struct DisableMigrationRequest {
+    pub value: serde_json::Value,
+}
 
 /// DomainJoinMachineRequest is the request message for DomainJoinMachine method
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -74,7 +80,9 @@ pub struct DomainJoinMachineResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// EnableMigrationRequest is the request message for EnableMigration method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -438,7 +446,9 @@ pub struct ReconfigureTrustRequest {
 
 /// Request message for ResetAdminPassword
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResetAdminPasswordRequest {}
+pub struct ResetAdminPasswordRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for ResetAdminPassword
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

@@ -27,7 +27,9 @@ pub struct GoogleApiHttpBody {
 
 /// Metadata for TriggerCatalogRejoin method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommendationengineV1alphaRejoinCatalogMetadata {}
+pub struct GoogleCloudRecommendationengineV1alphaRejoinCatalogMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response message for TriggerCatalogRejoin method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -47,7 +49,9 @@ pub struct GoogleCloudRecommendationengineV1alphaTuningMetadata {
 
 /// Response associated with a tune operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommendationengineV1alphaTuningResponse {}
+pub struct GoogleCloudRecommendationengineV1alphaTuningResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request message for the CreatePredictionApiKeyRegistration method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -294,7 +298,9 @@ pub struct GoogleCloudRecommendationengineV1beta1PurgeUserEventsResponse {
 
 /// Metadata for RejoinUserEvents method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecommendationengineV1beta1RejoinUserEventsMetadata {}
+pub struct GoogleCloudRecommendationengineV1beta1RejoinUserEventsMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for CatalogRejoin method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -328,7 +334,9 @@ pub struct GoogleLongrunningListOperationsResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// The input config source.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request type for the [Query](#google.home.graph.v1.HomeGraphApiService.Query) call.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -81,7 +83,9 @@ pub struct RequestSyncDevicesRequest {
 
 /// Response type for the [RequestSyncDevices](#google.home.graph.v1.HomeGraphApiService.RequestSyncDevices) call. Intentionally empty upon success. An HTTP response code is returned with more details upon failure.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RequestSyncDevicesResponse {}
+pub struct RequestSyncDevicesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request type for the [Sync](#google.home.graph.v1.HomeGraphApiService.Sync) call.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

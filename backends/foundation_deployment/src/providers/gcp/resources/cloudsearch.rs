@@ -234,7 +234,9 @@ pub struct IndexItemRequest {
 
 /// Request message for InitializeCustomer method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InitializeCustomerRequest {}
+pub struct InitializeCustomerRequest {
+    pub value: serde_json::Value,
+}
 
 /// ListDataSourceResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -380,7 +382,9 @@ pub struct RemoveActivityRequest {
 
 /// Remove Logged Activity Response. will return an empty response for now. Will be revisited in later phases.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RemoveActivityResponse {}
+pub struct RemoveActivityResponse {
+    pub value: serde_json::Value,
+}
 
 /// ResetSearchApplicationRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

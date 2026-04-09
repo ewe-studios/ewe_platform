@@ -2276,10 +2276,6 @@ pub struct InstantSnapshotsScopedList {
     pub warning: ::core::option::Option<serde_json::Value>,
 }
 
-/// Specify configuration for StrictPriorityPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InterconnectApplicationAwareInterconnectStrictPriorityPolicy {}
-
 /// InterconnectAttachmentAggregatedList resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentAggregatedList {
@@ -4383,10 +4379,6 @@ pub struct ResourcePolicyAggregatedList {
     #[serde(default)]
     pub warning: ::core::option::Option<serde_json::Value>,
 }
-
-/// Resource policy for disk consistency groups.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourcePolicyDiskConsistencyGroupPolicy {}
 
 /// ResourcePolicyList resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -10448,7 +10440,8 @@ pub struct ResourcePolicy {
     pub description: ::core::option::Option<String>,
     /// Resource policy for disk consistency groups.
     #[serde(default, rename = "diskConsistencyGroupPolicy")]
-    pub disk_consistency_group_policy: ::core::option::Option<serde_json::Value>,
+    pub disk_consistency_group_policy:
+        ::core::option::Option<ResourcePolicyDiskConsistencyGroupPolicy>,
     /// Resource policy for instances for placement configuration.
     #[serde(default, rename = "groupPlacementPolicy")]
     pub group_placement_policy: ::core::option::Option<ResourcePolicyGroupPlacementPolicy>,
@@ -13485,7 +13478,8 @@ pub struct InterconnectApplicationAwareInterconnect {
         ::std::vec::Vec<InterconnectApplicationAwareInterconnectBandwidthPercentage>,
     >,
     #[serde(default, rename = "strictPriorityPolicy")]
-    pub strict_priority_policy: ::core::option::Option<serde_json::Value>,
+    pub strict_priority_policy:
+        ::core::option::Option<InterconnectApplicationAwareInterconnectStrictPriorityPolicy>,
 }
 
 /// Describes a single physical circuit between the Customer and Google.
@@ -14940,6 +14934,12 @@ pub struct ReservationSubBlockPhysicalTopology {
     /// The hash of the capacity sub-block within the capacity block.
     #[serde(default, rename = "subBlock")]
     pub sub_block: ::core::option::Option<String>,
+}
+
+/// Resource policy for disk consistency groups.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourcePolicyDiskConsistencyGroupPolicy {
+    pub value: serde_json::Value,
 }
 
 /// A GroupPlacementPolicy specifies resource placement configuration.
@@ -16619,6 +16619,12 @@ pub struct InterconnectApplicationAwareInterconnectBandwidthPercentagePolicy {
     pub bandwidth_percentages: ::core::option::Option<
         ::std::vec::Vec<InterconnectApplicationAwareInterconnectBandwidthPercentage>,
     >,
+}
+
+/// Specify configuration for StrictPriorityPolicy.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InterconnectApplicationAwareInterconnectStrictPriorityPolicy {
+    pub value: serde_json::Value,
 }
 
 /// Describes a pre-shared key used to setup MACsec in static connectivity

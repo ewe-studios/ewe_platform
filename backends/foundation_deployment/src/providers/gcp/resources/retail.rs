@@ -69,7 +69,9 @@ pub struct GoogleCloudRetailV2AddControlRequest {
 
 /// Metadata related to the progress of the AddFulfillmentPlaces operation. Currently empty because there is no meaningful metadata populated from the ProductService.AddFulfillmentPlaces method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2AddFulfillmentPlacesMetadata {}
+pub struct GoogleCloudRetailV2AddFulfillmentPlacesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ProductService.AddFulfillmentPlaces method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -90,11 +92,15 @@ pub struct GoogleCloudRetailV2AddFulfillmentPlacesRequest {
 
 /// Response of the AddFulfillmentPlacesRequest. Currently empty because there is no meaningful response populated from the ProductService.AddFulfillmentPlaces method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2AddFulfillmentPlacesResponse {}
+pub struct GoogleCloudRetailV2AddFulfillmentPlacesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the AddLocalInventories operation. Currently empty because there is no meaningful metadata populated from the ProductService.AddLocalInventories method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2AddLocalInventoriesMetadata {}
+pub struct GoogleCloudRetailV2AddLocalInventoriesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ProductService.AddLocalInventories method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -116,7 +122,9 @@ pub struct GoogleCloudRetailV2AddLocalInventoriesRequest {
 
 /// Response of the ProductService.AddLocalInventories API. Currently empty because there is no meaningful response populated from the ProductService.AddLocalInventories method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2AddLocalInventoriesResponse {}
+pub struct GoogleCloudRetailV2AddLocalInventoriesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Catalog level attribute config.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -588,7 +596,9 @@ pub struct GoogleCloudRetailV2ListServingConfigsResponse {
 
 /// Request for pausing training of a model.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2PauseModelRequest {}
+pub struct GoogleCloudRetailV2PauseModelRequest {
+    pub value: serde_json::Value,
+}
 
 /// List of product ids which have associated pins.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -644,7 +654,9 @@ pub struct GoogleCloudRetailV2PredictResponse {
 
 /// Metadata related to the progress of the Purge operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2PurgeMetadata {}
+pub struct GoogleCloudRetailV2PurgeMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the PurgeProducts operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -706,7 +718,9 @@ pub struct GoogleCloudRetailV2PurgeUserEventsResponse {
 
 /// Metadata for RejoinUserEvents method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2RejoinUserEventsMetadata {}
+pub struct GoogleCloudRetailV2RejoinUserEventsMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for RejoinUserEvents method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -742,7 +756,9 @@ pub struct GoogleCloudRetailV2RemoveControlRequest {
 
 /// Metadata related to the progress of the RemoveFulfillmentPlaces operation. Currently empty because there is no meaningful metadata populated from the ProductService.RemoveFulfillmentPlaces method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2RemoveFulfillmentPlacesMetadata {}
+pub struct GoogleCloudRetailV2RemoveFulfillmentPlacesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ProductService.RemoveFulfillmentPlaces method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -763,11 +779,15 @@ pub struct GoogleCloudRetailV2RemoveFulfillmentPlacesRequest {
 
 /// Response of the RemoveFulfillmentPlacesRequest. Currently empty because there is no meaningful response populated from the ProductService.RemoveFulfillmentPlaces method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2RemoveFulfillmentPlacesResponse {}
+pub struct GoogleCloudRetailV2RemoveFulfillmentPlacesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the RemoveLocalInventories operation. Currently empty because there is no meaningful metadata populated from the ProductService.RemoveLocalInventories method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2RemoveLocalInventoriesMetadata {}
+pub struct GoogleCloudRetailV2RemoveLocalInventoriesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ProductService.RemoveLocalInventories method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -785,7 +805,9 @@ pub struct GoogleCloudRetailV2RemoveLocalInventoriesRequest {
 
 /// Response of the ProductService.RemoveLocalInventories API. Currently empty because there is no meaningful response populated from the ProductService.RemoveLocalInventories method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2RemoveLocalInventoriesResponse {}
+pub struct GoogleCloudRetailV2RemoveLocalInventoriesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request for CatalogService.ReplaceCatalogAttribute method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -800,7 +822,9 @@ pub struct GoogleCloudRetailV2ReplaceCatalogAttributeRequest {
 
 /// Request for resuming training of a model.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2ResumeModelRequest {}
+pub struct GoogleCloudRetailV2ResumeModelRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for SearchService.Search method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -964,7 +988,9 @@ pub struct GoogleCloudRetailV2SetDefaultBranchRequest {
 
 /// Metadata related to the progress of the SetInventory operation. Currently empty because there is no meaningful metadata populated from the ProductService.SetInventory method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2SetInventoryMetadata {}
+pub struct GoogleCloudRetailV2SetInventoryMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ProductService.SetInventory method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -985,7 +1011,9 @@ pub struct GoogleCloudRetailV2SetInventoryRequest {
 
 /// Response of the SetInventoryRequest. Currently empty because there is no meaningful response populated from the ProductService.SetInventory method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2SetInventoryResponse {}
+pub struct GoogleCloudRetailV2SetInventoryResponse {
+    pub value: serde_json::Value,
+}
 
 /// A list of string values.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1005,27 +1033,39 @@ pub struct GoogleCloudRetailV2TuneModelMetadata {
 
 /// Request to manually start a tuning process now (instead of waiting for the periodically scheduled tuning to happen).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2TuneModelRequest {}
+pub struct GoogleCloudRetailV2TuneModelRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response associated with a tune operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2TuneModelResponse {}
+pub struct GoogleCloudRetailV2TuneModelResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the AddFulfillmentPlaces operation. Currently empty because there is no meaningful metadata populated from the ProductService.AddFulfillmentPlaces method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2alphaAddFulfillmentPlacesMetadata {}
+pub struct GoogleCloudRetailV2alphaAddFulfillmentPlacesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response of the AddFulfillmentPlacesRequest. Currently empty because there is no meaningful response populated from the ProductService.AddFulfillmentPlaces method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2alphaAddFulfillmentPlacesResponse {}
+pub struct GoogleCloudRetailV2alphaAddFulfillmentPlacesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the AddLocalInventories operation. Currently empty because there is no meaningful metadata populated from the ProductService.AddLocalInventories method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2alphaAddLocalInventoriesMetadata {}
+pub struct GoogleCloudRetailV2alphaAddLocalInventoriesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response of the ProductService.AddLocalInventories API. Currently empty because there is no meaningful response populated from the ProductService.AddLocalInventories method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2alphaAddLocalInventoriesResponse {}
+pub struct GoogleCloudRetailV2alphaAddLocalInventoriesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Common metadata related to the progress of the operations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1048,7 +1088,9 @@ pub struct GoogleCloudRetailV2alphaCreateModelMetadata {
 
 /// Metadata related to the EnrollSolution method. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2alphaEnrollSolutionMetadata {}
+pub struct GoogleCloudRetailV2alphaEnrollSolutionMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response for EnrollSolution method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1266,7 +1308,9 @@ pub struct GoogleCloudRetailV2alphaModel {
 
 /// Metadata related to the progress of the Purge operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2alphaPurgeMetadata {}
+pub struct GoogleCloudRetailV2alphaPurgeMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the PurgeProducts operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1306,7 +1350,9 @@ pub struct GoogleCloudRetailV2alphaPurgeUserEventsResponse {
 
 /// Metadata for RejoinUserEvents method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2alphaRejoinUserEventsMetadata {}
+pub struct GoogleCloudRetailV2alphaRejoinUserEventsMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response message for RejoinUserEvents method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1318,27 +1364,39 @@ pub struct GoogleCloudRetailV2alphaRejoinUserEventsResponse {
 
 /// Metadata related to the progress of the RemoveFulfillmentPlaces operation. Currently empty because there is no meaningful metadata populated from the ProductService.RemoveFulfillmentPlaces method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2alphaRemoveFulfillmentPlacesMetadata {}
+pub struct GoogleCloudRetailV2alphaRemoveFulfillmentPlacesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response of the RemoveFulfillmentPlacesRequest. Currently empty because there is no meaningful response populated from the ProductService.RemoveFulfillmentPlaces method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2alphaRemoveFulfillmentPlacesResponse {}
+pub struct GoogleCloudRetailV2alphaRemoveFulfillmentPlacesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the RemoveLocalInventories operation. Currently empty because there is no meaningful metadata populated from the ProductService.RemoveLocalInventories method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2alphaRemoveLocalInventoriesMetadata {}
+pub struct GoogleCloudRetailV2alphaRemoveLocalInventoriesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response of the ProductService.RemoveLocalInventories API. Currently empty because there is no meaningful response populated from the ProductService.RemoveLocalInventories method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2alphaRemoveLocalInventoriesResponse {}
+pub struct GoogleCloudRetailV2alphaRemoveLocalInventoriesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the SetInventory operation. Currently empty because there is no meaningful metadata populated from the ProductService.SetInventory method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2alphaSetInventoryMetadata {}
+pub struct GoogleCloudRetailV2alphaSetInventoryMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response of the SetInventoryRequest. Currently empty because there is no meaningful response populated from the ProductService.SetInventory method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2alphaSetInventoryResponse {}
+pub struct GoogleCloudRetailV2alphaSetInventoryResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata associated with a tune operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1350,23 +1408,33 @@ pub struct GoogleCloudRetailV2alphaTuneModelMetadata {
 
 /// Response associated with a tune operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2alphaTuneModelResponse {}
+pub struct GoogleCloudRetailV2alphaTuneModelResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the AddFulfillmentPlaces operation. Currently empty because there is no meaningful metadata populated from the ProductService.AddFulfillmentPlaces method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2betaAddFulfillmentPlacesMetadata {}
+pub struct GoogleCloudRetailV2betaAddFulfillmentPlacesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response of the AddFulfillmentPlacesRequest. Currently empty because there is no meaningful response populated from the ProductService.AddFulfillmentPlaces method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2betaAddFulfillmentPlacesResponse {}
+pub struct GoogleCloudRetailV2betaAddFulfillmentPlacesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the AddLocalInventories operation. Currently empty because there is no meaningful metadata populated from the ProductService.AddLocalInventories method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2betaAddLocalInventoriesMetadata {}
+pub struct GoogleCloudRetailV2betaAddLocalInventoriesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response of the ProductService.AddLocalInventories API. Currently empty because there is no meaningful response populated from the ProductService.AddLocalInventories method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2betaAddLocalInventoriesResponse {}
+pub struct GoogleCloudRetailV2betaAddLocalInventoriesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata associated with a create operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1539,7 +1607,9 @@ pub struct GoogleCloudRetailV2betaModel {
 
 /// Metadata related to the progress of the Purge operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2betaPurgeMetadata {}
+pub struct GoogleCloudRetailV2betaPurgeMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the PurgeProducts operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1579,7 +1649,9 @@ pub struct GoogleCloudRetailV2betaPurgeUserEventsResponse {
 
 /// Metadata for RejoinUserEvents method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2betaRejoinUserEventsMetadata {}
+pub struct GoogleCloudRetailV2betaRejoinUserEventsMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response message for RejoinUserEvents method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1591,27 +1663,39 @@ pub struct GoogleCloudRetailV2betaRejoinUserEventsResponse {
 
 /// Metadata related to the progress of the RemoveFulfillmentPlaces operation. Currently empty because there is no meaningful metadata populated from the ProductService.RemoveFulfillmentPlaces method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2betaRemoveFulfillmentPlacesMetadata {}
+pub struct GoogleCloudRetailV2betaRemoveFulfillmentPlacesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response of the RemoveFulfillmentPlacesRequest. Currently empty because there is no meaningful response populated from the ProductService.RemoveFulfillmentPlaces method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2betaRemoveFulfillmentPlacesResponse {}
+pub struct GoogleCloudRetailV2betaRemoveFulfillmentPlacesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the RemoveLocalInventories operation. Currently empty because there is no meaningful metadata populated from the ProductService.RemoveLocalInventories method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2betaRemoveLocalInventoriesMetadata {}
+pub struct GoogleCloudRetailV2betaRemoveLocalInventoriesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response of the ProductService.RemoveLocalInventories API. Currently empty because there is no meaningful response populated from the ProductService.RemoveLocalInventories method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2betaRemoveLocalInventoriesResponse {}
+pub struct GoogleCloudRetailV2betaRemoveLocalInventoriesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the SetInventory operation. Currently empty because there is no meaningful metadata populated from the ProductService.SetInventory method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2betaSetInventoryMetadata {}
+pub struct GoogleCloudRetailV2betaSetInventoryMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response of the SetInventoryRequest. Currently empty because there is no meaningful response populated from the ProductService.SetInventory method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2betaSetInventoryResponse {}
+pub struct GoogleCloudRetailV2betaSetInventoryResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata associated with a tune operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1623,7 +1707,9 @@ pub struct GoogleCloudRetailV2betaTuneModelMetadata {
 
 /// Response associated with a tune operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRetailV2betaTuneModelResponse {}
+pub struct GoogleCloudRetailV2betaTuneModelResponse {
+    pub value: serde_json::Value,
+}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1641,7 +1727,9 @@ pub struct GoogleLongrunningListOperationsResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// A description of the context in which an error occurred.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

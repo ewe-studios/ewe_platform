@@ -184,7 +184,9 @@ pub struct GoogleCloudDialogflowCxV3ExportAgentResponse {
 
 /// GoogleCloudDialogflowCxV3ExportEntityTypesMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ExportEntityTypesMetadata {}
+pub struct GoogleCloudDialogflowCxV3ExportEntityTypesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3ExportEntityTypesRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -231,7 +233,9 @@ pub struct GoogleCloudDialogflowCxV3ExportFlowResponse {
 
 /// GoogleCloudDialogflowCxV3ExportIntentsMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ExportIntentsMetadata {}
+pub struct GoogleCloudDialogflowCxV3ExportIntentsMetadata {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3ExportIntentsRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -268,7 +272,9 @@ pub struct GoogleCloudDialogflowCxV3ExportPlaybookRequest {
 
 /// GoogleCloudDialogflowCxV3ExportTestCasesMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ExportTestCasesMetadata {}
+pub struct GoogleCloudDialogflowCxV3ExportTestCasesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3ExportTestCasesRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -337,7 +343,9 @@ pub struct GoogleCloudDialogflowCxV3GenerativeSettings {
 
 /// GoogleCloudDialogflowCxV3ImportEntityTypesMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ImportEntityTypesMetadata {}
+pub struct GoogleCloudDialogflowCxV3ImportEntityTypesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3ImportEntityTypesRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -387,7 +395,9 @@ pub struct GoogleCloudDialogflowCxV3ImportFlowResponse {
 
 /// GoogleCloudDialogflowCxV3ImportIntentsMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ImportIntentsMetadata {}
+pub struct GoogleCloudDialogflowCxV3ImportIntentsMetadata {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3ImportIntentsRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -692,14 +702,6 @@ pub struct GoogleCloudDialogflowCxV3MatchIntentResponse {
     pub trigger_intent: ::core::option::Option<String>,
 }
 
-/// GoogleCloudDialogflowCxV3ResponseMessageEndInteraction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ResponseMessageEndInteraction {}
-
-/// GoogleCloudDialogflowCxV3ResponseMessageKnowledgeInfoCard resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ResponseMessageKnowledgeInfoCard {}
-
 /// GoogleCloudDialogflowCxV3RestoreAgentRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowCxV3RestoreAgentRequest {
@@ -716,7 +718,9 @@ pub struct GoogleCloudDialogflowCxV3RestoreAgentRequest {
 
 /// GoogleCloudDialogflowCxV3RestorePlaybookVersionRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3RestorePlaybookVersionRequest {}
+pub struct GoogleCloudDialogflowCxV3RestorePlaybookVersionRequest {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3RestorePlaybookVersionResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -727,7 +731,9 @@ pub struct GoogleCloudDialogflowCxV3RestorePlaybookVersionResponse {
 
 /// GoogleCloudDialogflowCxV3RestoreToolVersionRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3RestoreToolVersionRequest {}
+pub struct GoogleCloudDialogflowCxV3RestoreToolVersionRequest {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3RestoreToolVersionResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -745,7 +751,9 @@ pub struct GoogleCloudDialogflowCxV3RunContinuousTestMetadata {
 
 /// GoogleCloudDialogflowCxV3RunContinuousTestRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3RunContinuousTestRequest {}
+pub struct GoogleCloudDialogflowCxV3RunContinuousTestRequest {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3RunContinuousTestResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -757,7 +765,9 @@ pub struct GoogleCloudDialogflowCxV3RunContinuousTestResponse {
 
 /// GoogleCloudDialogflowCxV3RunTestCaseMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3RunTestCaseMetadata {}
+pub struct GoogleCloudDialogflowCxV3RunTestCaseMetadata {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3RunTestCaseRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -775,11 +785,15 @@ pub struct GoogleCloudDialogflowCxV3RunTestCaseResponse {
 
 /// GoogleCloudDialogflowCxV3StartExperimentRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3StartExperimentRequest {}
+pub struct GoogleCloudDialogflowCxV3StartExperimentRequest {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3StopExperimentRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3StopExperimentRequest {}
+pub struct GoogleCloudDialogflowCxV3StopExperimentRequest {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3SubmitAnswerFeedbackRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -792,13 +806,11 @@ pub struct GoogleCloudDialogflowCxV3SubmitAnswerFeedbackRequest {
     pub update_mask: ::core::option::Option<String>,
 }
 
-/// GoogleCloudDialogflowCxV3ToolDataStoreToolFallbackPrompt resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3ToolDataStoreToolFallbackPrompt {}
-
 /// GoogleCloudDialogflowCxV3TrainFlowRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3TrainFlowRequest {}
+pub struct GoogleCloudDialogflowCxV3TrainFlowRequest {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3ValidateAgentRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -944,7 +956,9 @@ pub struct GoogleCloudDialogflowCxV3beta1ExportAgentResponse {
 
 /// GoogleCloudDialogflowCxV3beta1ExportEntityTypesMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3beta1ExportEntityTypesMetadata {}
+pub struct GoogleCloudDialogflowCxV3beta1ExportEntityTypesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3beta1ExportEntityTypesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -967,7 +981,9 @@ pub struct GoogleCloudDialogflowCxV3beta1ExportFlowResponse {
 
 /// GoogleCloudDialogflowCxV3beta1ExportIntentsMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3beta1ExportIntentsMetadata {}
+pub struct GoogleCloudDialogflowCxV3beta1ExportIntentsMetadata {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3beta1ExportIntentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -980,7 +996,9 @@ pub struct GoogleCloudDialogflowCxV3beta1ExportIntentsResponse {
 
 /// GoogleCloudDialogflowCxV3beta1ExportTestCasesMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3beta1ExportTestCasesMetadata {}
+pub struct GoogleCloudDialogflowCxV3beta1ExportTestCasesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3beta1ExportTestCasesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -993,7 +1011,9 @@ pub struct GoogleCloudDialogflowCxV3beta1ExportTestCasesResponse {
 
 /// GoogleCloudDialogflowCxV3beta1ImportEntityTypesMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3beta1ImportEntityTypesMetadata {}
+pub struct GoogleCloudDialogflowCxV3beta1ImportEntityTypesMetadata {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3beta1ImportEntityTypesResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1015,7 +1035,9 @@ pub struct GoogleCloudDialogflowCxV3beta1ImportFlowResponse {
 
 /// GoogleCloudDialogflowCxV3beta1ImportIntentsMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3beta1ImportIntentsMetadata {}
+pub struct GoogleCloudDialogflowCxV3beta1ImportIntentsMetadata {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3beta1ImportIntentsResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1043,14 +1065,6 @@ pub struct GoogleCloudDialogflowCxV3beta1ImportTestCasesResponse {
     pub names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// GoogleCloudDialogflowCxV3beta1ResponseMessageEndInteraction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3beta1ResponseMessageEndInteraction {}
-
-/// GoogleCloudDialogflowCxV3beta1ResponseMessageKnowledgeInfoCard resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3beta1ResponseMessageKnowledgeInfoCard {}
-
 /// GoogleCloudDialogflowCxV3beta1RunContinuousTestMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowCxV3beta1RunContinuousTestMetadata {
@@ -1068,7 +1082,9 @@ pub struct GoogleCloudDialogflowCxV3beta1RunContinuousTestResponse {
 
 /// GoogleCloudDialogflowCxV3beta1RunTestCaseMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowCxV3beta1RunTestCaseMetadata {}
+pub struct GoogleCloudDialogflowCxV3beta1RunTestCaseMetadata {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3beta1RunTestCaseResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1259,7 +1275,9 @@ pub struct GoogleCloudDialogflowV2CreateConversationModelOperationMetadata {
 
 /// GoogleCloudDialogflowV2DeleteConversationDatasetOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowV2DeleteConversationDatasetOperationMetadata {}
+pub struct GoogleCloudDialogflowV2DeleteConversationDatasetOperationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowV2DeleteConversationModelOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1497,11 +1515,6 @@ pub struct GoogleCloudDialogflowV2beta1InitializeEncryptionSpecMetadata {
         ::core::option::Option<GoogleCloudDialogflowV2beta1InitializeEncryptionSpecRequest>,
 }
 
-/// GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionShareLocation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionShareLocation
-{}
-
 /// GoogleCloudDialogflowV2beta1KnowledgeOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowV2beta1KnowledgeOperationMetadata {
@@ -1516,10 +1529,6 @@ pub struct GoogleCloudDialogflowV2beta1KnowledgeOperationMetadata {
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
-
-/// GoogleCloudDialogflowV2beta1ResponseMessageEndInteraction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDialogflowV2beta1ResponseMessageEndInteraction {}
 
 /// GoogleCloudDialogflowV2beta1SetSuggestionFeatureConfigOperationMetadata resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1608,7 +1617,9 @@ pub struct GoogleLongrunningListOperationsResponse {
 
 /// GoogleProtobufEmpty resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudDialogflowCxV3FlowValidationResult resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -3648,7 +3659,8 @@ pub struct GoogleCloudDialogflowV2beta1MessageAnnotation {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDialogflowV2beta1ResponseMessage {
     #[serde(default, rename = "endInteraction")]
-    pub end_interaction: ::core::option::Option<serde_json::Value>,
+    pub end_interaction:
+        ::core::option::Option<GoogleCloudDialogflowV2beta1ResponseMessageEndInteraction>,
     #[serde(default, rename = "liveAgentHandoff")]
     pub live_agent_handoff:
         ::core::option::Option<GoogleCloudDialogflowV2beta1ResponseMessageLiveAgentHandoff>,
@@ -4095,7 +4107,8 @@ pub struct GoogleCloudDialogflowCxV3ToolDataStoreTool {
     pub data_store_connections:
         ::core::option::Option<::std::vec::Vec<GoogleCloudDialogflowCxV3DataStoreConnection>>,
     #[serde(default, rename = "fallbackPrompt")]
-    pub fallback_prompt: ::core::option::Option<serde_json::Value>,
+    pub fallback_prompt:
+        ::core::option::Option<GoogleCloudDialogflowCxV3ToolDataStoreToolFallbackPrompt>,
 }
 
 /// GoogleCloudDialogflowCxV3ToolFunctionTool resource type.
@@ -4415,6 +4428,12 @@ pub struct GoogleCloudDialogflowV2beta1AnnotatedMessagePart {
     pub formatted_value: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub text: ::core::option::Option<String>,
+}
+
+/// GoogleCloudDialogflowV2beta1ResponseMessageEndInteraction resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowV2beta1ResponseMessageEndInteraction {
+    pub value: serde_json::Value,
 }
 
 /// GoogleCloudDialogflowV2beta1ResponseMessageLiveAgentHandoff resource type.
@@ -4751,6 +4770,12 @@ pub struct GoogleCloudDialogflowCxV3PlaybookStep {
     pub steps: ::std::vec::Vec<::std::boxed::Box<GoogleCloudDialogflowCxV3PlaybookStep>>,
     #[serde(default)]
     pub text: ::core::option::Option<String>,
+}
+
+/// GoogleCloudDialogflowCxV3ToolDataStoreToolFallbackPrompt resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ToolDataStoreToolFallbackPrompt {
+    pub value: serde_json::Value,
 }
 
 /// GoogleCloudDialogflowCxV3ToolAuthentication resource type.
@@ -7610,7 +7635,9 @@ pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedAction {
     #[serde(default, rename = "postbackData")]
     pub postback_data: ::core::option::Option<String>,
     #[serde(default, rename = "shareLocation")]
-    pub share_location: ::core::option::Option<serde_json::Value>,
+    pub share_location: ::core::option::Option<
+        GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionShareLocation,
+    >,
     #[serde(default)]
     pub text: ::core::option::Option<String>,
 }
@@ -7693,6 +7720,13 @@ pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggest
 pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionOpenUri {
     #[serde(default)]
     pub uri: ::core::option::Option<String>,
+}
+
+/// GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionShareLocation resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowV2beta1IntentMessageRbmSuggestedActionRbmSuggestedActionShareLocation
+{
+    pub value: serde_json::Value,
 }
 
 /// GoogleCloudDialogflowCxV3AdvancedSettings resource type.
@@ -7913,9 +7947,13 @@ pub struct GoogleCloudDialogflowCxV3ResponseMessage {
         ::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessageConversationSuccess>,
     >,
     #[serde(default, rename = "endInteraction")]
-    pub end_interaction: ::core::option::Option<serde_json::Value>,
+    pub end_interaction: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessageEndInteraction>,
+    >,
     #[serde(default, rename = "knowledgeInfoCard")]
-    pub knowledge_info_card: ::core::option::Option<serde_json::Value>,
+    pub knowledge_info_card: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessageKnowledgeInfoCard>,
+    >,
     #[serde(default, rename = "liveAgentHandoff")]
     pub live_agent_handoff: ::core::option::Option<
         ::std::boxed::Box<GoogleCloudDialogflowCxV3ResponseMessageLiveAgentHandoff>,
@@ -7953,6 +7991,18 @@ pub struct GoogleCloudDialogflowCxV3ResponseMessage {
 pub struct GoogleCloudDialogflowCxV3ResponseMessageConversationSuccess {
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
+}
+
+/// GoogleCloudDialogflowCxV3ResponseMessageEndInteraction resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ResponseMessageEndInteraction {
+    pub value: serde_json::Value,
+}
+
+/// GoogleCloudDialogflowCxV3ResponseMessageKnowledgeInfoCard resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3ResponseMessageKnowledgeInfoCard {
+    pub value: serde_json::Value,
 }
 
 /// GoogleCloudDialogflowCxV3ResponseMessageLiveAgentHandoff resource type.
@@ -8092,9 +8142,13 @@ pub struct GoogleCloudDialogflowCxV3beta1ResponseMessage {
         ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessageConversationSuccess>,
     >,
     #[serde(default, rename = "endInteraction")]
-    pub end_interaction: ::core::option::Option<serde_json::Value>,
+    pub end_interaction: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessageEndInteraction>,
+    >,
     #[serde(default, rename = "knowledgeInfoCard")]
-    pub knowledge_info_card: ::core::option::Option<serde_json::Value>,
+    pub knowledge_info_card: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessageKnowledgeInfoCard>,
+    >,
     #[serde(default, rename = "liveAgentHandoff")]
     pub live_agent_handoff: ::core::option::Option<
         ::std::boxed::Box<GoogleCloudDialogflowCxV3beta1ResponseMessageLiveAgentHandoff>,
@@ -8131,6 +8185,18 @@ pub struct GoogleCloudDialogflowCxV3beta1ResponseMessage {
 pub struct GoogleCloudDialogflowCxV3beta1ResponseMessageConversationSuccess {
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
+}
+
+/// GoogleCloudDialogflowCxV3beta1ResponseMessageEndInteraction resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3beta1ResponseMessageEndInteraction {
+    pub value: serde_json::Value,
+}
+
+/// GoogleCloudDialogflowCxV3beta1ResponseMessageKnowledgeInfoCard resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDialogflowCxV3beta1ResponseMessageKnowledgeInfoCard {
+    pub value: serde_json::Value,
 }
 
 /// GoogleCloudDialogflowCxV3beta1ResponseMessageLiveAgentHandoff resource type.

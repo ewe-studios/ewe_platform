@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -29,15 +30,15 @@ use serde::Serialize;
 pub fn pollen_forecast_lookup_builder(
     client: &SimpleHttpClient,
     days: Option<i32>,
-    languageCode: Option<&str>,
+    languageCode: Option<String>,
     location_latitude: Option<f64>,
     location_longitude: Option<f64>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
     plantsDescription: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://pollen.googleapis.com/v1/forecast:lookup",);
+    let endpoint_url = format!("https://pollen.googleapis.com/v1/forecast:lookup",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -48,10 +49,10 @@ pub fn pollen_forecast_lookup_builder(
         query_parts.push(format!("languageCode={}", val));
     }
     if let Some(val) = location_latitude {
-        query_parts.push(format!("location_latitude={}", val));
+        query_parts.push(format!("location.latitude={}", val));
     }
     if let Some(val) = location_longitude {
-        query_parts.push(format!("location_longitude={}", val));
+        query_parts.push(format!("location.longitude={}", val));
     }
     if let Some(val) = pageSize {
         query_parts.push(format!("pageSize={}", val));
@@ -64,9 +65,9 @@ pub fn pollen_forecast_lookup_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -100,8 +101,11 @@ pub fn pollen_forecast_lookup_builder(
 pub fn pollen_forecast_lookup_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LookupForecastResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LookupForecastResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -220,13 +224,13 @@ pub fn pollen_forecast_lookup(
 > {
     let builder = pollen_forecast_lookup_builder(
         client,
-        args.days,
-        args.languageCode.as_deref(),
-        args.location_latitude,
-        args.location_longitude,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.plantsDescription,
+        args.days.clone(),
+        args.languageCode.clone(),
+        args.location_latitude.clone(),
+        args.location_longitude.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.plantsDescription.clone(),
     )?;
     pollen_forecast_lookup_execute(builder)
 }
@@ -239,20 +243,23 @@ pub fn pollen_forecast_lookup(
 
 pub fn pollen_map_types_heatmap_tiles_lookup_heatmap_tile_builder(
     client: &SimpleHttpClient,
-    mapType: &str,
-    zoom: &str,
-    x: &str,
-    y: &str,
+    mapType: String,
+    zoom: String,
+    x: String,
+    y: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://pollen.googleapis.com/v1/mapTypes/{}/heatmapTiles/{}/{}/{}",
-        mapType, zoom, x, y,
+        mapType.as_str(),
+        zoom.as_str(),
+        x.as_str(),
+        y.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -282,7 +289,12 @@ pub fn pollen_map_types_heatmap_tiles_lookup_heatmap_tile_builder(
 pub fn pollen_map_types_heatmap_tiles_lookup_heatmap_tile_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<HttpBody>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<HttpBody>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -390,10 +402,10 @@ pub fn pollen_map_types_heatmap_tiles_lookup_heatmap_tile(
 > {
     let builder = pollen_map_types_heatmap_tiles_lookup_heatmap_tile_builder(
         client,
-        &args.mapType,
-        &args.zoom,
-        &args.x,
-        &args.y,
+        args.mapType.clone(),
+        args.zoom.clone(),
+        args.x.clone(),
+        args.y.clone(),
     )?;
     pollen_map_types_heatmap_tiles_lookup_heatmap_tile_execute(builder)
 }

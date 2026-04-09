@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -31,11 +32,11 @@ pub fn dataportability_access_type_check_builder(
     body: &CheckAccessTypeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://dataportability.googleapis.com/v1/accessType:check",);
+    let endpoint_url = format!("https://dataportability.googleapis.com/v1/accessType:check",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -67,8 +68,11 @@ pub fn dataportability_access_type_check_builder(
 pub fn dataportability_access_type_check_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CheckAccessTypeResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CheckAccessTypeResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -185,18 +189,15 @@ pub fn dataportability_access_type_check(
 
 pub fn dataportability_archive_jobs_cancel_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &CancelPortabilityArchiveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dataportability.googleapis.com/v1/archiveJobs/{}:cancel",
-        name,
-    );
+    let endpoint_url = format!("https://dataportability.googleapis.com/v1/archiveJobs/{}:cancel",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -229,8 +230,9 @@ pub fn dataportability_archive_jobs_cancel_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<CancelPortabilityArchiveResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<CancelPortabilityArchiveResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -342,7 +344,8 @@ pub fn dataportability_archive_jobs_cancel(
         + 'static,
     ApiError,
 > {
-    let builder = dataportability_archive_jobs_cancel_builder(client, &args.name, &args.body)?;
+    let builder =
+        dataportability_archive_jobs_cancel_builder(client, args.name.clone(), &args.body)?;
     dataportability_archive_jobs_cancel_execute(builder)
 }
 
@@ -354,17 +357,16 @@ pub fn dataportability_archive_jobs_cancel(
 
 pub fn dataportability_archive_jobs_get_portability_archive_state_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataportability.googleapis.com/v1/archiveJobs/{}/portabilityArchiveState",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -394,8 +396,11 @@ pub fn dataportability_archive_jobs_get_portability_archive_state_builder(
 pub fn dataportability_archive_jobs_get_portability_archive_state_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PortabilityArchiveState>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PortabilityArchiveState>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -500,8 +505,10 @@ pub fn dataportability_archive_jobs_get_portability_archive_state(
         + 'static,
     ApiError,
 > {
-    let builder =
-        dataportability_archive_jobs_get_portability_archive_state_builder(client, &args.name)?;
+    let builder = dataportability_archive_jobs_get_portability_archive_state_builder(
+        client,
+        args.name.clone(),
+    )?;
     dataportability_archive_jobs_get_portability_archive_state_execute(builder)
 }
 
@@ -513,18 +520,15 @@ pub fn dataportability_archive_jobs_get_portability_archive_state(
 
 pub fn dataportability_archive_jobs_retry_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &RetryPortabilityArchiveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://dataportability.googleapis.com/v1/archiveJobs/{}:retry",
-        name,
-    );
+    let endpoint_url = format!("https://dataportability.googleapis.com/v1/archiveJobs/{}:retry",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -557,8 +561,9 @@ pub fn dataportability_archive_jobs_retry_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<RetryPortabilityArchiveResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<RetryPortabilityArchiveResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -670,7 +675,8 @@ pub fn dataportability_archive_jobs_retry(
         + 'static,
     ApiError,
 > {
-    let builder = dataportability_archive_jobs_retry_builder(client, &args.name, &args.body)?;
+    let builder =
+        dataportability_archive_jobs_retry_builder(client, args.name.clone(), &args.body)?;
     dataportability_archive_jobs_retry_execute(builder)
 }
 
@@ -685,11 +691,11 @@ pub fn dataportability_authorization_reset_builder(
     body: &ResetAuthorizationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://dataportability.googleapis.com/v1/authorization:reset",);
+    let endpoint_url = format!("https://dataportability.googleapis.com/v1/authorization:reset",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -721,7 +727,12 @@ pub fn dataportability_authorization_reset_builder(
 pub fn dataportability_authorization_reset_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -836,11 +847,12 @@ pub fn dataportability_portability_archive_initiate_builder(
     body: &InitiatePortabilityArchiveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://dataportability.googleapis.com/v1/portabilityArchive:initiate",);
+    let endpoint_url =
+        format!("https://dataportability.googleapis.com/v1/portabilityArchive:initiate",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -873,8 +885,9 @@ pub fn dataportability_portability_archive_initiate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<InitiatePortabilityArchiveResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<InitiatePortabilityArchiveResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,

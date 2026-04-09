@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,14 +29,11 @@ use serde::Serialize;
 
 pub fn homegraph_agent_users_delete_builder(
     client: &SimpleHttpClient,
-    agentUserId: &str,
-    requestId: Option<&str>,
+    agentUserId: String,
+    requestId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://homegraph.googleapis.com/v1/agentUsers/{}",
-        agentUserId,
-    );
+    let endpoint_url = format!("https://homegraph.googleapis.com/v1/agentUsers/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -44,9 +42,9 @@ pub fn homegraph_agent_users_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -80,7 +78,12 @@ pub fn homegraph_agent_users_delete_builder(
 pub fn homegraph_agent_users_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -182,8 +185,11 @@ pub fn homegraph_agent_users_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        homegraph_agent_users_delete_builder(client, &args.agentUserId, args.requestId.as_deref())?;
+    let builder = homegraph_agent_users_delete_builder(
+        client,
+        args.agentUserId.clone(),
+        args.requestId.clone(),
+    )?;
     homegraph_agent_users_delete_execute(builder)
 }
 
@@ -198,11 +204,11 @@ pub fn homegraph_devices_query_builder(
     body: &QueryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://homegraph.googleapis.com/v1/devices:query",);
+    let endpoint_url = format!("https://homegraph.googleapis.com/v1/devices:query",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -234,7 +240,12 @@ pub fn homegraph_devices_query_builder(
 pub fn homegraph_devices_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<QueryResponse>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<QueryResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -353,11 +364,12 @@ pub fn homegraph_devices_report_state_and_notification_builder(
     body: &ReportStateAndNotificationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://homegraph.googleapis.com/v1/devices:reportStateAndNotification",);
+    let endpoint_url =
+        format!("https://homegraph.googleapis.com/v1/devices:reportStateAndNotification",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -390,8 +402,9 @@ pub fn homegraph_devices_report_state_and_notification_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ReportStateAndNotificationResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ReportStateAndNotificationResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -516,11 +529,11 @@ pub fn homegraph_devices_request_sync_builder(
     body: &RequestSyncDevicesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://homegraph.googleapis.com/v1/devices:requestSync",);
+    let endpoint_url = format!("https://homegraph.googleapis.com/v1/devices:requestSync",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -552,8 +565,11 @@ pub fn homegraph_devices_request_sync_builder(
 pub fn homegraph_devices_request_sync_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RequestSyncDevicesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RequestSyncDevicesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -677,11 +693,11 @@ pub fn homegraph_devices_sync_builder(
     body: &SyncRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://homegraph.googleapis.com/v1/devices:sync",);
+    let endpoint_url = format!("https://homegraph.googleapis.com/v1/devices:sync",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -713,7 +729,12 @@ pub fn homegraph_devices_sync_builder(
 pub fn homegraph_devices_sync_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SyncResponse>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SyncResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder

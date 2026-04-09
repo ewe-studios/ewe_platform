@@ -13,15 +13,15 @@ use serde::{Deserialize, Serialize};
 
 /// The request object used by AbandonRelease.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AbandonReleaseRequest {}
+pub struct AbandonReleaseRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response object for AbandonRelease.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AbandonReleaseResponse {}
-
-/// An advanceChildRollout Job.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdvanceChildRolloutJob {}
+pub struct AbandonReleaseResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request object used by AdvanceRollout.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -36,7 +36,9 @@ pub struct AdvanceRolloutRequest {
 
 /// The response object from AdvanceRollout.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdvanceRolloutResponse {}
+pub struct AdvanceRolloutResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request object used by ApproveRollout.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -51,7 +53,9 @@ pub struct ApproveRolloutRequest {
 
 /// The response object from ApproveRollout.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApproveRolloutResponse {}
+pub struct ApproveRolloutResponse {
+    pub value: serde_json::Value,
+}
 
 /// Information about entities associated with a Target.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -109,15 +113,21 @@ pub struct AutomationRunEvent {
 
 /// The request object used by CancelAutomationRun.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelAutomationRunRequest {}
+pub struct CancelAutomationRunRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response object from CancelAutomationRun.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelAutomationRunResponse {}
+pub struct CancelAutomationRunResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// The request object used by CancelRollout.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -129,7 +139,9 @@ pub struct CancelRolloutRequest {
 
 /// The response object from CancelRollout.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelRolloutResponse {}
+pub struct CancelRolloutResponse {
+    pub value: serde_json::Value,
+}
 
 /// Service-wide configuration.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -147,10 +159,6 @@ pub struct Config {
     #[serde(default, rename = "supportedVersions")]
     pub supported_versions: ::core::option::Option<::std::vec::Vec<SkaffoldVersion>>,
 }
-
-/// A createChildRollout Job.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateChildRolloutJob {}
 
 /// Payload proto for "clouddeploy.googleapis.com/customtargettype_notification" Platform Log event that describes the failure to send a custom target type status change Pub/Sub notification.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -185,10 +193,6 @@ pub struct DeliveryPipelineNotificationEvent {
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
 }
-
-/// A deploy Job.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeployJob {}
 
 /// Payload proto for "clouddeploy.googleapis.com/deploypolicy_evaluation" Platform Log event that describes the deploy policy evaluation event.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -253,7 +257,9 @@ pub struct DeployPolicyNotificationEvent {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The request object used by IgnoreJob.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -271,7 +277,9 @@ pub struct IgnoreJobRequest {
 
 /// The response object from IgnoreJob.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IgnoreJobResponse {}
+pub struct IgnoreJobResponse {
+    pub value: serde_json::Value,
+}
 
 /// Payload proto for "clouddeploy.googleapis.com/jobrun_notification" Platform Log event that describes the failure to send JobRun resource update Pub/Sub notification.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -552,7 +560,9 @@ pub struct RetryJobRequest {
 
 /// The response object from ''RetryJob''.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RetryJobResponse {}
+pub struct RetryJobResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request object for RollbackTarget.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -718,7 +728,9 @@ pub struct TerminateJobRunRequest {
 
 /// The response object from TerminateJobRun.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TerminateJobRunResponse {}
+pub struct TerminateJobRunResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request message for TestIamPermissions method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2507,16 +2519,16 @@ pub struct Strategy {
 pub struct Job {
     /// Output only. An advanceChildRollout Job.
     #[serde(default, rename = "advanceChildRolloutJob")]
-    pub advance_child_rollout_job: ::core::option::Option<serde_json::Value>,
+    pub advance_child_rollout_job: ::core::option::Option<AdvanceChildRolloutJob>,
     /// Output only. An analysis Job.
     #[serde(default, rename = "analysisJob")]
     pub analysis_job: ::core::option::Option<AnalysisJob>,
     /// Output only. A createChildRollout Job.
     #[serde(default, rename = "createChildRolloutJob")]
-    pub create_child_rollout_job: ::core::option::Option<serde_json::Value>,
+    pub create_child_rollout_job: ::core::option::Option<CreateChildRolloutJob>,
     /// Output only. A deploy Job.
     #[serde(default, rename = "deployJob")]
-    pub deploy_job: ::core::option::Option<serde_json::Value>,
+    pub deploy_job: ::core::option::Option<DeployJob>,
     /// Output only. The ID of the Job.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
@@ -2655,6 +2667,12 @@ pub struct Standard {
     pub verify_config: ::core::option::Option<Verify>,
 }
 
+/// An advanceChildRollout Job.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdvanceChildRolloutJob {
+    pub value: serde_json::Value,
+}
+
 /// An analysis Job.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalysisJob {
@@ -2667,6 +2685,18 @@ pub struct AnalysisJob {
     /// Output only. Google Cloud - based analysis checks that are run as part of the analysis Job.
     #[serde(default, rename = "googleCloud")]
     pub google_cloud: ::core::option::Option<GoogleCloudAnalysis>,
+}
+
+/// A createChildRollout Job.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateChildRolloutJob {
+    pub value: serde_json::Value,
+}
+
+/// A deploy Job.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeployJob {
+    pub value: serde_json::Value,
 }
 
 /// A postdeploy Job.

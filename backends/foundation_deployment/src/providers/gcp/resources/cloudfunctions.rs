@@ -13,27 +13,33 @@ use serde::{Deserialize, Serialize};
 
 /// Request for the AbortFunctionUpgrade method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AbortFunctionUpgradeRequest {}
-
-/// Security patches are applied automatically to the runtime without requiring the function to be redeployed.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AutomaticUpdatePolicy {}
+pub struct AbortFunctionUpgradeRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request for the CommitFunctionUpgradeAsGen2 method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommitFunctionUpgradeAsGen2Request {}
+pub struct CommitFunctionUpgradeAsGen2Request {
+    pub value: serde_json::Value,
+}
 
 /// Request for the CommitFunctionUpgrade method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CommitFunctionUpgradeRequest {}
+pub struct CommitFunctionUpgradeRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request for the DetachFunction method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DetachFunctionRequest {}
+pub struct DetachFunctionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request of GenerateDownloadUrl method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenerateDownloadUrlRequest {}
+pub struct GenerateDownloadUrlRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response of GenerateDownloadUrl method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -195,11 +201,15 @@ pub struct OperationMetadataV1 {
 
 /// Request for the RedirectFunctionUpgradeTraffic method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RedirectFunctionUpgradeTrafficRequest {}
+pub struct RedirectFunctionUpgradeTrafficRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request for the RollbackFunctionUpgradeTraffic method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RollbackFunctionUpgradeTrafficRequest {}
+pub struct RollbackFunctionUpgradeTrafficRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -505,7 +515,7 @@ pub struct Binding {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuildConfig {
     #[serde(default, rename = "automaticUpdatePolicy")]
-    pub automatic_update_policy: ::core::option::Option<serde_json::Value>,
+    pub automatic_update_policy: ::core::option::Option<AutomaticUpdatePolicy>,
     /// Output only. The Cloud Build name of the latest successful deployment of the function.
     #[serde(default)]
     pub build: ::core::option::Option<String>,
@@ -670,6 +680,12 @@ pub struct Expr {
     /// Optional. Title for the expression, i.e. a short string describing its purpose. This can be used e.g. in UIs which allow to enter the expression.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
+}
+
+/// Security patches are applied automatically to the runtime without requiring the function to be redeployed.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AutomaticUpdatePolicy {
+    pub value: serde_json::Value,
 }
 
 /// Security patches are only applied when a function is redeployed.

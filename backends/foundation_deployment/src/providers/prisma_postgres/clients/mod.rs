@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::prisma_postgres::clients::types::*;
 use crate::providers::prisma_postgres::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,12 +29,12 @@ use serde::Serialize;
 
 pub fn get_v1_compute_services_builder(
     client: &SimpleHttpClient,
-    cursor: Option<&str>,
+    cursor: Option<String>,
     limit: Option<f64>,
-    projectId: Option<&str>,
+    projectId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/compute-services",);
+    let endpoint_url = format!("https://api.prisma.io/v1/compute-services",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -48,9 +49,9 @@ pub fn get_v1_compute_services_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -84,8 +85,11 @@ pub fn get_v1_compute_services_builder(
 pub fn get_v1_compute_services_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ComputeservicesGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ComputeservicesGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -200,9 +204,9 @@ pub fn get_v1_compute_services(
 > {
     let builder = get_v1_compute_services_builder(
         client,
-        args.cursor.as_deref(),
-        args.limit,
-        args.projectId.as_deref(),
+        args.cursor.clone(),
+        args.limit.clone(),
+        args.projectId.clone(),
     )?;
     get_v1_compute_services_execute(builder)
 }
@@ -215,14 +219,14 @@ pub fn get_v1_compute_services(
 
 pub fn post_v1_compute_services_builder(
     client: &SimpleHttpClient,
-    body: &ComputeservicesPostRequest,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/compute-services",);
+    let endpoint_url = format!("https://api.prisma.io/v1/compute-services",);
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -254,8 +258,11 @@ pub fn post_v1_compute_services_builder(
 pub fn post_v1_compute_services_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ComputeservicesPostResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ComputeservicesPostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -339,7 +346,7 @@ pub fn post_v1_compute_services_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostV1ComputeServicesArgs {
     /// Request body.
-    pub body: ComputeservicesPostRequest,
+    pub body: serde_json::Value,
 }
 
 /// POST /v1/compute-services
@@ -376,17 +383,17 @@ pub fn post_v1_compute_services(
 
 pub fn get_v1_compute_services_versions_versionId_builder(
     client: &SimpleHttpClient,
-    versionId: &str,
+    versionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/versions/{}",
-        versionId,
+        versionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -417,8 +424,9 @@ pub fn get_v1_compute_services_versions_versionId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ComputeservicesVersionsGetResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ComputeservicesVersionsGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -528,7 +536,8 @@ pub fn get_v1_compute_services_versions_versionId(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_compute_services_versions_versionId_builder(client, &args.versionId)?;
+    let builder =
+        get_v1_compute_services_versions_versionId_builder(client, args.versionId.clone())?;
     get_v1_compute_services_versions_versionId_execute(builder)
 }
 
@@ -540,17 +549,17 @@ pub fn get_v1_compute_services_versions_versionId(
 
 pub fn delete_v1_compute_services_versions_versionId_builder(
     client: &SimpleHttpClient,
-    versionId: &str,
+    versionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/versions/{}",
-        versionId,
+        versionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .delete(&url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -580,7 +589,12 @@ pub fn delete_v1_compute_services_versions_versionId_builder(
 pub fn delete_v1_compute_services_versions_versionId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -677,7 +691,8 @@ pub fn delete_v1_compute_services_versions_versionId(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_compute_services_versions_versionId_builder(client, &args.versionId)?;
+    let builder =
+        delete_v1_compute_services_versions_versionId_builder(client, args.versionId.clone())?;
     delete_v1_compute_services_versions_versionId_execute(builder)
 }
 
@@ -689,17 +704,17 @@ pub fn delete_v1_compute_services_versions_versionId(
 
 pub fn post_v1_compute_services_versions_versionId_start_builder(
     client: &SimpleHttpClient,
-    versionId: &str,
+    versionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/versions/{}/start",
-        versionId,
+        versionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -730,8 +745,9 @@ pub fn post_v1_compute_services_versions_versionId_start_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ComputeservicesVersionsStartPostResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ComputeservicesVersionsStartPostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -842,7 +858,7 @@ pub fn post_v1_compute_services_versions_versionId_start(
     ApiError,
 > {
     let builder =
-        post_v1_compute_services_versions_versionId_start_builder(client, &args.versionId)?;
+        post_v1_compute_services_versions_versionId_start_builder(client, args.versionId.clone())?;
     post_v1_compute_services_versions_versionId_start_execute(builder)
 }
 
@@ -854,17 +870,17 @@ pub fn post_v1_compute_services_versions_versionId_start(
 
 pub fn post_v1_compute_services_versions_versionId_stop_builder(
     client: &SimpleHttpClient,
-    versionId: &str,
+    versionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/versions/{}/stop",
-        versionId,
+        versionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -894,7 +910,12 @@ pub fn post_v1_compute_services_versions_versionId_stop_builder(
 pub fn post_v1_compute_services_versions_versionId_stop_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -992,7 +1013,7 @@ pub fn post_v1_compute_services_versions_versionId_stop(
     ApiError,
 > {
     let builder =
-        post_v1_compute_services_versions_versionId_stop_builder(client, &args.versionId)?;
+        post_v1_compute_services_versions_versionId_stop_builder(client, args.versionId.clone())?;
     post_v1_compute_services_versions_versionId_stop_execute(builder)
 }
 
@@ -1004,17 +1025,17 @@ pub fn post_v1_compute_services_versions_versionId_stop(
 
 pub fn get_v1_compute_services_computeServiceId_builder(
     client: &SimpleHttpClient,
-    computeServiceId: &str,
+    computeServiceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}",
-        computeServiceId,
+        computeServiceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1044,8 +1065,11 @@ pub fn get_v1_compute_services_computeServiceId_builder(
 pub fn get_v1_compute_services_computeServiceId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ComputeservicesGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ComputeservicesGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1154,7 +1178,8 @@ pub fn get_v1_compute_services_computeServiceId(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_compute_services_computeServiceId_builder(client, &args.computeServiceId)?;
+    let builder =
+        get_v1_compute_services_computeServiceId_builder(client, args.computeServiceId.clone())?;
     get_v1_compute_services_computeServiceId_execute(builder)
 }
 
@@ -1166,18 +1191,18 @@ pub fn get_v1_compute_services_computeServiceId(
 
 pub fn patch_v1_compute_services_computeServiceId_builder(
     client: &SimpleHttpClient,
-    computeServiceId: &str,
-    body: &ComputeservicesPatchRequest,
+    computeServiceId: String,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}",
-        computeServiceId,
+        computeServiceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .patch(&url)
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1210,8 +1235,9 @@ pub fn patch_v1_compute_services_computeServiceId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ComputeservicesPatchResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ComputeservicesPatchResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1298,7 +1324,7 @@ pub struct PatchV1ComputeServicesComputeServiceIdArgs {
     /// Path parameter: computeServiceId
     pub computeServiceId: String,
     /// Request body.
-    pub body: ComputeservicesPatchRequest,
+    pub body: serde_json::Value,
 }
 
 /// PATCH /v1/compute-services/{computeServiceId}
@@ -1325,7 +1351,7 @@ pub fn patch_v1_compute_services_computeServiceId(
 > {
     let builder = patch_v1_compute_services_computeServiceId_builder(
         client,
-        &args.computeServiceId,
+        args.computeServiceId.clone(),
         &args.body,
     )?;
     patch_v1_compute_services_computeServiceId_execute(builder)
@@ -1339,17 +1365,17 @@ pub fn patch_v1_compute_services_computeServiceId(
 
 pub fn delete_v1_compute_services_computeServiceId_builder(
     client: &SimpleHttpClient,
-    computeServiceId: &str,
+    computeServiceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}",
-        computeServiceId,
+        computeServiceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .delete(&url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1379,7 +1405,12 @@ pub fn delete_v1_compute_services_computeServiceId_builder(
 pub fn delete_v1_compute_services_computeServiceId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1477,7 +1508,7 @@ pub fn delete_v1_compute_services_computeServiceId(
     ApiError,
 > {
     let builder =
-        delete_v1_compute_services_computeServiceId_builder(client, &args.computeServiceId)?;
+        delete_v1_compute_services_computeServiceId_builder(client, args.computeServiceId.clone())?;
     delete_v1_compute_services_computeServiceId_execute(builder)
 }
 
@@ -1489,18 +1520,18 @@ pub fn delete_v1_compute_services_computeServiceId(
 
 pub fn post_v1_compute_services_computeServiceId_promote_builder(
     client: &SimpleHttpClient,
-    computeServiceId: &str,
-    body: &ComputeservicesPromotePostRequest,
+    computeServiceId: String,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}/promote",
-        computeServiceId,
+        computeServiceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1533,8 +1564,9 @@ pub fn post_v1_compute_services_computeServiceId_promote_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ComputeservicesPromotePostResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ComputeservicesPromotePostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1621,7 +1653,7 @@ pub struct PostV1ComputeServicesComputeServiceIdPromoteArgs {
     /// Path parameter: computeServiceId
     pub computeServiceId: String,
     /// Request body.
-    pub body: ComputeservicesPromotePostRequest,
+    pub body: serde_json::Value,
 }
 
 /// POST /v1/compute-services/{computeServiceId}/promote
@@ -1648,7 +1680,7 @@ pub fn post_v1_compute_services_computeServiceId_promote(
 > {
     let builder = post_v1_compute_services_computeServiceId_promote_builder(
         client,
-        &args.computeServiceId,
+        args.computeServiceId.clone(),
         &args.body,
     )?;
     post_v1_compute_services_computeServiceId_promote_execute(builder)
@@ -1662,14 +1694,14 @@ pub fn post_v1_compute_services_computeServiceId_promote(
 
 pub fn get_v1_compute_services_computeServiceId_versions_builder(
     client: &SimpleHttpClient,
-    computeServiceId: &str,
-    cursor: Option<&str>,
+    computeServiceId: String,
+    cursor: Option<String>,
     limit: Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}/versions",
-        computeServiceId,
+        computeServiceId.as_str(),
     );
 
     // Build request
@@ -1682,9 +1714,9 @@ pub fn get_v1_compute_services_computeServiceId_versions_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1719,8 +1751,9 @@ pub fn get_v1_compute_services_computeServiceId_versions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ComputeservicesVersionsGetResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ComputeservicesVersionsGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1836,9 +1869,9 @@ pub fn get_v1_compute_services_computeServiceId_versions(
 > {
     let builder = get_v1_compute_services_computeServiceId_versions_builder(
         client,
-        &args.computeServiceId,
-        args.cursor.as_deref(),
-        args.limit,
+        args.computeServiceId.clone(),
+        args.cursor.clone(),
+        args.limit.clone(),
     )?;
     get_v1_compute_services_computeServiceId_versions_execute(builder)
 }
@@ -1851,18 +1884,18 @@ pub fn get_v1_compute_services_computeServiceId_versions(
 
 pub fn post_v1_compute_services_computeServiceId_versions_builder(
     client: &SimpleHttpClient,
-    computeServiceId: &str,
-    body: &ComputeservicesVersionsPostRequest,
+    computeServiceId: String,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/compute-services/{}/versions",
-        computeServiceId,
+        computeServiceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1895,8 +1928,9 @@ pub fn post_v1_compute_services_computeServiceId_versions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ComputeservicesVersionsPostResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ComputeservicesVersionsPostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1983,7 +2017,7 @@ pub struct PostV1ComputeServicesComputeServiceIdVersionsArgs {
     /// Path parameter: computeServiceId
     pub computeServiceId: String,
     /// Request body.
-    pub body: ComputeservicesVersionsPostRequest,
+    pub body: serde_json::Value,
 }
 
 /// POST /v1/compute-services/{computeServiceId}/versions
@@ -2010,7 +2044,7 @@ pub fn post_v1_compute_services_computeServiceId_versions(
 > {
     let builder = post_v1_compute_services_computeServiceId_versions_builder(
         client,
-        &args.computeServiceId,
+        args.computeServiceId.clone(),
         &args.body,
     )?;
     post_v1_compute_services_computeServiceId_versions_execute(builder)
@@ -2024,12 +2058,12 @@ pub fn post_v1_compute_services_computeServiceId_versions(
 
 pub fn get_v1_connections_builder(
     client: &SimpleHttpClient,
-    cursor: Option<&str>,
+    cursor: Option<String>,
     limit: Option<f64>,
-    databaseId: Option<&str>,
+    databaseId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/connections",);
+    let endpoint_url = format!("https://api.prisma.io/v1/connections",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2044,9 +2078,9 @@ pub fn get_v1_connections_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2080,8 +2114,11 @@ pub fn get_v1_connections_builder(
 pub fn get_v1_connections_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ConnectionsGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ConnectionsGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2192,9 +2229,9 @@ pub fn get_v1_connections(
 > {
     let builder = get_v1_connections_builder(
         client,
-        args.cursor.as_deref(),
-        args.limit,
-        args.databaseId.as_deref(),
+        args.cursor.clone(),
+        args.limit.clone(),
+        args.databaseId.clone(),
     )?;
     get_v1_connections_execute(builder)
 }
@@ -2207,14 +2244,14 @@ pub fn get_v1_connections(
 
 pub fn post_v1_connections_builder(
     client: &SimpleHttpClient,
-    body: &ConnectionsPostRequest,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/connections",);
+    let endpoint_url = format!("https://api.prisma.io/v1/connections",);
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2246,8 +2283,11 @@ pub fn post_v1_connections_builder(
 pub fn post_v1_connections_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ConnectionsPostResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ConnectionsPostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2329,7 +2369,7 @@ pub fn post_v1_connections_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostV1ConnectionsArgs {
     /// Request body.
-    pub body: ConnectionsPostRequest,
+    pub body: serde_json::Value,
 }
 
 /// POST /v1/connections
@@ -2364,14 +2404,14 @@ pub fn post_v1_connections(
 
 pub fn get_v1_connections_id_builder(
     client: &SimpleHttpClient,
-    id: &str,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/connections/{}", id,);
+    let endpoint_url = format!("https://api.prisma.io/v1/connections/{}", id.as_str(),);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2401,8 +2441,11 @@ pub fn get_v1_connections_id_builder(
 pub fn get_v1_connections_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ConnectionsGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ConnectionsGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2507,7 +2550,7 @@ pub fn get_v1_connections_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_connections_id_builder(client, &args.id)?;
+    let builder = get_v1_connections_id_builder(client, args.id.clone())?;
     get_v1_connections_id_execute(builder)
 }
 
@@ -2519,14 +2562,14 @@ pub fn get_v1_connections_id(
 
 pub fn delete_v1_connections_id_builder(
     client: &SimpleHttpClient,
-    id: &str,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/connections/{}", id,);
+    let endpoint_url = format!("https://api.prisma.io/v1/connections/{}", id.as_str(),);
 
     // Build request
     let builder = client
-        .delete(&url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2556,7 +2599,12 @@ pub fn delete_v1_connections_id_builder(
 pub fn delete_v1_connections_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2653,7 +2701,7 @@ pub fn delete_v1_connections_id(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_connections_id_builder(client, &args.id)?;
+    let builder = delete_v1_connections_id_builder(client, args.id.clone())?;
     delete_v1_connections_id_execute(builder)
 }
 
@@ -2665,14 +2713,17 @@ pub fn delete_v1_connections_id(
 
 pub fn post_v1_connections_id_rotate_builder(
     client: &SimpleHttpClient,
-    id: &str,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/connections/{}/rotate", id,);
+    let endpoint_url = format!(
+        "https://api.prisma.io/v1/connections/{}/rotate",
+        id.as_str(),
+    );
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2703,8 +2754,9 @@ pub fn post_v1_connections_id_rotate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ConnectionsRotatePostResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ConnectionsRotatePostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2814,7 +2866,7 @@ pub fn post_v1_connections_id_rotate(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_connections_id_rotate_builder(client, &args.id)?;
+    let builder = post_v1_connections_id_rotate_builder(client, args.id.clone())?;
     post_v1_connections_id_rotate_execute(builder)
 }
 
@@ -2826,12 +2878,12 @@ pub fn post_v1_connections_id_rotate(
 
 pub fn get_v1_databases_builder(
     client: &SimpleHttpClient,
-    cursor: Option<&str>,
+    cursor: Option<String>,
     limit: Option<f64>,
-    projectId: Option<&str>,
+    projectId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/databases",);
+    let endpoint_url = format!("https://api.prisma.io/v1/databases",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2846,9 +2898,9 @@ pub fn get_v1_databases_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2882,8 +2934,11 @@ pub fn get_v1_databases_builder(
 pub fn get_v1_databases_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DatabasesGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DatabasesGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2994,9 +3049,9 @@ pub fn get_v1_databases(
 > {
     let builder = get_v1_databases_builder(
         client,
-        args.cursor.as_deref(),
-        args.limit,
-        args.projectId.as_deref(),
+        args.cursor.clone(),
+        args.limit.clone(),
+        args.projectId.clone(),
     )?;
     get_v1_databases_execute(builder)
 }
@@ -3009,14 +3064,14 @@ pub fn get_v1_databases(
 
 pub fn post_v1_databases_builder(
     client: &SimpleHttpClient,
-    body: &DatabasesPostRequest,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/databases",);
+    let endpoint_url = format!("https://api.prisma.io/v1/databases",);
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3048,8 +3103,11 @@ pub fn post_v1_databases_builder(
 pub fn post_v1_databases_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DatabasesPostResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DatabasesPostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3131,7 +3189,7 @@ pub fn post_v1_databases_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostV1DatabasesArgs {
     /// Request body.
-    pub body: DatabasesPostRequest,
+    pub body: serde_json::Value,
 }
 
 /// POST /v1/databases
@@ -3166,14 +3224,14 @@ pub fn post_v1_databases(
 
 pub fn get_v1_databases_databaseId_builder(
     client: &SimpleHttpClient,
-    databaseId: &str,
+    databaseId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/databases/{}", databaseId,);
+    let endpoint_url = format!("https://api.prisma.io/v1/databases/{}", databaseId.as_str(),);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3203,8 +3261,11 @@ pub fn get_v1_databases_databaseId_builder(
 pub fn get_v1_databases_databaseId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DatabasesGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DatabasesGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3309,7 +3370,7 @@ pub fn get_v1_databases_databaseId(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_databases_databaseId_builder(client, &args.databaseId)?;
+    let builder = get_v1_databases_databaseId_builder(client, args.databaseId.clone())?;
     get_v1_databases_databaseId_execute(builder)
 }
 
@@ -3321,15 +3382,15 @@ pub fn get_v1_databases_databaseId(
 
 pub fn patch_v1_databases_databaseId_builder(
     client: &SimpleHttpClient,
-    databaseId: &str,
-    body: &DatabasesPatchRequest,
+    databaseId: String,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/databases/{}", databaseId,);
+    let endpoint_url = format!("https://api.prisma.io/v1/databases/{}", databaseId.as_str(),);
 
     // Build request
     let builder = client
-        .patch(&url)
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3361,8 +3422,11 @@ pub fn patch_v1_databases_databaseId_builder(
 pub fn patch_v1_databases_databaseId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DatabasesPatchResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DatabasesPatchResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3446,7 +3510,7 @@ pub struct PatchV1DatabasesDatabaseIdArgs {
     /// Path parameter: databaseId
     pub databaseId: String,
     /// Request body.
-    pub body: DatabasesPatchRequest,
+    pub body: serde_json::Value,
 }
 
 /// PATCH /v1/databases/{databaseId}
@@ -3469,7 +3533,8 @@ pub fn patch_v1_databases_databaseId(
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_databases_databaseId_builder(client, &args.databaseId, &args.body)?;
+    let builder =
+        patch_v1_databases_databaseId_builder(client, args.databaseId.clone(), &args.body)?;
     patch_v1_databases_databaseId_execute(builder)
 }
 
@@ -3481,14 +3546,14 @@ pub fn patch_v1_databases_databaseId(
 
 pub fn delete_v1_databases_databaseId_builder(
     client: &SimpleHttpClient,
-    databaseId: &str,
+    databaseId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/databases/{}", databaseId,);
+    let endpoint_url = format!("https://api.prisma.io/v1/databases/{}", databaseId.as_str(),);
 
     // Build request
     let builder = client
-        .delete(&url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3518,7 +3583,12 @@ pub fn delete_v1_databases_databaseId_builder(
 pub fn delete_v1_databases_databaseId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3615,7 +3685,7 @@ pub fn delete_v1_databases_databaseId(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_databases_databaseId_builder(client, &args.databaseId)?;
+    let builder = delete_v1_databases_databaseId_builder(client, args.databaseId.clone())?;
     delete_v1_databases_databaseId_execute(builder)
 }
 
@@ -3627,11 +3697,14 @@ pub fn delete_v1_databases_databaseId(
 
 pub fn get_v1_databases_databaseId_backups_builder(
     client: &SimpleHttpClient,
-    databaseId: &str,
+    databaseId: String,
     limit: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/databases/{}/backups", databaseId,);
+    let endpoint_url = format!(
+        "https://api.prisma.io/v1/databases/{}/backups",
+        databaseId.as_str(),
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3640,9 +3713,9 @@ pub fn get_v1_databases_databaseId_backups_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3676,8 +3749,11 @@ pub fn get_v1_databases_databaseId_backups_builder(
 pub fn get_v1_databases_databaseId_backups_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DatabasesBackupsGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DatabasesBackupsGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3788,8 +3864,11 @@ pub fn get_v1_databases_databaseId_backups(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_databases_databaseId_backups_builder(client, &args.databaseId, args.limit)?;
+    let builder = get_v1_databases_databaseId_backups_builder(
+        client,
+        args.databaseId.clone(),
+        args.limit.clone(),
+    )?;
     get_v1_databases_databaseId_backups_execute(builder)
 }
 
@@ -3801,14 +3880,14 @@ pub fn get_v1_databases_databaseId_backups(
 
 pub fn get_v1_databases_databaseId_connections_builder(
     client: &SimpleHttpClient,
-    databaseId: &str,
-    cursor: Option<&str>,
+    databaseId: String,
+    cursor: Option<String>,
     limit: Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/databases/{}/connections",
-        databaseId,
+        databaseId.as_str(),
     );
 
     // Build request
@@ -3821,9 +3900,9 @@ pub fn get_v1_databases_databaseId_connections_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3858,8 +3937,9 @@ pub fn get_v1_databases_databaseId_connections_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<DatabasesConnectionsGetResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<DatabasesConnectionsGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3975,9 +4055,9 @@ pub fn get_v1_databases_databaseId_connections(
 > {
     let builder = get_v1_databases_databaseId_connections_builder(
         client,
-        &args.databaseId,
-        args.cursor.as_deref(),
-        args.limit,
+        args.databaseId.clone(),
+        args.cursor.clone(),
+        args.limit.clone(),
     )?;
     get_v1_databases_databaseId_connections_execute(builder)
 }
@@ -3990,18 +4070,18 @@ pub fn get_v1_databases_databaseId_connections(
 
 pub fn post_v1_databases_databaseId_connections_builder(
     client: &SimpleHttpClient,
-    databaseId: &str,
-    body: &DatabasesConnectionsPostRequest,
+    databaseId: String,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/databases/{}/connections",
-        databaseId,
+        databaseId.as_str(),
     );
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4034,8 +4114,9 @@ pub fn post_v1_databases_databaseId_connections_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<DatabasesConnectionsPostResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<DatabasesConnectionsPostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -4122,7 +4203,7 @@ pub struct PostV1DatabasesDatabaseIdConnectionsArgs {
     /// Path parameter: databaseId
     pub databaseId: String,
     /// Request body.
-    pub body: DatabasesConnectionsPostRequest,
+    pub body: serde_json::Value,
 }
 
 /// POST /v1/databases/{databaseId}/connections
@@ -4147,8 +4228,11 @@ pub fn post_v1_databases_databaseId_connections(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_databases_databaseId_connections_builder(client, &args.databaseId, &args.body)?;
+    let builder = post_v1_databases_databaseId_connections_builder(
+        client,
+        args.databaseId.clone(),
+        &args.body,
+    )?;
     post_v1_databases_databaseId_connections_execute(builder)
 }
 
@@ -4160,12 +4244,15 @@ pub fn post_v1_databases_databaseId_connections(
 
 pub fn get_v1_databases_databaseId_usage_builder(
     client: &SimpleHttpClient,
-    databaseId: &str,
-    startDate: Option<&str>,
-    endDate: Option<&str>,
+    databaseId: String,
+    startDate: Option<String>,
+    endDate: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/databases/{}/usage", databaseId,);
+    let endpoint_url = format!(
+        "https://api.prisma.io/v1/databases/{}/usage",
+        databaseId.as_str(),
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4177,9 +4264,9 @@ pub fn get_v1_databases_databaseId_usage_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4213,8 +4300,11 @@ pub fn get_v1_databases_databaseId_usage_builder(
 pub fn get_v1_databases_databaseId_usage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DatabasesUsageGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DatabasesUsageGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4325,9 +4415,9 @@ pub fn get_v1_databases_databaseId_usage(
 > {
     let builder = get_v1_databases_databaseId_usage_builder(
         client,
-        &args.databaseId,
-        args.startDate.as_deref(),
-        args.endDate.as_deref(),
+        args.databaseId.clone(),
+        args.startDate.clone(),
+        args.endDate.clone(),
     )?;
     get_v1_databases_databaseId_usage_execute(builder)
 }
@@ -4340,18 +4430,18 @@ pub fn get_v1_databases_databaseId_usage(
 
 pub fn post_v1_databases_targetDatabaseId_restore_builder(
     client: &SimpleHttpClient,
-    targetDatabaseId: &str,
-    body: &DatabasesRestorePostRequest,
+    targetDatabaseId: String,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/databases/{}/restore",
-        targetDatabaseId,
+        targetDatabaseId.as_str(),
     );
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4384,8 +4474,9 @@ pub fn post_v1_databases_targetDatabaseId_restore_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<DatabasesRestorePostResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<DatabasesRestorePostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -4472,7 +4563,7 @@ pub struct PostV1DatabasesTargetDatabaseIdRestoreArgs {
     /// Path parameter: targetDatabaseId
     pub targetDatabaseId: String,
     /// Request body.
-    pub body: DatabasesRestorePostRequest,
+    pub body: serde_json::Value,
 }
 
 /// POST /v1/databases/{targetDatabaseId}/restore
@@ -4499,7 +4590,7 @@ pub fn post_v1_databases_targetDatabaseId_restore(
 > {
     let builder = post_v1_databases_targetDatabaseId_restore_builder(
         client,
-        &args.targetDatabaseId,
+        args.targetDatabaseId.clone(),
         &args.body,
     )?;
     post_v1_databases_targetDatabaseId_restore_execute(builder)
@@ -4513,12 +4604,12 @@ pub fn post_v1_databases_targetDatabaseId_restore(
 
 pub fn get_v1_integrations_builder(
     client: &SimpleHttpClient,
-    cursor: Option<&str>,
+    cursor: Option<String>,
     limit: Option<f64>,
-    workspaceId: Option<&str>,
+    workspaceId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/integrations",);
+    let endpoint_url = format!("https://api.prisma.io/v1/integrations",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4533,9 +4624,9 @@ pub fn get_v1_integrations_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4569,8 +4660,11 @@ pub fn get_v1_integrations_builder(
 pub fn get_v1_integrations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<IntegrationsGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<IntegrationsGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4681,9 +4775,9 @@ pub fn get_v1_integrations(
 > {
     let builder = get_v1_integrations_builder(
         client,
-        args.cursor.as_deref(),
-        args.limit,
-        args.workspaceId.as_deref(),
+        args.cursor.clone(),
+        args.limit.clone(),
+        args.workspaceId.clone(),
     )?;
     get_v1_integrations_execute(builder)
 }
@@ -4696,14 +4790,14 @@ pub fn get_v1_integrations(
 
 pub fn get_v1_integrations_id_builder(
     client: &SimpleHttpClient,
-    id: &str,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/integrations/{}", id,);
+    let endpoint_url = format!("https://api.prisma.io/v1/integrations/{}", id.as_str(),);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4733,8 +4827,11 @@ pub fn get_v1_integrations_id_builder(
 pub fn get_v1_integrations_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<IntegrationsGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<IntegrationsGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4839,7 +4936,7 @@ pub fn get_v1_integrations_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_integrations_id_builder(client, &args.id)?;
+    let builder = get_v1_integrations_id_builder(client, args.id.clone())?;
     get_v1_integrations_id_execute(builder)
 }
 
@@ -4851,14 +4948,14 @@ pub fn get_v1_integrations_id(
 
 pub fn delete_v1_integrations_id_builder(
     client: &SimpleHttpClient,
-    id: &str,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/integrations/{}", id,);
+    let endpoint_url = format!("https://api.prisma.io/v1/integrations/{}", id.as_str(),);
 
     // Build request
     let builder = client
-        .delete(&url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4888,7 +4985,12 @@ pub fn delete_v1_integrations_id_builder(
 pub fn delete_v1_integrations_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4985,7 +5087,7 @@ pub fn delete_v1_integrations_id(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_integrations_id_builder(client, &args.id)?;
+    let builder = delete_v1_integrations_id_builder(client, args.id.clone())?;
     delete_v1_integrations_id_execute(builder)
 }
 
@@ -4997,11 +5099,11 @@ pub fn delete_v1_integrations_id(
 
 pub fn get_v1_projects_builder(
     client: &SimpleHttpClient,
-    cursor: Option<&str>,
+    cursor: Option<String>,
     limit: Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/projects",);
+    let endpoint_url = format!("https://api.prisma.io/v1/projects",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -5013,9 +5115,9 @@ pub fn get_v1_projects_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5049,8 +5151,11 @@ pub fn get_v1_projects_builder(
 pub fn get_v1_projects_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProjectsGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectsGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5157,7 +5262,7 @@ pub fn get_v1_projects(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_builder(client, args.cursor.as_deref(), args.limit)?;
+    let builder = get_v1_projects_builder(client, args.cursor.clone(), args.limit.clone())?;
     get_v1_projects_execute(builder)
 }
 
@@ -5169,14 +5274,14 @@ pub fn get_v1_projects(
 
 pub fn post_v1_projects_builder(
     client: &SimpleHttpClient,
-    body: &ProjectsPostRequest,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/projects",);
+    let endpoint_url = format!("https://api.prisma.io/v1/projects",);
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5208,8 +5313,11 @@ pub fn post_v1_projects_builder(
 pub fn post_v1_projects_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProjectsPostResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectsPostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5291,7 +5399,7 @@ pub fn post_v1_projects_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostV1ProjectsArgs {
     /// Request body.
-    pub body: ProjectsPostRequest,
+    pub body: serde_json::Value,
 }
 
 /// POST /v1/projects
@@ -5326,14 +5434,14 @@ pub fn post_v1_projects(
 
 pub fn get_v1_projects_id_builder(
     client: &SimpleHttpClient,
-    id: &str,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/projects/{}", id,);
+    let endpoint_url = format!("https://api.prisma.io/v1/projects/{}", id.as_str(),);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5363,8 +5471,11 @@ pub fn get_v1_projects_id_builder(
 pub fn get_v1_projects_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProjectsGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectsGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5469,7 +5580,7 @@ pub fn get_v1_projects_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_id_builder(client, &args.id)?;
+    let builder = get_v1_projects_id_builder(client, args.id.clone())?;
     get_v1_projects_id_execute(builder)
 }
 
@@ -5481,15 +5592,15 @@ pub fn get_v1_projects_id(
 
 pub fn patch_v1_projects_id_builder(
     client: &SimpleHttpClient,
-    id: &str,
-    body: &ProjectsPatchRequest,
+    id: String,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/projects/{}", id,);
+    let endpoint_url = format!("https://api.prisma.io/v1/projects/{}", id.as_str(),);
 
     // Build request
     let builder = client
-        .patch(&url)
+        .patch(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5521,8 +5632,11 @@ pub fn patch_v1_projects_id_builder(
 pub fn patch_v1_projects_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProjectsPatchResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectsPatchResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5606,7 +5720,7 @@ pub struct PatchV1ProjectsIdArgs {
     /// Path parameter: id
     pub id: String,
     /// Request body.
-    pub body: ProjectsPatchRequest,
+    pub body: serde_json::Value,
 }
 
 /// PATCH /v1/projects/{id}
@@ -5629,7 +5743,7 @@ pub fn patch_v1_projects_id(
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_id_builder(client, &args.id, &args.body)?;
+    let builder = patch_v1_projects_id_builder(client, args.id.clone(), &args.body)?;
     patch_v1_projects_id_execute(builder)
 }
 
@@ -5641,14 +5755,14 @@ pub fn patch_v1_projects_id(
 
 pub fn delete_v1_projects_id_builder(
     client: &SimpleHttpClient,
-    id: &str,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/projects/{}", id,);
+    let endpoint_url = format!("https://api.prisma.io/v1/projects/{}", id.as_str(),);
 
     // Build request
     let builder = client
-        .delete(&url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5678,7 +5792,12 @@ pub fn delete_v1_projects_id_builder(
 pub fn delete_v1_projects_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5775,7 +5894,7 @@ pub fn delete_v1_projects_id(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_id_builder(client, &args.id)?;
+    let builder = delete_v1_projects_id_builder(client, args.id.clone())?;
     delete_v1_projects_id_execute(builder)
 }
 
@@ -5787,15 +5906,15 @@ pub fn delete_v1_projects_id(
 
 pub fn post_v1_projects_id_transfer_builder(
     client: &SimpleHttpClient,
-    id: &str,
-    body: &ProjectsTransferPostRequest,
+    id: String,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/projects/{}/transfer", id,);
+    let endpoint_url = format!("https://api.prisma.io/v1/projects/{}/transfer", id.as_str(),);
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5827,7 +5946,12 @@ pub fn post_v1_projects_id_transfer_builder(
 pub fn post_v1_projects_id_transfer_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5905,7 +6029,7 @@ pub struct PostV1ProjectsIdTransferArgs {
     /// Path parameter: id
     pub id: String,
     /// Request body.
-    pub body: ProjectsTransferPostRequest,
+    pub body: serde_json::Value,
 }
 
 /// POST /v1/projects/{id}/transfer
@@ -5926,7 +6050,7 @@ pub fn post_v1_projects_id_transfer(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_id_transfer_builder(client, &args.id, &args.body)?;
+    let builder = post_v1_projects_id_transfer_builder(client, args.id.clone(), &args.body)?;
     post_v1_projects_id_transfer_execute(builder)
 }
 
@@ -5938,14 +6062,14 @@ pub fn post_v1_projects_id_transfer(
 
 pub fn get_v1_projects_projectId_compute_services_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    cursor: Option<&str>,
+    projectId: String,
+    cursor: Option<String>,
     limit: Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/projects/{}/compute-services",
-        projectId,
+        projectId.as_str(),
     );
 
     // Build request
@@ -5958,9 +6082,9 @@ pub fn get_v1_projects_projectId_compute_services_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5995,8 +6119,9 @@ pub fn get_v1_projects_projectId_compute_services_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ProjectsComputeservicesGetResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ProjectsComputeservicesGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -6112,9 +6237,9 @@ pub fn get_v1_projects_projectId_compute_services(
 > {
     let builder = get_v1_projects_projectId_compute_services_builder(
         client,
-        &args.projectId,
-        args.cursor.as_deref(),
-        args.limit,
+        args.projectId.clone(),
+        args.cursor.clone(),
+        args.limit.clone(),
     )?;
     get_v1_projects_projectId_compute_services_execute(builder)
 }
@@ -6127,18 +6252,18 @@ pub fn get_v1_projects_projectId_compute_services(
 
 pub fn post_v1_projects_projectId_compute_services_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &ProjectsComputeservicesPostRequest,
+    projectId: String,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/projects/{}/compute-services",
-        projectId,
+        projectId.as_str(),
     );
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6171,8 +6296,9 @@ pub fn post_v1_projects_projectId_compute_services_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ProjectsComputeservicesPostResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ProjectsComputeservicesPostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -6259,7 +6385,7 @@ pub struct PostV1ProjectsProjectIdComputeServicesArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Request body.
-    pub body: ProjectsComputeservicesPostRequest,
+    pub body: serde_json::Value,
 }
 
 /// POST /v1/projects/{projectId}/compute-services
@@ -6284,8 +6410,11 @@ pub fn post_v1_projects_projectId_compute_services(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_projects_projectId_compute_services_builder(client, &args.projectId, &args.body)?;
+    let builder = post_v1_projects_projectId_compute_services_builder(
+        client,
+        args.projectId.clone(),
+        &args.body,
+    )?;
     post_v1_projects_projectId_compute_services_execute(builder)
 }
 
@@ -6297,12 +6426,15 @@ pub fn post_v1_projects_projectId_compute_services(
 
 pub fn get_v1_projects_projectId_databases_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    cursor: Option<&str>,
+    projectId: String,
+    cursor: Option<String>,
     limit: Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/projects/{}/databases", projectId,);
+    let endpoint_url = format!(
+        "https://api.prisma.io/v1/projects/{}/databases",
+        projectId.as_str(),
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -6314,9 +6446,9 @@ pub fn get_v1_projects_projectId_databases_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6351,8 +6483,9 @@ pub fn get_v1_projects_projectId_databases_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ProjectsDatabasesGetResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ProjectsDatabasesGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -6468,9 +6601,9 @@ pub fn get_v1_projects_projectId_databases(
 > {
     let builder = get_v1_projects_projectId_databases_builder(
         client,
-        &args.projectId,
-        args.cursor.as_deref(),
-        args.limit,
+        args.projectId.clone(),
+        args.cursor.clone(),
+        args.limit.clone(),
     )?;
     get_v1_projects_projectId_databases_execute(builder)
 }
@@ -6483,15 +6616,18 @@ pub fn get_v1_projects_projectId_databases(
 
 pub fn post_v1_projects_projectId_databases_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    body: &ProjectsDatabasesPostRequest,
+    projectId: String,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/projects/{}/databases", projectId,);
+    let endpoint_url = format!(
+        "https://api.prisma.io/v1/projects/{}/databases",
+        projectId.as_str(),
+    );
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6524,8 +6660,9 @@ pub fn post_v1_projects_projectId_databases_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ProjectsDatabasesPostResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ProjectsDatabasesPostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -6612,7 +6749,7 @@ pub struct PostV1ProjectsProjectIdDatabasesArgs {
     /// Path parameter: projectId
     pub projectId: String,
     /// Request body.
-    pub body: ProjectsDatabasesPostRequest,
+    pub body: serde_json::Value,
 }
 
 /// POST /v1/projects/{projectId}/databases
@@ -6638,7 +6775,7 @@ pub fn post_v1_projects_projectId_databases(
     ApiError,
 > {
     let builder =
-        post_v1_projects_projectId_databases_builder(client, &args.projectId, &args.body)?;
+        post_v1_projects_projectId_databases_builder(client, args.projectId.clone(), &args.body)?;
     post_v1_projects_projectId_databases_execute(builder)
 }
 
@@ -6650,10 +6787,10 @@ pub fn post_v1_projects_projectId_databases(
 
 pub fn get_v1_regions_builder(
     client: &SimpleHttpClient,
-    product: Option<&str>,
+    product: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/regions",);
+    let endpoint_url = format!("https://api.prisma.io/v1/regions",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -6662,9 +6799,9 @@ pub fn get_v1_regions_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6698,8 +6835,11 @@ pub fn get_v1_regions_builder(
 pub fn get_v1_regions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RegionsGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RegionsGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -6804,7 +6944,7 @@ pub fn get_v1_regions(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_regions_builder(client, args.product.as_deref())?;
+    let builder = get_v1_regions_builder(client, args.product.clone())?;
     get_v1_regions_execute(builder)
 }
 
@@ -6818,11 +6958,11 @@ pub fn get_v1_regions_accelerate_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/regions/accelerate",);
+    let endpoint_url = format!("https://api.prisma.io/v1/regions/accelerate",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6853,8 +6993,9 @@ pub fn get_v1_regions_accelerate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<RegionsAccelerateGetResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<RegionsAccelerateGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -6970,11 +7111,11 @@ pub fn get_v1_regions_postgres_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/regions/postgres",);
+    let endpoint_url = format!("https://api.prisma.io/v1/regions/postgres",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7004,8 +7145,11 @@ pub fn get_v1_regions_postgres_builder(
 pub fn get_v1_regions_postgres_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RegionsPostgresGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RegionsPostgresGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7118,12 +7262,12 @@ pub fn get_v1_regions_postgres(
 
 pub fn get_v1_versions_builder(
     client: &SimpleHttpClient,
-    cursor: Option<&str>,
+    cursor: Option<String>,
     limit: Option<f64>,
-    computeServiceId: Option<&str>,
+    computeServiceId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/versions",);
+    let endpoint_url = format!("https://api.prisma.io/v1/versions",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -7138,9 +7282,9 @@ pub fn get_v1_versions_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -7174,8 +7318,11 @@ pub fn get_v1_versions_builder(
 pub fn get_v1_versions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<VersionsGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VersionsGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7286,9 +7433,9 @@ pub fn get_v1_versions(
 > {
     let builder = get_v1_versions_builder(
         client,
-        args.cursor.as_deref(),
-        args.limit,
-        args.computeServiceId.as_deref(),
+        args.cursor.clone(),
+        args.limit.clone(),
+        args.computeServiceId.clone(),
     )?;
     get_v1_versions_execute(builder)
 }
@@ -7301,14 +7448,14 @@ pub fn get_v1_versions(
 
 pub fn post_v1_versions_builder(
     client: &SimpleHttpClient,
-    body: &VersionsPostRequest,
+    body: &serde_json::Value,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/versions",);
+    let endpoint_url = format!("https://api.prisma.io/v1/versions",);
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -7340,8 +7487,11 @@ pub fn post_v1_versions_builder(
 pub fn post_v1_versions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<VersionsPostResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VersionsPostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7423,7 +7573,7 @@ pub fn post_v1_versions_execute(
 #[derive(Debug, Clone, Serialize, JsonHash)]
 pub struct PostV1VersionsArgs {
     /// Request body.
-    pub body: VersionsPostRequest,
+    pub body: serde_json::Value,
 }
 
 /// POST /v1/versions
@@ -7458,14 +7608,14 @@ pub fn post_v1_versions(
 
 pub fn get_v1_versions_versionId_builder(
     client: &SimpleHttpClient,
-    versionId: &str,
+    versionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/versions/{}", versionId,);
+    let endpoint_url = format!("https://api.prisma.io/v1/versions/{}", versionId.as_str(),);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7495,8 +7645,11 @@ pub fn get_v1_versions_versionId_builder(
 pub fn get_v1_versions_versionId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<VersionsGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VersionsGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7601,7 +7754,7 @@ pub fn get_v1_versions_versionId(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_versions_versionId_builder(client, &args.versionId)?;
+    let builder = get_v1_versions_versionId_builder(client, args.versionId.clone())?;
     get_v1_versions_versionId_execute(builder)
 }
 
@@ -7613,14 +7766,14 @@ pub fn get_v1_versions_versionId(
 
 pub fn delete_v1_versions_versionId_builder(
     client: &SimpleHttpClient,
-    versionId: &str,
+    versionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/versions/{}", versionId,);
+    let endpoint_url = format!("https://api.prisma.io/v1/versions/{}", versionId.as_str(),);
 
     // Build request
     let builder = client
-        .delete(&url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7650,7 +7803,12 @@ pub fn delete_v1_versions_versionId_builder(
 pub fn delete_v1_versions_versionId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7747,7 +7905,7 @@ pub fn delete_v1_versions_versionId(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_versions_versionId_builder(client, &args.versionId)?;
+    let builder = delete_v1_versions_versionId_builder(client, args.versionId.clone())?;
     delete_v1_versions_versionId_execute(builder)
 }
 
@@ -7759,14 +7917,17 @@ pub fn delete_v1_versions_versionId(
 
 pub fn post_v1_versions_versionId_start_builder(
     client: &SimpleHttpClient,
-    versionId: &str,
+    versionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/versions/{}/start", versionId,);
+    let endpoint_url = format!(
+        "https://api.prisma.io/v1/versions/{}/start",
+        versionId.as_str(),
+    );
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7796,8 +7957,11 @@ pub fn post_v1_versions_versionId_start_builder(
 pub fn post_v1_versions_versionId_start_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<VersionsStartPostResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VersionsStartPostResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7902,7 +8066,7 @@ pub fn post_v1_versions_versionId_start(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_versions_versionId_start_builder(client, &args.versionId)?;
+    let builder = post_v1_versions_versionId_start_builder(client, args.versionId.clone())?;
     post_v1_versions_versionId_start_execute(builder)
 }
 
@@ -7914,14 +8078,17 @@ pub fn post_v1_versions_versionId_start(
 
 pub fn post_v1_versions_versionId_stop_builder(
     client: &SimpleHttpClient,
-    versionId: &str,
+    versionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/versions/{}/stop", versionId,);
+    let endpoint_url = format!(
+        "https://api.prisma.io/v1/versions/{}/stop",
+        versionId.as_str(),
+    );
 
     // Build request
     let builder = client
-        .post(&url)
+        .post(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7951,7 +8118,12 @@ pub fn post_v1_versions_versionId_stop_builder(
 pub fn post_v1_versions_versionId_stop_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8048,7 +8220,7 @@ pub fn post_v1_versions_versionId_stop(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_versions_versionId_stop_builder(client, &args.versionId)?;
+    let builder = post_v1_versions_versionId_stop_builder(client, args.versionId.clone())?;
     post_v1_versions_versionId_stop_execute(builder)
 }
 
@@ -8060,11 +8232,11 @@ pub fn post_v1_versions_versionId_stop(
 
 pub fn get_v1_workspaces_builder(
     client: &SimpleHttpClient,
-    cursor: Option<&str>,
+    cursor: Option<String>,
     limit: Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/workspaces",);
+    let endpoint_url = format!("https://api.prisma.io/v1/workspaces",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -8076,9 +8248,9 @@ pub fn get_v1_workspaces_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -8112,8 +8284,11 @@ pub fn get_v1_workspaces_builder(
 pub fn get_v1_workspaces_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<WorkspacesGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WorkspacesGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -8220,7 +8395,7 @@ pub fn get_v1_workspaces(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_workspaces_builder(client, args.cursor.as_deref(), args.limit)?;
+    let builder = get_v1_workspaces_builder(client, args.cursor.clone(), args.limit.clone())?;
     get_v1_workspaces_execute(builder)
 }
 
@@ -8232,14 +8407,14 @@ pub fn get_v1_workspaces(
 
 pub fn get_v1_workspaces_id_builder(
     client: &SimpleHttpClient,
-    id: &str,
+    id: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.prisma.io/v1/workspaces/{}", id,);
+    let endpoint_url = format!("https://api.prisma.io/v1/workspaces/{}", id.as_str(),);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -8269,8 +8444,11 @@ pub fn get_v1_workspaces_id_builder(
 pub fn get_v1_workspaces_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<WorkspacesGetResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WorkspacesGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -8375,7 +8553,7 @@ pub fn get_v1_workspaces_id(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_workspaces_id_builder(client, &args.id)?;
+    let builder = get_v1_workspaces_id_builder(client, args.id.clone())?;
     get_v1_workspaces_id_execute(builder)
 }
 
@@ -8387,14 +8565,14 @@ pub fn get_v1_workspaces_id(
 
 pub fn get_v1_workspaces_workspaceId_integrations_builder(
     client: &SimpleHttpClient,
-    workspaceId: &str,
-    cursor: Option<&str>,
+    workspaceId: String,
+    cursor: Option<String>,
     limit: Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/workspaces/{}/integrations",
-        workspaceId,
+        workspaceId.as_str(),
     );
 
     // Build request
@@ -8407,9 +8585,9 @@ pub fn get_v1_workspaces_workspaceId_integrations_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -8444,8 +8622,9 @@ pub fn get_v1_workspaces_workspaceId_integrations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<WorkspacesIntegrationsGetResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<WorkspacesIntegrationsGetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -8561,9 +8740,9 @@ pub fn get_v1_workspaces_workspaceId_integrations(
 > {
     let builder = get_v1_workspaces_workspaceId_integrations_builder(
         client,
-        &args.workspaceId,
-        args.cursor.as_deref(),
-        args.limit,
+        args.workspaceId.clone(),
+        args.cursor.clone(),
+        args.limit.clone(),
     )?;
     get_v1_workspaces_workspaceId_integrations_execute(builder)
 }
@@ -8576,18 +8755,19 @@ pub fn get_v1_workspaces_workspaceId_integrations(
 
 pub fn delete_v1_workspaces_workspaceId_integrations_clientId_builder(
     client: &SimpleHttpClient,
-    clientId: &str,
-    workspaceId: &str,
+    clientId: String,
+    workspaceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://api.prisma.io/v1/workspaces/{}/integrations/{}",
-        clientId, workspaceId,
+        workspaceId.as_str(),
+        clientId.as_str(),
     );
 
     // Build request
     let builder = client
-        .delete(&url)
+        .delete(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -8617,7 +8797,12 @@ pub fn delete_v1_workspaces_workspaceId_integrations_clientId_builder(
 pub fn delete_v1_workspaces_workspaceId_integrations_clientId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8718,8 +8903,8 @@ pub fn delete_v1_workspaces_workspaceId_integrations_clientId(
 > {
     let builder = delete_v1_workspaces_workspaceId_integrations_clientId_builder(
         client,
-        &args.clientId,
-        &args.workspaceId,
+        args.clientId.clone(),
+        args.workspaceId.clone(),
     )?;
     delete_v1_workspaces_workspaceId_integrations_clientId_execute(builder)
 }

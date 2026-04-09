@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -31,11 +32,12 @@ pub fn identitytoolkit_relyingparty_create_auth_uri_builder(
     body: &IdentitytoolkitRelyingpartyCreateAuthUriRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/createAuthUri",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/createAuthUri",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -67,8 +69,11 @@ pub fn identitytoolkit_relyingparty_create_auth_uri_builder(
 pub fn identitytoolkit_relyingparty_create_auth_uri_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreateAuthUriResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CreateAuthUriResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -188,11 +193,12 @@ pub fn identitytoolkit_relyingparty_delete_account_builder(
     body: &IdentitytoolkitRelyingpartyDeleteAccountRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/deleteAccount",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/deleteAccount",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -224,8 +230,11 @@ pub fn identitytoolkit_relyingparty_delete_account_builder(
 pub fn identitytoolkit_relyingparty_delete_account_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DeleteAccountResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeleteAccountResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -345,12 +354,12 @@ pub fn identitytoolkit_relyingparty_download_account_builder(
     body: &IdentitytoolkitRelyingpartyDownloadAccountRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/downloadAccount",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -382,8 +391,11 @@ pub fn identitytoolkit_relyingparty_download_account_builder(
 pub fn identitytoolkit_relyingparty_download_account_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DownloadAccountResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DownloadAccountResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -503,12 +515,12 @@ pub fn identitytoolkit_relyingparty_email_link_signin_builder(
     body: &IdentitytoolkitRelyingpartyEmailLinkSigninRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/emailLinkSignin",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -540,8 +552,11 @@ pub fn identitytoolkit_relyingparty_email_link_signin_builder(
 pub fn identitytoolkit_relyingparty_email_link_signin_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EmailLinkSigninResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<EmailLinkSigninResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -661,11 +676,12 @@ pub fn identitytoolkit_relyingparty_get_account_info_builder(
     body: &IdentitytoolkitRelyingpartyGetAccountInfoRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/getAccountInfo",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/getAccountInfo",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -697,8 +713,11 @@ pub fn identitytoolkit_relyingparty_get_account_info_builder(
 pub fn identitytoolkit_relyingparty_get_account_info_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetAccountInfoResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetAccountInfoResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -818,13 +837,13 @@ pub fn identitytoolkit_relyingparty_get_oob_confirmation_code_builder(
     body: &Relyingparty,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://www.googleapis.com/identitytoolkit/v3/relyingparty/getOobConfirmationCode",
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -857,8 +876,9 @@ pub fn identitytoolkit_relyingparty_get_oob_confirmation_code_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GetOobConfirmationCodeResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GetOobConfirmationCodeResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -981,11 +1001,11 @@ pub fn identitytoolkit_relyingparty_get_oob_confirmation_code(
 
 pub fn identitytoolkit_relyingparty_get_project_config_builder(
     client: &SimpleHttpClient,
-    delegatedProjectNumber: Option<&str>,
-    projectNumber: Option<&str>,
+    delegatedProjectNumber: Option<String>,
+    projectNumber: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/getProjectConfig",);
 
     // Build request
@@ -998,9 +1018,9 @@ pub fn identitytoolkit_relyingparty_get_project_config_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1035,8 +1055,12 @@ pub fn identitytoolkit_relyingparty_get_project_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<IdentitytoolkitRelyingpartyGetProjectConfigResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<
+                ApiResponse<IdentitytoolkitRelyingpartyGetProjectConfigResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1151,8 +1175,8 @@ pub fn identitytoolkit_relyingparty_get_project_config(
 > {
     let builder = identitytoolkit_relyingparty_get_project_config_builder(
         client,
-        args.delegatedProjectNumber.as_deref(),
-        args.projectNumber.as_deref(),
+        args.delegatedProjectNumber.clone(),
+        args.projectNumber.clone(),
     )?;
     identitytoolkit_relyingparty_get_project_config_execute(builder)
 }
@@ -1167,11 +1191,12 @@ pub fn identitytoolkit_relyingparty_get_public_keys_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/publicKeys",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/publicKeys",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1202,8 +1227,9 @@ pub fn identitytoolkit_relyingparty_get_public_keys_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<IdentitytoolkitRelyingpartyGetPublicKeysResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<IdentitytoolkitRelyingpartyGetPublicKeysResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1320,12 +1346,12 @@ pub fn identitytoolkit_relyingparty_get_recaptcha_param_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/getRecaptchaParam",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1355,8 +1381,11 @@ pub fn identitytoolkit_relyingparty_get_recaptcha_param_builder(
 pub fn identitytoolkit_relyingparty_get_recaptcha_param_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetRecaptchaParamResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetRecaptchaParamResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1468,11 +1497,12 @@ pub fn identitytoolkit_relyingparty_reset_password_builder(
     body: &IdentitytoolkitRelyingpartyResetPasswordRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/resetPassword",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/resetPassword",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1504,8 +1534,11 @@ pub fn identitytoolkit_relyingparty_reset_password_builder(
 pub fn identitytoolkit_relyingparty_reset_password_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ResetPasswordResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ResetPasswordResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1625,12 +1658,12 @@ pub fn identitytoolkit_relyingparty_send_verification_code_builder(
     body: &IdentitytoolkitRelyingpartySendVerificationCodeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/sendVerificationCode",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1663,11 +1696,12 @@ pub fn identitytoolkit_relyingparty_send_verification_code_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<IdentitytoolkitRelyingpartySendVerificationCodeResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1799,11 +1833,12 @@ pub fn identitytoolkit_relyingparty_set_account_info_builder(
     body: &IdentitytoolkitRelyingpartySetAccountInfoRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/setAccountInfo",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1835,8 +1870,11 @@ pub fn identitytoolkit_relyingparty_set_account_info_builder(
 pub fn identitytoolkit_relyingparty_set_account_info_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SetAccountInfoResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SetAccountInfoResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1956,12 +1994,12 @@ pub fn identitytoolkit_relyingparty_set_project_config_builder(
     body: &IdentitytoolkitRelyingpartySetProjectConfigRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/setProjectConfig",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1994,8 +2032,12 @@ pub fn identitytoolkit_relyingparty_set_project_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<IdentitytoolkitRelyingpartySetProjectConfigResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<
+                ApiResponse<IdentitytoolkitRelyingpartySetProjectConfigResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2121,11 +2163,12 @@ pub fn identitytoolkit_relyingparty_sign_out_user_builder(
     body: &IdentitytoolkitRelyingpartySignOutUserRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/signOutUser",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/signOutUser",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2158,8 +2201,9 @@ pub fn identitytoolkit_relyingparty_sign_out_user_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<IdentitytoolkitRelyingpartySignOutUserResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<IdentitytoolkitRelyingpartySignOutUserResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2285,11 +2329,12 @@ pub fn identitytoolkit_relyingparty_signup_new_user_builder(
     body: &IdentitytoolkitRelyingpartySignupNewUserRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/signupNewUser",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2321,8 +2366,11 @@ pub fn identitytoolkit_relyingparty_signup_new_user_builder(
 pub fn identitytoolkit_relyingparty_signup_new_user_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SignupNewUserResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SignupNewUserResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2442,11 +2490,12 @@ pub fn identitytoolkit_relyingparty_upload_account_builder(
     body: &IdentitytoolkitRelyingpartyUploadAccountRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/uploadAccount",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/uploadAccount",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2478,8 +2527,11 @@ pub fn identitytoolkit_relyingparty_upload_account_builder(
 pub fn identitytoolkit_relyingparty_upload_account_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UploadAccountResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UploadAccountResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2599,12 +2651,12 @@ pub fn identitytoolkit_relyingparty_verify_assertion_builder(
     body: &IdentitytoolkitRelyingpartyVerifyAssertionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyAssertion",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2636,8 +2688,11 @@ pub fn identitytoolkit_relyingparty_verify_assertion_builder(
 pub fn identitytoolkit_relyingparty_verify_assertion_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<VerifyAssertionResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VerifyAssertionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2757,12 +2812,12 @@ pub fn identitytoolkit_relyingparty_verify_custom_token_builder(
     body: &IdentitytoolkitRelyingpartyVerifyCustomTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyCustomToken",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2794,8 +2849,11 @@ pub fn identitytoolkit_relyingparty_verify_custom_token_builder(
 pub fn identitytoolkit_relyingparty_verify_custom_token_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<VerifyCustomTokenResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VerifyCustomTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2915,11 +2973,12 @@ pub fn identitytoolkit_relyingparty_verify_password_builder(
     body: &IdentitytoolkitRelyingpartyVerifyPasswordRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword",);
+    let endpoint_url =
+        format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPassword",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2951,8 +3010,11 @@ pub fn identitytoolkit_relyingparty_verify_password_builder(
 pub fn identitytoolkit_relyingparty_verify_password_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<VerifyPasswordResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VerifyPasswordResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3072,12 +3134,12 @@ pub fn identitytoolkit_relyingparty_verify_phone_number_builder(
     body: &IdentitytoolkitRelyingpartyVerifyPhoneNumberRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://www.googleapis.com/identitytoolkit/v3/relyingparty/verifyPhoneNumber",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3110,8 +3172,12 @@ pub fn identitytoolkit_relyingparty_verify_phone_number_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<
+                ApiResponse<IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,

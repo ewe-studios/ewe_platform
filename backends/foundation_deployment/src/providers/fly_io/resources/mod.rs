@@ -792,7 +792,9 @@ pub struct MetadataValueResponse {
 
 /// PlacementWeights resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PlacementWeights {}
+pub struct PlacementWeights {
+    pub value: serde_json::Value,
+}
 
 /// UpdateMetadataRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

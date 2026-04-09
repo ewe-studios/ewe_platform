@@ -12,179 +12,14 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
 use foundation_macros::JsonHash;
 use serde::Serialize;
-
-/// GET v1/notes/{notesId}/attachments/{attachmentsId}
-/// Gets an attachment. To download attachment media via REST requires the alt=media query parameter. Returns a 400 bad request error if attachment media is not available in the requested MIME type.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `keep_media_download_execute()` to send, or `keep_media_download` for simplest API.
-
-pub fn keep_media_download_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    mimeType: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://keep.googleapis.com/v1/notes/{}/attachments/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = mimeType {
-        query_parts.push(format!("mimeType={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/notes/{notesId}/attachments/{attachmentsId}
-/// Gets an attachment. To download attachment media via REST requires the alt=media query parameter. Returns a 400 bad request error if attachment media is not available in the requested MIME type.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `keep_media_download_execute()` or `keep_media_download`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `keep_media_download_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn keep_media_download_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Attachment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Attachment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/notes/{notesId}/attachments/{attachmentsId}
-/// Gets an attachment. To download attachment media via REST requires the alt=media query parameter. Returns a 400 bad request error if attachment media is not available in the requested MIME type.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `keep_media_download_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `keep_media_download_task()`.
-/// For the simplest API, use `keep_media_download()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `keep_media_download_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn keep_media_download_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Attachment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = keep_media_download_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`keep_media_download`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct KeepMediaDownloadArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: mimeType
-    pub mimeType: Option<String>,
-}
-
-/// GET v1/notes/{notesId}/attachments/{attachmentsId}
-/// Gets an attachment. To download attachment media via REST requires the alt=media query parameter. Returns a 400 bad request error if attachment media is not available in the requested MIME type.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `keep_media_download_builder()` + `keep_media_download_execute()`.
-/// For task-level control, use `keep_media_download_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn keep_media_download(
-    client: &SimpleHttpClient,
-    args: &KeepMediaDownloadArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Attachment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = keep_media_download_builder(client, &args.name, args.mimeType.as_deref())?;
-    keep_media_download_execute(builder)
-}
 
 /// GET v1/notes
 /// Creates a new note.
@@ -197,11 +32,11 @@ pub fn keep_notes_create_builder(
     body: &Note,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://keep.googleapis.com/v1/notes",);
+    let endpoint_url = format!("https://keep.googleapis.com/v1/notes",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -233,7 +68,12 @@ pub fn keep_notes_create_builder(
 pub fn keep_notes_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Note>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -345,14 +185,14 @@ pub fn keep_notes_create(
 
 pub fn keep_notes_delete_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://keep.googleapis.com/v1/notes/{}", name,);
+    let endpoint_url = format!("https://keep.googleapis.com/v1/notes/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -382,7 +222,12 @@ pub fn keep_notes_delete_builder(
 pub fn keep_notes_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -482,340 +327,8 @@ pub fn keep_notes_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = keep_notes_delete_builder(client, &args.name)?;
+    let builder = keep_notes_delete_builder(client, args.name.clone())?;
     keep_notes_delete_execute(builder)
-}
-
-/// GET v1/notes/{notesId}
-/// Gets a note.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `keep_notes_get_execute()` to send, or `keep_notes_get` for simplest API.
-
-pub fn keep_notes_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://keep.googleapis.com/v1/notes/{}", name,);
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/notes/{notesId}
-/// Gets a note.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `keep_notes_get_execute()` or `keep_notes_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `keep_notes_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn keep_notes_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Note = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/notes/{notesId}
-/// Gets a note.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `keep_notes_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `keep_notes_get_task()`.
-/// For the simplest API, use `keep_notes_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `keep_notes_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn keep_notes_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = keep_notes_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`keep_notes_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct KeepNotesGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/notes/{notesId}
-/// Gets a note.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `keep_notes_get_builder()` + `keep_notes_get_execute()`.
-/// For task-level control, use `keep_notes_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn keep_notes_get(
-    client: &SimpleHttpClient,
-    args: &KeepNotesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = keep_notes_get_builder(client, &args.name)?;
-    keep_notes_get_execute(builder)
-}
-
-/// GET v1/notes
-/// Lists notes. Every list call returns a page of results with page_size as the upper bound of returned items. A page_size of zero allows the server to choose the upper bound. The ListNotesResponse contains at most page_size entries. If there are more things left to list, it provides a next_page_token value. (Page tokens are opaque values.) To get the next page of results, copy the result's next_page_token into the next request's page_token. Repeat until the next_page_token returned with a page of results is empty. ListNotes return consistent results in the face of concurrent changes, or signals that it cannot with an ABORTED error.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `keep_notes_list_execute()` to send, or `keep_notes_list` for simplest API.
-
-pub fn keep_notes_list_builder(
-    client: &SimpleHttpClient,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://keep.googleapis.com/v1/notes",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/notes
-/// Lists notes. Every list call returns a page of results with page_size as the upper bound of returned items. A page_size of zero allows the server to choose the upper bound. The ListNotesResponse contains at most page_size entries. If there are more things left to list, it provides a next_page_token value. (Page tokens are opaque values.) To get the next page of results, copy the result's next_page_token into the next request's page_token. Repeat until the next_page_token returned with a page of results is empty. ListNotes return consistent results in the face of concurrent changes, or signals that it cannot with an ABORTED error.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `keep_notes_list_execute()` or `keep_notes_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `keep_notes_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn keep_notes_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListNotesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListNotesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/notes
-/// Lists notes. Every list call returns a page of results with page_size as the upper bound of returned items. A page_size of zero allows the server to choose the upper bound. The ListNotesResponse contains at most page_size entries. If there are more things left to list, it provides a next_page_token value. (Page tokens are opaque values.) To get the next page of results, copy the result's next_page_token into the next request's page_token. Repeat until the next_page_token returned with a page of results is empty. ListNotes return consistent results in the face of concurrent changes, or signals that it cannot with an ABORTED error.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `keep_notes_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `keep_notes_list_task()`.
-/// For the simplest API, use `keep_notes_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `keep_notes_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn keep_notes_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListNotesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = keep_notes_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`keep_notes_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct KeepNotesListArgs {
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/notes
-/// Lists notes. Every list call returns a page of results with page_size as the upper bound of returned items. A page_size of zero allows the server to choose the upper bound. The ListNotesResponse contains at most page_size entries. If there are more things left to list, it provides a next_page_token value. (Page tokens are opaque values.) To get the next page of results, copy the result's next_page_token into the next request's page_token. Repeat until the next_page_token returned with a page of results is empty. ListNotes return consistent results in the face of concurrent changes, or signals that it cannot with an ABORTED error.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `keep_notes_list_builder()` + `keep_notes_list_execute()`.
-/// For task-level control, use `keep_notes_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn keep_notes_list(
-    client: &SimpleHttpClient,
-    args: &KeepNotesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListNotesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = keep_notes_list_builder(
-        client,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    keep_notes_list_execute(builder)
 }
 
 /// GET v1/notes/{notesId}/permissions:batchCreate
@@ -826,18 +339,15 @@ pub fn keep_notes_list(
 
 pub fn keep_notes_permissions_batch_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &BatchCreatePermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://keep.googleapis.com/v1/notes/{}/permissions:batchCreate",
-        parent,
-    );
+    let endpoint_url = format!("https://keep.googleapis.com/v1/notes/{}/permissions:batchCreate",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -870,8 +380,9 @@ pub fn keep_notes_permissions_batch_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchCreatePermissionsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchCreatePermissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -983,7 +494,8 @@ pub fn keep_notes_permissions_batch_create(
         + 'static,
     ApiError,
 > {
-    let builder = keep_notes_permissions_batch_create_builder(client, &args.parent, &args.body)?;
+    let builder =
+        keep_notes_permissions_batch_create_builder(client, args.parent.clone(), &args.body)?;
     keep_notes_permissions_batch_create_execute(builder)
 }
 
@@ -995,18 +507,15 @@ pub fn keep_notes_permissions_batch_create(
 
 pub fn keep_notes_permissions_batch_delete_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &BatchDeletePermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://keep.googleapis.com/v1/notes/{}/permissions:batchDelete",
-        parent,
-    );
+    let endpoint_url = format!("https://keep.googleapis.com/v1/notes/{}/permissions:batchDelete",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1038,7 +547,12 @@ pub fn keep_notes_permissions_batch_delete_builder(
 pub fn keep_notes_permissions_batch_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1140,6 +654,7 @@ pub fn keep_notes_permissions_batch_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = keep_notes_permissions_batch_delete_builder(client, &args.parent, &args.body)?;
+    let builder =
+        keep_notes_permissions_batch_delete_builder(client, args.parent.clone(), &args.body)?;
     keep_notes_permissions_batch_delete_execute(builder)
 }

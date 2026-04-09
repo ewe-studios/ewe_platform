@@ -11,10 +11,6 @@ use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
 /// The response for FirebaseRulesService.GetReleaseExecutable
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetReleaseExecutableResponse {
@@ -314,7 +310,7 @@ pub struct SourcePosition {
 pub struct Arg {
     /// Argument matches any value provided.
     #[serde(default, rename = "anyValue")]
-    pub any_value: ::core::option::Option<serde_json::Value>,
+    pub any_value: ::core::option::Option<Empty>,
     /// Argument exactly matches value provided.
     #[serde(default, rename = "exactValue")]
     pub exact_value: ::core::option::Option<serde_json::Value>,
@@ -325,8 +321,14 @@ pub struct Arg {
 pub struct ApiResult {
     /// The result is undefined, meaning the result could not be computed.
     #[serde(default)]
-    pub undefined: ::core::option::Option<serde_json::Value>,
+    pub undefined: ::core::option::Option<Empty>,
     /// The result is an actual value. The type of the value must match that of the type declared by the service.
     #[serde(default)]
     pub value: ::core::option::Option<serde_json::Value>,
+}
+
+/// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Empty {
+    pub value: serde_json::Value,
 }

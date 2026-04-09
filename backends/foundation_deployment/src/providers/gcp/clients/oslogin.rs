@@ -12,177 +12,14 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
 use foundation_macros::JsonHash;
 use serde::Serialize;
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}:signSshPublicKey
-/// Signs an SSH public key for a user to authenticate to a virtual machine on Google Compute Engine.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `oslogin_projects_locations_sign_ssh_public_key_execute()` to send, or `oslogin_projects_locations_sign_ssh_public_key` for simplest API.
-
-pub fn oslogin_projects_locations_sign_ssh_public_key_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    body: &SignSshPublicKeyRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://oslogin.googleapis.com/v1/projects/{}/locations/{}:signSshPublicKey",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}:signSshPublicKey
-/// Signs an SSH public key for a user to authenticate to a virtual machine on Google Compute Engine.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `oslogin_projects_locations_sign_ssh_public_key_execute()` or `oslogin_projects_locations_sign_ssh_public_key`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `oslogin_projects_locations_sign_ssh_public_key_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn oslogin_projects_locations_sign_ssh_public_key_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SignSshPublicKeyResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: SignSshPublicKeyResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}:signSshPublicKey
-/// Signs an SSH public key for a user to authenticate to a virtual machine on Google Compute Engine.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `oslogin_projects_locations_sign_ssh_public_key_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `oslogin_projects_locations_sign_ssh_public_key_task()`.
-/// For the simplest API, use `oslogin_projects_locations_sign_ssh_public_key()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `oslogin_projects_locations_sign_ssh_public_key_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn oslogin_projects_locations_sign_ssh_public_key_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SignSshPublicKeyResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = oslogin_projects_locations_sign_ssh_public_key_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`oslogin_projects_locations_sign_ssh_public_key`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct OsloginProjectsLocationsSignSshPublicKeyArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Request body.
-    pub body: SignSshPublicKeyRequest,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}:signSshPublicKey
-/// Signs an SSH public key for a user to authenticate to a virtual machine on Google Compute Engine.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `oslogin_projects_locations_sign_ssh_public_key_builder()` + `oslogin_projects_locations_sign_ssh_public_key_execute()`.
-/// For task-level control, use `oslogin_projects_locations_sign_ssh_public_key_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn oslogin_projects_locations_sign_ssh_public_key(
-    client: &SimpleHttpClient,
-    args: &OsloginProjectsLocationsSignSshPublicKeyArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SignSshPublicKeyResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        oslogin_projects_locations_sign_ssh_public_key_builder(client, &args.parent, &args.body)?;
-    oslogin_projects_locations_sign_ssh_public_key_execute(builder)
-}
 
 /// GET v1/users/{usersId}/loginProfile
 /// Retrieves the profile information used for logging in to a virtual machine on Google Compute Engine.
@@ -192,15 +29,12 @@ pub fn oslogin_projects_locations_sign_ssh_public_key(
 
 pub fn oslogin_users_get_login_profile_builder(
     client: &SimpleHttpClient,
-    name: &str,
-    projectId: Option<&str>,
-    systemId: Option<&str>,
+    name: String,
+    projectId: Option<String>,
+    systemId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://oslogin.googleapis.com/v1/users/{}/loginProfile",
-        name,
-    );
+    let endpoint_url = format!("https://oslogin.googleapis.com/v1/users/{}/loginProfile",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -212,9 +46,9 @@ pub fn oslogin_users_get_login_profile_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -248,7 +82,12 @@ pub fn oslogin_users_get_login_profile_builder(
 pub fn oslogin_users_get_login_profile_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LoginProfile>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LoginProfile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -358,9 +197,9 @@ pub fn oslogin_users_get_login_profile(
 > {
     let builder = oslogin_users_get_login_profile_builder(
         client,
-        &args.name,
-        args.projectId.as_deref(),
-        args.systemId.as_deref(),
+        args.name.clone(),
+        args.projectId.clone(),
+        args.systemId.clone(),
     )?;
     oslogin_users_get_login_profile_execute(builder)
 }
@@ -373,16 +212,13 @@ pub fn oslogin_users_get_login_profile(
 
 pub fn oslogin_users_import_ssh_public_key_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    projectId: Option<&str>,
-    regions: Option<&str>,
+    parent: String,
+    projectId: Option<String>,
+    regions: Option<String>,
     body: &SshPublicKey,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://oslogin.googleapis.com/v1/users/{}:importSshPublicKey",
-        parent,
-    );
+    let endpoint_url = format!("https://oslogin.googleapis.com/v1/users/{}:importSshPublicKey",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -394,9 +230,9 @@ pub fn oslogin_users_import_ssh_public_key_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -432,8 +268,11 @@ pub fn oslogin_users_import_ssh_public_key_builder(
 pub fn oslogin_users_import_ssh_public_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ImportSshPublicKeyResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ImportSshPublicKeyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -550,326 +389,12 @@ pub fn oslogin_users_import_ssh_public_key(
 > {
     let builder = oslogin_users_import_ssh_public_key_builder(
         client,
-        &args.parent,
-        args.projectId.as_deref(),
-        args.regions.as_deref(),
+        args.parent.clone(),
+        args.projectId.clone(),
+        args.regions.clone(),
         &args.body,
     )?;
     oslogin_users_import_ssh_public_key_execute(builder)
-}
-
-/// GET v1/users/{usersId}/projects/{projectsId}
-/// Deletes a POSIX account.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `oslogin_users_projects_delete_execute()` to send, or `oslogin_users_projects_delete` for simplest API.
-
-pub fn oslogin_users_projects_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://oslogin.googleapis.com/v1/users/{}/projects/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/users/{usersId}/projects/{projectsId}
-/// Deletes a POSIX account.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `oslogin_users_projects_delete_execute()` or `oslogin_users_projects_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `oslogin_users_projects_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn oslogin_users_projects_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/users/{usersId}/projects/{projectsId}
-/// Deletes a POSIX account.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `oslogin_users_projects_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `oslogin_users_projects_delete_task()`.
-/// For the simplest API, use `oslogin_users_projects_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `oslogin_users_projects_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn oslogin_users_projects_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = oslogin_users_projects_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`oslogin_users_projects_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct OsloginUsersProjectsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/users/{usersId}/projects/{projectsId}
-/// Deletes a POSIX account.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `oslogin_users_projects_delete_builder()` + `oslogin_users_projects_delete_execute()`.
-/// For task-level control, use `oslogin_users_projects_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn oslogin_users_projects_delete(
-    client: &SimpleHttpClient,
-    args: &OsloginUsersProjectsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = oslogin_users_projects_delete_builder(client, &args.name)?;
-    oslogin_users_projects_delete_execute(builder)
-}
-
-/// GET v1/users/{usersId}/projects/{projectsId}
-/// Adds a POSIX account and returns the profile information. Default POSIX account information is set when no username and UID exist as part of the login profile.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `oslogin_users_projects_provision_posix_account_execute()` to send, or `oslogin_users_projects_provision_posix_account` for simplest API.
-
-pub fn oslogin_users_projects_provision_posix_account_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &ProvisionPosixAccountRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://oslogin.googleapis.com/v1/users/{}/projects/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/users/{usersId}/projects/{projectsId}
-/// Adds a POSIX account and returns the profile information. Default POSIX account information is set when no username and UID exist as part of the login profile.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `oslogin_users_projects_provision_posix_account_execute()` or `oslogin_users_projects_provision_posix_account`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `oslogin_users_projects_provision_posix_account_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn oslogin_users_projects_provision_posix_account_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PosixAccount>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PosixAccount = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/users/{usersId}/projects/{projectsId}
-/// Adds a POSIX account and returns the profile information. Default POSIX account information is set when no username and UID exist as part of the login profile.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `oslogin_users_projects_provision_posix_account_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `oslogin_users_projects_provision_posix_account_task()`.
-/// For the simplest API, use `oslogin_users_projects_provision_posix_account()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `oslogin_users_projects_provision_posix_account_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn oslogin_users_projects_provision_posix_account_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PosixAccount>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = oslogin_users_projects_provision_posix_account_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`oslogin_users_projects_provision_posix_account`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct OsloginUsersProjectsProvisionPosixAccountArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: ProvisionPosixAccountRequest,
-}
-
-/// GET v1/users/{usersId}/projects/{projectsId}
-/// Adds a POSIX account and returns the profile information. Default POSIX account information is set when no username and UID exist as part of the login profile.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `oslogin_users_projects_provision_posix_account_builder()` + `oslogin_users_projects_provision_posix_account_execute()`.
-/// For task-level control, use `oslogin_users_projects_provision_posix_account_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn oslogin_users_projects_provision_posix_account(
-    client: &SimpleHttpClient,
-    args: &OsloginUsersProjectsProvisionPosixAccountArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PosixAccount>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        oslogin_users_projects_provision_posix_account_builder(client, &args.name, &args.body)?;
-    oslogin_users_projects_provision_posix_account_execute(builder)
 }
 
 /// GET v1/users/{usersId}/sshPublicKeys
@@ -880,18 +405,15 @@ pub fn oslogin_users_projects_provision_posix_account(
 
 pub fn oslogin_users_ssh_public_keys_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &SshPublicKey,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://oslogin.googleapis.com/v1/users/{}/sshPublicKeys",
-        parent,
-    );
+    let endpoint_url = format!("https://oslogin.googleapis.com/v1/users/{}/sshPublicKeys",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -923,7 +445,12 @@ pub fn oslogin_users_ssh_public_keys_create_builder(
 pub fn oslogin_users_ssh_public_keys_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SshPublicKey>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SshPublicKey>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1029,494 +556,7 @@ pub fn oslogin_users_ssh_public_keys_create(
         + 'static,
     ApiError,
 > {
-    let builder = oslogin_users_ssh_public_keys_create_builder(client, &args.parent, &args.body)?;
+    let builder =
+        oslogin_users_ssh_public_keys_create_builder(client, args.parent.clone(), &args.body)?;
     oslogin_users_ssh_public_keys_create_execute(builder)
-}
-
-/// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
-/// Deletes an SSH public key.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `oslogin_users_ssh_public_keys_delete_execute()` to send, or `oslogin_users_ssh_public_keys_delete` for simplest API.
-
-pub fn oslogin_users_ssh_public_keys_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://oslogin.googleapis.com/v1/users/{}/sshPublicKeys/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
-/// Deletes an SSH public key.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `oslogin_users_ssh_public_keys_delete_execute()` or `oslogin_users_ssh_public_keys_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `oslogin_users_ssh_public_keys_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn oslogin_users_ssh_public_keys_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
-/// Deletes an SSH public key.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `oslogin_users_ssh_public_keys_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `oslogin_users_ssh_public_keys_delete_task()`.
-/// For the simplest API, use `oslogin_users_ssh_public_keys_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `oslogin_users_ssh_public_keys_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn oslogin_users_ssh_public_keys_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = oslogin_users_ssh_public_keys_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`oslogin_users_ssh_public_keys_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct OsloginUsersSshPublicKeysDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
-/// Deletes an SSH public key.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `oslogin_users_ssh_public_keys_delete_builder()` + `oslogin_users_ssh_public_keys_delete_execute()`.
-/// For task-level control, use `oslogin_users_ssh_public_keys_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn oslogin_users_ssh_public_keys_delete(
-    client: &SimpleHttpClient,
-    args: &OsloginUsersSshPublicKeysDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = oslogin_users_ssh_public_keys_delete_builder(client, &args.name)?;
-    oslogin_users_ssh_public_keys_delete_execute(builder)
-}
-
-/// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
-/// Retrieves an SSH public key.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `oslogin_users_ssh_public_keys_get_execute()` to send, or `oslogin_users_ssh_public_keys_get` for simplest API.
-
-pub fn oslogin_users_ssh_public_keys_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://oslogin.googleapis.com/v1/users/{}/sshPublicKeys/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
-/// Retrieves an SSH public key.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `oslogin_users_ssh_public_keys_get_execute()` or `oslogin_users_ssh_public_keys_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `oslogin_users_ssh_public_keys_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn oslogin_users_ssh_public_keys_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SshPublicKey>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: SshPublicKey = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
-/// Retrieves an SSH public key.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `oslogin_users_ssh_public_keys_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `oslogin_users_ssh_public_keys_get_task()`.
-/// For the simplest API, use `oslogin_users_ssh_public_keys_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `oslogin_users_ssh_public_keys_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn oslogin_users_ssh_public_keys_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SshPublicKey>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = oslogin_users_ssh_public_keys_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`oslogin_users_ssh_public_keys_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct OsloginUsersSshPublicKeysGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
-/// Retrieves an SSH public key.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `oslogin_users_ssh_public_keys_get_builder()` + `oslogin_users_ssh_public_keys_get_execute()`.
-/// For task-level control, use `oslogin_users_ssh_public_keys_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn oslogin_users_ssh_public_keys_get(
-    client: &SimpleHttpClient,
-    args: &OsloginUsersSshPublicKeysGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SshPublicKey>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = oslogin_users_ssh_public_keys_get_builder(client, &args.name)?;
-    oslogin_users_ssh_public_keys_get_execute(builder)
-}
-
-/// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
-/// Updates an SSH public key and returns the profile information. This method supports patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `oslogin_users_ssh_public_keys_patch_execute()` to send, or `oslogin_users_ssh_public_keys_patch` for simplest API.
-
-pub fn oslogin_users_ssh_public_keys_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SshPublicKey,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://oslogin.googleapis.com/v1/users/{}/sshPublicKeys/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
-/// Updates an SSH public key and returns the profile information. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `oslogin_users_ssh_public_keys_patch_execute()` or `oslogin_users_ssh_public_keys_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `oslogin_users_ssh_public_keys_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn oslogin_users_ssh_public_keys_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SshPublicKey>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: SshPublicKey = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
-/// Updates an SSH public key and returns the profile information. This method supports patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `oslogin_users_ssh_public_keys_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `oslogin_users_ssh_public_keys_patch_task()`.
-/// For the simplest API, use `oslogin_users_ssh_public_keys_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `oslogin_users_ssh_public_keys_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn oslogin_users_ssh_public_keys_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SshPublicKey>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = oslogin_users_ssh_public_keys_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`oslogin_users_ssh_public_keys_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct OsloginUsersSshPublicKeysPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: SshPublicKey,
-}
-
-/// GET v1/users/{usersId}/sshPublicKeys/{sshPublicKeysId}
-/// Updates an SSH public key and returns the profile information. This method supports patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `oslogin_users_ssh_public_keys_patch_builder()` + `oslogin_users_ssh_public_keys_patch_execute()`.
-/// For task-level control, use `oslogin_users_ssh_public_keys_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn oslogin_users_ssh_public_keys_patch(
-    client: &SimpleHttpClient,
-    args: &OsloginUsersSshPublicKeysPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SshPublicKey>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = oslogin_users_ssh_public_keys_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    oslogin_users_ssh_public_keys_patch_execute(builder)
 }

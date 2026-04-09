@@ -81,38 +81,6 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse {
     pub updated_label: ::core::option::Option<GoogleAppsDriveLabelsV2Label>,
 }
 
-/// Response following field delete.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteFieldResponse {}
-
-/// Response following choice delete.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteSelectionChoiceResponse {}
-
-/// Response following field disable.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableFieldResponse {}
-
-/// Response following choice disable.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableSelectionChoiceResponse {}
-
-/// Response following field enable.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableFieldResponse {}
-
-/// Response following choice enable.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableSelectionChoiceResponse {}
-
-/// Response following update to field type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldTypeResponse {}
-
-/// Response following update to label properties.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateLabelPropertiesResponse {}
-
 /// Request to deprecate a published label.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DisableLabelRequest {
@@ -278,7 +246,9 @@ pub struct GoogleAppsDriveLabelsV2UserCapabilities {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// Deletes a label permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -380,22 +350,31 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseResponse {
     >,
     /// Deletes a field from the label.
     #[serde(default, rename = "deleteField")]
-    pub delete_field: ::core::option::Option<serde_json::Value>,
+    pub delete_field:
+        ::core::option::Option<GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteFieldResponse>,
     /// Deletes a choice from a selection field.
     #[serde(default, rename = "deleteSelectionChoice")]
-    pub delete_selection_choice: ::core::option::Option<serde_json::Value>,
+    pub delete_selection_choice: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteSelectionChoiceResponse,
+    >,
     /// Disables field.
     #[serde(default, rename = "disableField")]
-    pub disable_field: ::core::option::Option<serde_json::Value>,
+    pub disable_field:
+        ::core::option::Option<GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableFieldResponse>,
     /// Disables a choice within a selection field.
     #[serde(default, rename = "disableSelectionChoice")]
-    pub disable_selection_choice: ::core::option::Option<serde_json::Value>,
+    pub disable_selection_choice: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableSelectionChoiceResponse,
+    >,
     /// Enables field.
     #[serde(default, rename = "enableField")]
-    pub enable_field: ::core::option::Option<serde_json::Value>,
+    pub enable_field:
+        ::core::option::Option<GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableFieldResponse>,
     /// Enables a choice within a selection field.
     #[serde(default, rename = "enableSelectionChoice")]
-    pub enable_selection_choice: ::core::option::Option<serde_json::Value>,
+    pub enable_selection_choice: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableSelectionChoiceResponse,
+    >,
     /// Updates basic properties of a field.
     #[serde(default, rename = "updateField")]
     pub update_field: ::core::option::Option<
@@ -403,10 +382,14 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseResponse {
     >,
     /// Updates field type and/or type options.
     #[serde(default, rename = "updateFieldType")]
-    pub update_field_type: ::core::option::Option<serde_json::Value>,
+    pub update_field_type: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldTypeResponse,
+    >,
     /// Updates basic properties of a label.
     #[serde(default, rename = "updateLabel")]
-    pub update_label: ::core::option::Option<serde_json::Value>,
+    pub update_label: ::core::option::Option<
+        GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateLabelPropertiesResponse,
+    >,
     /// Updates a choice within a selection field.
     #[serde(default, rename = "updateSelectionChoiceProperties")]
     pub update_selection_choice_properties: ::core::option::Option<
@@ -762,12 +745,60 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateSelectionChoiceR
     pub id: ::core::option::Option<String>,
 }
 
+/// Response following field delete.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteFieldResponse {
+    pub value: serde_json::Value,
+}
+
+/// Response following choice delete.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteSelectionChoiceResponse {
+    pub value: serde_json::Value,
+}
+
+/// Response following field disable.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableFieldResponse {
+    pub value: serde_json::Value,
+}
+
+/// Response following choice disable.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableSelectionChoiceResponse {
+    pub value: serde_json::Value,
+}
+
+/// Response following field enable.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableFieldResponse {
+    pub value: serde_json::Value,
+}
+
+/// Response following choice enable.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableSelectionChoiceResponse {
+    pub value: serde_json::Value,
+}
+
 /// Response following update to field properties.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldPropertiesResponse {
     /// The priority of the updated field. The priority may change from what was specified to assure contiguous priorities between fields (1-n).
     #[serde(default)]
     pub priority: ::core::option::Option<i32>,
+}
+
+/// Response following update to field type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldTypeResponse {
+    pub value: serde_json::Value,
+}
+
+/// Response following update to label properties.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateLabelPropertiesResponse {
+    pub value: serde_json::Value,
 }
 
 /// Response following update to selection choice properties.

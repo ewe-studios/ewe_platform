@@ -322,7 +322,9 @@ pub struct SetPassUpdateNoticeRequest {
 
 /// A response to a request to notify Google of an awaiting update to a private pass.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetPassUpdateNoticeResponse {}
+pub struct SetPassUpdateNoticeResponse {
+    pub value: serde_json::Value,
+}
 
 /// SmartTap resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -392,7 +394,9 @@ pub struct TransitObjectUploadRotatingBarcodeValuesRequest {
 
 /// Response for uploading rotating barcode values.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TransitObjectUploadRotatingBarcodeValuesResponse {}
+pub struct TransitObjectUploadRotatingBarcodeValuesResponse {
+    pub value: serde_json::Value,
+}
 
 /// TranslatedString resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -410,7 +414,9 @@ pub struct TranslatedString {
 
 /// Request to upload a private image to use in a pass.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UploadPrivateImageRequest {}
+pub struct UploadPrivateImageRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for uploading the private image.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

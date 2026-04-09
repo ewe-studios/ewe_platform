@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,18 @@ use serde::Serialize;
 
 pub fn servicecontrol_services_check_builder(
     client: &SimpleHttpClient,
-    serviceName: &str,
+    serviceName: String,
     body: &CheckRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://servicecontrol.googleapis.com/v2/services/{}:check",
-        serviceName,
+        serviceName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -71,7 +72,12 @@ pub fn servicecontrol_services_check_builder(
 pub fn servicecontrol_services_check_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CheckResponse>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CheckResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -177,7 +183,8 @@ pub fn servicecontrol_services_check(
         + 'static,
     ApiError,
 > {
-    let builder = servicecontrol_services_check_builder(client, &args.serviceName, &args.body)?;
+    let builder =
+        servicecontrol_services_check_builder(client, args.serviceName.clone(), &args.body)?;
     servicecontrol_services_check_execute(builder)
 }
 
@@ -189,18 +196,18 @@ pub fn servicecontrol_services_check(
 
 pub fn servicecontrol_services_report_builder(
     client: &SimpleHttpClient,
-    serviceName: &str,
+    serviceName: String,
     body: &ReportRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://servicecontrol.googleapis.com/v2/services/{}:report",
-        serviceName,
+        serviceName.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -232,8 +239,11 @@ pub fn servicecontrol_services_report_builder(
 pub fn servicecontrol_services_report_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ReportResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ReportResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -340,6 +350,7 @@ pub fn servicecontrol_services_report(
         + 'static,
     ApiError,
 > {
-    let builder = servicecontrol_services_report_builder(client, &args.serviceName, &args.body)?;
+    let builder =
+        servicecontrol_services_report_builder(client, args.serviceName.clone(), &args.body)?;
     servicecontrol_services_report_execute(builder)
 }

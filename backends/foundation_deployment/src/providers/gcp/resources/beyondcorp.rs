@@ -67,15 +67,21 @@ pub struct CloudSecurityZerotrustApplinkAppConnectorProtoConnectionConfig {
 
 /// ConnectorDetails reflects the details of a connector.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudSecurityZerotrustApplinkAppConnectorProtoConnectorDetails {}
+pub struct CloudSecurityZerotrustApplinkAppConnectorProtoConnectorDetails {
+    pub value: serde_json::Value,
+}
 
 /// LogAgentDetails reflects the details of a log agent.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloudSecurityZerotrustApplinkLogagentProtoLogAgentDetails {}
+pub struct CloudSecurityZerotrustApplinkLogagentProtoLogAgentDetails {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -222,7 +228,9 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse {
 
 /// RemoteAgentDetails reflects the details of a remote agent.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpAppconnectorsV1RemoteAgentDetails {}
+pub struct GoogleCloudBeyondcorpAppconnectorsV1RemoteAgentDetails {
+    pub value: serde_json::Value,
+}
 
 /// Request report the connector status.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -293,7 +301,9 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1alphaContainerHealthDetails {
 
 /// RemoteAgentDetails reflects the details of a remote agent.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpAppconnectorsV1alphaRemoteAgentDetails {}
+pub struct GoogleCloudBeyondcorpAppconnectorsV1alphaRemoteAgentDetails {
+    pub value: serde_json::Value,
+}
 
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -392,7 +402,9 @@ pub struct GoogleCloudBeyondcorpConnectorsV1alphaContainerHealthDetails {
 
 /// RemoteAgentDetails reflects the details of a remote agent.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpConnectorsV1alphaRemoteAgentDetails {}
+pub struct GoogleCloudBeyondcorpConnectorsV1alphaRemoteAgentDetails {
+    pub value: serde_json::Value,
+}
 
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -486,10 +498,6 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Configuration for Cloud Logging.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudBeyondcorpSecuritygatewaysV1LoggingConfig {}
-
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGatewayOperationMetadata {
@@ -582,7 +590,9 @@ pub struct GoogleIamV1TestIamPermissionsResponse {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleLongrunningCancelOperationRequest {}
+pub struct GoogleLongrunningCancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -776,7 +786,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway {
     pub hubs: ::core::option::Option<serde_json::Value>,
     /// Optional. Configuration for Cloud Logging. If this field is present, the logging will be enabled.
     #[serde(default)]
-    pub logging: ::core::option::Option<serde_json::Value>,
+    pub logging: ::core::option::Option<GoogleCloudBeyondcorpSecuritygatewaysV1LoggingConfig>,
     /// Identifier. Name of the resource.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -1034,6 +1044,12 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstream {
     #[serde(default, rename = "proxyProtocol")]
     pub proxy_protocol:
         ::core::option::Option<GoogleCloudBeyondcorpSecuritygatewaysV1ProxyProtocolConfig>,
+}
+
+/// Configuration for Cloud Logging.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudBeyondcorpSecuritygatewaysV1LoggingConfig {
+    pub value: serde_json::Value,
 }
 
 /// Settings related to the Service Discovery.

@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,18 @@ use serde::Serialize;
 
 pub fn playcustomapp_accounts_custom_apps_create_builder(
     client: &SimpleHttpClient,
-    account: &str,
+    account: String,
     body: &CustomApp,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playcustomapp.googleapis.com/playcustomapp/v1/accounts/{}/customApps",
-        account,
+        account.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -71,7 +72,12 @@ pub fn playcustomapp_accounts_custom_apps_create_builder(
 pub fn playcustomapp_accounts_custom_apps_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CustomApp>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomApp>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -173,7 +179,10 @@ pub fn playcustomapp_accounts_custom_apps_create(
     impl StreamIterator<D = Result<ApiResponse<CustomApp>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        playcustomapp_accounts_custom_apps_create_builder(client, &args.account, &args.body)?;
+    let builder = playcustomapp_accounts_custom_apps_create_builder(
+        client,
+        args.account.clone(),
+        &args.body,
+    )?;
     playcustomapp_accounts_custom_apps_create_execute(builder)
 }

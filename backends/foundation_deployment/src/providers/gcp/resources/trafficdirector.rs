@@ -40,10 +40,6 @@ pub struct ContextParams {
     pub params: ::core::option::Option<serde_json::Value>,
 }
 
-/// NullMatch is an empty message to specify a null value.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NullMatch {}
-
 /// Specifies the way to match a string. [#next-free-field: 9]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StringMatcher {
@@ -647,6 +643,12 @@ pub struct ListMatcher {
     pub one_of: ::core::option::Option<::std::boxed::Box<ValueMatcher>>,
 }
 
+/// NullMatch is an empty message to specify a null value.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NullMatch {
+    pub value: serde_json::Value,
+}
+
 /// Specifies a list of alternatives for the match.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrMatcher {
@@ -668,7 +670,7 @@ pub struct ValueMatcher {
     pub list_match: ::core::option::Option<::std::boxed::Box<ListMatcher>>,
     /// If specified, a match occurs if and only if the target value is a NullValue.
     #[serde(default, rename = "nullMatch")]
-    pub null_match: ::core::option::Option<serde_json::Value>,
+    pub null_match: ::core::option::Option<::std::boxed::Box<NullMatch>>,
     /// If specified, a match occurs if and only if any of the alternatives in the match accept the value.
     #[serde(default, rename = "orMatch")]
     pub or_match: ::core::option::Option<::std::boxed::Box<OrMatcher>>,

@@ -11,29 +11,17 @@ use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// Further data for the accepted state.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceptedData {}
-
-/// Further data for the active state.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActiveData {}
-
-/// Further data for the creating state.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreatingData {}
-
-/// Further data for the deleting state.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletingData {}
-
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request for GenerateServiceIdentity.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GenerateServiceIdentityRequest {}
+pub struct GenerateServiceIdentityRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for GenerateServiceIdentity.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -169,33 +157,23 @@ pub struct OperationMetadata {
     pub verb: ::core::option::Option<String>,
 }
 
-/// Further data for the provisioning state.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProvisioningData {}
-
 /// Request for ResetQueuedResource.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResetQueuedResourceRequest {}
-
-/// Spot tier definition.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Spot {}
+pub struct ResetQueuedResourceRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request for StartNode.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StartNodeRequest {}
+pub struct StartNodeRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request for StopNode.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopNodeRequest {}
-
-/// Further data for the suspended state.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SuspendedData {}
-
-/// Further data for the suspending state.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SuspendingData {}
+pub struct StopNodeRequest {
+    pub value: serde_json::Value,
+}
 
 /// The per-product per-project service identity for Cloud TPU service.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -290,7 +268,7 @@ pub struct QueuedResource {
     pub reservation_name: ::core::option::Option<String>,
     /// Optional. The Spot tier.
     #[serde(default)]
-    pub spot: ::core::option::Option<serde_json::Value>,
+    pub spot: ::core::option::Option<Spot>,
     /// Output only. State of the QueuedResource request.
     #[serde(default)]
     pub state: ::core::option::Option<QueuedResourceState>,
@@ -346,27 +324,33 @@ pub struct QueueingPolicy {
     pub valid_until_time: ::core::option::Option<String>,
 }
 
+/// Spot tier definition.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Spot {
+    pub value: serde_json::Value,
+}
+
 /// QueuedResourceState defines the details of the QueuedResource request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueuedResourceState {
     /// Output only. Further data for the accepted state.
     #[serde(default, rename = "acceptedData")]
-    pub accepted_data: ::core::option::Option<serde_json::Value>,
+    pub accepted_data: ::core::option::Option<AcceptedData>,
     /// Output only. Further data for the active state.
     #[serde(default, rename = "activeData")]
-    pub active_data: ::core::option::Option<serde_json::Value>,
+    pub active_data: ::core::option::Option<ActiveData>,
     /// Output only. Further data for the creating state.
     #[serde(default, rename = "creatingData")]
-    pub creating_data: ::core::option::Option<serde_json::Value>,
+    pub creating_data: ::core::option::Option<CreatingData>,
     /// Output only. Further data for the deleting state.
     #[serde(default, rename = "deletingData")]
-    pub deleting_data: ::core::option::Option<serde_json::Value>,
+    pub deleting_data: ::core::option::Option<DeletingData>,
     /// Output only. Further data for the failed state.
     #[serde(default, rename = "failedData")]
     pub failed_data: ::core::option::Option<FailedData>,
     /// Output only. Further data for the provisioning state.
     #[serde(default, rename = "provisioningData")]
-    pub provisioning_data: ::core::option::Option<serde_json::Value>,
+    pub provisioning_data: ::core::option::Option<ProvisioningData>,
     /// Output only. State of the QueuedResource request. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACCEPTED", "PROVISIONING", "FAILED", "DELETING", "ACTIVE", "SUSPENDING", "SUSPENDED", "WAITING_FOR_RESOURCES"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
@@ -375,10 +359,10 @@ pub struct QueuedResourceState {
     pub state_initiator: ::core::option::Option<String>,
     /// Output only. Further data for the suspended state.
     #[serde(default, rename = "suspendedData")]
-    pub suspended_data: ::core::option::Option<serde_json::Value>,
+    pub suspended_data: ::core::option::Option<SuspendedData>,
     /// Output only. Further data for the suspending state.
     #[serde(default, rename = "suspendingData")]
-    pub suspending_data: ::core::option::Option<serde_json::Value>,
+    pub suspending_data: ::core::option::Option<SuspendingData>,
 }
 
 /// Details of the TPU resource(s) being requested.
@@ -414,12 +398,54 @@ pub struct Interval {
     pub start_time: ::core::option::Option<String>,
 }
 
+/// Further data for the accepted state.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AcceptedData {
+    pub value: serde_json::Value,
+}
+
+/// Further data for the active state.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ActiveData {
+    pub value: serde_json::Value,
+}
+
+/// Further data for the creating state.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreatingData {
+    pub value: serde_json::Value,
+}
+
+/// Further data for the deleting state.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeletingData {
+    pub value: serde_json::Value,
+}
+
 /// Further data for the failed state.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FailedData {
     /// Output only. The error that caused the queued resource to enter the FAILED state.
     #[serde(default)]
     pub error: ::core::option::Option<Status>,
+}
+
+/// Further data for the provisioning state.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProvisioningData {
+    pub value: serde_json::Value,
+}
+
+/// Further data for the suspended state.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SuspendedData {
+    pub value: serde_json::Value,
+}
+
+/// Further data for the suspending state.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SuspendingData {
+    pub value: serde_json::Value,
 }
 
 /// Details of the TPU node(s) being requested. Users can request either a single node or multiple nodes. NodeSpec provides the specification for node(s) to be created.

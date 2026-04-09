@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,16 @@ use serde::Serialize;
 
 pub fn threatintelligence_projects_generate_org_profile_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GenerateOrgProfileConfigurationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}:generateOrgProfile",
-        name,
-    );
+    let endpoint_url =
+        format!("https://threatintelligence.googleapis.com/v1beta/projects/{}:generateOrgProfile",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -71,7 +70,12 @@ pub fn threatintelligence_projects_generate_org_profile_builder(
 pub fn threatintelligence_projects_generate_org_profile_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -173,325 +177,12 @@ pub fn threatintelligence_projects_generate_org_profile(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        threatintelligence_projects_generate_org_profile_builder(client, &args.name, &args.body)?;
+    let builder = threatintelligence_projects_generate_org_profile_builder(
+        client,
+        args.name.clone(),
+        &args.body,
+    )?;
     threatintelligence_projects_generate_org_profile_execute(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:benign
-/// Marks an alert as benign - BENIGN.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `threatintelligence_projects_alerts_benign_execute()` to send, or `threatintelligence_projects_alerts_benign` for simplest API.
-
-pub fn threatintelligence_projects_alerts_benign_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsBenignRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{}:benign",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:benign
-/// Marks an alert as benign - BENIGN.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `threatintelligence_projects_alerts_benign_execute()` or `threatintelligence_projects_alerts_benign`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_benign_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_benign_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Alert = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:benign
-/// Marks an alert as benign - BENIGN.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `threatintelligence_projects_alerts_benign_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `threatintelligence_projects_alerts_benign_task()`.
-/// For the simplest API, use `threatintelligence_projects_alerts_benign()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_benign_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn threatintelligence_projects_alerts_benign_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = threatintelligence_projects_alerts_benign_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`threatintelligence_projects_alerts_benign`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ThreatintelligenceProjectsAlertsBenignArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: MarkAlertAsBenignRequest,
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:benign
-/// Marks an alert as benign - BENIGN.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `threatintelligence_projects_alerts_benign_builder()` + `threatintelligence_projects_alerts_benign_execute()`.
-/// For task-level control, use `threatintelligence_projects_alerts_benign_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_benign(
-    client: &SimpleHttpClient,
-    args: &ThreatintelligenceProjectsAlertsBenignArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        threatintelligence_projects_alerts_benign_builder(client, &args.name, &args.body)?;
-    threatintelligence_projects_alerts_benign_execute(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:duplicate
-/// Marks an alert as a duplicate of another alert. - DUPLICATE.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `threatintelligence_projects_alerts_duplicate_execute()` to send, or `threatintelligence_projects_alerts_duplicate` for simplest API.
-
-pub fn threatintelligence_projects_alerts_duplicate_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsDuplicateRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{}:duplicate",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:duplicate
-/// Marks an alert as a duplicate of another alert. - DUPLICATE.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `threatintelligence_projects_alerts_duplicate_execute()` or `threatintelligence_projects_alerts_duplicate`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_duplicate_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_duplicate_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Alert = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:duplicate
-/// Marks an alert as a duplicate of another alert. - DUPLICATE.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `threatintelligence_projects_alerts_duplicate_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `threatintelligence_projects_alerts_duplicate_task()`.
-/// For the simplest API, use `threatintelligence_projects_alerts_duplicate()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_duplicate_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn threatintelligence_projects_alerts_duplicate_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = threatintelligence_projects_alerts_duplicate_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`threatintelligence_projects_alerts_duplicate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ThreatintelligenceProjectsAlertsDuplicateArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: MarkAlertAsDuplicateRequest,
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:duplicate
-/// Marks an alert as a duplicate of another alert. - DUPLICATE.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `threatintelligence_projects_alerts_duplicate_builder()` + `threatintelligence_projects_alerts_duplicate_execute()`.
-/// For task-level control, use `threatintelligence_projects_alerts_duplicate_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_duplicate(
-    client: &SimpleHttpClient,
-    args: &ThreatintelligenceProjectsAlertsDuplicateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        threatintelligence_projects_alerts_duplicate_builder(client, &args.name, &args.body)?;
-    threatintelligence_projects_alerts_duplicate_execute(builder)
 }
 
 /// GET v1beta/projects/{projectsId}/alerts:enumerateFacets
@@ -502,13 +193,12 @@ pub fn threatintelligence_projects_alerts_duplicate(
 
 pub fn threatintelligence_projects_alerts_enumerate_facets_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts:enumerateFacets",
-        parent,
     );
 
     // Build request
@@ -518,9 +208,9 @@ pub fn threatintelligence_projects_alerts_enumerate_facets_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -555,8 +245,9 @@ pub fn threatintelligence_projects_alerts_enumerate_facets_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<EnumerateAlertFacetsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<EnumerateAlertFacetsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -670,478 +361,10 @@ pub fn threatintelligence_projects_alerts_enumerate_facets(
 > {
     let builder = threatintelligence_projects_alerts_enumerate_facets_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
     )?;
     threatintelligence_projects_alerts_enumerate_facets_execute(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:escalate
-/// Marks an alert as escalated - ESCALATED.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `threatintelligence_projects_alerts_escalate_execute()` to send, or `threatintelligence_projects_alerts_escalate` for simplest API.
-
-pub fn threatintelligence_projects_alerts_escalate_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsEscalatedRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{}:escalate",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:escalate
-/// Marks an alert as escalated - ESCALATED.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `threatintelligence_projects_alerts_escalate_execute()` or `threatintelligence_projects_alerts_escalate`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_escalate_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_escalate_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Alert = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:escalate
-/// Marks an alert as escalated - ESCALATED.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `threatintelligence_projects_alerts_escalate_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `threatintelligence_projects_alerts_escalate_task()`.
-/// For the simplest API, use `threatintelligence_projects_alerts_escalate()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_escalate_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn threatintelligence_projects_alerts_escalate_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = threatintelligence_projects_alerts_escalate_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`threatintelligence_projects_alerts_escalate`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ThreatintelligenceProjectsAlertsEscalateArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: MarkAlertAsEscalatedRequest,
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:escalate
-/// Marks an alert as escalated - ESCALATED.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `threatintelligence_projects_alerts_escalate_builder()` + `threatintelligence_projects_alerts_escalate_execute()`.
-/// For task-level control, use `threatintelligence_projects_alerts_escalate_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_escalate(
-    client: &SimpleHttpClient,
-    args: &ThreatintelligenceProjectsAlertsEscalateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        threatintelligence_projects_alerts_escalate_builder(client, &args.name, &args.body)?;
-    threatintelligence_projects_alerts_escalate_execute(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:falsePositive
-/// Marks an alert as a `false` positive - FALSE_POSITIVE.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `threatintelligence_projects_alerts_false_positive_execute()` to send, or `threatintelligence_projects_alerts_false_positive` for simplest API.
-
-pub fn threatintelligence_projects_alerts_false_positive_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsFalsePositiveRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{}:falsePositive",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:falsePositive
-/// Marks an alert as a `false` positive - FALSE_POSITIVE.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `threatintelligence_projects_alerts_false_positive_execute()` or `threatintelligence_projects_alerts_false_positive`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_false_positive_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_false_positive_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Alert = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:falsePositive
-/// Marks an alert as a `false` positive - FALSE_POSITIVE.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `threatintelligence_projects_alerts_false_positive_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `threatintelligence_projects_alerts_false_positive_task()`.
-/// For the simplest API, use `threatintelligence_projects_alerts_false_positive()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_false_positive_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn threatintelligence_projects_alerts_false_positive_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = threatintelligence_projects_alerts_false_positive_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`threatintelligence_projects_alerts_false_positive`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ThreatintelligenceProjectsAlertsFalsePositiveArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: MarkAlertAsFalsePositiveRequest,
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:falsePositive
-/// Marks an alert as a `false` positive - FALSE_POSITIVE.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `threatintelligence_projects_alerts_false_positive_builder()` + `threatintelligence_projects_alerts_false_positive_execute()`.
-/// For task-level control, use `threatintelligence_projects_alerts_false_positive_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_false_positive(
-    client: &SimpleHttpClient,
-    args: &ThreatintelligenceProjectsAlertsFalsePositiveArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        threatintelligence_projects_alerts_false_positive_builder(client, &args.name, &args.body)?;
-    threatintelligence_projects_alerts_false_positive_execute(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}
-/// Get an alert by name.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `threatintelligence_projects_alerts_get_execute()` to send, or `threatintelligence_projects_alerts_get` for simplest API.
-
-pub fn threatintelligence_projects_alerts_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}
-/// Get an alert by name.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `threatintelligence_projects_alerts_get_execute()` or `threatintelligence_projects_alerts_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Alert = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}
-/// Get an alert by name.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `threatintelligence_projects_alerts_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `threatintelligence_projects_alerts_get_task()`.
-/// For the simplest API, use `threatintelligence_projects_alerts_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn threatintelligence_projects_alerts_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = threatintelligence_projects_alerts_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`threatintelligence_projects_alerts_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ThreatintelligenceProjectsAlertsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}
-/// Get an alert by name.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `threatintelligence_projects_alerts_get_builder()` + `threatintelligence_projects_alerts_get_execute()`.
-/// For task-level control, use `threatintelligence_projects_alerts_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_get(
-    client: &SimpleHttpClient,
-    args: &ThreatintelligenceProjectsAlertsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = threatintelligence_projects_alerts_get_builder(client, &args.name)?;
-    threatintelligence_projects_alerts_get_execute(builder)
 }
 
 /// GET v1beta/projects/{projectsId}/alerts
@@ -1152,17 +375,15 @@ pub fn threatintelligence_projects_alerts_get(
 
 pub fn threatintelligence_projects_alerts_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
+    parent: String,
+    filter: Option<String>,
+    orderBy: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1180,9 +401,9 @@ pub fn threatintelligence_projects_alerts_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1216,8 +437,11 @@ pub fn threatintelligence_projects_alerts_list_builder(
 pub fn threatintelligence_projects_alerts_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListAlertsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAlertsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1332,1115 +556,13 @@ pub fn threatintelligence_projects_alerts_list(
 > {
     let builder = threatintelligence_projects_alerts_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.orderBy.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     threatintelligence_projects_alerts_list_execute(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:notActionable
-/// Marks an alert as not actionable - NOT_ACTIONABLE.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `threatintelligence_projects_alerts_not_actionable_execute()` to send, or `threatintelligence_projects_alerts_not_actionable` for simplest API.
-
-pub fn threatintelligence_projects_alerts_not_actionable_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsNotActionableRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{}:notActionable",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:notActionable
-/// Marks an alert as not actionable - NOT_ACTIONABLE.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `threatintelligence_projects_alerts_not_actionable_execute()` or `threatintelligence_projects_alerts_not_actionable`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_not_actionable_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_not_actionable_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Alert = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:notActionable
-/// Marks an alert as not actionable - NOT_ACTIONABLE.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `threatintelligence_projects_alerts_not_actionable_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `threatintelligence_projects_alerts_not_actionable_task()`.
-/// For the simplest API, use `threatintelligence_projects_alerts_not_actionable()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_not_actionable_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn threatintelligence_projects_alerts_not_actionable_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = threatintelligence_projects_alerts_not_actionable_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`threatintelligence_projects_alerts_not_actionable`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ThreatintelligenceProjectsAlertsNotActionableArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: MarkAlertAsNotActionableRequest,
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:notActionable
-/// Marks an alert as not actionable - NOT_ACTIONABLE.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `threatintelligence_projects_alerts_not_actionable_builder()` + `threatintelligence_projects_alerts_not_actionable_execute()`.
-/// For task-level control, use `threatintelligence_projects_alerts_not_actionable_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_not_actionable(
-    client: &SimpleHttpClient,
-    args: &ThreatintelligenceProjectsAlertsNotActionableArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        threatintelligence_projects_alerts_not_actionable_builder(client, &args.name, &args.body)?;
-    threatintelligence_projects_alerts_not_actionable_execute(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:read
-/// Marks an alert as read - READ.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `threatintelligence_projects_alerts_read_execute()` to send, or `threatintelligence_projects_alerts_read` for simplest API.
-
-pub fn threatintelligence_projects_alerts_read_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsReadRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{}:read",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:read
-/// Marks an alert as read - READ.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `threatintelligence_projects_alerts_read_execute()` or `threatintelligence_projects_alerts_read`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_read_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_read_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Alert = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:read
-/// Marks an alert as read - READ.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `threatintelligence_projects_alerts_read_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `threatintelligence_projects_alerts_read_task()`.
-/// For the simplest API, use `threatintelligence_projects_alerts_read()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_read_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn threatintelligence_projects_alerts_read_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = threatintelligence_projects_alerts_read_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`threatintelligence_projects_alerts_read`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ThreatintelligenceProjectsAlertsReadArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: MarkAlertAsReadRequest,
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:read
-/// Marks an alert as read - READ.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `threatintelligence_projects_alerts_read_builder()` + `threatintelligence_projects_alerts_read_execute()`.
-/// For task-level control, use `threatintelligence_projects_alerts_read_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_read(
-    client: &SimpleHttpClient,
-    args: &ThreatintelligenceProjectsAlertsReadArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = threatintelligence_projects_alerts_read_builder(client, &args.name, &args.body)?;
-    threatintelligence_projects_alerts_read_execute(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:resolve
-/// Marks an alert to closed state - RESOLVED.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `threatintelligence_projects_alerts_resolve_execute()` to send, or `threatintelligence_projects_alerts_resolve` for simplest API.
-
-pub fn threatintelligence_projects_alerts_resolve_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsResolvedRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{}:resolve",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:resolve
-/// Marks an alert to closed state - RESOLVED.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `threatintelligence_projects_alerts_resolve_execute()` or `threatintelligence_projects_alerts_resolve`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_resolve_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_resolve_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Alert = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:resolve
-/// Marks an alert to closed state - RESOLVED.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `threatintelligence_projects_alerts_resolve_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `threatintelligence_projects_alerts_resolve_task()`.
-/// For the simplest API, use `threatintelligence_projects_alerts_resolve()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_resolve_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn threatintelligence_projects_alerts_resolve_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = threatintelligence_projects_alerts_resolve_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`threatintelligence_projects_alerts_resolve`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ThreatintelligenceProjectsAlertsResolveArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: MarkAlertAsResolvedRequest,
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:resolve
-/// Marks an alert to closed state - RESOLVED.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `threatintelligence_projects_alerts_resolve_builder()` + `threatintelligence_projects_alerts_resolve_execute()`.
-/// For task-level control, use `threatintelligence_projects_alerts_resolve_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_resolve(
-    client: &SimpleHttpClient,
-    args: &ThreatintelligenceProjectsAlertsResolveArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        threatintelligence_projects_alerts_resolve_builder(client, &args.name, &args.body)?;
-    threatintelligence_projects_alerts_resolve_execute(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:trackExternally
-/// Marks an alert as tracked externally - TRACKED_EXTERNALLY.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `threatintelligence_projects_alerts_track_externally_execute()` to send, or `threatintelligence_projects_alerts_track_externally` for simplest API.
-
-pub fn threatintelligence_projects_alerts_track_externally_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsTrackedExternallyRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{}:trackExternally",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:trackExternally
-/// Marks an alert as tracked externally - TRACKED_EXTERNALLY.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `threatintelligence_projects_alerts_track_externally_execute()` or `threatintelligence_projects_alerts_track_externally`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_track_externally_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_track_externally_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Alert = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:trackExternally
-/// Marks an alert as tracked externally - TRACKED_EXTERNALLY.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `threatintelligence_projects_alerts_track_externally_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `threatintelligence_projects_alerts_track_externally_task()`.
-/// For the simplest API, use `threatintelligence_projects_alerts_track_externally()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_track_externally_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn threatintelligence_projects_alerts_track_externally_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = threatintelligence_projects_alerts_track_externally_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`threatintelligence_projects_alerts_track_externally`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ThreatintelligenceProjectsAlertsTrackExternallyArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: MarkAlertAsTrackedExternallyRequest,
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:trackExternally
-/// Marks an alert as tracked externally - TRACKED_EXTERNALLY.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `threatintelligence_projects_alerts_track_externally_builder()` + `threatintelligence_projects_alerts_track_externally_execute()`.
-/// For task-level control, use `threatintelligence_projects_alerts_track_externally_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_track_externally(
-    client: &SimpleHttpClient,
-    args: &ThreatintelligenceProjectsAlertsTrackExternallyArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = threatintelligence_projects_alerts_track_externally_builder(
-        client, &args.name, &args.body,
-    )?;
-    threatintelligence_projects_alerts_track_externally_execute(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:triage
-/// Marks an alert as triaged - TRIAGED.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `threatintelligence_projects_alerts_triage_execute()` to send, or `threatintelligence_projects_alerts_triage` for simplest API.
-
-pub fn threatintelligence_projects_alerts_triage_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &MarkAlertAsTriagedRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{}:triage",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:triage
-/// Marks an alert as triaged - TRIAGED.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `threatintelligence_projects_alerts_triage_execute()` or `threatintelligence_projects_alerts_triage`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_triage_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_triage_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Alert = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:triage
-/// Marks an alert as triaged - TRIAGED.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `threatintelligence_projects_alerts_triage_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `threatintelligence_projects_alerts_triage_task()`.
-/// For the simplest API, use `threatintelligence_projects_alerts_triage()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_triage_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn threatintelligence_projects_alerts_triage_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = threatintelligence_projects_alerts_triage_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`threatintelligence_projects_alerts_triage`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ThreatintelligenceProjectsAlertsTriageArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: MarkAlertAsTriagedRequest,
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}:triage
-/// Marks an alert as triaged - TRIAGED.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `threatintelligence_projects_alerts_triage_builder()` + `threatintelligence_projects_alerts_triage_execute()`.
-/// For task-level control, use `threatintelligence_projects_alerts_triage_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_triage(
-    client: &SimpleHttpClient,
-    args: &ThreatintelligenceProjectsAlertsTriageArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        threatintelligence_projects_alerts_triage_builder(client, &args.name, &args.body)?;
-    threatintelligence_projects_alerts_triage_execute(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}/documents/{documentsId}
-/// Gets a specific document associated with an alert.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `threatintelligence_projects_alerts_documents_get_execute()` to send, or `threatintelligence_projects_alerts_documents_get` for simplest API.
-
-pub fn threatintelligence_projects_alerts_documents_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/alerts/{}/documents/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}/documents/{documentsId}
-/// Gets a specific document associated with an alert.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `threatintelligence_projects_alerts_documents_get_execute()` or `threatintelligence_projects_alerts_documents_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_documents_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_documents_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AlertDocument>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AlertDocument = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}/documents/{documentsId}
-/// Gets a specific document associated with an alert.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `threatintelligence_projects_alerts_documents_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `threatintelligence_projects_alerts_documents_get_task()`.
-/// For the simplest API, use `threatintelligence_projects_alerts_documents_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_alerts_documents_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn threatintelligence_projects_alerts_documents_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AlertDocument>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = threatintelligence_projects_alerts_documents_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`threatintelligence_projects_alerts_documents_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ThreatintelligenceProjectsAlertsDocumentsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1beta/projects/{projectsId}/alerts/{alertsId}/documents/{documentsId}
-/// Gets a specific document associated with an alert.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `threatintelligence_projects_alerts_documents_get_builder()` + `threatintelligence_projects_alerts_documents_get_execute()`.
-/// For task-level control, use `threatintelligence_projects_alerts_documents_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_alerts_documents_get(
-    client: &SimpleHttpClient,
-    args: &ThreatintelligenceProjectsAlertsDocumentsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AlertDocument>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = threatintelligence_projects_alerts_documents_get_builder(client, &args.name)?;
-    threatintelligence_projects_alerts_documents_get_execute(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/configurations/{configurationsId}
-/// Get a configuration by name.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `threatintelligence_projects_configurations_get_execute()` to send, or `threatintelligence_projects_configurations_get` for simplest API.
-
-pub fn threatintelligence_projects_configurations_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/configurations/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/configurations/{configurationsId}
-/// Get a configuration by name.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `threatintelligence_projects_configurations_get_execute()` or `threatintelligence_projects_configurations_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_configurations_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_configurations_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Configuration>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Configuration = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta/projects/{projectsId}/configurations/{configurationsId}
-/// Get a configuration by name.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `threatintelligence_projects_configurations_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `threatintelligence_projects_configurations_get_task()`.
-/// For the simplest API, use `threatintelligence_projects_configurations_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_configurations_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn threatintelligence_projects_configurations_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Configuration>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = threatintelligence_projects_configurations_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`threatintelligence_projects_configurations_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ThreatintelligenceProjectsConfigurationsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1beta/projects/{projectsId}/configurations/{configurationsId}
-/// Get a configuration by name.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `threatintelligence_projects_configurations_get_builder()` + `threatintelligence_projects_configurations_get_execute()`.
-/// For task-level control, use `threatintelligence_projects_configurations_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_configurations_get(
-    client: &SimpleHttpClient,
-    args: &ThreatintelligenceProjectsConfigurationsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Configuration>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = threatintelligence_projects_configurations_get_builder(client, &args.name)?;
-    threatintelligence_projects_configurations_get_execute(builder)
 }
 
 /// GET v1beta/projects/{projectsId}/configurations
@@ -2451,17 +573,15 @@ pub fn threatintelligence_projects_configurations_get(
 
 pub fn threatintelligence_projects_configurations_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
+    parent: String,
+    filter: Option<String>,
+    orderBy: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/configurations",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://threatintelligence.googleapis.com/v1beta/projects/{}/configurations",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2479,9 +599,9 @@ pub fn threatintelligence_projects_configurations_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2515,8 +635,11 @@ pub fn threatintelligence_projects_configurations_list_builder(
 pub fn threatintelligence_projects_configurations_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListConfigurationsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListConfigurationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2635,11 +758,11 @@ pub fn threatintelligence_projects_configurations_list(
 > {
     let builder = threatintelligence_projects_configurations_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.orderBy.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     threatintelligence_projects_configurations_list_execute(builder)
 }
@@ -2652,14 +775,13 @@ pub fn threatintelligence_projects_configurations_list(
 
 pub fn threatintelligence_projects_configurations_upsert_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    publishTime: Option<&str>,
+    parent: String,
+    publishTime: Option<String>,
     body: &Configuration,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://threatintelligence.googleapis.com/v1beta/projects/{}/configurations:upsert",
-        parent,
     );
 
     // Build request
@@ -2669,9 +791,9 @@ pub fn threatintelligence_projects_configurations_upsert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2707,8 +829,11 @@ pub fn threatintelligence_projects_configurations_upsert_builder(
 pub fn threatintelligence_projects_configurations_upsert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UpsertConfigurationResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UpsertConfigurationResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2823,366 +948,11 @@ pub fn threatintelligence_projects_configurations_upsert(
 > {
     let builder = threatintelligence_projects_configurations_upsert_builder(
         client,
-        &args.parent,
-        args.publishTime.as_deref(),
+        args.parent.clone(),
+        args.publishTime.clone(),
         &args.body,
     )?;
     threatintelligence_projects_configurations_upsert_execute(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/configurations/{configurationsId}/revisions
-/// List configuration revisions that meet the filter criteria.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `threatintelligence_projects_configurations_revisions_list_execute()` to send, or `threatintelligence_projects_configurations_revisions_list` for simplest API.
-
-pub fn threatintelligence_projects_configurations_revisions_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/configurations/{}/revisions",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = orderBy {
-        query_parts.push(format!("orderBy={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/configurations/{configurationsId}/revisions
-/// List configuration revisions that meet the filter criteria.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `threatintelligence_projects_configurations_revisions_list_execute()` or `threatintelligence_projects_configurations_revisions_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_configurations_revisions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_configurations_revisions_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListConfigurationRevisionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListConfigurationRevisionsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta/projects/{projectsId}/configurations/{configurationsId}/revisions
-/// List configuration revisions that meet the filter criteria.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `threatintelligence_projects_configurations_revisions_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `threatintelligence_projects_configurations_revisions_list_task()`.
-/// For the simplest API, use `threatintelligence_projects_configurations_revisions_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_configurations_revisions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn threatintelligence_projects_configurations_revisions_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListConfigurationRevisionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = threatintelligence_projects_configurations_revisions_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`threatintelligence_projects_configurations_revisions_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ThreatintelligenceProjectsConfigurationsRevisionsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1beta/projects/{projectsId}/configurations/{configurationsId}/revisions
-/// List configuration revisions that meet the filter criteria.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `threatintelligence_projects_configurations_revisions_list_builder()` + `threatintelligence_projects_configurations_revisions_list_execute()`.
-/// For task-level control, use `threatintelligence_projects_configurations_revisions_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_configurations_revisions_list(
-    client: &SimpleHttpClient,
-    args: &ThreatintelligenceProjectsConfigurationsRevisionsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListConfigurationRevisionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = threatintelligence_projects_configurations_revisions_list_builder(
-        client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    threatintelligence_projects_configurations_revisions_list_execute(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/findings/{findingsId}
-/// Get a finding by name. The name field should have the format: `projects/{project}/findings/{finding}`
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `threatintelligence_projects_findings_get_execute()` to send, or `threatintelligence_projects_findings_get` for simplest API.
-
-pub fn threatintelligence_projects_findings_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/findings/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta/projects/{projectsId}/findings/{findingsId}
-/// Get a finding by name. The name field should have the format: `projects/{project}/findings/{finding}`
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `threatintelligence_projects_findings_get_execute()` or `threatintelligence_projects_findings_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_findings_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_findings_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Finding = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta/projects/{projectsId}/findings/{findingsId}
-/// Get a finding by name. The name field should have the format: `projects/{project}/findings/{finding}`
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `threatintelligence_projects_findings_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `threatintelligence_projects_findings_get_task()`.
-/// For the simplest API, use `threatintelligence_projects_findings_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `threatintelligence_projects_findings_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn threatintelligence_projects_findings_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = threatintelligence_projects_findings_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`threatintelligence_projects_findings_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ThreatintelligenceProjectsFindingsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1beta/projects/{projectsId}/findings/{findingsId}
-/// Get a finding by name. The name field should have the format: `projects/{project}/findings/{finding}`
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `threatintelligence_projects_findings_get_builder()` + `threatintelligence_projects_findings_get_execute()`.
-/// For task-level control, use `threatintelligence_projects_findings_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn threatintelligence_projects_findings_get(
-    client: &SimpleHttpClient,
-    args: &ThreatintelligenceProjectsFindingsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Finding>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = threatintelligence_projects_findings_get_builder(client, &args.name)?;
-    threatintelligence_projects_findings_get_execute(builder)
 }
 
 /// GET v1beta/projects/{projectsId}/findings
@@ -3193,17 +963,15 @@ pub fn threatintelligence_projects_findings_get(
 
 pub fn threatintelligence_projects_findings_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
+    parent: String,
+    filter: Option<String>,
+    orderBy: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/findings",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://threatintelligence.googleapis.com/v1beta/projects/{}/findings",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3221,9 +989,9 @@ pub fn threatintelligence_projects_findings_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3257,8 +1025,11 @@ pub fn threatintelligence_projects_findings_list_builder(
 pub fn threatintelligence_projects_findings_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListFindingsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListFindingsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3373,11 +1144,11 @@ pub fn threatintelligence_projects_findings_list(
 > {
     let builder = threatintelligence_projects_findings_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.orderBy.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     threatintelligence_projects_findings_list_execute(builder)
 }
@@ -3390,17 +1161,15 @@ pub fn threatintelligence_projects_findings_list(
 
 pub fn threatintelligence_projects_findings_search_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    orderBy: Option<&str>,
+    parent: String,
+    orderBy: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    pageToken: Option<String>,
+    query: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://threatintelligence.googleapis.com/v1beta/projects/{}/findings:search",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://threatintelligence.googleapis.com/v1beta/projects/{}/findings:search",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3418,9 +1187,9 @@ pub fn threatintelligence_projects_findings_search_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3454,8 +1223,11 @@ pub fn threatintelligence_projects_findings_search_builder(
 pub fn threatintelligence_projects_findings_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SearchFindingsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchFindingsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3570,11 +1342,11 @@ pub fn threatintelligence_projects_findings_search(
 > {
     let builder = threatintelligence_projects_findings_search_builder(
         client,
-        &args.parent,
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.query.as_deref(),
+        args.parent.clone(),
+        args.orderBy.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.query.clone(),
     )?;
     threatintelligence_projects_findings_search_execute(builder)
 }

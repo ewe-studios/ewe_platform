@@ -13,15 +13,21 @@ use serde::{Deserialize, Serialize};
 
 /// Request message for AccessControl.AcceptInvitation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AcceptInvitationRequest {}
+pub struct AcceptInvitationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for AccessControl.DeclineInvitation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeclineInvitationRequest {}
+pub struct DeclineInvitationRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Response message for AccessControl.ListAccountAdmins.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

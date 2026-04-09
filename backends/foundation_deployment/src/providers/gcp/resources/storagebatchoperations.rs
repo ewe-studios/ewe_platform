@@ -21,15 +21,21 @@ pub struct CancelJobRequest {
 
 /// Message for response to cancel Job.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelJobResponse {}
+pub struct CancelJobResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Message for response to listing BucketOperations
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

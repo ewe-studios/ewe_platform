@@ -11,18 +11,6 @@ use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// Certificate is required to serve in any country and the existing certificate does not cover the ad''s domain.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicConstraintAdPolicyGlobalCertificateDomainMismatchConstraint {}
-
-/// Certificate is required to serve in any country.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicConstraintAdPolicyGlobalCertificateMissingConstraint {}
-
-/// Policy topic was constrained due to disapproval of the website for reseller purposes.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AdPolicyTopicConstraintAdPolicyResellerConstraint {}
-
 /// Rule-based algorithm.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlgorithmRules {
@@ -501,7 +489,9 @@ pub struct EditInventorySourceReadWriteAccessorsRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// A single Floodlight group.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -5559,16 +5549,20 @@ pub struct AdPolicyTopicConstraint {
         ::core::option::Option<AdPolicyTopicConstraintAdPolicyCountryConstraintList>,
     /// Certificate is required to serve in any country and the existing certificate does not cover the ad''s domain.
     #[serde(default, rename = "globalCertificateDomainMismatch")]
-    pub global_certificate_domain_mismatch: ::core::option::Option<serde_json::Value>,
+    pub global_certificate_domain_mismatch: ::core::option::Option<
+        AdPolicyTopicConstraintAdPolicyGlobalCertificateDomainMismatchConstraint,
+    >,
     /// Certificate is required to serve in any country.
     #[serde(default, rename = "globalCertificateMissing")]
-    pub global_certificate_missing: ::core::option::Option<serde_json::Value>,
+    pub global_certificate_missing:
+        ::core::option::Option<AdPolicyTopicConstraintAdPolicyGlobalCertificateMissingConstraint>,
     /// Link to the form to request a certificate for the constraint.
     #[serde(default, rename = "requestCertificateFormLink")]
     pub request_certificate_form_link: ::core::option::Option<String>,
     /// Reseller constraint.
     #[serde(default, rename = "resellerConstraint")]
-    pub reseller_constraint: ::core::option::Option<serde_json::Value>,
+    pub reseller_constraint:
+        ::core::option::Option<AdPolicyTopicConstraintAdPolicyResellerConstraint>,
 }
 
 /// Evidence information used in the policy decision.
@@ -5916,6 +5910,24 @@ pub struct AdPolicyTopicConstraintAdPolicyCountryConstraintList {
     /// Countries where the ad cannot serve.
     #[serde(default)]
     pub countries: ::core::option::Option<::std::vec::Vec<AdPolicyCriterionRestriction>>,
+}
+
+/// Certificate is required to serve in any country and the existing certificate does not cover the ad''s domain.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicConstraintAdPolicyGlobalCertificateDomainMismatchConstraint {
+    pub value: serde_json::Value,
+}
+
+/// Certificate is required to serve in any country.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicConstraintAdPolicyGlobalCertificateMissingConstraint {
+    pub value: serde_json::Value,
+}
+
+/// Policy topic was constrained due to disapproval of the website for reseller purposes.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AdPolicyTopicConstraintAdPolicyResellerConstraint {
+    pub value: serde_json::Value,
 }
 
 /// Details on the counterfeit enforcement that caused a policy violation.

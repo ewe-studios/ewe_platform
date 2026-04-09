@@ -322,10 +322,6 @@ pub struct GenerateRecommendationsResponse {
     pub response_token: ::core::option::Option<String>,
 }
 
-/// Checkbox input allows merchants to provide a boolean value. Corresponds to the [html input type=checkbox](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.checkbox.html#input.checkbox). If merchant checks the box, the input value for the field is true, otherwise it is false. This type of input is often used as a confirmation that the merchant completed required steps before they are allowed to start the action. In such a case, the input field is marked as required and the button to trigger the action should stay disabled until the merchant checks the box.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InputFieldCheckboxInput {}
-
 /// Request message for the InsertCheckoutSettings method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertCheckoutSettingsRequest {
@@ -1093,7 +1089,9 @@ pub struct TriggerActionResponse {
 
 /// Request message for the UndeleteConversionSource method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UndeleteConversionSourceRequest {}
+pub struct UndeleteConversionSourceRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for the VerifyPhoneNumber method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -5730,7 +5728,7 @@ pub struct ExternalAction {
 pub struct InputField {
     /// Input field to provide a boolean value. Corresponds to the [html input type=checkbox](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.checkbox.html#input.checkbox).
     #[serde(default, rename = "checkboxInput")]
-    pub checkbox_input: ::core::option::Option<serde_json::Value>,
+    pub checkbox_input: ::core::option::Option<::std::boxed::Box<InputFieldCheckboxInput>>,
     /// Input field to select one of the offered choices. Corresponds to the [html input type=radio](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.radio.html#input.radio).
     #[serde(default, rename = "choiceInput")]
     pub choice_input: ::core::option::Option<::std::boxed::Box<InputFieldChoiceInput>>,
@@ -5746,6 +5744,12 @@ pub struct InputField {
     /// Input field to provide text information. Corresponds to the [html input type=text](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.text.html#input.text) or [html textarea](https://www.w3.org/TR/2012/WD-html-markup-20121025/textarea.html#textarea).
     #[serde(default, rename = "textInput")]
     pub text_input: ::core::option::Option<::std::boxed::Box<InputFieldTextInput>>,
+}
+
+/// Checkbox input allows merchants to provide a boolean value. Corresponds to the [html input type=checkbox](https://www.w3.org/TR/2012/WD-html-markup-20121025/input.checkbox.html#input.checkbox). If merchant checks the box, the input value for the field is true, otherwise it is false. This type of input is often used as a confirmation that the merchant completed required steps before they are allowed to start the action. In such a case, the input field is marked as required and the button to trigger the action should stay disabled until the merchant checks the box.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InputFieldCheckboxInput {
+    pub value: serde_json::Value,
 }
 
 /// Choice input allows merchants to select one of the offered choices. Some choices may be linked to additional input fields that should be displayed under or next to the choice option. The value for the additional input field needs to be provided only when the specific choice is selected by the merchant. For example, additional input field can be hidden or disabled until the merchant selects the specific choice.

@@ -22,10 +22,6 @@ pub struct GoogleCloudRunV2CancelExecutionRequest {
     pub validate_only: ::core::option::Option<bool>,
 }
 
-/// Build the source using Docker. This means the source has a Dockerfile.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRunV2DockerBuild {}
-
 /// Request message for exporting Cloud Run image.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ExportImageRequest {
@@ -192,7 +188,7 @@ pub struct GoogleCloudRunV2SubmitBuildRequest {
     pub client: ::core::option::Option<String>,
     /// Build the source using Docker. This means the source has a Dockerfile.
     #[serde(default, rename = "dockerBuild")]
-    pub docker_build: ::core::option::Option<serde_json::Value>,
+    pub docker_build: ::core::option::Option<GoogleCloudRunV2DockerBuild>,
     /// Required. Artifact Registry URI to store the built image.
     #[serde(default, rename = "imageUri")]
     pub image_uri: ::core::option::Option<String>,
@@ -289,11 +285,9 @@ pub struct GoogleLongrunningWaitOperationRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
-
-/// This is proto2''s version of MessageSet. DEPRECATED: DO NOT USE FOR NEW FIELDS. If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead. MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2. This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Proto2BridgeMessageSet {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// The status of an image export job.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1081,6 +1075,12 @@ pub struct GoogleCloudRunV2BuildpacksBuild {
     pub runtime: ::core::option::Option<String>,
 }
 
+/// Build the source using Docker. This means the source has a Dockerfile.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRunV2DockerBuild {
+    pub value: serde_json::Value,
+}
+
 /// Location of the source in an archive file in Google Cloud Storage.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2StorageSource {
@@ -1244,7 +1244,7 @@ pub struct UtilStatusProto {
     pub message: ::core::option::Option<String>,
     /// message_set associates an arbitrary proto message with the status. copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional proto2.bridge.MessageSet message_set = 5;
     #[serde(default, rename = "messageSet")]
-    pub message_set: ::core::option::Option<serde_json::Value>,
+    pub message_set: ::core::option::Option<Proto2BridgeMessageSet>,
     /// copybara:strip_begin(b/383363683) Space to which this status belongs copybara:strip_end_and_replace optional string space = 2; // Space to which this status belongs
     #[serde(default)]
     pub space: ::core::option::Option<String>,
@@ -1985,6 +1985,12 @@ pub struct GoogleIamV1Binding {
     /// Role that is assigned to the list of members, or principals. For example, roles/viewer, roles/editor, or roles/owner. For an overview of the IAM roles and permissions, see the [IAM documentation](https://cloud.google.com/iam/docs/roles-overview). For a list of the available pre-defined roles, see [here](https://cloud.google.com/iam/docs/understanding-roles).
     #[serde(default)]
     pub role: ::core::option::Option<String>,
+}
+
+/// This is proto2''s version of MessageSet. DEPRECATED: DO NOT USE FOR NEW FIELDS. If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead. MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2. This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Proto2BridgeMessageSet {
+    pub value: serde_json::Value,
 }
 
 /// TaskTemplate describes the data a task should have when created from a template.

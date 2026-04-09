@@ -92,14 +92,6 @@ pub struct Document {
     pub title: ::core::option::Option<String>,
 }
 
-/// The properties of an embedded drawing and used to differentiate the object type. An embedded drawing is one that''s created and edited within a document. Note that extensive details are not supported.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmbeddedDrawingProperties {}
-
-/// A mask that indicates which of the fields on the base EmbeddedDrawingProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmbeddedDrawingPropertiesSuggestionState {}
-
 /// A document footer.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Footer {
@@ -1389,7 +1381,7 @@ pub struct EmbeddedObject {
     pub description: ::core::option::Option<String>,
     /// The properties of an embedded drawing.
     #[serde(default, rename = "embeddedDrawingProperties")]
-    pub embedded_drawing_properties: ::core::option::Option<serde_json::Value>,
+    pub embedded_drawing_properties: ::core::option::Option<EmbeddedDrawingProperties>,
     /// The border of the embedded object.
     #[serde(default, rename = "embeddedObjectBorder")]
     pub embedded_object_border: ::core::option::Option<EmbeddedObjectBorder>,
@@ -1441,7 +1433,8 @@ pub struct EmbeddedObjectSuggestionState {
     pub description_suggested: ::core::option::Option<bool>,
     /// A mask that indicates which of the fields in embedded_drawing_properties have been changed in this suggestion.
     #[serde(default, rename = "embeddedDrawingPropertiesSuggestionState")]
-    pub embedded_drawing_properties_suggestion_state: ::core::option::Option<serde_json::Value>,
+    pub embedded_drawing_properties_suggestion_state:
+        ::core::option::Option<EmbeddedDrawingPropertiesSuggestionState>,
     /// A mask that indicates which of the fields in embedded_object_border have been changed in this suggestion.
     #[serde(default, rename = "embeddedObjectBorderSuggestionState")]
     pub embedded_object_border_suggestion_state:
@@ -1761,6 +1754,12 @@ pub struct TextStyleSuggestionState {
     pub weighted_font_family_suggested: ::core::option::Option<bool>,
 }
 
+/// The properties of an embedded drawing and used to differentiate the object type. An embedded drawing is one that''s created and edited within a document. Note that extensive details are not supported.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmbeddedDrawingProperties {
+    pub value: serde_json::Value,
+}
+
 /// A border around an EmbeddedObject.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmbeddedObjectBorder {
@@ -1810,6 +1809,12 @@ pub struct LinkedContentReference {
     /// A reference to the linked chart.
     #[serde(default, rename = "sheetsChartReference")]
     pub sheets_chart_reference: ::core::option::Option<SheetsChartReference>,
+}
+
+/// A mask that indicates which of the fields on the base EmbeddedDrawingProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EmbeddedDrawingPropertiesSuggestionState {
+    pub value: serde_json::Value,
 }
 
 /// A mask that indicates which of the fields on the base EmbeddedObjectBorder have been changed in this suggestion. For any field set to true, there''s a new suggested value.

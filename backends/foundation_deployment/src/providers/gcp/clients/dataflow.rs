@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,14 +29,14 @@ use serde::Serialize;
 
 pub fn dataflow_projects_delete_snapshots_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: Option<&str>,
-    snapshotId: Option<&str>,
+    projectId: String,
+    location: Option<String>,
+    snapshotId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/snapshots",
-        projectId,
+        projectId.as_str(),
     );
 
     // Build request
@@ -48,9 +49,9 @@ pub fn dataflow_projects_delete_snapshots_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -84,8 +85,11 @@ pub fn dataflow_projects_delete_snapshots_builder(
 pub fn dataflow_projects_delete_snapshots_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DeleteSnapshotResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeleteSnapshotResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -196,9 +200,9 @@ pub fn dataflow_projects_delete_snapshots(
 > {
     let builder = dataflow_projects_delete_snapshots_builder(
         client,
-        &args.projectId,
-        args.location.as_deref(),
-        args.snapshotId.as_deref(),
+        args.projectId.clone(),
+        args.location.clone(),
+        args.snapshotId.clone(),
     )?;
     dataflow_projects_delete_snapshots_execute(builder)
 }
@@ -211,18 +215,18 @@ pub fn dataflow_projects_delete_snapshots(
 
 pub fn dataflow_projects_worker_messages_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
+    projectId: String,
     body: &SendWorkerMessagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/WorkerMessages",
-        projectId,
+        projectId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -254,8 +258,11 @@ pub fn dataflow_projects_worker_messages_builder(
 pub fn dataflow_projects_worker_messages_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SendWorkerMessagesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SendWorkerMessagesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -366,7 +373,8 @@ pub fn dataflow_projects_worker_messages(
         + 'static,
     ApiError,
 > {
-    let builder = dataflow_projects_worker_messages_builder(client, &args.projectId, &args.body)?;
+    let builder =
+        dataflow_projects_worker_messages_builder(client, args.projectId.clone(), &args.body)?;
     dataflow_projects_worker_messages_execute(builder)
 }
 
@@ -378,18 +386,18 @@ pub fn dataflow_projects_worker_messages(
 
 pub fn dataflow_projects_jobs_aggregated_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    filter: Option<&str>,
-    location: Option<&str>,
-    name: Option<&str>,
+    projectId: String,
+    filter: Option<String>,
+    location: Option<String>,
+    name: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    pageToken: Option<String>,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs:aggregated",
-        projectId,
+        projectId.as_str(),
     );
 
     // Build request
@@ -414,9 +422,9 @@ pub fn dataflow_projects_jobs_aggregated_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -450,8 +458,11 @@ pub fn dataflow_projects_jobs_aggregated_builder(
 pub fn dataflow_projects_jobs_aggregated_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListJobsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -570,13 +581,13 @@ pub fn dataflow_projects_jobs_aggregated(
 > {
     let builder = dataflow_projects_jobs_aggregated_builder(
         client,
-        &args.projectId,
-        args.filter.as_deref(),
-        args.location.as_deref(),
-        args.name.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.view.as_deref(),
+        args.projectId.clone(),
+        args.filter.clone(),
+        args.location.clone(),
+        args.name.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.view.clone(),
     )?;
     dataflow_projects_jobs_aggregated_execute(builder)
 }
@@ -589,16 +600,16 @@ pub fn dataflow_projects_jobs_aggregated(
 
 pub fn dataflow_projects_jobs_create_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: Option<&str>,
-    replaceJobId: Option<&str>,
-    view: Option<&str>,
+    projectId: String,
+    location: Option<String>,
+    replaceJobId: Option<String>,
+    view: Option<String>,
     body: &Job,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs",
-        projectId,
+        projectId.as_str(),
     );
 
     // Build request
@@ -614,9 +625,9 @@ pub fn dataflow_projects_jobs_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -652,7 +663,12 @@ pub fn dataflow_projects_jobs_create_builder(
 pub fn dataflow_projects_jobs_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -762,10 +778,10 @@ pub fn dataflow_projects_jobs_create(
 > {
     let builder = dataflow_projects_jobs_create_builder(
         client,
-        &args.projectId,
-        args.location.as_deref(),
-        args.replaceJobId.as_deref(),
-        args.view.as_deref(),
+        args.projectId.clone(),
+        args.location.clone(),
+        args.replaceJobId.clone(),
+        args.view.clone(),
         &args.body,
     )?;
     dataflow_projects_jobs_create_execute(builder)
@@ -779,15 +795,16 @@ pub fn dataflow_projects_jobs_create(
 
 pub fn dataflow_projects_jobs_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
-    location: Option<&str>,
-    view: Option<&str>,
+    projectId: String,
+    jobId: String,
+    location: Option<String>,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}",
-        projectId, jobId,
+        projectId.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
@@ -800,9 +817,9 @@ pub fn dataflow_projects_jobs_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -836,7 +853,12 @@ pub fn dataflow_projects_jobs_get_builder(
 pub fn dataflow_projects_jobs_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -944,10 +966,10 @@ pub fn dataflow_projects_jobs_get(
 > {
     let builder = dataflow_projects_jobs_get_builder(
         client,
-        &args.projectId,
-        &args.jobId,
-        args.location.as_deref(),
-        args.view.as_deref(),
+        args.projectId.clone(),
+        args.jobId.clone(),
+        args.location.clone(),
+        args.view.clone(),
     )?;
     dataflow_projects_jobs_get_execute(builder)
 }
@@ -960,15 +982,16 @@ pub fn dataflow_projects_jobs_get(
 
 pub fn dataflow_projects_jobs_get_metrics_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
-    location: Option<&str>,
-    startTime: Option<&str>,
+    projectId: String,
+    jobId: String,
+    location: Option<String>,
+    startTime: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/metrics",
-        projectId, jobId,
+        projectId.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
@@ -981,9 +1004,9 @@ pub fn dataflow_projects_jobs_get_metrics_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1017,7 +1040,12 @@ pub fn dataflow_projects_jobs_get_metrics_builder(
 pub fn dataflow_projects_jobs_get_metrics_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<JobMetrics>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<JobMetrics>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1125,223 +1153,12 @@ pub fn dataflow_projects_jobs_get_metrics(
 > {
     let builder = dataflow_projects_jobs_get_metrics_builder(
         client,
-        &args.projectId,
-        &args.jobId,
-        args.location.as_deref(),
-        args.startTime.as_deref(),
+        args.projectId.clone(),
+        args.jobId.clone(),
+        args.location.clone(),
+        args.startTime.clone(),
     )?;
     dataflow_projects_jobs_get_metrics_execute(builder)
-}
-
-/// GET v1b3/projects/{projectId}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dataflow_projects_jobs_list_execute()` to send, or `dataflow_projects_jobs_list` for simplest API.
-
-pub fn dataflow_projects_jobs_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    filter: Option<&str>,
-    location: Option<&str>,
-    name: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dataflow.googleapis.com/v1b3/projects/{}/jobs",
-        projectId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = location {
-        query_parts.push(format!("location={}", val));
-    }
-    if let Some(val) = name {
-        query_parts.push(format!("name={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1b3/projects/{projectId}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dataflow_projects_jobs_list_execute()` or `dataflow_projects_jobs_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_jobs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dataflow_projects_jobs_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListJobsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1b3/projects/{projectId}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dataflow_projects_jobs_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dataflow_projects_jobs_list_task()`.
-/// For the simplest API, use `dataflow_projects_jobs_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_jobs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dataflow_projects_jobs_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dataflow_projects_jobs_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dataflow_projects_jobs_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DataflowProjectsJobsListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v1b3/projects/{projectId}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dataflow_projects_jobs_list_builder()` + `dataflow_projects_jobs_list_execute()`.
-/// For task-level control, use `dataflow_projects_jobs_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dataflow_projects_jobs_list(
-    client: &SimpleHttpClient,
-    args: &DataflowProjectsJobsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dataflow_projects_jobs_list_builder(
-        client,
-        &args.projectId,
-        args.filter.as_deref(),
-        args.location.as_deref(),
-        args.name.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.view.as_deref(),
-    )?;
-    dataflow_projects_jobs_list_execute(builder)
 }
 
 /// GET v1b3/projects/{projectId}/jobs/{jobId}:snapshot
@@ -1352,19 +1169,20 @@ pub fn dataflow_projects_jobs_list(
 
 pub fn dataflow_projects_jobs_snapshot_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
+    projectId: String,
+    jobId: String,
     body: &SnapshotJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}:snapshot",
-        projectId, jobId,
+        projectId.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1396,7 +1214,12 @@ pub fn dataflow_projects_jobs_snapshot_builder(
 pub fn dataflow_projects_jobs_snapshot_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Snapshot>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1500,196 +1323,13 @@ pub fn dataflow_projects_jobs_snapshot(
     impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        dataflow_projects_jobs_snapshot_builder(client, &args.projectId, &args.jobId, &args.body)?;
-    dataflow_projects_jobs_snapshot_execute(builder)
-}
-
-/// GET v1b3/projects/{projectId}/jobs/{jobId}
-/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dataflow_projects_jobs_update_execute()` to send, or `dataflow_projects_jobs_update` for simplest API.
-
-pub fn dataflow_projects_jobs_update_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
-    location: Option<&str>,
-    updateMask: Option<&str>,
-    body: &Job,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}",
-        projectId, jobId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = location {
-        query_parts.push(format!("location={}", val));
-    }
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1b3/projects/{projectId}/jobs/{jobId}
-/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dataflow_projects_jobs_update_execute()` or `dataflow_projects_jobs_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_jobs_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dataflow_projects_jobs_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Job = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1b3/projects/{projectId}/jobs/{jobId}
-/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dataflow_projects_jobs_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dataflow_projects_jobs_update_task()`.
-/// For the simplest API, use `dataflow_projects_jobs_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_jobs_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dataflow_projects_jobs_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dataflow_projects_jobs_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dataflow_projects_jobs_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DataflowProjectsJobsUpdateArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: jobId
-    pub jobId: String,
-    /// Query parameter: location
-    pub location: Option<String>,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Job,
-}
-
-/// GET v1b3/projects/{projectId}/jobs/{jobId}
-/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dataflow_projects_jobs_update_builder()` + `dataflow_projects_jobs_update_execute()`.
-/// For task-level control, use `dataflow_projects_jobs_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dataflow_projects_jobs_update(
-    client: &SimpleHttpClient,
-    args: &DataflowProjectsJobsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dataflow_projects_jobs_update_builder(
+    let builder = dataflow_projects_jobs_snapshot_builder(
         client,
-        &args.projectId,
-        &args.jobId,
-        args.location.as_deref(),
-        args.updateMask.as_deref(),
+        args.projectId.clone(),
+        args.jobId.clone(),
         &args.body,
     )?;
-    dataflow_projects_jobs_update_execute(builder)
+    dataflow_projects_jobs_snapshot_execute(builder)
 }
 
 /// GET v1b3/projects/{projectId}/jobs/{jobId}/debug/getConfig
@@ -1700,19 +1340,20 @@ pub fn dataflow_projects_jobs_update(
 
 pub fn dataflow_projects_jobs_debug_get_config_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
+    projectId: String,
+    jobId: String,
     body: &GetDebugConfigRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/debug/getConfig",
-        projectId, jobId,
+        projectId.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1744,8 +1385,11 @@ pub fn dataflow_projects_jobs_debug_get_config_builder(
 pub fn dataflow_projects_jobs_debug_get_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetDebugConfigResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetDebugConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1856,8 +1500,8 @@ pub fn dataflow_projects_jobs_debug_get_config(
 > {
     let builder = dataflow_projects_jobs_debug_get_config_builder(
         client,
-        &args.projectId,
-        &args.jobId,
+        args.projectId.clone(),
+        args.jobId.clone(),
         &args.body,
     )?;
     dataflow_projects_jobs_debug_get_config_execute(builder)
@@ -1871,19 +1515,20 @@ pub fn dataflow_projects_jobs_debug_get_config(
 
 pub fn dataflow_projects_jobs_debug_send_capture_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
+    projectId: String,
+    jobId: String,
     body: &SendDebugCaptureRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/debug/sendCapture",
-        projectId, jobId,
+        projectId.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1915,8 +1560,11 @@ pub fn dataflow_projects_jobs_debug_send_capture_builder(
 pub fn dataflow_projects_jobs_debug_send_capture_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SendDebugCaptureResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SendDebugCaptureResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2027,8 +1675,8 @@ pub fn dataflow_projects_jobs_debug_send_capture(
 > {
     let builder = dataflow_projects_jobs_debug_send_capture_builder(
         client,
-        &args.projectId,
-        &args.jobId,
+        args.projectId.clone(),
+        args.jobId.clone(),
         &args.body,
     )?;
     dataflow_projects_jobs_debug_send_capture_execute(builder)
@@ -2042,19 +1690,20 @@ pub fn dataflow_projects_jobs_debug_send_capture(
 
 pub fn dataflow_projects_jobs_messages_list_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
-    endTime: Option<&str>,
-    location: Option<&str>,
-    minimumImportance: Option<&str>,
+    projectId: String,
+    jobId: String,
+    endTime: Option<String>,
+    location: Option<String>,
+    minimumImportance: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    startTime: Option<&str>,
+    pageToken: Option<String>,
+    startTime: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/messages",
-        projectId, jobId,
+        projectId.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
@@ -2079,9 +1728,9 @@ pub fn dataflow_projects_jobs_messages_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2115,8 +1764,11 @@ pub fn dataflow_projects_jobs_messages_list_builder(
 pub fn dataflow_projects_jobs_messages_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListJobMessagesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListJobMessagesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2237,14 +1889,14 @@ pub fn dataflow_projects_jobs_messages_list(
 > {
     let builder = dataflow_projects_jobs_messages_list_builder(
         client,
-        &args.projectId,
-        &args.jobId,
-        args.endTime.as_deref(),
-        args.location.as_deref(),
-        args.minimumImportance.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.startTime.as_deref(),
+        args.projectId.clone(),
+        args.jobId.clone(),
+        args.endTime.clone(),
+        args.location.clone(),
+        args.minimumImportance.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.startTime.clone(),
     )?;
     dataflow_projects_jobs_messages_list_execute(builder)
 }
@@ -2257,19 +1909,20 @@ pub fn dataflow_projects_jobs_messages_list(
 
 pub fn dataflow_projects_jobs_work_items_lease_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
+    projectId: String,
+    jobId: String,
     body: &LeaseWorkItemRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/workItems:lease",
-        projectId, jobId,
+        projectId.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2301,8 +1954,11 @@ pub fn dataflow_projects_jobs_work_items_lease_builder(
 pub fn dataflow_projects_jobs_work_items_lease_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LeaseWorkItemResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LeaseWorkItemResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2413,8 +2069,8 @@ pub fn dataflow_projects_jobs_work_items_lease(
 > {
     let builder = dataflow_projects_jobs_work_items_lease_builder(
         client,
-        &args.projectId,
-        &args.jobId,
+        args.projectId.clone(),
+        args.jobId.clone(),
         &args.body,
     )?;
     dataflow_projects_jobs_work_items_lease_execute(builder)
@@ -2428,19 +2084,20 @@ pub fn dataflow_projects_jobs_work_items_lease(
 
 pub fn dataflow_projects_jobs_work_items_report_status_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
+    projectId: String,
+    jobId: String,
     body: &ReportWorkItemStatusRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/jobs/{}/workItems:reportStatus",
-        projectId, jobId,
+        projectId.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2473,8 +2130,9 @@ pub fn dataflow_projects_jobs_work_items_report_status_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ReportWorkItemStatusResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ReportWorkItemStatusResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2590,8 +2248,8 @@ pub fn dataflow_projects_jobs_work_items_report_status(
 > {
     let builder = dataflow_projects_jobs_work_items_report_status_builder(
         client,
-        &args.projectId,
-        &args.jobId,
+        args.projectId.clone(),
+        args.jobId.clone(),
         &args.body,
     )?;
     dataflow_projects_jobs_work_items_report_status_execute(builder)
@@ -2605,19 +2263,20 @@ pub fn dataflow_projects_jobs_work_items_report_status(
 
 pub fn dataflow_projects_locations_worker_messages_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
+    projectId: String,
+    location: String,
     body: &SendWorkerMessagesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/WorkerMessages",
-        projectId, location,
+        projectId.as_str(),
+        location.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2649,8 +2308,11 @@ pub fn dataflow_projects_locations_worker_messages_builder(
 pub fn dataflow_projects_locations_worker_messages_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SendWorkerMessagesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SendWorkerMessagesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2765,8 +2427,8 @@ pub fn dataflow_projects_locations_worker_messages(
 > {
     let builder = dataflow_projects_locations_worker_messages_builder(
         client,
-        &args.projectId,
-        &args.location,
+        args.projectId.clone(),
+        args.location.clone(),
         &args.body,
     )?;
     dataflow_projects_locations_worker_messages_execute(builder)
@@ -2780,19 +2442,20 @@ pub fn dataflow_projects_locations_worker_messages(
 
 pub fn dataflow_projects_locations_flex_templates_launch_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
+    projectId: String,
+    location: String,
     body: &LaunchFlexTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/flexTemplates:launch",
-        projectId, location,
+        projectId.as_str(),
+        location.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2824,8 +2487,11 @@ pub fn dataflow_projects_locations_flex_templates_launch_builder(
 pub fn dataflow_projects_locations_flex_templates_launch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LaunchFlexTemplateResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LaunchFlexTemplateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2940,8 +2606,8 @@ pub fn dataflow_projects_locations_flex_templates_launch(
 > {
     let builder = dataflow_projects_locations_flex_templates_launch_builder(
         client,
-        &args.projectId,
-        &args.location,
+        args.projectId.clone(),
+        args.location.clone(),
         &args.body,
     )?;
     dataflow_projects_locations_flex_templates_launch_execute(builder)
@@ -2955,16 +2621,17 @@ pub fn dataflow_projects_locations_flex_templates_launch(
 
 pub fn dataflow_projects_locations_jobs_create_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    replaceJobId: Option<&str>,
-    view: Option<&str>,
+    projectId: String,
+    location: String,
+    replaceJobId: Option<String>,
+    view: Option<String>,
     body: &Job,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs",
-        projectId, location,
+        projectId.as_str(),
+        location.as_str(),
     );
 
     // Build request
@@ -2977,9 +2644,9 @@ pub fn dataflow_projects_locations_jobs_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3015,7 +2682,12 @@ pub fn dataflow_projects_locations_jobs_create_builder(
 pub fn dataflow_projects_locations_jobs_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3125,10 +2797,10 @@ pub fn dataflow_projects_locations_jobs_create(
 > {
     let builder = dataflow_projects_locations_jobs_create_builder(
         client,
-        &args.projectId,
-        &args.location,
-        args.replaceJobId.as_deref(),
-        args.view.as_deref(),
+        args.projectId.clone(),
+        args.location.clone(),
+        args.replaceJobId.clone(),
+        args.view.clone(),
         &args.body,
     )?;
     dataflow_projects_locations_jobs_create_execute(builder)
@@ -3142,15 +2814,17 @@ pub fn dataflow_projects_locations_jobs_create(
 
 pub fn dataflow_projects_locations_jobs_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    jobId: &str,
-    view: Option<&str>,
+    projectId: String,
+    location: String,
+    jobId: String,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}",
-        projectId, location, jobId,
+        projectId.as_str(),
+        location.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
@@ -3160,9 +2834,9 @@ pub fn dataflow_projects_locations_jobs_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3196,7 +2870,12 @@ pub fn dataflow_projects_locations_jobs_get_builder(
 pub fn dataflow_projects_locations_jobs_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3304,10 +2983,10 @@ pub fn dataflow_projects_locations_jobs_get(
 > {
     let builder = dataflow_projects_locations_jobs_get_builder(
         client,
-        &args.projectId,
-        &args.location,
-        &args.jobId,
-        args.view.as_deref(),
+        args.projectId.clone(),
+        args.location.clone(),
+        args.jobId.clone(),
+        args.view.clone(),
     )?;
     dataflow_projects_locations_jobs_get_execute(builder)
 }
@@ -3320,16 +2999,18 @@ pub fn dataflow_projects_locations_jobs_get(
 
 pub fn dataflow_projects_locations_jobs_get_execution_details_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    jobId: &str,
+    projectId: String,
+    location: String,
+    jobId: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/executionDetails",
-        projectId, location, jobId,
+        projectId.as_str(),
+        location.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
@@ -3342,9 +3023,9 @@ pub fn dataflow_projects_locations_jobs_get_execution_details_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3378,8 +3059,11 @@ pub fn dataflow_projects_locations_jobs_get_execution_details_builder(
 pub fn dataflow_projects_locations_jobs_get_execution_details_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<JobExecutionDetails>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<JobExecutionDetails>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3494,11 +3178,11 @@ pub fn dataflow_projects_locations_jobs_get_execution_details(
 > {
     let builder = dataflow_projects_locations_jobs_get_execution_details_builder(
         client,
-        &args.projectId,
-        &args.location,
-        &args.jobId,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.projectId.clone(),
+        args.location.clone(),
+        args.jobId.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     dataflow_projects_locations_jobs_get_execution_details_execute(builder)
 }
@@ -3511,15 +3195,17 @@ pub fn dataflow_projects_locations_jobs_get_execution_details(
 
 pub fn dataflow_projects_locations_jobs_get_metrics_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    jobId: &str,
-    startTime: Option<&str>,
+    projectId: String,
+    location: String,
+    jobId: String,
+    startTime: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/metrics",
-        projectId, location, jobId,
+        projectId.as_str(),
+        location.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
@@ -3529,9 +3215,9 @@ pub fn dataflow_projects_locations_jobs_get_metrics_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3565,7 +3251,12 @@ pub fn dataflow_projects_locations_jobs_get_metrics_builder(
 pub fn dataflow_projects_locations_jobs_get_metrics_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<JobMetrics>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<JobMetrics>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3673,220 +3364,12 @@ pub fn dataflow_projects_locations_jobs_get_metrics(
 > {
     let builder = dataflow_projects_locations_jobs_get_metrics_builder(
         client,
-        &args.projectId,
-        &args.location,
-        &args.jobId,
-        args.startTime.as_deref(),
+        args.projectId.clone(),
+        args.location.clone(),
+        args.jobId.clone(),
+        args.startTime.clone(),
     )?;
     dataflow_projects_locations_jobs_get_metrics_execute(builder)
-}
-
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dataflow_projects_locations_jobs_list_execute()` to send, or `dataflow_projects_locations_jobs_list` for simplest API.
-
-pub fn dataflow_projects_locations_jobs_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    filter: Option<&str>,
-    name: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs",
-        projectId, location,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = name {
-        query_parts.push(format!("name={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dataflow_projects_locations_jobs_list_execute()` or `dataflow_projects_locations_jobs_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_locations_jobs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dataflow_projects_locations_jobs_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListJobsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dataflow_projects_locations_jobs_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dataflow_projects_locations_jobs_list_task()`.
-/// For the simplest API, use `dataflow_projects_locations_jobs_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_locations_jobs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dataflow_projects_locations_jobs_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dataflow_projects_locations_jobs_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dataflow_projects_locations_jobs_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DataflowProjectsLocationsJobsListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: location
-    pub location: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: name
-    pub name: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs
-/// List the jobs of a project. To list the jobs of a project in a region, we recommend using projects.locations.jobs.list with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). To list the all jobs across all regions, use projects.jobs.aggregated. Using projects.jobs.list is not recommended, because you can only get the list of jobs that are running in us-central1. projects.locations.jobs.list and projects.jobs.list support filtering the list of jobs by name. Filtering by name isn't supported by projects.jobs.aggregated.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dataflow_projects_locations_jobs_list_builder()` + `dataflow_projects_locations_jobs_list_execute()`.
-/// For task-level control, use `dataflow_projects_locations_jobs_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dataflow_projects_locations_jobs_list(
-    client: &SimpleHttpClient,
-    args: &DataflowProjectsLocationsJobsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListJobsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dataflow_projects_locations_jobs_list_builder(
-        client,
-        &args.projectId,
-        &args.location,
-        args.filter.as_deref(),
-        args.name.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.view.as_deref(),
-    )?;
-    dataflow_projects_locations_jobs_list_execute(builder)
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}:snapshot
@@ -3897,20 +3380,22 @@ pub fn dataflow_projects_locations_jobs_list(
 
 pub fn dataflow_projects_locations_jobs_snapshot_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    jobId: &str,
+    projectId: String,
+    location: String,
+    jobId: String,
     body: &SnapshotJobRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}:snapshot",
-        projectId, location, jobId,
+        projectId.as_str(),
+        location.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3942,7 +3427,12 @@ pub fn dataflow_projects_locations_jobs_snapshot_builder(
 pub fn dataflow_projects_locations_jobs_snapshot_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Snapshot>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4050,196 +3540,12 @@ pub fn dataflow_projects_locations_jobs_snapshot(
 > {
     let builder = dataflow_projects_locations_jobs_snapshot_builder(
         client,
-        &args.projectId,
-        &args.location,
-        &args.jobId,
+        args.projectId.clone(),
+        args.location.clone(),
+        args.jobId.clone(),
         &args.body,
     )?;
     dataflow_projects_locations_jobs_snapshot_execute(builder)
-}
-
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}
-/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dataflow_projects_locations_jobs_update_execute()` to send, or `dataflow_projects_locations_jobs_update` for simplest API.
-
-pub fn dataflow_projects_locations_jobs_update_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    jobId: &str,
-    updateMask: Option<&str>,
-    body: &Job,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}",
-        projectId, location, jobId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}
-/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dataflow_projects_locations_jobs_update_execute()` or `dataflow_projects_locations_jobs_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_locations_jobs_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dataflow_projects_locations_jobs_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Job = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}
-/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dataflow_projects_locations_jobs_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dataflow_projects_locations_jobs_update_task()`.
-/// For the simplest API, use `dataflow_projects_locations_jobs_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_locations_jobs_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dataflow_projects_locations_jobs_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dataflow_projects_locations_jobs_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dataflow_projects_locations_jobs_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DataflowProjectsLocationsJobsUpdateArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: location
-    pub location: String,
-    /// Path parameter: jobId
-    pub jobId: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Job,
-}
-
-/// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}
-/// Updates the state of an existing Cloud Dataflow job. To update the state of an existing job, we recommend using projects.locations.jobs.update with a [regional endpoint] (<https://cloud.google.`com/dataflow/docs/concepts/regional-endpoints`>). Using projects.jobs.update is not recommended, as you can only update the state of jobs that are running in us-central1.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dataflow_projects_locations_jobs_update_builder()` + `dataflow_projects_locations_jobs_update_execute()`.
-/// For task-level control, use `dataflow_projects_locations_jobs_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dataflow_projects_locations_jobs_update(
-    client: &SimpleHttpClient,
-    args: &DataflowProjectsLocationsJobsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dataflow_projects_locations_jobs_update_builder(
-        client,
-        &args.projectId,
-        &args.location,
-        &args.jobId,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    dataflow_projects_locations_jobs_update_execute(builder)
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/jobs/{jobId}/debug/getConfig
@@ -4250,20 +3556,22 @@ pub fn dataflow_projects_locations_jobs_update(
 
 pub fn dataflow_projects_locations_jobs_debug_get_config_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    jobId: &str,
+    projectId: String,
+    location: String,
+    jobId: String,
     body: &GetDebugConfigRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/debug/getConfig",
-        projectId, location, jobId,
+        projectId.as_str(),
+        location.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4295,8 +3603,11 @@ pub fn dataflow_projects_locations_jobs_debug_get_config_builder(
 pub fn dataflow_projects_locations_jobs_debug_get_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetDebugConfigResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetDebugConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4409,9 +3720,9 @@ pub fn dataflow_projects_locations_jobs_debug_get_config(
 > {
     let builder = dataflow_projects_locations_jobs_debug_get_config_builder(
         client,
-        &args.projectId,
-        &args.location,
-        &args.jobId,
+        args.projectId.clone(),
+        args.location.clone(),
+        args.jobId.clone(),
         &args.body,
     )?;
     dataflow_projects_locations_jobs_debug_get_config_execute(builder)
@@ -4425,22 +3736,22 @@ pub fn dataflow_projects_locations_jobs_debug_get_config(
 
 pub fn dataflow_projects_locations_jobs_debug_get_worker_stacktraces_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    jobId: &str,
+    projectId: String,
+    location: String,
+    jobId: String,
     body: &GetWorkerStacktracesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/debug/getWorkerStacktraces",
-        projectId,
-        location,
-        jobId,
+        projectId.as_str(),
+        location.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4473,8 +3784,9 @@ pub fn dataflow_projects_locations_jobs_debug_get_worker_stacktraces_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GetWorkerStacktracesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GetWorkerStacktracesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -4592,9 +3904,9 @@ pub fn dataflow_projects_locations_jobs_debug_get_worker_stacktraces(
 > {
     let builder = dataflow_projects_locations_jobs_debug_get_worker_stacktraces_builder(
         client,
-        &args.projectId,
-        &args.location,
-        &args.jobId,
+        args.projectId.clone(),
+        args.location.clone(),
+        args.jobId.clone(),
         &args.body,
     )?;
     dataflow_projects_locations_jobs_debug_get_worker_stacktraces_execute(builder)
@@ -4608,20 +3920,22 @@ pub fn dataflow_projects_locations_jobs_debug_get_worker_stacktraces(
 
 pub fn dataflow_projects_locations_jobs_debug_send_capture_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    jobId: &str,
+    projectId: String,
+    location: String,
+    jobId: String,
     body: &SendDebugCaptureRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/debug/sendCapture",
-        projectId, location, jobId,
+        projectId.as_str(),
+        location.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4653,8 +3967,11 @@ pub fn dataflow_projects_locations_jobs_debug_send_capture_builder(
 pub fn dataflow_projects_locations_jobs_debug_send_capture_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SendDebugCaptureResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SendDebugCaptureResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4767,9 +4084,9 @@ pub fn dataflow_projects_locations_jobs_debug_send_capture(
 > {
     let builder = dataflow_projects_locations_jobs_debug_send_capture_builder(
         client,
-        &args.projectId,
-        &args.location,
-        &args.jobId,
+        args.projectId.clone(),
+        args.location.clone(),
+        args.jobId.clone(),
         &args.body,
     )?;
     dataflow_projects_locations_jobs_debug_send_capture_execute(builder)
@@ -4783,19 +4100,21 @@ pub fn dataflow_projects_locations_jobs_debug_send_capture(
 
 pub fn dataflow_projects_locations_jobs_messages_list_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    jobId: &str,
-    endTime: Option<&str>,
-    minimumImportance: Option<&str>,
+    projectId: String,
+    location: String,
+    jobId: String,
+    endTime: Option<String>,
+    minimumImportance: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    startTime: Option<&str>,
+    pageToken: Option<String>,
+    startTime: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/messages",
-        projectId, location, jobId,
+        projectId.as_str(),
+        location.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
@@ -4817,9 +4136,9 @@ pub fn dataflow_projects_locations_jobs_messages_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4853,8 +4172,11 @@ pub fn dataflow_projects_locations_jobs_messages_list_builder(
 pub fn dataflow_projects_locations_jobs_messages_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListJobMessagesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListJobMessagesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4975,14 +4297,14 @@ pub fn dataflow_projects_locations_jobs_messages_list(
 > {
     let builder = dataflow_projects_locations_jobs_messages_list_builder(
         client,
-        &args.projectId,
-        &args.location,
-        &args.jobId,
-        args.endTime.as_deref(),
-        args.minimumImportance.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.startTime.as_deref(),
+        args.projectId.clone(),
+        args.location.clone(),
+        args.jobId.clone(),
+        args.endTime.clone(),
+        args.minimumImportance.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.startTime.clone(),
     )?;
     dataflow_projects_locations_jobs_messages_list_execute(builder)
 }
@@ -4995,19 +4317,21 @@ pub fn dataflow_projects_locations_jobs_messages_list(
 
 pub fn dataflow_projects_locations_jobs_snapshots_list_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    jobId: &str,
+    projectId: String,
+    location: String,
+    jobId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/snapshots",
-        projectId, location, jobId,
+        projectId.as_str(),
+        location.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5037,8 +4361,11 @@ pub fn dataflow_projects_locations_jobs_snapshots_list_builder(
 pub fn dataflow_projects_locations_jobs_snapshots_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListSnapshotsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSnapshotsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5149,9 +4476,9 @@ pub fn dataflow_projects_locations_jobs_snapshots_list(
 > {
     let builder = dataflow_projects_locations_jobs_snapshots_list_builder(
         client,
-        &args.projectId,
-        &args.location,
-        &args.jobId,
+        args.projectId.clone(),
+        args.location.clone(),
+        args.jobId.clone(),
     )?;
     dataflow_projects_locations_jobs_snapshots_list_execute(builder)
 }
@@ -5164,22 +4491,22 @@ pub fn dataflow_projects_locations_jobs_snapshots_list(
 
 pub fn dataflow_projects_locations_jobs_stages_get_execution_details_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    jobId: &str,
-    stageId: &str,
-    endTime: Option<&str>,
+    projectId: String,
+    location: String,
+    jobId: String,
+    stageId: String,
+    endTime: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    startTime: Option<&str>,
+    pageToken: Option<String>,
+    startTime: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/stages/{}/executionDetails",
-        projectId,
-        location,
-        jobId,
-        stageId,
+        projectId.as_str(),
+        location.as_str(),
+        jobId.as_str(),
+        stageId.as_str(),
     );
 
     // Build request
@@ -5198,9 +4525,9 @@ pub fn dataflow_projects_locations_jobs_stages_get_execution_details_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5234,8 +4561,11 @@ pub fn dataflow_projects_locations_jobs_stages_get_execution_details_builder(
 pub fn dataflow_projects_locations_jobs_stages_get_execution_details_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<StageExecutionDetails>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<StageExecutionDetails>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5356,14 +4686,14 @@ pub fn dataflow_projects_locations_jobs_stages_get_execution_details(
 > {
     let builder = dataflow_projects_locations_jobs_stages_get_execution_details_builder(
         client,
-        &args.projectId,
-        &args.location,
-        &args.jobId,
-        &args.stageId,
-        args.endTime.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.startTime.as_deref(),
+        args.projectId.clone(),
+        args.location.clone(),
+        args.jobId.clone(),
+        args.stageId.clone(),
+        args.endTime.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.startTime.clone(),
     )?;
     dataflow_projects_locations_jobs_stages_get_execution_details_execute(builder)
 }
@@ -5376,20 +4706,22 @@ pub fn dataflow_projects_locations_jobs_stages_get_execution_details(
 
 pub fn dataflow_projects_locations_jobs_work_items_lease_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    jobId: &str,
+    projectId: String,
+    location: String,
+    jobId: String,
     body: &LeaseWorkItemRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/workItems:lease",
-        projectId, location, jobId,
+        projectId.as_str(),
+        location.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5421,8 +4753,11 @@ pub fn dataflow_projects_locations_jobs_work_items_lease_builder(
 pub fn dataflow_projects_locations_jobs_work_items_lease_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LeaseWorkItemResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LeaseWorkItemResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5535,9 +4870,9 @@ pub fn dataflow_projects_locations_jobs_work_items_lease(
 > {
     let builder = dataflow_projects_locations_jobs_work_items_lease_builder(
         client,
-        &args.projectId,
-        &args.location,
-        &args.jobId,
+        args.projectId.clone(),
+        args.location.clone(),
+        args.jobId.clone(),
         &args.body,
     )?;
     dataflow_projects_locations_jobs_work_items_lease_execute(builder)
@@ -5551,22 +4886,22 @@ pub fn dataflow_projects_locations_jobs_work_items_lease(
 
 pub fn dataflow_projects_locations_jobs_work_items_report_status_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    jobId: &str,
+    projectId: String,
+    location: String,
+    jobId: String,
     body: &ReportWorkItemStatusRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/jobs/{}/workItems:reportStatus",
-        projectId,
-        location,
-        jobId,
+        projectId.as_str(),
+        location.as_str(),
+        jobId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5599,8 +4934,9 @@ pub fn dataflow_projects_locations_jobs_work_items_report_status_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ReportWorkItemStatusResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ReportWorkItemStatusResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -5718,9 +5054,9 @@ pub fn dataflow_projects_locations_jobs_work_items_report_status(
 > {
     let builder = dataflow_projects_locations_jobs_work_items_report_status_builder(
         client,
-        &args.projectId,
-        &args.location,
-        &args.jobId,
+        args.projectId.clone(),
+        args.location.clone(),
+        args.jobId.clone(),
         &args.body,
     )?;
     dataflow_projects_locations_jobs_work_items_report_status_execute(builder)
@@ -5734,19 +5070,21 @@ pub fn dataflow_projects_locations_jobs_work_items_report_status(
 
 pub fn dataflow_projects_locations_snapshots_delete_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    snapshotId: &str,
+    projectId: String,
+    location: String,
+    snapshotId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/snapshots/{}",
-        projectId, location, snapshotId,
+        projectId.as_str(),
+        location.as_str(),
+        snapshotId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5776,8 +5114,11 @@ pub fn dataflow_projects_locations_snapshots_delete_builder(
 pub fn dataflow_projects_locations_snapshots_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DeleteSnapshotResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeleteSnapshotResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5888,174 +5229,11 @@ pub fn dataflow_projects_locations_snapshots_delete(
 > {
     let builder = dataflow_projects_locations_snapshots_delete_builder(
         client,
-        &args.projectId,
-        &args.location,
-        &args.snapshotId,
+        args.projectId.clone(),
+        args.location.clone(),
+        args.snapshotId.clone(),
     )?;
     dataflow_projects_locations_snapshots_delete_execute(builder)
-}
-
-/// GET v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
-/// Gets information about a snapshot.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dataflow_projects_locations_snapshots_get_execute()` to send, or `dataflow_projects_locations_snapshots_get` for simplest API.
-
-pub fn dataflow_projects_locations_snapshots_get_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    snapshotId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/snapshots/{}",
-        projectId, location, snapshotId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
-/// Gets information about a snapshot.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dataflow_projects_locations_snapshots_get_execute()` or `dataflow_projects_locations_snapshots_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_locations_snapshots_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dataflow_projects_locations_snapshots_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Snapshot = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
-/// Gets information about a snapshot.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dataflow_projects_locations_snapshots_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dataflow_projects_locations_snapshots_get_task()`.
-/// For the simplest API, use `dataflow_projects_locations_snapshots_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_locations_snapshots_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dataflow_projects_locations_snapshots_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = dataflow_projects_locations_snapshots_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dataflow_projects_locations_snapshots_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DataflowProjectsLocationsSnapshotsGetArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: location
-    pub location: String,
-    /// Path parameter: snapshotId
-    pub snapshotId: String,
-}
-
-/// GET v1b3/projects/{projectId}/locations/{location}/snapshots/{snapshotId}
-/// Gets information about a snapshot.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dataflow_projects_locations_snapshots_get_builder()` + `dataflow_projects_locations_snapshots_get_execute()`.
-/// For task-level control, use `dataflow_projects_locations_snapshots_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dataflow_projects_locations_snapshots_get(
-    client: &SimpleHttpClient,
-    args: &DataflowProjectsLocationsSnapshotsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = dataflow_projects_locations_snapshots_get_builder(
-        client,
-        &args.projectId,
-        &args.location,
-        &args.snapshotId,
-    )?;
-    dataflow_projects_locations_snapshots_get_execute(builder)
 }
 
 /// GET v1b3/projects/{projectId}/locations/{location}/snapshots
@@ -6066,14 +5244,15 @@ pub fn dataflow_projects_locations_snapshots_get(
 
 pub fn dataflow_projects_locations_snapshots_list_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    jobId: Option<&str>,
+    projectId: String,
+    location: String,
+    jobId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/snapshots",
-        projectId, location,
+        projectId.as_str(),
+        location.as_str(),
     );
 
     // Build request
@@ -6083,9 +5262,9 @@ pub fn dataflow_projects_locations_snapshots_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6119,8 +5298,11 @@ pub fn dataflow_projects_locations_snapshots_list_builder(
 pub fn dataflow_projects_locations_snapshots_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListSnapshotsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListSnapshotsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -6231,9 +5413,9 @@ pub fn dataflow_projects_locations_snapshots_list(
 > {
     let builder = dataflow_projects_locations_snapshots_list_builder(
         client,
-        &args.projectId,
-        &args.location,
-        args.jobId.as_deref(),
+        args.projectId.clone(),
+        args.location.clone(),
+        args.jobId.clone(),
     )?;
     dataflow_projects_locations_snapshots_list_execute(builder)
 }
@@ -6246,19 +5428,20 @@ pub fn dataflow_projects_locations_snapshots_list(
 
 pub fn dataflow_projects_locations_templates_create_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
+    projectId: String,
+    location: String,
     body: &CreateJobFromTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/templates",
-        projectId, location,
+        projectId.as_str(),
+        location.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6290,7 +5473,12 @@ pub fn dataflow_projects_locations_templates_create_builder(
 pub fn dataflow_projects_locations_templates_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6396,8 +5584,8 @@ pub fn dataflow_projects_locations_templates_create(
 > {
     let builder = dataflow_projects_locations_templates_create_builder(
         client,
-        &args.projectId,
-        &args.location,
+        args.projectId.clone(),
+        args.location.clone(),
         &args.body,
     )?;
     dataflow_projects_locations_templates_create_execute(builder)
@@ -6411,15 +5599,16 @@ pub fn dataflow_projects_locations_templates_create(
 
 pub fn dataflow_projects_locations_templates_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    gcsPath: Option<&str>,
-    view: Option<&str>,
+    projectId: String,
+    location: String,
+    gcsPath: Option<String>,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/templates:get",
-        projectId, location,
+        projectId.as_str(),
+        location.as_str(),
     );
 
     // Build request
@@ -6432,9 +5621,9 @@ pub fn dataflow_projects_locations_templates_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6468,8 +5657,11 @@ pub fn dataflow_projects_locations_templates_get_builder(
 pub fn dataflow_projects_locations_templates_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetTemplateResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetTemplateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -6582,10 +5774,10 @@ pub fn dataflow_projects_locations_templates_get(
 > {
     let builder = dataflow_projects_locations_templates_get_builder(
         client,
-        &args.projectId,
-        &args.location,
-        args.gcsPath.as_deref(),
-        args.view.as_deref(),
+        args.projectId.clone(),
+        args.location.clone(),
+        args.gcsPath.clone(),
+        args.view.clone(),
     )?;
     dataflow_projects_locations_templates_get_execute(builder)
 }
@@ -6598,27 +5790,28 @@ pub fn dataflow_projects_locations_templates_get(
 
 pub fn dataflow_projects_locations_templates_launch_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    location: &str,
-    dynamicTemplate_gcsPath: Option<&str>,
-    dynamicTemplate_stagingLocation: Option<&str>,
-    gcsPath: Option<&str>,
+    projectId: String,
+    location: String,
+    dynamicTemplate_gcsPath: Option<String>,
+    dynamicTemplate_stagingLocation: Option<String>,
+    gcsPath: Option<String>,
     validateOnly: Option<bool>,
     body: &LaunchTemplateParameters,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/locations/{}/templates:launch",
-        projectId, location,
+        projectId.as_str(),
+        location.as_str(),
     );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = dynamicTemplate_gcsPath {
-        query_parts.push(format!("dynamicTemplate_gcsPath={}", val));
+        query_parts.push(format!("dynamicTemplate.gcsPath={}", val));
     }
     if let Some(val) = dynamicTemplate_stagingLocation {
-        query_parts.push(format!("dynamicTemplate_stagingLocation={}", val));
+        query_parts.push(format!("dynamicTemplate.stagingLocation={}", val));
     }
     if let Some(val) = gcsPath {
         query_parts.push(format!("gcsPath={}", val));
@@ -6628,9 +5821,9 @@ pub fn dataflow_projects_locations_templates_launch_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6666,8 +5859,11 @@ pub fn dataflow_projects_locations_templates_launch_builder(
 pub fn dataflow_projects_locations_templates_launch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LaunchTemplateResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LaunchTemplateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -6786,12 +5982,12 @@ pub fn dataflow_projects_locations_templates_launch(
 > {
     let builder = dataflow_projects_locations_templates_launch_builder(
         client,
-        &args.projectId,
-        &args.location,
-        args.dynamicTemplate_gcsPath.as_deref(),
-        args.dynamicTemplate_stagingLocation.as_deref(),
-        args.gcsPath.as_deref(),
-        args.validateOnly,
+        args.projectId.clone(),
+        args.location.clone(),
+        args.dynamicTemplate_gcsPath.clone(),
+        args.dynamicTemplate_stagingLocation.clone(),
+        args.gcsPath.clone(),
+        args.validateOnly.clone(),
         &args.body,
     )?;
     dataflow_projects_locations_templates_launch_execute(builder)
@@ -6805,14 +6001,15 @@ pub fn dataflow_projects_locations_templates_launch(
 
 pub fn dataflow_projects_snapshots_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    snapshotId: &str,
-    location: Option<&str>,
+    projectId: String,
+    snapshotId: String,
+    location: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/snapshots/{}",
-        projectId, snapshotId,
+        projectId.as_str(),
+        snapshotId.as_str(),
     );
 
     // Build request
@@ -6822,9 +6019,9 @@ pub fn dataflow_projects_snapshots_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6858,7 +6055,12 @@ pub fn dataflow_projects_snapshots_get_builder(
 pub fn dataflow_projects_snapshots_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Snapshot>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Snapshot>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6964,194 +6166,11 @@ pub fn dataflow_projects_snapshots_get(
 > {
     let builder = dataflow_projects_snapshots_get_builder(
         client,
-        &args.projectId,
-        &args.snapshotId,
-        args.location.as_deref(),
+        args.projectId.clone(),
+        args.snapshotId.clone(),
+        args.location.clone(),
     )?;
     dataflow_projects_snapshots_get_execute(builder)
-}
-
-/// GET v1b3/projects/{projectId}/snapshots
-/// Lists snapshots.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `dataflow_projects_snapshots_list_execute()` to send, or `dataflow_projects_snapshots_list` for simplest API.
-
-pub fn dataflow_projects_snapshots_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: Option<&str>,
-    location: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://dataflow.googleapis.com/v1b3/projects/{}/snapshots",
-        projectId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = jobId {
-        query_parts.push(format!("jobId={}", val));
-    }
-    if let Some(val) = location {
-        query_parts.push(format!("location={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1b3/projects/{projectId}/snapshots
-/// Lists snapshots.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `dataflow_projects_snapshots_list_execute()` or `dataflow_projects_snapshots_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_snapshots_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dataflow_projects_snapshots_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListSnapshotsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListSnapshotsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1b3/projects/{projectId}/snapshots
-/// Lists snapshots.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `dataflow_projects_snapshots_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `dataflow_projects_snapshots_list_task()`.
-/// For the simplest API, use `dataflow_projects_snapshots_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `dataflow_projects_snapshots_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn dataflow_projects_snapshots_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListSnapshotsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = dataflow_projects_snapshots_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`dataflow_projects_snapshots_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DataflowProjectsSnapshotsListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Query parameter: jobId
-    pub jobId: Option<String>,
-    /// Query parameter: location
-    pub location: Option<String>,
-}
-
-/// GET v1b3/projects/{projectId}/snapshots
-/// Lists snapshots.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `dataflow_projects_snapshots_list_builder()` + `dataflow_projects_snapshots_list_execute()`.
-/// For task-level control, use `dataflow_projects_snapshots_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn dataflow_projects_snapshots_list(
-    client: &SimpleHttpClient,
-    args: &DataflowProjectsSnapshotsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListSnapshotsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = dataflow_projects_snapshots_list_builder(
-        client,
-        &args.projectId,
-        args.jobId.as_deref(),
-        args.location.as_deref(),
-    )?;
-    dataflow_projects_snapshots_list_execute(builder)
 }
 
 /// GET v1b3/projects/{projectId}/templates
@@ -7162,18 +6181,18 @@ pub fn dataflow_projects_snapshots_list(
 
 pub fn dataflow_projects_templates_create_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
+    projectId: String,
     body: &CreateJobFromTemplateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/templates",
-        projectId,
+        projectId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -7205,7 +6224,12 @@ pub fn dataflow_projects_templates_create_builder(
 pub fn dataflow_projects_templates_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7307,7 +6331,8 @@ pub fn dataflow_projects_templates_create(
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = dataflow_projects_templates_create_builder(client, &args.projectId, &args.body)?;
+    let builder =
+        dataflow_projects_templates_create_builder(client, args.projectId.clone(), &args.body)?;
     dataflow_projects_templates_create_execute(builder)
 }
 
@@ -7319,15 +6344,15 @@ pub fn dataflow_projects_templates_create(
 
 pub fn dataflow_projects_templates_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    gcsPath: Option<&str>,
-    location: Option<&str>,
-    view: Option<&str>,
+    projectId: String,
+    gcsPath: Option<String>,
+    location: Option<String>,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/templates:get",
-        projectId,
+        projectId.as_str(),
     );
 
     // Build request
@@ -7343,9 +6368,9 @@ pub fn dataflow_projects_templates_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -7379,8 +6404,11 @@ pub fn dataflow_projects_templates_get_builder(
 pub fn dataflow_projects_templates_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetTemplateResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetTemplateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7493,10 +6521,10 @@ pub fn dataflow_projects_templates_get(
 > {
     let builder = dataflow_projects_templates_get_builder(
         client,
-        &args.projectId,
-        args.gcsPath.as_deref(),
-        args.location.as_deref(),
-        args.view.as_deref(),
+        args.projectId.clone(),
+        args.gcsPath.clone(),
+        args.location.clone(),
+        args.view.clone(),
     )?;
     dataflow_projects_templates_get_execute(builder)
 }
@@ -7509,27 +6537,27 @@ pub fn dataflow_projects_templates_get(
 
 pub fn dataflow_projects_templates_launch_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    dynamicTemplate_gcsPath: Option<&str>,
-    dynamicTemplate_stagingLocation: Option<&str>,
-    gcsPath: Option<&str>,
-    location: Option<&str>,
+    projectId: String,
+    dynamicTemplate_gcsPath: Option<String>,
+    dynamicTemplate_stagingLocation: Option<String>,
+    gcsPath: Option<String>,
+    location: Option<String>,
     validateOnly: Option<bool>,
     body: &LaunchTemplateParameters,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://dataflow.googleapis.com/v1b3/projects/{}/templates:launch",
-        projectId,
+        projectId.as_str(),
     );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = dynamicTemplate_gcsPath {
-        query_parts.push(format!("dynamicTemplate_gcsPath={}", val));
+        query_parts.push(format!("dynamicTemplate.gcsPath={}", val));
     }
     if let Some(val) = dynamicTemplate_stagingLocation {
-        query_parts.push(format!("dynamicTemplate_stagingLocation={}", val));
+        query_parts.push(format!("dynamicTemplate.stagingLocation={}", val));
     }
     if let Some(val) = gcsPath {
         query_parts.push(format!("gcsPath={}", val));
@@ -7542,9 +6570,9 @@ pub fn dataflow_projects_templates_launch_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -7580,8 +6608,11 @@ pub fn dataflow_projects_templates_launch_builder(
 pub fn dataflow_projects_templates_launch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<LaunchTemplateResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<LaunchTemplateResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7700,12 +6731,12 @@ pub fn dataflow_projects_templates_launch(
 > {
     let builder = dataflow_projects_templates_launch_builder(
         client,
-        &args.projectId,
-        args.dynamicTemplate_gcsPath.as_deref(),
-        args.dynamicTemplate_stagingLocation.as_deref(),
-        args.gcsPath.as_deref(),
-        args.location.as_deref(),
-        args.validateOnly,
+        args.projectId.clone(),
+        args.dynamicTemplate_gcsPath.clone(),
+        args.dynamicTemplate_stagingLocation.clone(),
+        args.gcsPath.clone(),
+        args.location.clone(),
+        args.validateOnly.clone(),
         &args.body,
     )?;
     dataflow_projects_templates_launch_execute(builder)

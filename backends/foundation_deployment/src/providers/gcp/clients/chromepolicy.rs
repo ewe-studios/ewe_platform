@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,16 @@ use serde::Serialize;
 
 pub fn chromepolicy_customers_policies_resolve_builder(
     client: &SimpleHttpClient,
-    customer: &str,
+    customer: String,
     body: &GoogleChromePolicyVersionsV1ResolveRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://chromepolicy.googleapis.com/v1/customers/{}/policies:resolve",
-        customer,
-    );
+    let endpoint_url =
+        format!("https://chromepolicy.googleapis.com/v1/customers/{}/policies:resolve",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -72,8 +71,9 @@ pub fn chromepolicy_customers_policies_resolve_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleChromePolicyVersionsV1ResolveResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleChromePolicyVersionsV1ResolveResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -187,7 +187,7 @@ pub fn chromepolicy_customers_policies_resolve(
     ApiError,
 > {
     let builder =
-        chromepolicy_customers_policies_resolve_builder(client, &args.customer, &args.body)?;
+        chromepolicy_customers_policies_resolve_builder(client, args.customer.clone(), &args.body)?;
     chromepolicy_customers_policies_resolve_execute(builder)
 }
 
@@ -199,18 +199,16 @@ pub fn chromepolicy_customers_policies_resolve(
 
 pub fn chromepolicy_customers_policies_groups_batch_delete_builder(
     client: &SimpleHttpClient,
-    customer: &str,
+    customer: String,
     body: &GoogleChromePolicyVersionsV1BatchDeleteGroupPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:batchDelete",
-        customer,
-    );
+    let endpoint_url =
+        format!("https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:batchDelete",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -242,8 +240,11 @@ pub fn chromepolicy_customers_policies_groups_batch_delete_builder(
 pub fn chromepolicy_customers_policies_groups_batch_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -352,7 +353,7 @@ pub fn chromepolicy_customers_policies_groups_batch_delete(
 > {
     let builder = chromepolicy_customers_policies_groups_batch_delete_builder(
         client,
-        &args.customer,
+        args.customer.clone(),
         &args.body,
     )?;
     chromepolicy_customers_policies_groups_batch_delete_execute(builder)
@@ -366,18 +367,16 @@ pub fn chromepolicy_customers_policies_groups_batch_delete(
 
 pub fn chromepolicy_customers_policies_groups_batch_modify_builder(
     client: &SimpleHttpClient,
-    customer: &str,
+    customer: String,
     body: &GoogleChromePolicyVersionsV1BatchModifyGroupPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:batchModify",
-        customer,
-    );
+    let endpoint_url =
+        format!("https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:batchModify",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -409,8 +408,11 @@ pub fn chromepolicy_customers_policies_groups_batch_modify_builder(
 pub fn chromepolicy_customers_policies_groups_batch_modify_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -519,7 +521,7 @@ pub fn chromepolicy_customers_policies_groups_batch_modify(
 > {
     let builder = chromepolicy_customers_policies_groups_batch_modify_builder(
         client,
-        &args.customer,
+        args.customer.clone(),
         &args.body,
     )?;
     chromepolicy_customers_policies_groups_batch_modify_execute(builder)
@@ -533,18 +535,17 @@ pub fn chromepolicy_customers_policies_groups_batch_modify(
 
 pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering_builder(
     client: &SimpleHttpClient,
-    customer: &str,
+    customer: String,
     body: &GoogleChromePolicyVersionsV1ListGroupPriorityOrderingRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:listGroupPriorityOrdering",
-        customer,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -577,11 +578,12 @@ pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleChromePolicyVersionsV1ListGroupPriorityOrderingResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -702,7 +704,7 @@ pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering(
 > {
     let builder = chromepolicy_customers_policies_groups_list_group_priority_ordering_builder(
         client,
-        &args.customer,
+        args.customer.clone(),
         &args.body,
     )?;
     chromepolicy_customers_policies_groups_list_group_priority_ordering_execute(builder)
@@ -716,18 +718,17 @@ pub fn chromepolicy_customers_policies_groups_list_group_priority_ordering(
 
 pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering_builder(
     client: &SimpleHttpClient,
-    customer: &str,
+    customer: String,
     body: &GoogleChromePolicyVersionsV1UpdateGroupPriorityOrderingRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/groups:updateGroupPriorityOrdering",
-        customer,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -759,8 +760,11 @@ pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering_bui
 pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -869,7 +873,7 @@ pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering(
 > {
     let builder = chromepolicy_customers_policies_groups_update_group_priority_ordering_builder(
         client,
-        &args.customer,
+        args.customer.clone(),
         &args.body,
     )?;
     chromepolicy_customers_policies_groups_update_group_priority_ordering_execute(builder)
@@ -883,18 +887,17 @@ pub fn chromepolicy_customers_policies_groups_update_group_priority_ordering(
 
 pub fn chromepolicy_customers_policies_networks_define_certificate_builder(
     client: &SimpleHttpClient,
-    customer: &str,
+    customer: String,
     body: &GoogleChromePolicyVersionsV1DefineCertificateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/networks:defineCertificate",
-        customer,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -927,11 +930,12 @@ pub fn chromepolicy_customers_policies_networks_define_certificate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleChromePolicyVersionsV1DefineCertificateResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1052,7 +1056,7 @@ pub fn chromepolicy_customers_policies_networks_define_certificate(
 > {
     let builder = chromepolicy_customers_policies_networks_define_certificate_builder(
         client,
-        &args.customer,
+        args.customer.clone(),
         &args.body,
     )?;
     chromepolicy_customers_policies_networks_define_certificate_execute(builder)
@@ -1066,18 +1070,17 @@ pub fn chromepolicy_customers_policies_networks_define_certificate(
 
 pub fn chromepolicy_customers_policies_networks_define_network_builder(
     client: &SimpleHttpClient,
-    customer: &str,
+    customer: String,
     body: &GoogleChromePolicyVersionsV1DefineNetworkRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/networks:defineNetwork",
-        customer,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1110,8 +1113,12 @@ pub fn chromepolicy_customers_policies_networks_define_network_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleChromePolicyVersionsV1DefineNetworkResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<
+                ApiResponse<GoogleChromePolicyVersionsV1DefineNetworkResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1226,7 +1233,7 @@ pub fn chromepolicy_customers_policies_networks_define_network(
 > {
     let builder = chromepolicy_customers_policies_networks_define_network_builder(
         client,
-        &args.customer,
+        args.customer.clone(),
         &args.body,
     )?;
     chromepolicy_customers_policies_networks_define_network_execute(builder)
@@ -1240,18 +1247,17 @@ pub fn chromepolicy_customers_policies_networks_define_network(
 
 pub fn chromepolicy_customers_policies_networks_remove_certificate_builder(
     client: &SimpleHttpClient,
-    customer: &str,
+    customer: String,
     body: &GoogleChromePolicyVersionsV1RemoveCertificateRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/networks:removeCertificate",
-        customer,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1284,11 +1290,12 @@ pub fn chromepolicy_customers_policies_networks_remove_certificate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleChromePolicyVersionsV1RemoveCertificateResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1409,7 +1416,7 @@ pub fn chromepolicy_customers_policies_networks_remove_certificate(
 > {
     let builder = chromepolicy_customers_policies_networks_remove_certificate_builder(
         client,
-        &args.customer,
+        args.customer.clone(),
         &args.body,
     )?;
     chromepolicy_customers_policies_networks_remove_certificate_execute(builder)
@@ -1423,18 +1430,17 @@ pub fn chromepolicy_customers_policies_networks_remove_certificate(
 
 pub fn chromepolicy_customers_policies_networks_remove_network_builder(
     client: &SimpleHttpClient,
-    customer: &str,
+    customer: String,
     body: &GoogleChromePolicyVersionsV1RemoveNetworkRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/networks:removeNetwork",
-        customer,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1467,8 +1473,12 @@ pub fn chromepolicy_customers_policies_networks_remove_network_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleChromePolicyVersionsV1RemoveNetworkResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<
+                ApiResponse<GoogleChromePolicyVersionsV1RemoveNetworkResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1583,7 +1593,7 @@ pub fn chromepolicy_customers_policies_networks_remove_network(
 > {
     let builder = chromepolicy_customers_policies_networks_remove_network_builder(
         client,
-        &args.customer,
+        args.customer.clone(),
         &args.body,
     )?;
     chromepolicy_customers_policies_networks_remove_network_execute(builder)
@@ -1597,18 +1607,17 @@ pub fn chromepolicy_customers_policies_networks_remove_network(
 
 pub fn chromepolicy_customers_policies_orgunits_batch_inherit_builder(
     client: &SimpleHttpClient,
-    customer: &str,
+    customer: String,
     body: &GoogleChromePolicyVersionsV1BatchInheritOrgUnitPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/orgunits:batchInherit",
-        customer,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1640,8 +1649,11 @@ pub fn chromepolicy_customers_policies_orgunits_batch_inherit_builder(
 pub fn chromepolicy_customers_policies_orgunits_batch_inherit_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1750,7 +1762,7 @@ pub fn chromepolicy_customers_policies_orgunits_batch_inherit(
 > {
     let builder = chromepolicy_customers_policies_orgunits_batch_inherit_builder(
         client,
-        &args.customer,
+        args.customer.clone(),
         &args.body,
     )?;
     chromepolicy_customers_policies_orgunits_batch_inherit_execute(builder)
@@ -1764,18 +1776,17 @@ pub fn chromepolicy_customers_policies_orgunits_batch_inherit(
 
 pub fn chromepolicy_customers_policies_orgunits_batch_modify_builder(
     client: &SimpleHttpClient,
-    customer: &str,
+    customer: String,
     body: &GoogleChromePolicyVersionsV1BatchModifyOrgUnitPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/orgunits:batchModify",
-        customer,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1807,8 +1818,11 @@ pub fn chromepolicy_customers_policies_orgunits_batch_modify_builder(
 pub fn chromepolicy_customers_policies_orgunits_batch_modify_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1917,174 +1931,10 @@ pub fn chromepolicy_customers_policies_orgunits_batch_modify(
 > {
     let builder = chromepolicy_customers_policies_orgunits_batch_modify_builder(
         client,
-        &args.customer,
+        args.customer.clone(),
         &args.body,
     )?;
     chromepolicy_customers_policies_orgunits_batch_modify_execute(builder)
-}
-
-/// GET v1/customers/{customersId}/policySchemas/{policySchemasId}
-/// Get a specific policy schema for a customer by its resource name.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `chromepolicy_customers_policy_schemas_get_execute()` to send, or `chromepolicy_customers_policy_schemas_get` for simplest API.
-
-pub fn chromepolicy_customers_policy_schemas_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://chromepolicy.googleapis.com/v1/customers/{}/policySchemas/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/customers/{customersId}/policySchemas/{policySchemasId}
-/// Get a specific policy schema for a customer by its resource name.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `chromepolicy_customers_policy_schemas_get_execute()` or `chromepolicy_customers_policy_schemas_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `chromepolicy_customers_policy_schemas_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn chromepolicy_customers_policy_schemas_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleChromePolicyVersionsV1PolicySchema>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleChromePolicyVersionsV1PolicySchema = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/customers/{customersId}/policySchemas/{policySchemasId}
-/// Get a specific policy schema for a customer by its resource name.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `chromepolicy_customers_policy_schemas_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `chromepolicy_customers_policy_schemas_get_task()`.
-/// For the simplest API, use `chromepolicy_customers_policy_schemas_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `chromepolicy_customers_policy_schemas_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn chromepolicy_customers_policy_schemas_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleChromePolicyVersionsV1PolicySchema>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = chromepolicy_customers_policy_schemas_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`chromepolicy_customers_policy_schemas_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ChromepolicyCustomersPolicySchemasGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/customers/{customersId}/policySchemas/{policySchemasId}
-/// Get a specific policy schema for a customer by its resource name.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `chromepolicy_customers_policy_schemas_get_builder()` + `chromepolicy_customers_policy_schemas_get_execute()`.
-/// For task-level control, use `chromepolicy_customers_policy_schemas_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn chromepolicy_customers_policy_schemas_get(
-    client: &SimpleHttpClient,
-    args: &ChromepolicyCustomersPolicySchemasGetArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleChromePolicyVersionsV1PolicySchema>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = chromepolicy_customers_policy_schemas_get_builder(client, &args.name)?;
-    chromepolicy_customers_policy_schemas_get_execute(builder)
 }
 
 /// GET v1/customers/{customersId}/policySchemas
@@ -2095,16 +1945,14 @@ pub fn chromepolicy_customers_policy_schemas_get(
 
 pub fn chromepolicy_customers_policy_schemas_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://chromepolicy.googleapis.com/v1/customers/{}/policySchemas",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://chromepolicy.googleapis.com/v1/customers/{}/policySchemas",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2119,9 +1967,9 @@ pub fn chromepolicy_customers_policy_schemas_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2156,11 +2004,12 @@ pub fn chromepolicy_customers_policy_schemas_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleChromePolicyVersionsV1ListPolicySchemasResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2285,10 +2134,10 @@ pub fn chromepolicy_customers_policy_schemas_list(
 > {
     let builder = chromepolicy_customers_policy_schemas_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     chromepolicy_customers_policy_schemas_list_execute(builder)
 }
@@ -2301,18 +2150,17 @@ pub fn chromepolicy_customers_policy_schemas_list(
 
 pub fn chromepolicy_media_upload_builder(
     client: &SimpleHttpClient,
-    customer: &str,
+    customer: String,
     body: &GoogleChromePolicyVersionsV1UploadPolicyFileRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://chromepolicy.googleapis.com/v1/customers/{}/policies/files:uploadPolicyFile",
-        customer,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2345,8 +2193,12 @@ pub fn chromepolicy_media_upload_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleChromePolicyVersionsV1UploadPolicyFileResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<
+                ApiResponse<GoogleChromePolicyVersionsV1UploadPolicyFileResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2459,6 +2311,6 @@ pub fn chromepolicy_media_upload(
         + 'static,
     ApiError,
 > {
-    let builder = chromepolicy_media_upload_builder(client, &args.customer, &args.body)?;
+    let builder = chromepolicy_media_upload_builder(client, args.customer.clone(), &args.body)?;
     chromepolicy_media_upload_execute(builder)
 }

@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,18 @@ use serde::Serialize;
 
 pub fn sheets_spreadsheets_batch_update_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
+    spreadsheetId: String,
     body: &BatchUpdateSpreadsheetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}:batchUpdate",
-        spreadsheetId,
+        spreadsheetId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -72,8 +73,9 @@ pub fn sheets_spreadsheets_batch_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchUpdateSpreadsheetResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchUpdateSpreadsheetResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -186,7 +188,7 @@ pub fn sheets_spreadsheets_batch_update(
     ApiError,
 > {
     let builder =
-        sheets_spreadsheets_batch_update_builder(client, &args.spreadsheetId, &args.body)?;
+        sheets_spreadsheets_batch_update_builder(client, args.spreadsheetId.clone(), &args.body)?;
     sheets_spreadsheets_batch_update_execute(builder)
 }
 
@@ -201,11 +203,11 @@ pub fn sheets_spreadsheets_create_builder(
     body: &Spreadsheet,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://sheets.googleapis.com/v4/spreadsheets",);
+    let endpoint_url = format!("https://sheets.googleapis.com/v4/spreadsheets",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -237,7 +239,12 @@ pub fn sheets_spreadsheets_create_builder(
 pub fn sheets_spreadsheets_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Spreadsheet>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Spreadsheet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -349,15 +356,15 @@ pub fn sheets_spreadsheets_create(
 
 pub fn sheets_spreadsheets_get_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
+    spreadsheetId: String,
     excludeTablesInBandedRanges: Option<bool>,
     includeGridData: Option<bool>,
-    ranges: Option<&str>,
+    ranges: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}",
-        spreadsheetId,
+        spreadsheetId.as_str(),
     );
 
     // Build request
@@ -373,9 +380,9 @@ pub fn sheets_spreadsheets_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -409,7 +416,12 @@ pub fn sheets_spreadsheets_get_builder(
 pub fn sheets_spreadsheets_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Spreadsheet>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Spreadsheet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -517,10 +529,10 @@ pub fn sheets_spreadsheets_get(
 > {
     let builder = sheets_spreadsheets_get_builder(
         client,
-        &args.spreadsheetId,
-        args.excludeTablesInBandedRanges,
-        args.includeGridData,
-        args.ranges.as_deref(),
+        args.spreadsheetId.clone(),
+        args.excludeTablesInBandedRanges.clone(),
+        args.includeGridData.clone(),
+        args.ranges.clone(),
     )?;
     sheets_spreadsheets_get_execute(builder)
 }
@@ -533,18 +545,18 @@ pub fn sheets_spreadsheets_get(
 
 pub fn sheets_spreadsheets_get_by_data_filter_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
+    spreadsheetId: String,
     body: &GetSpreadsheetByDataFilterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}:getByDataFilter",
-        spreadsheetId,
+        spreadsheetId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -576,7 +588,12 @@ pub fn sheets_spreadsheets_get_by_data_filter_builder(
 pub fn sheets_spreadsheets_get_by_data_filter_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Spreadsheet>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Spreadsheet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -678,8 +695,11 @@ pub fn sheets_spreadsheets_get_by_data_filter(
     impl StreamIterator<D = Result<ApiResponse<Spreadsheet>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        sheets_spreadsheets_get_by_data_filter_builder(client, &args.spreadsheetId, &args.body)?;
+    let builder = sheets_spreadsheets_get_by_data_filter_builder(
+        client,
+        args.spreadsheetId.clone(),
+        &args.body,
+    )?;
     sheets_spreadsheets_get_by_data_filter_execute(builder)
 }
 
@@ -691,18 +711,19 @@ pub fn sheets_spreadsheets_get_by_data_filter(
 
 pub fn sheets_spreadsheets_developer_metadata_get_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    metadataId: &str,
+    spreadsheetId: String,
+    metadataId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/developerMetadata/{}",
-        spreadsheetId, metadataId,
+        spreadsheetId.as_str(),
+        metadataId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -732,8 +753,11 @@ pub fn sheets_spreadsheets_developer_metadata_get_builder(
 pub fn sheets_spreadsheets_developer_metadata_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DeveloperMetadata>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DeveloperMetadata>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -842,8 +866,8 @@ pub fn sheets_spreadsheets_developer_metadata_get(
 > {
     let builder = sheets_spreadsheets_developer_metadata_get_builder(
         client,
-        &args.spreadsheetId,
-        &args.metadataId,
+        args.spreadsheetId.clone(),
+        args.metadataId.clone(),
     )?;
     sheets_spreadsheets_developer_metadata_get_execute(builder)
 }
@@ -856,18 +880,18 @@ pub fn sheets_spreadsheets_developer_metadata_get(
 
 pub fn sheets_spreadsheets_developer_metadata_search_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
+    spreadsheetId: String,
     body: &SearchDeveloperMetadataRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/developerMetadata:search",
-        spreadsheetId,
+        spreadsheetId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -900,8 +924,9 @@ pub fn sheets_spreadsheets_developer_metadata_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<SearchDeveloperMetadataResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<SearchDeveloperMetadataResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1015,7 +1040,7 @@ pub fn sheets_spreadsheets_developer_metadata_search(
 > {
     let builder = sheets_spreadsheets_developer_metadata_search_builder(
         client,
-        &args.spreadsheetId,
+        args.spreadsheetId.clone(),
         &args.body,
     )?;
     sheets_spreadsheets_developer_metadata_search_execute(builder)
@@ -1029,19 +1054,20 @@ pub fn sheets_spreadsheets_developer_metadata_search(
 
 pub fn sheets_spreadsheets_sheets_copy_to_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    sheetId: &str,
+    spreadsheetId: String,
+    sheetId: String,
     body: &CopySheetToAnotherSpreadsheetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/sheets/{}:copyTo",
-        spreadsheetId, sheetId,
+        spreadsheetId.as_str(),
+        sheetId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1073,8 +1099,11 @@ pub fn sheets_spreadsheets_sheets_copy_to_builder(
 pub fn sheets_spreadsheets_sheets_copy_to_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SheetProperties>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SheetProperties>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1185,8 +1214,8 @@ pub fn sheets_spreadsheets_sheets_copy_to(
 > {
     let builder = sheets_spreadsheets_sheets_copy_to_builder(
         client,
-        &args.spreadsheetId,
-        &args.sheetId,
+        args.spreadsheetId.clone(),
+        args.sheetId.clone(),
         &args.body,
     )?;
     sheets_spreadsheets_sheets_copy_to_execute(builder)
@@ -1200,19 +1229,20 @@ pub fn sheets_spreadsheets_sheets_copy_to(
 
 pub fn sheets_spreadsheets_values_append_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    range: &str,
+    spreadsheetId: String,
+    range: String,
     includeValuesInResponse: Option<bool>,
-    insertDataOption: Option<&str>,
-    responseDateTimeRenderOption: Option<&str>,
-    responseValueRenderOption: Option<&str>,
-    valueInputOption: Option<&str>,
+    insertDataOption: Option<String>,
+    responseDateTimeRenderOption: Option<String>,
+    responseValueRenderOption: Option<String>,
+    valueInputOption: Option<String>,
     body: &ValueRange,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}:append",
-        spreadsheetId, range,
+        spreadsheetId.as_str(),
+        range.as_str(),
     );
 
     // Build request
@@ -1234,9 +1264,9 @@ pub fn sheets_spreadsheets_values_append_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1272,8 +1302,11 @@ pub fn sheets_spreadsheets_values_append_builder(
 pub fn sheets_spreadsheets_values_append_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AppendValuesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AppendValuesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1394,13 +1427,13 @@ pub fn sheets_spreadsheets_values_append(
 > {
     let builder = sheets_spreadsheets_values_append_builder(
         client,
-        &args.spreadsheetId,
-        &args.range,
-        args.includeValuesInResponse,
-        args.insertDataOption.as_deref(),
-        args.responseDateTimeRenderOption.as_deref(),
-        args.responseValueRenderOption.as_deref(),
-        args.valueInputOption.as_deref(),
+        args.spreadsheetId.clone(),
+        args.range.clone(),
+        args.includeValuesInResponse.clone(),
+        args.insertDataOption.clone(),
+        args.responseDateTimeRenderOption.clone(),
+        args.responseValueRenderOption.clone(),
+        args.valueInputOption.clone(),
         &args.body,
     )?;
     sheets_spreadsheets_values_append_execute(builder)
@@ -1414,18 +1447,18 @@ pub fn sheets_spreadsheets_values_append(
 
 pub fn sheets_spreadsheets_values_batch_clear_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
+    spreadsheetId: String,
     body: &BatchClearValuesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchClear",
-        spreadsheetId,
+        spreadsheetId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1457,8 +1490,11 @@ pub fn sheets_spreadsheets_values_batch_clear_builder(
 pub fn sheets_spreadsheets_values_batch_clear_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BatchClearValuesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchClearValuesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1565,8 +1601,11 @@ pub fn sheets_spreadsheets_values_batch_clear(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sheets_spreadsheets_values_batch_clear_builder(client, &args.spreadsheetId, &args.body)?;
+    let builder = sheets_spreadsheets_values_batch_clear_builder(
+        client,
+        args.spreadsheetId.clone(),
+        &args.body,
+    )?;
     sheets_spreadsheets_values_batch_clear_execute(builder)
 }
 
@@ -1578,18 +1617,18 @@ pub fn sheets_spreadsheets_values_batch_clear(
 
 pub fn sheets_spreadsheets_values_batch_clear_by_data_filter_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
+    spreadsheetId: String,
     body: &BatchClearValuesByDataFilterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchClearByDataFilter",
-        spreadsheetId,
+        spreadsheetId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1622,8 +1661,9 @@ pub fn sheets_spreadsheets_values_batch_clear_by_data_filter_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchClearValuesByDataFilterResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchClearValuesByDataFilterResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1737,7 +1777,7 @@ pub fn sheets_spreadsheets_values_batch_clear_by_data_filter(
 > {
     let builder = sheets_spreadsheets_values_batch_clear_by_data_filter_builder(
         client,
-        &args.spreadsheetId,
+        args.spreadsheetId.clone(),
         &args.body,
     )?;
     sheets_spreadsheets_values_batch_clear_by_data_filter_execute(builder)
@@ -1751,16 +1791,16 @@ pub fn sheets_spreadsheets_values_batch_clear_by_data_filter(
 
 pub fn sheets_spreadsheets_values_batch_get_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    dateTimeRenderOption: Option<&str>,
-    majorDimension: Option<&str>,
-    ranges: Option<&str>,
-    valueRenderOption: Option<&str>,
+    spreadsheetId: String,
+    dateTimeRenderOption: Option<String>,
+    majorDimension: Option<String>,
+    ranges: Option<String>,
+    valueRenderOption: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchGet",
-        spreadsheetId,
+        spreadsheetId.as_str(),
     );
 
     // Build request
@@ -1779,9 +1819,9 @@ pub fn sheets_spreadsheets_values_batch_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1815,8 +1855,11 @@ pub fn sheets_spreadsheets_values_batch_get_builder(
 pub fn sheets_spreadsheets_values_batch_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BatchGetValuesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchGetValuesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1931,11 +1974,11 @@ pub fn sheets_spreadsheets_values_batch_get(
 > {
     let builder = sheets_spreadsheets_values_batch_get_builder(
         client,
-        &args.spreadsheetId,
-        args.dateTimeRenderOption.as_deref(),
-        args.majorDimension.as_deref(),
-        args.ranges.as_deref(),
-        args.valueRenderOption.as_deref(),
+        args.spreadsheetId.clone(),
+        args.dateTimeRenderOption.clone(),
+        args.majorDimension.clone(),
+        args.ranges.clone(),
+        args.valueRenderOption.clone(),
     )?;
     sheets_spreadsheets_values_batch_get_execute(builder)
 }
@@ -1948,18 +1991,18 @@ pub fn sheets_spreadsheets_values_batch_get(
 
 pub fn sheets_spreadsheets_values_batch_get_by_data_filter_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
+    spreadsheetId: String,
     body: &BatchGetValuesByDataFilterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchGetByDataFilter",
-        spreadsheetId,
+        spreadsheetId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1992,8 +2035,9 @@ pub fn sheets_spreadsheets_values_batch_get_by_data_filter_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchGetValuesByDataFilterResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchGetValuesByDataFilterResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2107,7 +2151,7 @@ pub fn sheets_spreadsheets_values_batch_get_by_data_filter(
 > {
     let builder = sheets_spreadsheets_values_batch_get_by_data_filter_builder(
         client,
-        &args.spreadsheetId,
+        args.spreadsheetId.clone(),
         &args.body,
     )?;
     sheets_spreadsheets_values_batch_get_by_data_filter_execute(builder)
@@ -2121,18 +2165,18 @@ pub fn sheets_spreadsheets_values_batch_get_by_data_filter(
 
 pub fn sheets_spreadsheets_values_batch_update_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
+    spreadsheetId: String,
     body: &BatchUpdateValuesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchUpdate",
-        spreadsheetId,
+        spreadsheetId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2164,8 +2208,11 @@ pub fn sheets_spreadsheets_values_batch_update_builder(
 pub fn sheets_spreadsheets_values_batch_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BatchUpdateValuesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchUpdateValuesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2272,8 +2319,11 @@ pub fn sheets_spreadsheets_values_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        sheets_spreadsheets_values_batch_update_builder(client, &args.spreadsheetId, &args.body)?;
+    let builder = sheets_spreadsheets_values_batch_update_builder(
+        client,
+        args.spreadsheetId.clone(),
+        &args.body,
+    )?;
     sheets_spreadsheets_values_batch_update_execute(builder)
 }
 
@@ -2285,18 +2335,18 @@ pub fn sheets_spreadsheets_values_batch_update(
 
 pub fn sheets_spreadsheets_values_batch_update_by_data_filter_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
+    spreadsheetId: String,
     body: &BatchUpdateValuesByDataFilterRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values:batchUpdateByDataFilter",
-        spreadsheetId,
+        spreadsheetId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2329,8 +2379,9 @@ pub fn sheets_spreadsheets_values_batch_update_by_data_filter_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchUpdateValuesByDataFilterResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchUpdateValuesByDataFilterResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2444,7 +2495,7 @@ pub fn sheets_spreadsheets_values_batch_update_by_data_filter(
 > {
     let builder = sheets_spreadsheets_values_batch_update_by_data_filter_builder(
         client,
-        &args.spreadsheetId,
+        args.spreadsheetId.clone(),
         &args.body,
     )?;
     sheets_spreadsheets_values_batch_update_by_data_filter_execute(builder)
@@ -2458,19 +2509,20 @@ pub fn sheets_spreadsheets_values_batch_update_by_data_filter(
 
 pub fn sheets_spreadsheets_values_clear_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    range: &str,
+    spreadsheetId: String,
+    range: String,
     body: &ClearValuesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}:clear",
-        spreadsheetId, range,
+        spreadsheetId.as_str(),
+        range.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2502,8 +2554,11 @@ pub fn sheets_spreadsheets_values_clear_builder(
 pub fn sheets_spreadsheets_values_clear_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ClearValuesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ClearValuesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2614,8 +2669,8 @@ pub fn sheets_spreadsheets_values_clear(
 > {
     let builder = sheets_spreadsheets_values_clear_builder(
         client,
-        &args.spreadsheetId,
-        &args.range,
+        args.spreadsheetId.clone(),
+        args.range.clone(),
         &args.body,
     )?;
     sheets_spreadsheets_values_clear_execute(builder)
@@ -2629,16 +2684,17 @@ pub fn sheets_spreadsheets_values_clear(
 
 pub fn sheets_spreadsheets_values_get_builder(
     client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    range: &str,
-    dateTimeRenderOption: Option<&str>,
-    majorDimension: Option<&str>,
-    valueRenderOption: Option<&str>,
+    spreadsheetId: String,
+    range: String,
+    dateTimeRenderOption: Option<String>,
+    majorDimension: Option<String>,
+    valueRenderOption: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}",
-        spreadsheetId, range,
+        spreadsheetId.as_str(),
+        range.as_str(),
     );
 
     // Build request
@@ -2654,9 +2710,9 @@ pub fn sheets_spreadsheets_values_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2690,7 +2746,12 @@ pub fn sheets_spreadsheets_values_get_builder(
 pub fn sheets_spreadsheets_values_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ValueRange>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ValueRange>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2800,218 +2861,11 @@ pub fn sheets_spreadsheets_values_get(
 > {
     let builder = sheets_spreadsheets_values_get_builder(
         client,
-        &args.spreadsheetId,
-        &args.range,
-        args.dateTimeRenderOption.as_deref(),
-        args.majorDimension.as_deref(),
-        args.valueRenderOption.as_deref(),
+        args.spreadsheetId.clone(),
+        args.range.clone(),
+        args.dateTimeRenderOption.clone(),
+        args.majorDimension.clone(),
+        args.valueRenderOption.clone(),
     )?;
     sheets_spreadsheets_values_get_execute(builder)
-}
-
-/// GET v4/spreadsheets/{spreadsheetId}/values/{range}
-/// Sets values in a range of a spreadsheet. The caller must specify the spreadsheet ID, range, and a `valueInputOption`.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `sheets_spreadsheets_values_update_execute()` to send, or `sheets_spreadsheets_values_update` for simplest API.
-
-pub fn sheets_spreadsheets_values_update_builder(
-    client: &SimpleHttpClient,
-    spreadsheetId: &str,
-    range: &str,
-    includeValuesInResponse: Option<bool>,
-    responseDateTimeRenderOption: Option<&str>,
-    responseValueRenderOption: Option<&str>,
-    valueInputOption: Option<&str>,
-    body: &ValueRange,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://sheets.googleapis.com/v4/spreadsheets/{}/values/{}",
-        spreadsheetId, range,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = includeValuesInResponse {
-        query_parts.push(format!("includeValuesInResponse={}", val));
-    }
-    if let Some(val) = responseDateTimeRenderOption {
-        query_parts.push(format!("responseDateTimeRenderOption={}", val));
-    }
-    if let Some(val) = responseValueRenderOption {
-        query_parts.push(format!("responseValueRenderOption={}", val));
-    }
-    if let Some(val) = valueInputOption {
-        query_parts.push(format!("valueInputOption={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v4/spreadsheets/{spreadsheetId}/values/{range}
-/// Sets values in a range of a spreadsheet. The caller must specify the spreadsheet ID, range, and a `valueInputOption`.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `sheets_spreadsheets_values_update_execute()` or `sheets_spreadsheets_values_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sheets_spreadsheets_values_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn sheets_spreadsheets_values_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UpdateValuesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: UpdateValuesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v4/spreadsheets/{spreadsheetId}/values/{range}
-/// Sets values in a range of a spreadsheet. The caller must specify the spreadsheet ID, range, and a `valueInputOption`.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `sheets_spreadsheets_values_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `sheets_spreadsheets_values_update_task()`.
-/// For the simplest API, use `sheets_spreadsheets_values_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `sheets_spreadsheets_values_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn sheets_spreadsheets_values_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UpdateValuesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = sheets_spreadsheets_values_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`sheets_spreadsheets_values_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct SheetsSpreadsheetsValuesUpdateArgs {
-    /// Path parameter: spreadsheetId
-    pub spreadsheetId: String,
-    /// Path parameter: range
-    pub range: String,
-    /// Query parameter: includeValuesInResponse
-    pub includeValuesInResponse: Option<bool>,
-    /// Query parameter: responseDateTimeRenderOption
-    pub responseDateTimeRenderOption: Option<String>,
-    /// Query parameter: responseValueRenderOption
-    pub responseValueRenderOption: Option<String>,
-    /// Query parameter: valueInputOption
-    pub valueInputOption: Option<String>,
-    /// Request body.
-    pub body: ValueRange,
-}
-
-/// GET v4/spreadsheets/{spreadsheetId}/values/{range}
-/// Sets values in a range of a spreadsheet. The caller must specify the spreadsheet ID, range, and a `valueInputOption`.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `sheets_spreadsheets_values_update_builder()` + `sheets_spreadsheets_values_update_execute()`.
-/// For task-level control, use `sheets_spreadsheets_values_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn sheets_spreadsheets_values_update(
-    client: &SimpleHttpClient,
-    args: &SheetsSpreadsheetsValuesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UpdateValuesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = sheets_spreadsheets_values_update_builder(
-        client,
-        &args.spreadsheetId,
-        &args.range,
-        args.includeValuesInResponse,
-        args.responseDateTimeRenderOption.as_deref(),
-        args.responseValueRenderOption.as_deref(),
-        args.valueInputOption.as_deref(),
-        &args.body,
-    )?;
-    sheets_spreadsheets_values_update_execute(builder)
 }

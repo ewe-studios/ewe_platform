@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -29,19 +30,19 @@ use serde::Serialize;
 pub fn script_processes_list_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    userProcessFilter_deploymentId: Option<&str>,
-    userProcessFilter_endTime: Option<&str>,
-    userProcessFilter_functionName: Option<&str>,
-    userProcessFilter_projectName: Option<&str>,
-    userProcessFilter_scriptId: Option<&str>,
-    userProcessFilter_startTime: Option<&str>,
-    userProcessFilter_statuses: Option<&str>,
-    userProcessFilter_types: Option<&str>,
-    userProcessFilter_userAccessLevels: Option<&str>,
+    pageToken: Option<String>,
+    userProcessFilter_deploymentId: Option<String>,
+    userProcessFilter_endTime: Option<String>,
+    userProcessFilter_functionName: Option<String>,
+    userProcessFilter_projectName: Option<String>,
+    userProcessFilter_scriptId: Option<String>,
+    userProcessFilter_startTime: Option<String>,
+    userProcessFilter_statuses: Option<String>,
+    userProcessFilter_types: Option<String>,
+    userProcessFilter_userAccessLevels: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://script.googleapis.com/v1/processes",);
+    let endpoint_url = format!("https://script.googleapis.com/v1/processes",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -52,37 +53,37 @@ pub fn script_processes_list_builder(
         query_parts.push(format!("pageToken={}", val));
     }
     if let Some(val) = userProcessFilter_deploymentId {
-        query_parts.push(format!("userProcessFilter_deploymentId={}", val));
+        query_parts.push(format!("userProcessFilter.deploymentId={}", val));
     }
     if let Some(val) = userProcessFilter_endTime {
-        query_parts.push(format!("userProcessFilter_endTime={}", val));
+        query_parts.push(format!("userProcessFilter.endTime={}", val));
     }
     if let Some(val) = userProcessFilter_functionName {
-        query_parts.push(format!("userProcessFilter_functionName={}", val));
+        query_parts.push(format!("userProcessFilter.functionName={}", val));
     }
     if let Some(val) = userProcessFilter_projectName {
-        query_parts.push(format!("userProcessFilter_projectName={}", val));
+        query_parts.push(format!("userProcessFilter.projectName={}", val));
     }
     if let Some(val) = userProcessFilter_scriptId {
-        query_parts.push(format!("userProcessFilter_scriptId={}", val));
+        query_parts.push(format!("userProcessFilter.scriptId={}", val));
     }
     if let Some(val) = userProcessFilter_startTime {
-        query_parts.push(format!("userProcessFilter_startTime={}", val));
+        query_parts.push(format!("userProcessFilter.startTime={}", val));
     }
     if let Some(val) = userProcessFilter_statuses {
-        query_parts.push(format!("userProcessFilter_statuses={}", val));
+        query_parts.push(format!("userProcessFilter.statuses={}", val));
     }
     if let Some(val) = userProcessFilter_types {
-        query_parts.push(format!("userProcessFilter_types={}", val));
+        query_parts.push(format!("userProcessFilter.types={}", val));
     }
     if let Some(val) = userProcessFilter_userAccessLevels {
-        query_parts.push(format!("userProcessFilter_userAccessLevels={}", val));
+        query_parts.push(format!("userProcessFilter.userAccessLevels={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -116,8 +117,11 @@ pub fn script_processes_list_builder(
 pub fn script_processes_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListUserProcessesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUserProcessesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -244,17 +248,17 @@ pub fn script_processes_list(
 > {
     let builder = script_processes_list_builder(
         client,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.userProcessFilter_deploymentId.as_deref(),
-        args.userProcessFilter_endTime.as_deref(),
-        args.userProcessFilter_functionName.as_deref(),
-        args.userProcessFilter_projectName.as_deref(),
-        args.userProcessFilter_scriptId.as_deref(),
-        args.userProcessFilter_startTime.as_deref(),
-        args.userProcessFilter_statuses.as_deref(),
-        args.userProcessFilter_types.as_deref(),
-        args.userProcessFilter_userAccessLevels.as_deref(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.userProcessFilter_deploymentId.clone(),
+        args.userProcessFilter_endTime.clone(),
+        args.userProcessFilter_functionName.clone(),
+        args.userProcessFilter_projectName.clone(),
+        args.userProcessFilter_scriptId.clone(),
+        args.userProcessFilter_startTime.clone(),
+        args.userProcessFilter_statuses.clone(),
+        args.userProcessFilter_types.clone(),
+        args.userProcessFilter_userAccessLevels.clone(),
     )?;
     script_processes_list_execute(builder)
 }
@@ -268,18 +272,18 @@ pub fn script_processes_list(
 pub fn script_processes_list_script_processes_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    scriptId: Option<&str>,
-    scriptProcessFilter_deploymentId: Option<&str>,
-    scriptProcessFilter_endTime: Option<&str>,
-    scriptProcessFilter_functionName: Option<&str>,
-    scriptProcessFilter_startTime: Option<&str>,
-    scriptProcessFilter_statuses: Option<&str>,
-    scriptProcessFilter_types: Option<&str>,
-    scriptProcessFilter_userAccessLevels: Option<&str>,
+    pageToken: Option<String>,
+    scriptId: Option<String>,
+    scriptProcessFilter_deploymentId: Option<String>,
+    scriptProcessFilter_endTime: Option<String>,
+    scriptProcessFilter_functionName: Option<String>,
+    scriptProcessFilter_startTime: Option<String>,
+    scriptProcessFilter_statuses: Option<String>,
+    scriptProcessFilter_types: Option<String>,
+    scriptProcessFilter_userAccessLevels: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://script.googleapis.com/v1/processes:listScriptProcesses",);
+    let endpoint_url = format!("https://script.googleapis.com/v1/processes:listScriptProcesses",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -293,31 +297,31 @@ pub fn script_processes_list_script_processes_builder(
         query_parts.push(format!("scriptId={}", val));
     }
     if let Some(val) = scriptProcessFilter_deploymentId {
-        query_parts.push(format!("scriptProcessFilter_deploymentId={}", val));
+        query_parts.push(format!("scriptProcessFilter.deploymentId={}", val));
     }
     if let Some(val) = scriptProcessFilter_endTime {
-        query_parts.push(format!("scriptProcessFilter_endTime={}", val));
+        query_parts.push(format!("scriptProcessFilter.endTime={}", val));
     }
     if let Some(val) = scriptProcessFilter_functionName {
-        query_parts.push(format!("scriptProcessFilter_functionName={}", val));
+        query_parts.push(format!("scriptProcessFilter.functionName={}", val));
     }
     if let Some(val) = scriptProcessFilter_startTime {
-        query_parts.push(format!("scriptProcessFilter_startTime={}", val));
+        query_parts.push(format!("scriptProcessFilter.startTime={}", val));
     }
     if let Some(val) = scriptProcessFilter_statuses {
-        query_parts.push(format!("scriptProcessFilter_statuses={}", val));
+        query_parts.push(format!("scriptProcessFilter.statuses={}", val));
     }
     if let Some(val) = scriptProcessFilter_types {
-        query_parts.push(format!("scriptProcessFilter_types={}", val));
+        query_parts.push(format!("scriptProcessFilter.types={}", val));
     }
     if let Some(val) = scriptProcessFilter_userAccessLevels {
-        query_parts.push(format!("scriptProcessFilter_userAccessLevels={}", val));
+        query_parts.push(format!("scriptProcessFilter.userAccessLevels={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -351,8 +355,11 @@ pub fn script_processes_list_script_processes_builder(
 pub fn script_processes_list_script_processes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListScriptProcessesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListScriptProcessesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -481,16 +488,16 @@ pub fn script_processes_list_script_processes(
 > {
     let builder = script_processes_list_script_processes_builder(
         client,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.scriptId.as_deref(),
-        args.scriptProcessFilter_deploymentId.as_deref(),
-        args.scriptProcessFilter_endTime.as_deref(),
-        args.scriptProcessFilter_functionName.as_deref(),
-        args.scriptProcessFilter_startTime.as_deref(),
-        args.scriptProcessFilter_statuses.as_deref(),
-        args.scriptProcessFilter_types.as_deref(),
-        args.scriptProcessFilter_userAccessLevels.as_deref(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.scriptId.clone(),
+        args.scriptProcessFilter_deploymentId.clone(),
+        args.scriptProcessFilter_endTime.clone(),
+        args.scriptProcessFilter_functionName.clone(),
+        args.scriptProcessFilter_startTime.clone(),
+        args.scriptProcessFilter_statuses.clone(),
+        args.scriptProcessFilter_types.clone(),
+        args.scriptProcessFilter_userAccessLevels.clone(),
     )?;
     script_processes_list_script_processes_execute(builder)
 }
@@ -506,11 +513,11 @@ pub fn script_projects_create_builder(
     body: &CreateProjectRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://script.googleapis.com/v1/projects",);
+    let endpoint_url = format!("https://script.googleapis.com/v1/projects",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -542,7 +549,12 @@ pub fn script_projects_create_builder(
 pub fn script_projects_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Project>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Project>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -654,14 +666,17 @@ pub fn script_projects_create(
 
 pub fn script_projects_get_builder(
     client: &SimpleHttpClient,
-    scriptId: &str,
+    scriptId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://script.googleapis.com/v1/projects/{}", scriptId,);
+    let endpoint_url = format!(
+        "https://script.googleapis.com/v1/projects/{}",
+        scriptId.as_str(),
+    );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -691,7 +706,12 @@ pub fn script_projects_get_builder(
 pub fn script_projects_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Project>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Project>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -791,7 +811,7 @@ pub fn script_projects_get(
     impl StreamIterator<D = Result<ApiResponse<Project>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_get_builder(client, &args.scriptId)?;
+    let builder = script_projects_get_builder(client, args.scriptId.clone())?;
     script_projects_get_execute(builder)
 }
 
@@ -803,13 +823,13 @@ pub fn script_projects_get(
 
 pub fn script_projects_get_content_builder(
     client: &SimpleHttpClient,
-    scriptId: &str,
+    scriptId: String,
     versionNumber: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/content",
-        scriptId,
+        scriptId.as_str(),
     );
 
     // Build request
@@ -819,9 +839,9 @@ pub fn script_projects_get_content_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -855,7 +875,12 @@ pub fn script_projects_get_content_builder(
 pub fn script_projects_get_content_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Content>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Content>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -957,7 +982,11 @@ pub fn script_projects_get_content(
     impl StreamIterator<D = Result<ApiResponse<Content>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_get_content_builder(client, &args.scriptId, args.versionNumber)?;
+    let builder = script_projects_get_content_builder(
+        client,
+        args.scriptId.clone(),
+        args.versionNumber.clone(),
+    )?;
     script_projects_get_content_execute(builder)
 }
 
@@ -969,29 +998,29 @@ pub fn script_projects_get_content(
 
 pub fn script_projects_get_metrics_builder(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    metricsFilter_deploymentId: Option<&str>,
-    metricsGranularity: Option<&str>,
+    scriptId: String,
+    metricsFilter_deploymentId: Option<String>,
+    metricsGranularity: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/metrics",
-        scriptId,
+        scriptId.as_str(),
     );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = metricsFilter_deploymentId {
-        query_parts.push(format!("metricsFilter_deploymentId={}", val));
+        query_parts.push(format!("metricsFilter.deploymentId={}", val));
     }
     if let Some(val) = metricsGranularity {
         query_parts.push(format!("metricsGranularity={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1025,7 +1054,12 @@ pub fn script_projects_get_metrics_builder(
 pub fn script_projects_get_metrics_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Metrics>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Metrics>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1131,168 +1165,11 @@ pub fn script_projects_get_metrics(
 > {
     let builder = script_projects_get_metrics_builder(
         client,
-        &args.scriptId,
-        args.metricsFilter_deploymentId.as_deref(),
-        args.metricsGranularity.as_deref(),
+        args.scriptId.clone(),
+        args.metricsFilter_deploymentId.clone(),
+        args.metricsGranularity.clone(),
     )?;
     script_projects_get_metrics_execute(builder)
-}
-
-/// GET v1/projects/{scriptId}/content
-/// Updates the content of the specified script project. This content is stored as the HEAD version, and is used when the script is executed as a trigger, in the script editor, in add-on preview mode, or as a web app or Apps Script API in development mode. This clears all the existing files in the project.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `script_projects_update_content_execute()` to send, or `script_projects_update_content` for simplest API.
-
-pub fn script_projects_update_content_builder(
-    client: &SimpleHttpClient,
-    scriptId: &str,
-    body: &Content,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://script.googleapis.com/v1/projects/{}/content",
-        scriptId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{scriptId}/content
-/// Updates the content of the specified script project. This content is stored as the HEAD version, and is used when the script is executed as a trigger, in the script editor, in add-on preview mode, or as a web app or Apps Script API in development mode. This clears all the existing files in the project.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `script_projects_update_content_execute()` or `script_projects_update_content`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `script_projects_update_content_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn script_projects_update_content_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Content>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Content = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{scriptId}/content
-/// Updates the content of the specified script project. This content is stored as the HEAD version, and is used when the script is executed as a trigger, in the script editor, in add-on preview mode, or as a web app or Apps Script API in development mode. This clears all the existing files in the project.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `script_projects_update_content_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `script_projects_update_content_task()`.
-/// For the simplest API, use `script_projects_update_content()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `script_projects_update_content_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn script_projects_update_content_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Content>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = script_projects_update_content_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`script_projects_update_content`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ScriptProjectsUpdateContentArgs {
-    /// Path parameter: scriptId
-    pub scriptId: String,
-    /// Request body.
-    pub body: Content,
-}
-
-/// GET v1/projects/{scriptId}/content
-/// Updates the content of the specified script project. This content is stored as the HEAD version, and is used when the script is executed as a trigger, in the script editor, in add-on preview mode, or as a web app or Apps Script API in development mode. This clears all the existing files in the project.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `script_projects_update_content_builder()` + `script_projects_update_content_execute()`.
-/// For task-level control, use `script_projects_update_content_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn script_projects_update_content(
-    client: &SimpleHttpClient,
-    args: &ScriptProjectsUpdateContentArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Content>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = script_projects_update_content_builder(client, &args.scriptId, &args.body)?;
-    script_projects_update_content_execute(builder)
 }
 
 /// GET v1/projects/{scriptId}/deployments
@@ -1303,18 +1180,18 @@ pub fn script_projects_update_content(
 
 pub fn script_projects_deployments_create_builder(
     client: &SimpleHttpClient,
-    scriptId: &str,
+    scriptId: String,
     body: &DeploymentConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/deployments",
-        scriptId,
+        scriptId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1346,7 +1223,12 @@ pub fn script_projects_deployments_create_builder(
 pub fn script_projects_deployments_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Deployment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1448,7 +1330,8 @@ pub fn script_projects_deployments_create(
     impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_deployments_create_builder(client, &args.scriptId, &args.body)?;
+    let builder =
+        script_projects_deployments_create_builder(client, args.scriptId.clone(), &args.body)?;
     script_projects_deployments_create_execute(builder)
 }
 
@@ -1460,18 +1343,19 @@ pub fn script_projects_deployments_create(
 
 pub fn script_projects_deployments_delete_builder(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    deploymentId: &str,
+    scriptId: String,
+    deploymentId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/deployments/{}",
-        scriptId, deploymentId,
+        scriptId.as_str(),
+        deploymentId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1501,7 +1385,12 @@ pub fn script_projects_deployments_delete_builder(
 pub fn script_projects_deployments_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1603,513 +1492,12 @@ pub fn script_projects_deployments_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        script_projects_deployments_delete_builder(client, &args.scriptId, &args.deploymentId)?;
+    let builder = script_projects_deployments_delete_builder(
+        client,
+        args.scriptId.clone(),
+        args.deploymentId.clone(),
+    )?;
     script_projects_deployments_delete_execute(builder)
-}
-
-/// GET v1/projects/{scriptId}/deployments/{deploymentId}
-/// Gets a deployment of an Apps Script project.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `script_projects_deployments_get_execute()` to send, or `script_projects_deployments_get` for simplest API.
-
-pub fn script_projects_deployments_get_builder(
-    client: &SimpleHttpClient,
-    scriptId: &str,
-    deploymentId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://script.googleapis.com/v1/projects/{}/deployments/{}",
-        scriptId, deploymentId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{scriptId}/deployments/{deploymentId}
-/// Gets a deployment of an Apps Script project.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `script_projects_deployments_get_execute()` or `script_projects_deployments_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `script_projects_deployments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn script_projects_deployments_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Deployment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{scriptId}/deployments/{deploymentId}
-/// Gets a deployment of an Apps Script project.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `script_projects_deployments_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `script_projects_deployments_get_task()`.
-/// For the simplest API, use `script_projects_deployments_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `script_projects_deployments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn script_projects_deployments_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = script_projects_deployments_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`script_projects_deployments_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ScriptProjectsDeploymentsGetArgs {
-    /// Path parameter: scriptId
-    pub scriptId: String,
-    /// Path parameter: deploymentId
-    pub deploymentId: String,
-}
-
-/// GET v1/projects/{scriptId}/deployments/{deploymentId}
-/// Gets a deployment of an Apps Script project.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `script_projects_deployments_get_builder()` + `script_projects_deployments_get_execute()`.
-/// For task-level control, use `script_projects_deployments_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn script_projects_deployments_get(
-    client: &SimpleHttpClient,
-    args: &ScriptProjectsDeploymentsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        script_projects_deployments_get_builder(client, &args.scriptId, &args.deploymentId)?;
-    script_projects_deployments_get_execute(builder)
-}
-
-/// GET v1/projects/{scriptId}/deployments
-/// Lists the deployments of an Apps Script project.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `script_projects_deployments_list_execute()` to send, or `script_projects_deployments_list` for simplest API.
-
-pub fn script_projects_deployments_list_builder(
-    client: &SimpleHttpClient,
-    scriptId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://script.googleapis.com/v1/projects/{}/deployments",
-        scriptId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{scriptId}/deployments
-/// Lists the deployments of an Apps Script project.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `script_projects_deployments_list_execute()` or `script_projects_deployments_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `script_projects_deployments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn script_projects_deployments_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListDeploymentsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListDeploymentsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{scriptId}/deployments
-/// Lists the deployments of an Apps Script project.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `script_projects_deployments_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `script_projects_deployments_list_task()`.
-/// For the simplest API, use `script_projects_deployments_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `script_projects_deployments_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn script_projects_deployments_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListDeploymentsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = script_projects_deployments_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`script_projects_deployments_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ScriptProjectsDeploymentsListArgs {
-    /// Path parameter: scriptId
-    pub scriptId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/projects/{scriptId}/deployments
-/// Lists the deployments of an Apps Script project.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `script_projects_deployments_list_builder()` + `script_projects_deployments_list_execute()`.
-/// For task-level control, use `script_projects_deployments_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn script_projects_deployments_list(
-    client: &SimpleHttpClient,
-    args: &ScriptProjectsDeploymentsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListDeploymentsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = script_projects_deployments_list_builder(
-        client,
-        &args.scriptId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    script_projects_deployments_list_execute(builder)
-}
-
-/// GET v1/projects/{scriptId}/deployments/{deploymentId}
-/// Updates a deployment of an Apps Script project.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `script_projects_deployments_update_execute()` to send, or `script_projects_deployments_update` for simplest API.
-
-pub fn script_projects_deployments_update_builder(
-    client: &SimpleHttpClient,
-    scriptId: &str,
-    deploymentId: &str,
-    body: &UpdateDeploymentRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://script.googleapis.com/v1/projects/{}/deployments/{}",
-        scriptId, deploymentId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{scriptId}/deployments/{deploymentId}
-/// Updates a deployment of an Apps Script project.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `script_projects_deployments_update_execute()` or `script_projects_deployments_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `script_projects_deployments_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn script_projects_deployments_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Deployment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{scriptId}/deployments/{deploymentId}
-/// Updates a deployment of an Apps Script project.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `script_projects_deployments_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `script_projects_deployments_update_task()`.
-/// For the simplest API, use `script_projects_deployments_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `script_projects_deployments_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn script_projects_deployments_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = script_projects_deployments_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`script_projects_deployments_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ScriptProjectsDeploymentsUpdateArgs {
-    /// Path parameter: scriptId
-    pub scriptId: String,
-    /// Path parameter: deploymentId
-    pub deploymentId: String,
-    /// Request body.
-    pub body: UpdateDeploymentRequest,
-}
-
-/// GET v1/projects/{scriptId}/deployments/{deploymentId}
-/// Updates a deployment of an Apps Script project.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `script_projects_deployments_update_builder()` + `script_projects_deployments_update_execute()`.
-/// For task-level control, use `script_projects_deployments_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn script_projects_deployments_update(
-    client: &SimpleHttpClient,
-    args: &ScriptProjectsDeploymentsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Deployment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = script_projects_deployments_update_builder(
-        client,
-        &args.scriptId,
-        &args.deploymentId,
-        &args.body,
-    )?;
-    script_projects_deployments_update_execute(builder)
 }
 
 /// GET v1/projects/{scriptId}/versions
@@ -2120,18 +1508,18 @@ pub fn script_projects_deployments_update(
 
 pub fn script_projects_versions_create_builder(
     client: &SimpleHttpClient,
-    scriptId: &str,
+    scriptId: String,
     body: &Version,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/versions",
-        scriptId,
+        scriptId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2163,7 +1551,12 @@ pub fn script_projects_versions_create_builder(
 pub fn script_projects_versions_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Version>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2265,7 +1658,8 @@ pub fn script_projects_versions_create(
     impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_projects_versions_create_builder(client, &args.scriptId, &args.body)?;
+    let builder =
+        script_projects_versions_create_builder(client, args.scriptId.clone(), &args.body)?;
     script_projects_versions_create_execute(builder)
 }
 
@@ -2277,18 +1671,19 @@ pub fn script_projects_versions_create(
 
 pub fn script_projects_versions_get_builder(
     client: &SimpleHttpClient,
-    scriptId: &str,
-    versionNumber: &str,
+    scriptId: String,
+    versionNumber: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://script.googleapis.com/v1/projects/{}/versions/{}",
-        scriptId, versionNumber,
+        scriptId.as_str(),
+        versionNumber.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2318,7 +1713,12 @@ pub fn script_projects_versions_get_builder(
 pub fn script_projects_versions_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Version>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2420,192 +1820,12 @@ pub fn script_projects_versions_get(
     impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        script_projects_versions_get_builder(client, &args.scriptId, &args.versionNumber)?;
-    script_projects_versions_get_execute(builder)
-}
-
-/// GET v1/projects/{scriptId}/versions
-/// List the versions of a script project.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `script_projects_versions_list_execute()` to send, or `script_projects_versions_list` for simplest API.
-
-pub fn script_projects_versions_list_builder(
-    client: &SimpleHttpClient,
-    scriptId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://script.googleapis.com/v1/projects/{}/versions",
-        scriptId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{scriptId}/versions
-/// List the versions of a script project.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `script_projects_versions_list_execute()` or `script_projects_versions_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `script_projects_versions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn script_projects_versions_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListVersionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListVersionsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{scriptId}/versions
-/// List the versions of a script project.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `script_projects_versions_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `script_projects_versions_list_task()`.
-/// For the simplest API, use `script_projects_versions_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `script_projects_versions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn script_projects_versions_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListVersionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = script_projects_versions_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`script_projects_versions_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ScriptProjectsVersionsListArgs {
-    /// Path parameter: scriptId
-    pub scriptId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/projects/{scriptId}/versions
-/// List the versions of a script project.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `script_projects_versions_list_builder()` + `script_projects_versions_list_execute()`.
-/// For task-level control, use `script_projects_versions_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn script_projects_versions_list(
-    client: &SimpleHttpClient,
-    args: &ScriptProjectsVersionsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListVersionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = script_projects_versions_list_builder(
+    let builder = script_projects_versions_get_builder(
         client,
-        &args.scriptId,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.scriptId.clone(),
+        args.versionNumber.clone(),
     )?;
-    script_projects_versions_list_execute(builder)
+    script_projects_versions_get_execute(builder)
 }
 
 /// GET v1/scripts/{scriptId}:run
@@ -2616,15 +1836,18 @@ pub fn script_projects_versions_list(
 
 pub fn script_scripts_run_builder(
     client: &SimpleHttpClient,
-    scriptId: &str,
+    scriptId: String,
     body: &ExecutionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://script.googleapis.com/v1/scripts/{}:run", scriptId,);
+    let endpoint_url = format!(
+        "https://script.googleapis.com/v1/scripts/{}:run",
+        scriptId.as_str(),
+    );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2656,7 +1879,12 @@ pub fn script_scripts_run_builder(
 pub fn script_scripts_run_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2758,6 +1986,6 @@ pub fn script_scripts_run(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = script_scripts_run_builder(client, &args.scriptId, &args.body)?;
+    let builder = script_scripts_run_builder(client, args.scriptId.clone(), &args.body)?;
     script_scripts_run_execute(builder)
 }

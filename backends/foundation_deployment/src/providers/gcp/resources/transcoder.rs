@@ -11,41 +11,11 @@ use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// Configuration for AES-128 encryption.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Aes128Encryption {}
-
-/// Clearkey configuration.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Clearkey {}
-
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// Fairplay configuration.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Fairplay {}
-
-/// Convert the input video to a Hybrid Log Gamma (HLG) video.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct H264ColorFormatHLG {}
-
-/// Convert the input video to a Standard Dynamic Range (SDR) video.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct H264ColorFormatSDR {}
-
-/// Convert the input video to a High Dynamic Range 10 (HDR10) video.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct H265ColorFormatHDR10 {}
-
-/// Convert the input video to a Hybrid Log Gamma (HLG) video.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct H265ColorFormatHLG {}
-
-/// Convert the input video to a Standard Dynamic Range (SDR) video.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct H265ColorFormatSDR {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Response message for TranscoderService.ListJobTemplates.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -74,26 +44,6 @@ pub struct ListJobsResponse {
     #[serde(default)]
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
-
-/// Playready configuration.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Playready {}
-
-/// Configuration for SAMPLE-AES encryption.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SampleAesEncryption {}
-
-/// Convert the input video to a Hybrid Log Gamma (HLG) video.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Vp9ColorFormatHLG {}
-
-/// Convert the input video to a Standard Dynamic Range (SDR) video.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Vp9ColorFormatSDR {}
-
-/// Widevine configuration.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Widevine {}
 
 /// Transcoding job template resource.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -261,7 +211,7 @@ pub struct ElementaryStream {
 pub struct Encryption {
     /// Configuration for AES-128 encryption.
     #[serde(default)]
-    pub aes128: ::core::option::Option<serde_json::Value>,
+    pub aes128: ::core::option::Option<Aes128Encryption>,
     /// Required. DRM system(s) to use; at least one must be specified. If a DRM system is omitted, it is considered disabled.
     #[serde(default, rename = "drmSystems")]
     pub drm_systems: ::core::option::Option<DrmSystems>,
@@ -273,7 +223,7 @@ pub struct Encryption {
     pub mpeg_cenc: ::core::option::Option<MpegCommonEncryption>,
     /// Configuration for SAMPLE-AES encryption.
     #[serde(default, rename = "sampleAes")]
-    pub sample_aes: ::core::option::Option<serde_json::Value>,
+    pub sample_aes: ::core::option::Option<SampleAesEncryption>,
     /// Keys are stored in Google Secret Manager.
     #[serde(default, rename = "secretManagerKeySource")]
     pub secret_manager_key_source: ::core::option::Option<SecretManagerSource>,
@@ -464,21 +414,27 @@ pub struct VideoStream {
     pub vp9: ::core::option::Option<Vp9CodecSettings>,
 }
 
+/// Configuration for AES-128 encryption.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Aes128Encryption {
+    pub value: serde_json::Value,
+}
+
 /// Defines configuration for DRM systems in use.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DrmSystems {
     /// Clearkey configuration.
     #[serde(default)]
-    pub clearkey: ::core::option::Option<serde_json::Value>,
+    pub clearkey: ::core::option::Option<Clearkey>,
     /// Fairplay configuration.
     #[serde(default)]
-    pub fairplay: ::core::option::Option<serde_json::Value>,
+    pub fairplay: ::core::option::Option<Fairplay>,
     /// Playready configuration.
     #[serde(default)]
-    pub playready: ::core::option::Option<serde_json::Value>,
+    pub playready: ::core::option::Option<Playready>,
     /// Widevine configuration.
     #[serde(default)]
-    pub widevine: ::core::option::Option<serde_json::Value>,
+    pub widevine: ::core::option::Option<Widevine>,
 }
 
 /// Configuration for MPEG Common Encryption (MPEG-CENC).
@@ -487,6 +443,12 @@ pub struct MpegCommonEncryption {
     /// Required. Specify the encryption scheme. Supported encryption schemes: - cenc - cbcs
     #[serde(default)]
     pub scheme: ::core::option::Option<String>,
+}
+
+/// Configuration for SAMPLE-AES encryption.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SampleAesEncryption {
+    pub value: serde_json::Value,
 }
 
 /// Configuration for secrets stored in Google Secret Manager.
@@ -667,7 +629,7 @@ pub struct H264CodecSettings {
     pub height_pixels: ::core::option::Option<i32>,
     /// Optional. HLG color format setting for H264.
     #[serde(default)]
-    pub hlg: ::core::option::Option<serde_json::Value>,
+    pub hlg: ::core::option::Option<H264ColorFormatHLG>,
     /// Pixel format to use. The default is yuv420p. Supported pixel formats: - yuv420p pixel format - yuv422p pixel format - yuv444p pixel format - yuv420p10 10-bit HDR pixel format - yuv422p10 10-bit HDR pixel format - yuv444p10 10-bit HDR pixel format - yuv420p12 12-bit HDR pixel format - yuv422p12 12-bit HDR pixel format - yuv444p12 12-bit HDR pixel format
     #[serde(default, rename = "pixelFormat")]
     pub pixel_format: ::core::option::Option<String>,
@@ -682,7 +644,7 @@ pub struct H264CodecSettings {
     pub rate_control_mode: ::core::option::Option<String>,
     /// Optional. SDR color format setting for H264.
     #[serde(default)]
-    pub sdr: ::core::option::Option<serde_json::Value>,
+    pub sdr: ::core::option::Option<H264ColorFormatSDR>,
     /// Enforces the specified codec tune. The available options are [FFmpeg-compatible](https://trac.ffmpeg.org/wiki/Encode/H.264#Tune). Note that certain values for this field may cause the transcoder to override other fields you set in the H264CodecSettings message.
     #[serde(default)]
     pub tune: ::core::option::Option<String>,
@@ -735,13 +697,13 @@ pub struct H265CodecSettings {
     pub gop_frame_count: ::core::option::Option<i32>,
     /// Optional. HDR10 color format setting for H265.
     #[serde(default)]
-    pub hdr10: ::core::option::Option<serde_json::Value>,
+    pub hdr10: ::core::option::Option<H265ColorFormatHDR10>,
     /// The height of the video in pixels. Must be an even integer. When not specified, the height is adjusted to match the specified width and input aspect ratio. If both are omitted, the input height is used. For portrait videos that contain horizontal ASR and rotation metadata, provide the height, in pixels, per the horizontal ASR. The API calculates the width per the horizontal ASR. The API detects any rotation metadata and swaps the requested height and width for the output.
     #[serde(default, rename = "heightPixels")]
     pub height_pixels: ::core::option::Option<i32>,
     /// Optional. HLG color format setting for H265.
     #[serde(default)]
-    pub hlg: ::core::option::Option<serde_json::Value>,
+    pub hlg: ::core::option::Option<H265ColorFormatHLG>,
     /// Pixel format to use. The default is yuv420p. Supported pixel formats: - yuv420p pixel format - yuv422p pixel format - yuv444p pixel format - yuv420p10 10-bit HDR pixel format - yuv422p10 10-bit HDR pixel format - yuv444p10 10-bit HDR pixel format - yuv420p12 12-bit HDR pixel format - yuv422p12 12-bit HDR pixel format - yuv444p12 12-bit HDR pixel format
     #[serde(default, rename = "pixelFormat")]
     pub pixel_format: ::core::option::Option<String>,
@@ -756,7 +718,7 @@ pub struct H265CodecSettings {
     pub rate_control_mode: ::core::option::Option<String>,
     /// Optional. SDR color format setting for H265.
     #[serde(default)]
-    pub sdr: ::core::option::Option<serde_json::Value>,
+    pub sdr: ::core::option::Option<H265ColorFormatSDR>,
     /// Enforces the specified codec tune. The available options are [FFmpeg-compatible](https://trac.ffmpeg.org/wiki/Encode/H.265). Note that certain values for this field may cause the transcoder to override other fields you set in the H265CodecSettings message.
     #[serde(default)]
     pub tune: ::core::option::Option<String>,
@@ -797,7 +759,7 @@ pub struct Vp9CodecSettings {
     pub height_pixels: ::core::option::Option<i32>,
     /// Optional. HLG color format setting for VP9.
     #[serde(default)]
-    pub hlg: ::core::option::Option<serde_json::Value>,
+    pub hlg: ::core::option::Option<Vp9ColorFormatHLG>,
     /// Pixel format to use. The default is yuv420p. Supported pixel formats: - yuv420p pixel format - yuv422p pixel format - yuv444p pixel format - yuv420p10 10-bit HDR pixel format - yuv422p10 10-bit HDR pixel format - yuv444p10 10-bit HDR pixel format - yuv420p12 12-bit HDR pixel format - yuv422p12 12-bit HDR pixel format - yuv444p12 12-bit HDR pixel format
     #[serde(default, rename = "pixelFormat")]
     pub pixel_format: ::core::option::Option<String>,
@@ -809,10 +771,34 @@ pub struct Vp9CodecSettings {
     pub rate_control_mode: ::core::option::Option<String>,
     /// Optional. SDR color format setting for VP9.
     #[serde(default)]
-    pub sdr: ::core::option::Option<serde_json::Value>,
+    pub sdr: ::core::option::Option<Vp9ColorFormatSDR>,
     /// The width of the video in pixels. Must be an even integer. When not specified, the width is adjusted to match the specified height and input aspect ratio. If both are omitted, the input width is used. For portrait videos that contain horizontal ASR and rotation metadata, provide the width, in pixels, per the horizontal ASR. The API calculates the height per the horizontal ASR. The API detects any rotation metadata and swaps the requested height and width for the output.
     #[serde(default, rename = "widthPixels")]
     pub width_pixels: ::core::option::Option<i32>,
+}
+
+/// Clearkey configuration.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Clearkey {
+    pub value: serde_json::Value,
+}
+
+/// Fairplay configuration.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Fairplay {
+    pub value: serde_json::Value,
+}
+
+/// Playready configuration.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Playready {
+    pub value: serde_json::Value,
+}
+
+/// Widevine configuration.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Widevine {
+    pub value: serde_json::Value,
 }
 
 /// Track definition for the input asset.
@@ -961,6 +947,48 @@ pub struct AnimationStatic {
     /// Normalized coordinates based on output video resolution. Valid values: 0.0–1.0. xy is the upper-left coordinate of the overlay object. For example, use the x and y coordinates {0,0} to position the top-left corner of the overlay animation in the top-left corner of the output video.
     #[serde(default)]
     pub xy: ::core::option::Option<NormalizedCoordinate>,
+}
+
+/// Convert the input video to a Hybrid Log Gamma (HLG) video.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct H264ColorFormatHLG {
+    pub value: serde_json::Value,
+}
+
+/// Convert the input video to a Standard Dynamic Range (SDR) video.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct H264ColorFormatSDR {
+    pub value: serde_json::Value,
+}
+
+/// Convert the input video to a High Dynamic Range 10 (HDR10) video.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct H265ColorFormatHDR10 {
+    pub value: serde_json::Value,
+}
+
+/// Convert the input video to a Hybrid Log Gamma (HLG) video.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct H265ColorFormatHLG {
+    pub value: serde_json::Value,
+}
+
+/// Convert the input video to a Standard Dynamic Range (SDR) video.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct H265ColorFormatSDR {
+    pub value: serde_json::Value,
+}
+
+/// Convert the input video to a Hybrid Log Gamma (HLG) video.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Vp9ColorFormatHLG {
+    pub value: serde_json::Value,
+}
+
+/// Convert the input video to a Standard Dynamic Range (SDR) video.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Vp9ColorFormatSDR {
+    pub value: serde_json::Value,
 }
 
 /// Bob Weaver Deinterlacing Filter Configuration.

@@ -194,7 +194,9 @@ pub struct BatchOperationMetadata {
 
 /// A request to cancel a job.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelJobRequest {}
+pub struct CancelJobRequest {
+    pub value: serde_json::Value,
+}
 
 /// Metadata describing the operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -264,7 +266,9 @@ pub struct DiagnoseClusterResults {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Resources used per executor used by the application.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -739,10 +743,6 @@ pub struct SetIamPolicyRequest {
     pub policy: ::core::option::Option<Policy>,
 }
 
-/// Spark connect configuration for an interactive session.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SparkConnectConfig {}
-
 /// A request to start a cluster.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartClusterRequest {
@@ -965,7 +965,9 @@ pub struct WriteSessionSparkApplicationContextRequest {
 
 /// Response returned as an acknowledgement of receipt of data.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WriteSessionSparkApplicationContextResponse {}
+pub struct WriteSessionSparkApplicationContextResponse {
+    pub value: serde_json::Value,
+}
 
 /// Write Spark Application data to internal storage systems
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -979,7 +981,9 @@ pub struct WriteSparkApplicationContextRequest {
 
 /// Response returned as an acknowledgement of receipt of data.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WriteSparkApplicationContextResponse {}
+pub struct WriteSparkApplicationContextResponse {
+    pub value: serde_json::Value,
+}
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive).The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1162,7 +1166,7 @@ pub struct SessionTemplate {
     pub runtime_config: ::core::option::Option<RuntimeConfig>,
     /// Optional. Spark connect session config.
     #[serde(default, rename = "sparkConnectSession")]
-    pub spark_connect_session: ::core::option::Option<serde_json::Value>,
+    pub spark_connect_session: ::core::option::Option<SparkConnectConfig>,
     /// Output only. The time the template was last updated.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
@@ -1203,7 +1207,7 @@ pub struct Session {
     pub session_template: ::core::option::Option<String>,
     /// Optional. Spark connect session config.
     #[serde(default, rename = "sparkConnectSession")]
-    pub spark_connect_session: ::core::option::Option<serde_json::Value>,
+    pub spark_connect_session: ::core::option::Option<SparkConnectConfig>,
     /// Output only. A state of the session. // TODO: enum values: ["STATE_UNSPECIFIED", "CREATING", "ACTIVE", "TERMINATING", "TERMINATED", "FAILED"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
@@ -1826,6 +1830,12 @@ pub struct RuntimeInfo {
     /// Optional. Properties of the workload organized by origin.
     #[serde(default, rename = "propertiesInfo")]
     pub properties_info: ::core::option::Option<PropertiesInfo>,
+}
+
+/// Spark connect configuration for an interactive session.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SparkConnectConfig {
+    pub value: serde_json::Value,
 }
 
 /// Historical state information.

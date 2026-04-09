@@ -38,7 +38,9 @@ pub struct GoogleCloudContentwarehouseV1CreateDocumentLinkRequest {
 
 /// Metadata object for CreateDocument request (currently empty).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1CreateDocumentMetadata {}
+pub struct GoogleCloudContentwarehouseV1CreateDocumentMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for DocumentService.CreateDocument.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -79,10 +81,6 @@ pub struct GoogleCloudContentwarehouseV1CreateDocumentResponse {
     pub rule_engine_output: ::core::option::Option<GoogleCloudContentwarehouseV1RuleEngineOutput>,
 }
 
-/// Configurations for a date time property.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1DateTimeTypeOptions {}
-
 /// Request message for DocumentLinkService.DeleteDocumentLink.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1DeleteDocumentLinkRequest {
@@ -120,10 +118,6 @@ pub struct GoogleCloudContentwarehouseV1FetchAclResponse {
     #[serde(default)]
     pub policy: ::core::option::Option<GoogleIamV1Policy>,
 }
-
-/// Configurations for a float property.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1FloatTypeOptions {}
 
 /// Request message for DocumentService.GetDocument.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -163,10 +157,6 @@ pub struct GoogleCloudContentwarehouseV1InitializeProjectResponse {
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
-
-/// Configurations for an integer property.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1IntegerTypeOptions {}
 
 /// Response message for DocumentSchemaService.ListDocumentSchemas.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -259,10 +249,6 @@ pub struct GoogleCloudContentwarehouseV1LockDocumentRequest {
     #[serde(default, rename = "lockingUser")]
     pub locking_user: ::core::option::Option<GoogleCloudContentwarehouseV1UserInfo>,
 }
-
-/// Configurations for a Map property.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1MapTypeOptions {}
 
 /// Status of a project, including the project state, dbType, aclMode and etc.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -431,17 +417,11 @@ pub struct GoogleCloudContentwarehouseV1SetAclResponse {
     pub policy: ::core::option::Option<GoogleIamV1Policy>,
 }
 
-/// Configurations for a text property.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1TextTypeOptions {}
-
-/// Configurations for a timestamp property.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1TimestampTypeOptions {}
-
 /// Metadata object for UpdateDocument request (currently empty).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1UpdateDocumentMetadata {}
+pub struct GoogleCloudContentwarehouseV1UpdateDocumentMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request message for DocumentService.UpdateDocument.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -520,7 +500,9 @@ pub struct GoogleCloudContentwarehouseV1Value {
 
 /// Metadata object for CreateDocument request (currently empty).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1beta1CreateDocumentMetadata {}
+pub struct GoogleCloudContentwarehouseV1beta1CreateDocumentMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Response message for projectService.InitializeProject
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -535,11 +517,15 @@ pub struct GoogleCloudContentwarehouseV1beta1InitializeProjectResponse {
 
 /// Metadata object for UpdateDocument request (currently empty).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudContentwarehouseV1beta1UpdateDocumentMetadata {}
+pub struct GoogleCloudContentwarehouseV1beta1UpdateDocumentMetadata {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// The identity to configure a service account.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2610,6 +2596,12 @@ pub struct GoogleCloudContentwarehouseV1DateTimeArray {
     pub values: ::std::vec::Vec<::std::boxed::Box<GoogleTypeDateTime>>,
 }
 
+/// Configurations for a date time property.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1DateTimeTypeOptions {
+    pub value: serde_json::Value,
+}
+
 /// Enum values.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1EnumArray {
@@ -2637,6 +2629,12 @@ pub struct GoogleCloudContentwarehouseV1FloatArray {
     pub values: ::core::option::Option<::std::vec::Vec<f32>>,
 }
 
+/// Configurations for a float property.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1FloatTypeOptions {
+    pub value: serde_json::Value,
+}
+
 /// Integer values.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1IntegerArray {
@@ -2645,12 +2643,24 @@ pub struct GoogleCloudContentwarehouseV1IntegerArray {
     pub values: ::core::option::Option<::std::vec::Vec<i32>>,
 }
 
+/// Configurations for an integer property.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1IntegerTypeOptions {
+    pub value: serde_json::Value,
+}
+
 /// Map property value. Represents a structured entries of key value pairs, consisting of field names which map to dynamically typed values.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1MapProperty {
     /// Unordered map of dynamically typed values.
     #[serde(default)]
     pub fields: ::core::option::Option<serde_json::Value>,
+}
+
+/// Configurations for a Map property.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1MapTypeOptions {
+    pub value: serde_json::Value,
 }
 
 /// Property of a document.
@@ -2706,7 +2716,8 @@ pub struct GoogleCloudContentwarehouseV1PropertyArray {
 pub struct GoogleCloudContentwarehouseV1PropertyDefinition {
     /// Date time property. It is not supported by CMEK compliant deployment.
     #[serde(default, rename = "dateTimeTypeOptions")]
-    pub date_time_type_options: ::core::option::Option<serde_json::Value>,
+    pub date_time_type_options:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1DateTimeTypeOptions>>,
     /// The display-name for the property, used for front-end.
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
@@ -2716,10 +2727,12 @@ pub struct GoogleCloudContentwarehouseV1PropertyDefinition {
         ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1EnumTypeOptions>>,
     /// Float property.
     #[serde(default, rename = "floatTypeOptions")]
-    pub float_type_options: ::core::option::Option<serde_json::Value>,
+    pub float_type_options:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1FloatTypeOptions>>,
     /// Integer property.
     #[serde(default, rename = "integerTypeOptions")]
-    pub integer_type_options: ::core::option::Option<serde_json::Value>,
+    pub integer_type_options:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1IntegerTypeOptions>>,
     /// Whether the property can be filtered. If this is a sub-property, all the parent properties must be marked filterable.
     #[serde(default, rename = "isFilterable")]
     pub is_filterable: ::core::option::Option<bool>,
@@ -2737,7 +2750,8 @@ pub struct GoogleCloudContentwarehouseV1PropertyDefinition {
     pub is_searchable: ::core::option::Option<bool>,
     /// Map property.
     #[serde(default, rename = "mapTypeOptions")]
-    pub map_type_options: ::core::option::Option<serde_json::Value>,
+    pub map_type_options:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1MapTypeOptions>>,
     /// Required. The name of the metadata property. Must be unique within a document schema and is case insensitive. Names must be non-blank, start with a letter, and can contain alphanumeric characters and: /, :, -, _, and .
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -2755,10 +2769,13 @@ pub struct GoogleCloudContentwarehouseV1PropertyDefinition {
     >,
     /// Text/string property.
     #[serde(default, rename = "textTypeOptions")]
-    pub text_type_options: ::core::option::Option<serde_json::Value>,
+    pub text_type_options:
+        ::core::option::Option<::std::boxed::Box<GoogleCloudContentwarehouseV1TextTypeOptions>>,
     /// Timestamp property. It is not supported by CMEK compliant deployment.
     #[serde(default, rename = "timestampTypeOptions")]
-    pub timestamp_type_options: ::core::option::Option<serde_json::Value>,
+    pub timestamp_type_options: ::core::option::Option<
+        ::std::boxed::Box<GoogleCloudContentwarehouseV1TimestampTypeOptions>,
+    >,
 }
 
 /// The schema source information.
@@ -2789,12 +2806,24 @@ pub struct GoogleCloudContentwarehouseV1TextArray {
     pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// Configurations for a text property.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1TextTypeOptions {
+    pub value: serde_json::Value,
+}
+
 /// Timestamp values.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1TimestampArray {
     /// List of timestamp values.
     #[serde(default)]
     pub values: ::std::vec::Vec<::std::boxed::Box<GoogleCloudContentwarehouseV1TimestampValue>>,
+}
+
+/// Configurations for a timestamp property.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudContentwarehouseV1TimestampTypeOptions {
+    pub value: serde_json::Value,
 }
 
 /// Timestamp value type.

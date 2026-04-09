@@ -37,15 +37,21 @@ pub struct AddNoteRequest {
 
 /// Request to cancel an ongoing negotiation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelNegotiationRequest {}
+pub struct CancelNegotiationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for indicating that the proposal''s setup step is complete.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CompleteSetupRequest {}
+pub struct CompleteSetupRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Response message for listing the metrics that are measured in number of bids.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -298,11 +304,15 @@ pub struct ResumeProposalDealsRequest {
 
 /// Request message to resume (unpause) serving for an already-finalized proposal.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResumeProposalRequest {}
+pub struct ResumeProposalRequest {
+    pub value: serde_json::Value,
+}
 
 /// A request for stopping notifications for changes to creative Status.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopWatchingCreativeRequest {}
+pub struct StopWatchingCreativeRequest {
+    pub value: serde_json::Value,
+}
 
 /// A request for watching changes to creative Status.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

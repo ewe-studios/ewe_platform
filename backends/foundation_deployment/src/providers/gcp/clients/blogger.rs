@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,14 +29,15 @@ use serde::Serialize;
 
 pub fn blogger_blog_user_infos_get_builder(
     client: &SimpleHttpClient,
-    userId: &str,
-    blogId: &str,
+    userId: String,
+    blogId: String,
     maxPosts: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/users/{}/blogs/{}",
-        userId, blogId,
+        userId.as_str(),
+        blogId.as_str(),
     );
 
     // Build request
@@ -45,9 +47,9 @@ pub fn blogger_blog_user_infos_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -81,7 +83,12 @@ pub fn blogger_blog_user_infos_get_builder(
 pub fn blogger_blog_user_infos_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BlogUserInfo>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BlogUserInfo>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -189,8 +196,12 @@ pub fn blogger_blog_user_infos_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        blogger_blog_user_infos_get_builder(client, &args.userId, &args.blogId, args.maxPosts)?;
+    let builder = blogger_blog_user_infos_get_builder(
+        client,
+        args.userId.clone(),
+        args.blogId.clone(),
+        args.maxPosts.clone(),
+    )?;
     blogger_blog_user_infos_get_execute(builder)
 }
 
@@ -202,12 +213,15 @@ pub fn blogger_blog_user_infos_get(
 
 pub fn blogger_blogs_get_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
+    blogId: String,
     maxPosts: Option<i32>,
-    view: Option<&str>,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://blogger.googleapis.com/v3/blogs/{}", blogId,);
+    let endpoint_url = format!(
+        "https://blogger.googleapis.com/v3/blogs/{}",
+        blogId.as_str(),
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -219,9 +233,9 @@ pub fn blogger_blogs_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -255,7 +269,12 @@ pub fn blogger_blogs_get_builder(
 pub fn blogger_blogs_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Blog>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Blog>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -359,172 +378,13 @@ pub fn blogger_blogs_get(
     impl StreamIterator<D = Result<ApiResponse<Blog>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        blogger_blogs_get_builder(client, &args.blogId, args.maxPosts, args.view.as_deref())?;
+    let builder = blogger_blogs_get_builder(
+        client,
+        args.blogId.clone(),
+        args.maxPosts.clone(),
+        args.view.clone(),
+    )?;
     blogger_blogs_get_execute(builder)
-}
-
-/// GET v3/blogs/byurl
-/// Gets a blog by url.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `blogger_blogs_get_by_url_execute()` to send, or `blogger_blogs_get_by_url` for simplest API.
-
-pub fn blogger_blogs_get_by_url_builder(
-    client: &SimpleHttpClient,
-    url: &str,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://blogger.googleapis.com/v3/blogs/byurl", url,);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/blogs/byurl
-/// Gets a blog by url.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `blogger_blogs_get_by_url_execute()` or `blogger_blogs_get_by_url`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_blogs_get_by_url_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_blogs_get_by_url_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Blog>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Blog = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/blogs/byurl
-/// Gets a blog by url.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `blogger_blogs_get_by_url_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `blogger_blogs_get_by_url_task()`.
-/// For the simplest API, use `blogger_blogs_get_by_url()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_blogs_get_by_url_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn blogger_blogs_get_by_url_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Blog>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = blogger_blogs_get_by_url_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`blogger_blogs_get_by_url`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BloggerBlogsGetByUrlArgs {
-    /// Path parameter: url
-    pub url: String,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v3/blogs/byurl
-/// Gets a blog by url.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `blogger_blogs_get_by_url_builder()` + `blogger_blogs_get_by_url_execute()`.
-/// For task-level control, use `blogger_blogs_get_by_url_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_blogs_get_by_url(
-    client: &SimpleHttpClient,
-    args: &BloggerBlogsGetByUrlArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Blog>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = blogger_blogs_get_by_url_builder(client, &args.url, args.view.as_deref())?;
-    blogger_blogs_get_by_url_execute(builder)
 }
 
 /// GET v3/users/{userId}/blogs
@@ -535,14 +395,17 @@ pub fn blogger_blogs_get_by_url(
 
 pub fn blogger_blogs_list_by_user_builder(
     client: &SimpleHttpClient,
-    userId: &str,
+    userId: String,
     fetchUserInfo: Option<bool>,
-    role: Option<&str>,
-    status: Option<&str>,
-    view: Option<&str>,
+    role: Option<String>,
+    status: Option<String>,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://blogger.googleapis.com/v3/users/{}/blogs", userId,);
+    let endpoint_url = format!(
+        "https://blogger.googleapis.com/v3/users/{}/blogs",
+        userId.as_str(),
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -560,9 +423,9 @@ pub fn blogger_blogs_list_by_user_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -596,7 +459,12 @@ pub fn blogger_blogs_list_by_user_builder(
 pub fn blogger_blogs_list_by_user_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BlogList>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BlogList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -706,11 +574,11 @@ pub fn blogger_blogs_list_by_user(
 > {
     let builder = blogger_blogs_list_by_user_builder(
         client,
-        &args.userId,
-        args.fetchUserInfo,
-        args.role.as_deref(),
-        args.status.as_deref(),
-        args.view.as_deref(),
+        args.userId.clone(),
+        args.fetchUserInfo.clone(),
+        args.role.clone(),
+        args.status.clone(),
+        args.view.clone(),
     )?;
     blogger_blogs_list_by_user_execute(builder)
 }
@@ -723,19 +591,21 @@ pub fn blogger_blogs_list_by_user(
 
 pub fn blogger_comments_approve_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    commentId: &str,
+    blogId: String,
+    postId: String,
+    commentId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments/{}/approve",
-        blogId, postId, commentId,
+        blogId.as_str(),
+        postId.as_str(),
+        commentId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -765,7 +635,12 @@ pub fn blogger_comments_approve_builder(
 pub fn blogger_comments_approve_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Comment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -869,8 +744,12 @@ pub fn blogger_comments_approve(
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        blogger_comments_approve_builder(client, &args.blogId, &args.postId, &args.commentId)?;
+    let builder = blogger_comments_approve_builder(
+        client,
+        args.blogId.clone(),
+        args.postId.clone(),
+        args.commentId.clone(),
+    )?;
     blogger_comments_approve_execute(builder)
 }
 
@@ -882,19 +761,21 @@ pub fn blogger_comments_approve(
 
 pub fn blogger_comments_delete_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    commentId: &str,
+    blogId: String,
+    postId: String,
+    commentId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments/{}",
-        blogId, postId, commentId,
+        blogId.as_str(),
+        postId.as_str(),
+        commentId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -924,7 +805,12 @@ pub fn blogger_comments_delete_builder(
 pub fn blogger_comments_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1025,187 +911,13 @@ pub fn blogger_comments_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        blogger_comments_delete_builder(client, &args.blogId, &args.postId, &args.commentId)?;
-    blogger_comments_delete_execute(builder)
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}/comments/{commentId}
-/// Gets a comment by id.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `blogger_comments_get_execute()` to send, or `blogger_comments_get` for simplest API.
-
-pub fn blogger_comments_get_builder(
-    client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    commentId: &str,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments/{}",
-        blogId, postId, commentId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}/comments/{commentId}
-/// Gets a comment by id.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `blogger_comments_get_execute()` or `blogger_comments_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_comments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_comments_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Comment = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}/comments/{commentId}
-/// Gets a comment by id.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `blogger_comments_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `blogger_comments_get_task()`.
-/// For the simplest API, use `blogger_comments_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_comments_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn blogger_comments_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = blogger_comments_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`blogger_comments_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BloggerCommentsGetArgs {
-    /// Path parameter: blogId
-    pub blogId: String,
-    /// Path parameter: postId
-    pub postId: String,
-    /// Path parameter: commentId
-    pub commentId: String,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}/comments/{commentId}
-/// Gets a comment by id.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `blogger_comments_get_builder()` + `blogger_comments_get_execute()`.
-/// For task-level control, use `blogger_comments_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_comments_get(
-    client: &SimpleHttpClient,
-    args: &BloggerCommentsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = blogger_comments_get_builder(
+    let builder = blogger_comments_delete_builder(
         client,
-        &args.blogId,
-        &args.postId,
-        &args.commentId,
-        args.view.as_deref(),
+        args.blogId.clone(),
+        args.postId.clone(),
+        args.commentId.clone(),
     )?;
-    blogger_comments_get_execute(builder)
+    blogger_comments_delete_execute(builder)
 }
 
 /// GET v3/blogs/{blogId}/posts/{postId}/comments
@@ -1216,20 +928,21 @@ pub fn blogger_comments_get(
 
 pub fn blogger_comments_list_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    endDate: Option<&str>,
+    blogId: String,
+    postId: String,
+    endDate: Option<String>,
     fetchBodies: Option<bool>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    startDate: Option<&str>,
-    status: Option<&str>,
-    view: Option<&str>,
+    pageToken: Option<String>,
+    startDate: Option<String>,
+    status: Option<String>,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments",
-        blogId, postId,
+        blogId.as_str(),
+        postId.as_str(),
     );
 
     // Build request
@@ -1257,9 +970,9 @@ pub fn blogger_comments_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1293,7 +1006,12 @@ pub fn blogger_comments_list_builder(
 pub fn blogger_comments_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CommentList>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CommentList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1411,15 +1129,15 @@ pub fn blogger_comments_list(
 > {
     let builder = blogger_comments_list_builder(
         client,
-        &args.blogId,
-        &args.postId,
-        args.endDate.as_deref(),
-        args.fetchBodies,
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.startDate.as_deref(),
-        args.status.as_deref(),
-        args.view.as_deref(),
+        args.blogId.clone(),
+        args.postId.clone(),
+        args.endDate.clone(),
+        args.fetchBodies.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
+        args.startDate.clone(),
+        args.status.clone(),
+        args.view.clone(),
     )?;
     blogger_comments_list_execute(builder)
 }
@@ -1432,18 +1150,18 @@ pub fn blogger_comments_list(
 
 pub fn blogger_comments_list_by_blog_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
-    endDate: Option<&str>,
+    blogId: String,
+    endDate: Option<String>,
     fetchBodies: Option<bool>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    startDate: Option<&str>,
-    status: Option<&str>,
+    pageToken: Option<String>,
+    startDate: Option<String>,
+    status: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/comments",
-        blogId,
+        blogId.as_str(),
     );
 
     // Build request
@@ -1468,9 +1186,9 @@ pub fn blogger_comments_list_by_blog_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1504,7 +1222,12 @@ pub fn blogger_comments_list_by_blog_builder(
 pub fn blogger_comments_list_by_blog_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CommentList>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CommentList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1618,13 +1341,13 @@ pub fn blogger_comments_list_by_blog(
 > {
     let builder = blogger_comments_list_by_blog_builder(
         client,
-        &args.blogId,
-        args.endDate.as_deref(),
-        args.fetchBodies,
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.startDate.as_deref(),
-        args.status.as_deref(),
+        args.blogId.clone(),
+        args.endDate.clone(),
+        args.fetchBodies.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
+        args.startDate.clone(),
+        args.status.clone(),
     )?;
     blogger_comments_list_by_blog_execute(builder)
 }
@@ -1637,19 +1360,21 @@ pub fn blogger_comments_list_by_blog(
 
 pub fn blogger_comments_mark_as_spam_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    commentId: &str,
+    blogId: String,
+    postId: String,
+    commentId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments/{}/spam",
-        blogId, postId, commentId,
+        blogId.as_str(),
+        postId.as_str(),
+        commentId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1679,7 +1404,12 @@ pub fn blogger_comments_mark_as_spam_builder(
 pub fn blogger_comments_mark_as_spam_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Comment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1783,8 +1513,12 @@ pub fn blogger_comments_mark_as_spam(
     impl StreamIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        blogger_comments_mark_as_spam_builder(client, &args.blogId, &args.postId, &args.commentId)?;
+    let builder = blogger_comments_mark_as_spam_builder(
+        client,
+        args.blogId.clone(),
+        args.postId.clone(),
+        args.commentId.clone(),
+    )?;
     blogger_comments_mark_as_spam_execute(builder)
 }
 
@@ -1796,19 +1530,21 @@ pub fn blogger_comments_mark_as_spam(
 
 pub fn blogger_comments_remove_content_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    commentId: &str,
+    blogId: String,
+    postId: String,
+    commentId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/comments/{}/removecontent",
-        blogId, postId, commentId,
+        blogId.as_str(),
+        postId.as_str(),
+        commentId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1838,7 +1574,12 @@ pub fn blogger_comments_remove_content_builder(
 pub fn blogger_comments_remove_content_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Comment>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Comment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1944,9 +1685,9 @@ pub fn blogger_comments_remove_content(
 > {
     let builder = blogger_comments_remove_content_builder(
         client,
-        &args.blogId,
-        &args.postId,
-        &args.commentId,
+        args.blogId.clone(),
+        args.postId.clone(),
+        args.commentId.clone(),
     )?;
     blogger_comments_remove_content_execute(builder)
 }
@@ -1959,13 +1700,13 @@ pub fn blogger_comments_remove_content(
 
 pub fn blogger_page_views_get_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
-    range: Option<&str>,
+    blogId: String,
+    range: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pageviews",
-        blogId,
+        blogId.as_str(),
     );
 
     // Build request
@@ -1975,9 +1716,9 @@ pub fn blogger_page_views_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2011,7 +1752,12 @@ pub fn blogger_page_views_get_builder(
 pub fn blogger_page_views_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Pageviews>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Pageviews>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2113,7 +1859,7 @@ pub fn blogger_page_views_get(
     impl StreamIterator<D = Result<ApiResponse<Pageviews>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_page_views_get_builder(client, &args.blogId, args.range.as_deref())?;
+    let builder = blogger_page_views_get_builder(client, args.blogId.clone(), args.range.clone())?;
     blogger_page_views_get_execute(builder)
 }
 
@@ -2125,14 +1871,15 @@ pub fn blogger_page_views_get(
 
 pub fn blogger_pages_delete_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
-    pageId: &str,
+    blogId: String,
+    pageId: String,
     useTrash: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pages/{}",
-        blogId, pageId,
+        blogId.as_str(),
+        pageId.as_str(),
     );
 
     // Build request
@@ -2142,9 +1889,9 @@ pub fn blogger_pages_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2178,7 +1925,12 @@ pub fn blogger_pages_delete_builder(
 pub fn blogger_pages_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2279,178 +2031,13 @@ pub fn blogger_pages_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_delete_builder(client, &args.blogId, &args.pageId, args.useTrash)?;
+    let builder = blogger_pages_delete_builder(
+        client,
+        args.blogId.clone(),
+        args.pageId.clone(),
+        args.useTrash.clone(),
+    )?;
     blogger_pages_delete_execute(builder)
-}
-
-/// GET v3/blogs/{blogId}/pages/{pageId}
-/// Gets a page by blog id and page id.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `blogger_pages_get_execute()` to send, or `blogger_pages_get` for simplest API.
-
-pub fn blogger_pages_get_builder(
-    client: &SimpleHttpClient,
-    blogId: &str,
-    pageId: &str,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://blogger.googleapis.com/v3/blogs/{}/pages/{}",
-        blogId, pageId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/blogs/{blogId}/pages/{pageId}
-/// Gets a page by blog id and page id.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `blogger_pages_get_execute()` or `blogger_pages_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_pages_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_pages_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Page = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/blogs/{blogId}/pages/{pageId}
-/// Gets a page by blog id and page id.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `blogger_pages_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `blogger_pages_get_task()`.
-/// For the simplest API, use `blogger_pages_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_pages_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn blogger_pages_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = blogger_pages_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`blogger_pages_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BloggerPagesGetArgs {
-    /// Path parameter: blogId
-    pub blogId: String,
-    /// Path parameter: pageId
-    pub pageId: String,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v3/blogs/{blogId}/pages/{pageId}
-/// Gets a page by blog id and page id.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `blogger_pages_get_builder()` + `blogger_pages_get_execute()`.
-/// For task-level control, use `blogger_pages_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_pages_get(
-    client: &SimpleHttpClient,
-    args: &BloggerPagesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        blogger_pages_get_builder(client, &args.blogId, &args.pageId, args.view.as_deref())?;
-    blogger_pages_get_execute(builder)
 }
 
 /// GET v3/blogs/{blogId}/pages
@@ -2461,12 +2048,15 @@ pub fn blogger_pages_get(
 
 pub fn blogger_pages_insert_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
+    blogId: String,
     isDraft: Option<bool>,
     body: &Page,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://blogger.googleapis.com/v3/blogs/{}/pages", blogId,);
+    let endpoint_url = format!(
+        "https://blogger.googleapis.com/v3/blogs/{}/pages",
+        blogId.as_str(),
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2475,9 +2065,9 @@ pub fn blogger_pages_insert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2513,7 +2103,12 @@ pub fn blogger_pages_insert_builder(
 pub fn blogger_pages_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Page>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2617,390 +2212,13 @@ pub fn blogger_pages_insert(
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_insert_builder(client, &args.blogId, args.isDraft, &args.body)?;
-    blogger_pages_insert_execute(builder)
-}
-
-/// GET v3/blogs/{blogId}/pages
-/// Lists pages.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `blogger_pages_list_execute()` to send, or `blogger_pages_list` for simplest API.
-
-pub fn blogger_pages_list_builder(
-    client: &SimpleHttpClient,
-    blogId: &str,
-    fetchBodies: Option<bool>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    status: Option<&str>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://blogger.googleapis.com/v3/blogs/{}/pages", blogId,);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = fetchBodies {
-        query_parts.push(format!("fetchBodies={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = status {
-        query_parts.push(format!("status={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/blogs/{blogId}/pages
-/// Lists pages.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `blogger_pages_list_execute()` or `blogger_pages_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_pages_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_pages_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PageList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PageList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/blogs/{blogId}/pages
-/// Lists pages.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `blogger_pages_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `blogger_pages_list_task()`.
-/// For the simplest API, use `blogger_pages_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_pages_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn blogger_pages_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PageList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = blogger_pages_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`blogger_pages_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BloggerPagesListArgs {
-    /// Path parameter: blogId
-    pub blogId: String,
-    /// Query parameter: fetchBodies
-    pub fetchBodies: Option<bool>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: status
-    pub status: Option<String>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v3/blogs/{blogId}/pages
-/// Lists pages.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `blogger_pages_list_builder()` + `blogger_pages_list_execute()`.
-/// For task-level control, use `blogger_pages_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_pages_list(
-    client: &SimpleHttpClient,
-    args: &BloggerPagesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PageList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = blogger_pages_list_builder(
+    let builder = blogger_pages_insert_builder(
         client,
-        &args.blogId,
-        args.fetchBodies,
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.status.as_deref(),
-        args.view.as_deref(),
-    )?;
-    blogger_pages_list_execute(builder)
-}
-
-/// GET v3/blogs/{blogId}/pages/{pageId}
-/// Patches a page.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `blogger_pages_patch_execute()` to send, or `blogger_pages_patch` for simplest API.
-
-pub fn blogger_pages_patch_builder(
-    client: &SimpleHttpClient,
-    blogId: &str,
-    pageId: &str,
-    publish: Option<bool>,
-    revert: Option<bool>,
-    body: &Page,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://blogger.googleapis.com/v3/blogs/{}/pages/{}",
-        blogId, pageId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = publish {
-        query_parts.push(format!("publish={}", val));
-    }
-    if let Some(val) = revert {
-        query_parts.push(format!("revert={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/blogs/{blogId}/pages/{pageId}
-/// Patches a page.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `blogger_pages_patch_execute()` or `blogger_pages_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_pages_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_pages_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Page = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/blogs/{blogId}/pages/{pageId}
-/// Patches a page.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `blogger_pages_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `blogger_pages_patch_task()`.
-/// For the simplest API, use `blogger_pages_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_pages_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn blogger_pages_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = blogger_pages_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`blogger_pages_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BloggerPagesPatchArgs {
-    /// Path parameter: blogId
-    pub blogId: String,
-    /// Path parameter: pageId
-    pub pageId: String,
-    /// Query parameter: publish
-    pub publish: Option<bool>,
-    /// Query parameter: revert
-    pub revert: Option<bool>,
-    /// Request body.
-    pub body: Page,
-}
-
-/// GET v3/blogs/{blogId}/pages/{pageId}
-/// Patches a page.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `blogger_pages_patch_builder()` + `blogger_pages_patch_execute()`.
-/// For task-level control, use `blogger_pages_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_pages_patch(
-    client: &SimpleHttpClient,
-    args: &BloggerPagesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = blogger_pages_patch_builder(
-        client,
-        &args.blogId,
-        &args.pageId,
-        args.publish,
-        args.revert,
+        args.blogId.clone(),
+        args.isDraft.clone(),
         &args.body,
     )?;
-    blogger_pages_patch_execute(builder)
+    blogger_pages_insert_execute(builder)
 }
 
 /// GET v3/blogs/{blogId}/pages/{pageId}/publish
@@ -3011,18 +2229,19 @@ pub fn blogger_pages_patch(
 
 pub fn blogger_pages_publish_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
-    pageId: &str,
+    blogId: String,
+    pageId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pages/{}/publish",
-        blogId, pageId,
+        blogId.as_str(),
+        pageId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3052,7 +2271,12 @@ pub fn blogger_pages_publish_builder(
 pub fn blogger_pages_publish_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Page>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3154,7 +2378,7 @@ pub fn blogger_pages_publish(
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_publish_builder(client, &args.blogId, &args.pageId)?;
+    let builder = blogger_pages_publish_builder(client, args.blogId.clone(), args.pageId.clone())?;
     blogger_pages_publish_execute(builder)
 }
 
@@ -3166,18 +2390,19 @@ pub fn blogger_pages_publish(
 
 pub fn blogger_pages_revert_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
-    pageId: &str,
+    blogId: String,
+    pageId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/pages/{}/revert",
-        blogId, pageId,
+        blogId.as_str(),
+        pageId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3207,7 +2432,12 @@ pub fn blogger_pages_revert_builder(
 pub fn blogger_pages_revert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Page>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3309,195 +2539,8 @@ pub fn blogger_pages_revert(
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_pages_revert_builder(client, &args.blogId, &args.pageId)?;
+    let builder = blogger_pages_revert_builder(client, args.blogId.clone(), args.pageId.clone())?;
     blogger_pages_revert_execute(builder)
-}
-
-/// GET v3/blogs/{blogId}/pages/{pageId}
-/// Updates a page by blog id and page id.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `blogger_pages_update_execute()` to send, or `blogger_pages_update` for simplest API.
-
-pub fn blogger_pages_update_builder(
-    client: &SimpleHttpClient,
-    blogId: &str,
-    pageId: &str,
-    publish: Option<bool>,
-    revert: Option<bool>,
-    body: &Page,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://blogger.googleapis.com/v3/blogs/{}/pages/{}",
-        blogId, pageId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = publish {
-        query_parts.push(format!("publish={}", val));
-    }
-    if let Some(val) = revert {
-        query_parts.push(format!("revert={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/blogs/{blogId}/pages/{pageId}
-/// Updates a page by blog id and page id.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `blogger_pages_update_execute()` or `blogger_pages_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_pages_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_pages_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Page = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/blogs/{blogId}/pages/{pageId}
-/// Updates a page by blog id and page id.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `blogger_pages_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `blogger_pages_update_task()`.
-/// For the simplest API, use `blogger_pages_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_pages_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn blogger_pages_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = blogger_pages_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`blogger_pages_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BloggerPagesUpdateArgs {
-    /// Path parameter: blogId
-    pub blogId: String,
-    /// Path parameter: pageId
-    pub pageId: String,
-    /// Query parameter: publish
-    pub publish: Option<bool>,
-    /// Query parameter: revert
-    pub revert: Option<bool>,
-    /// Request body.
-    pub body: Page,
-}
-
-/// GET v3/blogs/{blogId}/pages/{pageId}
-/// Updates a page by blog id and page id.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `blogger_pages_update_builder()` + `blogger_pages_update_execute()`.
-/// For task-level control, use `blogger_pages_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_pages_update(
-    client: &SimpleHttpClient,
-    args: &BloggerPagesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = blogger_pages_update_builder(
-        client,
-        &args.blogId,
-        &args.pageId,
-        args.publish,
-        args.revert,
-        &args.body,
-    )?;
-    blogger_pages_update_execute(builder)
 }
 
 /// GET v3/users/{userId}/blogs/{blogId}/posts/{postId}
@@ -3508,15 +2551,17 @@ pub fn blogger_pages_update(
 
 pub fn blogger_post_user_infos_get_builder(
     client: &SimpleHttpClient,
-    userId: &str,
-    blogId: &str,
-    postId: &str,
+    userId: String,
+    blogId: String,
+    postId: String,
     maxComments: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/users/{}/blogs/{}/posts/{}",
-        userId, blogId, postId,
+        userId.as_str(),
+        blogId.as_str(),
+        postId.as_str(),
     );
 
     // Build request
@@ -3526,9 +2571,9 @@ pub fn blogger_post_user_infos_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3562,7 +2607,12 @@ pub fn blogger_post_user_infos_get_builder(
 pub fn blogger_post_user_infos_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PostUserInfo>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PostUserInfo>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3674,10 +2724,10 @@ pub fn blogger_post_user_infos_get(
 > {
     let builder = blogger_post_user_infos_get_builder(
         client,
-        &args.userId,
-        &args.blogId,
-        &args.postId,
-        args.maxComments,
+        args.userId.clone(),
+        args.blogId.clone(),
+        args.postId.clone(),
+        args.maxComments.clone(),
     )?;
     blogger_post_user_infos_get_execute(builder)
 }
@@ -3690,22 +2740,23 @@ pub fn blogger_post_user_infos_get(
 
 pub fn blogger_post_user_infos_list_builder(
     client: &SimpleHttpClient,
-    userId: &str,
-    blogId: &str,
-    endDate: Option<&str>,
+    userId: String,
+    blogId: String,
+    endDate: Option<String>,
     fetchBodies: Option<bool>,
-    labels: Option<&str>,
+    labels: Option<String>,
     maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
-    startDate: Option<&str>,
-    status: Option<&str>,
-    view: Option<&str>,
+    orderBy: Option<String>,
+    pageToken: Option<String>,
+    startDate: Option<String>,
+    status: Option<String>,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/users/{}/blogs/{}/posts",
-        userId, blogId,
+        userId.as_str(),
+        blogId.as_str(),
     );
 
     // Build request
@@ -3739,9 +2790,9 @@ pub fn blogger_post_user_infos_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3775,8 +2826,11 @@ pub fn blogger_post_user_infos_list_builder(
 pub fn blogger_post_user_infos_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PostUserInfosList>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PostUserInfosList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3903,17 +2957,17 @@ pub fn blogger_post_user_infos_list(
 > {
     let builder = blogger_post_user_infos_list_builder(
         client,
-        &args.userId,
-        &args.blogId,
-        args.endDate.as_deref(),
-        args.fetchBodies,
-        args.labels.as_deref(),
-        args.maxResults,
-        args.orderBy.as_deref(),
-        args.pageToken.as_deref(),
-        args.startDate.as_deref(),
-        args.status.as_deref(),
-        args.view.as_deref(),
+        args.userId.clone(),
+        args.blogId.clone(),
+        args.endDate.clone(),
+        args.fetchBodies.clone(),
+        args.labels.clone(),
+        args.maxResults.clone(),
+        args.orderBy.clone(),
+        args.pageToken.clone(),
+        args.startDate.clone(),
+        args.status.clone(),
+        args.view.clone(),
     )?;
     blogger_post_user_infos_list_execute(builder)
 }
@@ -3926,14 +2980,15 @@ pub fn blogger_post_user_infos_list(
 
 pub fn blogger_posts_delete_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
+    blogId: String,
+    postId: String,
     useTrash: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}",
-        blogId, postId,
+        blogId.as_str(),
+        postId.as_str(),
     );
 
     // Build request
@@ -3943,9 +2998,9 @@ pub fn blogger_posts_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3979,7 +3034,12 @@ pub fn blogger_posts_delete_builder(
 pub fn blogger_posts_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4080,384 +3140,13 @@ pub fn blogger_posts_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_posts_delete_builder(client, &args.blogId, &args.postId, args.useTrash)?;
+    let builder = blogger_posts_delete_builder(
+        client,
+        args.blogId.clone(),
+        args.postId.clone(),
+        args.useTrash.clone(),
+    )?;
     blogger_posts_delete_execute(builder)
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}
-/// Gets a post by blog id and post id
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `blogger_posts_get_execute()` to send, or `blogger_posts_get` for simplest API.
-
-pub fn blogger_posts_get_builder(
-    client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    fetchBody: Option<bool>,
-    fetchImages: Option<bool>,
-    maxComments: Option<i32>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://blogger.googleapis.com/v3/blogs/{}/posts/{}",
-        blogId, postId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = fetchBody {
-        query_parts.push(format!("fetchBody={}", val));
-    }
-    if let Some(val) = fetchImages {
-        query_parts.push(format!("fetchImages={}", val));
-    }
-    if let Some(val) = maxComments {
-        query_parts.push(format!("maxComments={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}
-/// Gets a post by blog id and post id
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `blogger_posts_get_execute()` or `blogger_posts_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_posts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_posts_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Post = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}
-/// Gets a post by blog id and post id
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `blogger_posts_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `blogger_posts_get_task()`.
-/// For the simplest API, use `blogger_posts_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_posts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn blogger_posts_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = blogger_posts_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`blogger_posts_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BloggerPostsGetArgs {
-    /// Path parameter: blogId
-    pub blogId: String,
-    /// Path parameter: postId
-    pub postId: String,
-    /// Query parameter: fetchBody
-    pub fetchBody: Option<bool>,
-    /// Query parameter: fetchImages
-    pub fetchImages: Option<bool>,
-    /// Query parameter: maxComments
-    pub maxComments: Option<i32>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}
-/// Gets a post by blog id and post id
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `blogger_posts_get_builder()` + `blogger_posts_get_execute()`.
-/// For task-level control, use `blogger_posts_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_posts_get(
-    client: &SimpleHttpClient,
-    args: &BloggerPostsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = blogger_posts_get_builder(
-        client,
-        &args.blogId,
-        &args.postId,
-        args.fetchBody,
-        args.fetchImages,
-        args.maxComments,
-        args.view.as_deref(),
-    )?;
-    blogger_posts_get_execute(builder)
-}
-
-/// GET v3/blogs/{blogId}/posts/bypath
-/// Gets a post by path.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `blogger_posts_get_by_path_execute()` to send, or `blogger_posts_get_by_path` for simplest API.
-
-pub fn blogger_posts_get_by_path_builder(
-    client: &SimpleHttpClient,
-    blogId: &str,
-    path: &str,
-    maxComments: Option<i32>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://blogger.googleapis.com/v3/blogs/{}/posts/bypath",
-        blogId, path,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = maxComments {
-        query_parts.push(format!("maxComments={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/blogs/{blogId}/posts/bypath
-/// Gets a post by path.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `blogger_posts_get_by_path_execute()` or `blogger_posts_get_by_path`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_posts_get_by_path_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_posts_get_by_path_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Post = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/blogs/{blogId}/posts/bypath
-/// Gets a post by path.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `blogger_posts_get_by_path_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `blogger_posts_get_by_path_task()`.
-/// For the simplest API, use `blogger_posts_get_by_path()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_posts_get_by_path_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn blogger_posts_get_by_path_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = blogger_posts_get_by_path_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`blogger_posts_get_by_path`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BloggerPostsGetByPathArgs {
-    /// Path parameter: blogId
-    pub blogId: String,
-    /// Path parameter: path
-    pub path: String,
-    /// Query parameter: maxComments
-    pub maxComments: Option<i32>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v3/blogs/{blogId}/posts/bypath
-/// Gets a post by path.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `blogger_posts_get_by_path_builder()` + `blogger_posts_get_by_path_execute()`.
-/// For task-level control, use `blogger_posts_get_by_path_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_posts_get_by_path(
-    client: &SimpleHttpClient,
-    args: &BloggerPostsGetByPathArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = blogger_posts_get_by_path_builder(
-        client,
-        &args.blogId,
-        &args.path,
-        args.maxComments,
-        args.view.as_deref(),
-    )?;
-    blogger_posts_get_by_path_execute(builder)
 }
 
 /// GET v3/blogs/{blogId}/posts
@@ -4468,14 +3157,17 @@ pub fn blogger_posts_get_by_path(
 
 pub fn blogger_posts_insert_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
+    blogId: String,
     fetchBody: Option<bool>,
     fetchImages: Option<bool>,
     isDraft: Option<bool>,
     body: &Post,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://blogger.googleapis.com/v3/blogs/{}/posts", blogId,);
+    let endpoint_url = format!(
+        "https://blogger.googleapis.com/v3/blogs/{}/posts",
+        blogId.as_str(),
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4490,9 +3182,9 @@ pub fn blogger_posts_insert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4528,7 +3220,12 @@ pub fn blogger_posts_insert_builder(
 pub fn blogger_posts_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Post>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4638,458 +3335,13 @@ pub fn blogger_posts_insert(
 > {
     let builder = blogger_posts_insert_builder(
         client,
-        &args.blogId,
-        args.fetchBody,
-        args.fetchImages,
-        args.isDraft,
+        args.blogId.clone(),
+        args.fetchBody.clone(),
+        args.fetchImages.clone(),
+        args.isDraft.clone(),
         &args.body,
     )?;
     blogger_posts_insert_execute(builder)
-}
-
-/// GET v3/blogs/{blogId}/posts
-/// Lists posts.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `blogger_posts_list_execute()` to send, or `blogger_posts_list` for simplest API.
-
-pub fn blogger_posts_list_builder(
-    client: &SimpleHttpClient,
-    blogId: &str,
-    endDate: Option<&str>,
-    fetchBodies: Option<bool>,
-    fetchImages: Option<bool>,
-    labels: Option<&str>,
-    maxResults: Option<i32>,
-    orderBy: Option<&str>,
-    pageToken: Option<&str>,
-    sortOption: Option<&str>,
-    startDate: Option<&str>,
-    status: Option<&str>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://blogger.googleapis.com/v3/blogs/{}/posts", blogId,);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = endDate {
-        query_parts.push(format!("endDate={}", val));
-    }
-    if let Some(val) = fetchBodies {
-        query_parts.push(format!("fetchBodies={}", val));
-    }
-    if let Some(val) = fetchImages {
-        query_parts.push(format!("fetchImages={}", val));
-    }
-    if let Some(val) = labels {
-        query_parts.push(format!("labels={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = orderBy {
-        query_parts.push(format!("orderBy={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = sortOption {
-        query_parts.push(format!("sortOption={}", val));
-    }
-    if let Some(val) = startDate {
-        query_parts.push(format!("startDate={}", val));
-    }
-    if let Some(val) = status {
-        query_parts.push(format!("status={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/blogs/{blogId}/posts
-/// Lists posts.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `blogger_posts_list_execute()` or `blogger_posts_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_posts_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_posts_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PostList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PostList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/blogs/{blogId}/posts
-/// Lists posts.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `blogger_posts_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `blogger_posts_list_task()`.
-/// For the simplest API, use `blogger_posts_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_posts_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn blogger_posts_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PostList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = blogger_posts_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`blogger_posts_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BloggerPostsListArgs {
-    /// Path parameter: blogId
-    pub blogId: String,
-    /// Query parameter: endDate
-    pub endDate: Option<String>,
-    /// Query parameter: fetchBodies
-    pub fetchBodies: Option<bool>,
-    /// Query parameter: fetchImages
-    pub fetchImages: Option<bool>,
-    /// Query parameter: labels
-    pub labels: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: sortOption
-    pub sortOption: Option<String>,
-    /// Query parameter: startDate
-    pub startDate: Option<String>,
-    /// Query parameter: status
-    pub status: Option<String>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v3/blogs/{blogId}/posts
-/// Lists posts.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `blogger_posts_list_builder()` + `blogger_posts_list_execute()`.
-/// For task-level control, use `blogger_posts_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_posts_list(
-    client: &SimpleHttpClient,
-    args: &BloggerPostsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PostList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = blogger_posts_list_builder(
-        client,
-        &args.blogId,
-        args.endDate.as_deref(),
-        args.fetchBodies,
-        args.fetchImages,
-        args.labels.as_deref(),
-        args.maxResults,
-        args.orderBy.as_deref(),
-        args.pageToken.as_deref(),
-        args.sortOption.as_deref(),
-        args.startDate.as_deref(),
-        args.status.as_deref(),
-        args.view.as_deref(),
-    )?;
-    blogger_posts_list_execute(builder)
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}
-/// Patches a post.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `blogger_posts_patch_execute()` to send, or `blogger_posts_patch` for simplest API.
-
-pub fn blogger_posts_patch_builder(
-    client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    fetchBody: Option<bool>,
-    fetchImages: Option<bool>,
-    maxComments: Option<i32>,
-    publish: Option<bool>,
-    revert: Option<bool>,
-    body: &Post,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://blogger.googleapis.com/v3/blogs/{}/posts/{}",
-        blogId, postId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = fetchBody {
-        query_parts.push(format!("fetchBody={}", val));
-    }
-    if let Some(val) = fetchImages {
-        query_parts.push(format!("fetchImages={}", val));
-    }
-    if let Some(val) = maxComments {
-        query_parts.push(format!("maxComments={}", val));
-    }
-    if let Some(val) = publish {
-        query_parts.push(format!("publish={}", val));
-    }
-    if let Some(val) = revert {
-        query_parts.push(format!("revert={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}
-/// Patches a post.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `blogger_posts_patch_execute()` or `blogger_posts_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_posts_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_posts_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Post = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}
-/// Patches a post.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `blogger_posts_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `blogger_posts_patch_task()`.
-/// For the simplest API, use `blogger_posts_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_posts_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn blogger_posts_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = blogger_posts_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`blogger_posts_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BloggerPostsPatchArgs {
-    /// Path parameter: blogId
-    pub blogId: String,
-    /// Path parameter: postId
-    pub postId: String,
-    /// Query parameter: fetchBody
-    pub fetchBody: Option<bool>,
-    /// Query parameter: fetchImages
-    pub fetchImages: Option<bool>,
-    /// Query parameter: maxComments
-    pub maxComments: Option<i32>,
-    /// Query parameter: publish
-    pub publish: Option<bool>,
-    /// Query parameter: revert
-    pub revert: Option<bool>,
-    /// Request body.
-    pub body: Post,
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}
-/// Patches a post.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `blogger_posts_patch_builder()` + `blogger_posts_patch_execute()`.
-/// For task-level control, use `blogger_posts_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_posts_patch(
-    client: &SimpleHttpClient,
-    args: &BloggerPostsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = blogger_posts_patch_builder(
-        client,
-        &args.blogId,
-        &args.postId,
-        args.fetchBody,
-        args.fetchImages,
-        args.maxComments,
-        args.publish,
-        args.revert,
-        &args.body,
-    )?;
-    blogger_posts_patch_execute(builder)
 }
 
 /// GET v3/blogs/{blogId}/posts/{postId}/publish
@@ -5100,14 +3352,15 @@ pub fn blogger_posts_patch(
 
 pub fn blogger_posts_publish_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    publishDate: Option<&str>,
+    blogId: String,
+    postId: String,
+    publishDate: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/publish",
-        blogId, postId,
+        blogId.as_str(),
+        postId.as_str(),
     );
 
     // Build request
@@ -5117,9 +3370,9 @@ pub fn blogger_posts_publish_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5153,7 +3406,12 @@ pub fn blogger_posts_publish_builder(
 pub fn blogger_posts_publish_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Post>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5259,9 +3517,9 @@ pub fn blogger_posts_publish(
 > {
     let builder = blogger_posts_publish_builder(
         client,
-        &args.blogId,
-        &args.postId,
-        args.publishDate.as_deref(),
+        args.blogId.clone(),
+        args.postId.clone(),
+        args.publishDate.clone(),
     )?;
     blogger_posts_publish_execute(builder)
 }
@@ -5274,18 +3532,19 @@ pub fn blogger_posts_publish(
 
 pub fn blogger_posts_revert_builder(
     client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
+    blogId: String,
+    postId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://blogger.googleapis.com/v3/blogs/{}/posts/{}/revert",
-        blogId, postId,
+        blogId.as_str(),
+        postId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5315,7 +3574,12 @@ pub fn blogger_posts_revert_builder(
 pub fn blogger_posts_revert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Post>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5417,397 +3681,8 @@ pub fn blogger_posts_revert(
     impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_posts_revert_builder(client, &args.blogId, &args.postId)?;
+    let builder = blogger_posts_revert_builder(client, args.blogId.clone(), args.postId.clone())?;
     blogger_posts_revert_execute(builder)
-}
-
-/// GET v3/blogs/{blogId}/posts/search
-/// Searches for posts matching given query terms in the specified blog.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `blogger_posts_search_execute()` to send, or `blogger_posts_search` for simplest API.
-
-pub fn blogger_posts_search_builder(
-    client: &SimpleHttpClient,
-    blogId: &str,
-    q: &str,
-    fetchBodies: Option<bool>,
-    orderBy: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://blogger.googleapis.com/v3/blogs/{}/posts/search",
-        blogId, q,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = fetchBodies {
-        query_parts.push(format!("fetchBodies={}", val));
-    }
-    if let Some(val) = orderBy {
-        query_parts.push(format!("orderBy={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/blogs/{blogId}/posts/search
-/// Searches for posts matching given query terms in the specified blog.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `blogger_posts_search_execute()` or `blogger_posts_search`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_posts_search_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_posts_search_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PostList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PostList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/blogs/{blogId}/posts/search
-/// Searches for posts matching given query terms in the specified blog.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `blogger_posts_search_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `blogger_posts_search_task()`.
-/// For the simplest API, use `blogger_posts_search()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_posts_search_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn blogger_posts_search_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PostList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = blogger_posts_search_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`blogger_posts_search`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BloggerPostsSearchArgs {
-    /// Path parameter: blogId
-    pub blogId: String,
-    /// Path parameter: q
-    pub q: String,
-    /// Query parameter: fetchBodies
-    pub fetchBodies: Option<bool>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-}
-
-/// GET v3/blogs/{blogId}/posts/search
-/// Searches for posts matching given query terms in the specified blog.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `blogger_posts_search_builder()` + `blogger_posts_search_execute()`.
-/// For task-level control, use `blogger_posts_search_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_posts_search(
-    client: &SimpleHttpClient,
-    args: &BloggerPostsSearchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PostList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = blogger_posts_search_builder(
-        client,
-        &args.blogId,
-        &args.q,
-        args.fetchBodies,
-        args.orderBy.as_deref(),
-    )?;
-    blogger_posts_search_execute(builder)
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}
-/// Updates a post by blog id and post id.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `blogger_posts_update_execute()` to send, or `blogger_posts_update` for simplest API.
-
-pub fn blogger_posts_update_builder(
-    client: &SimpleHttpClient,
-    blogId: &str,
-    postId: &str,
-    fetchBody: Option<bool>,
-    fetchImages: Option<bool>,
-    maxComments: Option<i32>,
-    publish: Option<bool>,
-    revert: Option<bool>,
-    body: &Post,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://blogger.googleapis.com/v3/blogs/{}/posts/{}",
-        blogId, postId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = fetchBody {
-        query_parts.push(format!("fetchBody={}", val));
-    }
-    if let Some(val) = fetchImages {
-        query_parts.push(format!("fetchImages={}", val));
-    }
-    if let Some(val) = maxComments {
-        query_parts.push(format!("maxComments={}", val));
-    }
-    if let Some(val) = publish {
-        query_parts.push(format!("publish={}", val));
-    }
-    if let Some(val) = revert {
-        query_parts.push(format!("revert={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}
-/// Updates a post by blog id and post id.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `blogger_posts_update_execute()` or `blogger_posts_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_posts_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_posts_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Post = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}
-/// Updates a post by blog id and post id.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `blogger_posts_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `blogger_posts_update_task()`.
-/// For the simplest API, use `blogger_posts_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `blogger_posts_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn blogger_posts_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = blogger_posts_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`blogger_posts_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BloggerPostsUpdateArgs {
-    /// Path parameter: blogId
-    pub blogId: String,
-    /// Path parameter: postId
-    pub postId: String,
-    /// Query parameter: fetchBody
-    pub fetchBody: Option<bool>,
-    /// Query parameter: fetchImages
-    pub fetchImages: Option<bool>,
-    /// Query parameter: maxComments
-    pub maxComments: Option<i32>,
-    /// Query parameter: publish
-    pub publish: Option<bool>,
-    /// Query parameter: revert
-    pub revert: Option<bool>,
-    /// Request body.
-    pub body: Post,
-}
-
-/// GET v3/blogs/{blogId}/posts/{postId}
-/// Updates a post by blog id and post id.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `blogger_posts_update_builder()` + `blogger_posts_update_execute()`.
-/// For task-level control, use `blogger_posts_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn blogger_posts_update(
-    client: &SimpleHttpClient,
-    args: &BloggerPostsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Post>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = blogger_posts_update_builder(
-        client,
-        &args.blogId,
-        &args.postId,
-        args.fetchBody,
-        args.fetchImages,
-        args.maxComments,
-        args.publish,
-        args.revert,
-        &args.body,
-    )?;
-    blogger_posts_update_execute(builder)
 }
 
 /// GET v3/users/{userId}
@@ -5818,14 +3693,17 @@ pub fn blogger_posts_update(
 
 pub fn blogger_users_get_builder(
     client: &SimpleHttpClient,
-    userId: &str,
+    userId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://blogger.googleapis.com/v3/users/{}", userId,);
+    let endpoint_url = format!(
+        "https://blogger.googleapis.com/v3/users/{}",
+        userId.as_str(),
+    );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5855,7 +3733,12 @@ pub fn blogger_users_get_builder(
 pub fn blogger_users_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<User>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5955,6 +3838,6 @@ pub fn blogger_users_get(
     impl StreamIterator<D = Result<ApiResponse<User>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = blogger_users_get_builder(client, &args.userId)?;
+    let builder = blogger_users_get_builder(client, args.userId.clone())?;
     blogger_users_get_execute(builder)
 }

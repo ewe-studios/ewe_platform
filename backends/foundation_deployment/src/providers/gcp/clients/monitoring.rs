@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,51 +29,48 @@ use serde::Serialize;
 
 pub fn monitoring_folders_time_series_list_builder(
     client: &SimpleHttpClient,
-    name: &str,
-    aggregation_alignmentPeriod: Option<&str>,
-    aggregation_crossSeriesReducer: Option<&str>,
-    aggregation_groupByFields: Option<&str>,
-    aggregation_perSeriesAligner: Option<&str>,
-    filter: Option<&str>,
-    interval_endTime: Option<&str>,
-    interval_startTime: Option<&str>,
-    orderBy: Option<&str>,
+    name: String,
+    aggregation_alignmentPeriod: Option<String>,
+    aggregation_crossSeriesReducer: Option<String>,
+    aggregation_groupByFields: Option<String>,
+    aggregation_perSeriesAligner: Option<String>,
+    filter: Option<String>,
+    interval_endTime: Option<String>,
+    interval_startTime: Option<String>,
+    orderBy: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    secondaryAggregation_alignmentPeriod: Option<&str>,
-    secondaryAggregation_crossSeriesReducer: Option<&str>,
-    secondaryAggregation_groupByFields: Option<&str>,
-    secondaryAggregation_perSeriesAligner: Option<&str>,
-    view: Option<&str>,
+    pageToken: Option<String>,
+    secondaryAggregation_alignmentPeriod: Option<String>,
+    secondaryAggregation_crossSeriesReducer: Option<String>,
+    secondaryAggregation_groupByFields: Option<String>,
+    secondaryAggregation_perSeriesAligner: Option<String>,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/folders/{}/timeSeries",
-        name,
-    );
+    let endpoint_url = format!("https://monitoring.googleapis.com/v3/folders/{}/timeSeries",);
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = aggregation_alignmentPeriod {
-        query_parts.push(format!("aggregation_alignmentPeriod={}", val));
+        query_parts.push(format!("aggregation.alignmentPeriod={}", val));
     }
     if let Some(val) = aggregation_crossSeriesReducer {
-        query_parts.push(format!("aggregation_crossSeriesReducer={}", val));
+        query_parts.push(format!("aggregation.crossSeriesReducer={}", val));
     }
     if let Some(val) = aggregation_groupByFields {
-        query_parts.push(format!("aggregation_groupByFields={}", val));
+        query_parts.push(format!("aggregation.groupByFields={}", val));
     }
     if let Some(val) = aggregation_perSeriesAligner {
-        query_parts.push(format!("aggregation_perSeriesAligner={}", val));
+        query_parts.push(format!("aggregation.perSeriesAligner={}", val));
     }
     if let Some(val) = filter {
         query_parts.push(format!("filter={}", val));
     }
     if let Some(val) = interval_endTime {
-        query_parts.push(format!("interval_endTime={}", val));
+        query_parts.push(format!("interval.endTime={}", val));
     }
     if let Some(val) = interval_startTime {
-        query_parts.push(format!("interval_startTime={}", val));
+        query_parts.push(format!("interval.startTime={}", val));
     }
     if let Some(val) = orderBy {
         query_parts.push(format!("orderBy={}", val));
@@ -84,25 +82,25 @@ pub fn monitoring_folders_time_series_list_builder(
         query_parts.push(format!("pageToken={}", val));
     }
     if let Some(val) = secondaryAggregation_alignmentPeriod {
-        query_parts.push(format!("secondaryAggregation_alignmentPeriod={}", val));
+        query_parts.push(format!("secondaryAggregation.alignmentPeriod={}", val));
     }
     if let Some(val) = secondaryAggregation_crossSeriesReducer {
-        query_parts.push(format!("secondaryAggregation_crossSeriesReducer={}", val));
+        query_parts.push(format!("secondaryAggregation.crossSeriesReducer={}", val));
     }
     if let Some(val) = secondaryAggregation_groupByFields {
-        query_parts.push(format!("secondaryAggregation_groupByFields={}", val));
+        query_parts.push(format!("secondaryAggregation.groupByFields={}", val));
     }
     if let Some(val) = secondaryAggregation_perSeriesAligner {
-        query_parts.push(format!("secondaryAggregation_perSeriesAligner={}", val));
+        query_parts.push(format!("secondaryAggregation.perSeriesAligner={}", val));
     }
     if let Some(val) = view {
         query_parts.push(format!("view={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -136,8 +134,11 @@ pub fn monitoring_folders_time_series_list_builder(
 pub fn monitoring_folders_time_series_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListTimeSeriesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTimeSeriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -274,22 +275,22 @@ pub fn monitoring_folders_time_series_list(
 > {
     let builder = monitoring_folders_time_series_list_builder(
         client,
-        &args.name,
-        args.aggregation_alignmentPeriod.as_deref(),
-        args.aggregation_crossSeriesReducer.as_deref(),
-        args.aggregation_groupByFields.as_deref(),
-        args.aggregation_perSeriesAligner.as_deref(),
-        args.filter.as_deref(),
-        args.interval_endTime.as_deref(),
-        args.interval_startTime.as_deref(),
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.secondaryAggregation_alignmentPeriod.as_deref(),
-        args.secondaryAggregation_crossSeriesReducer.as_deref(),
-        args.secondaryAggregation_groupByFields.as_deref(),
-        args.secondaryAggregation_perSeriesAligner.as_deref(),
-        args.view.as_deref(),
+        args.name.clone(),
+        args.aggregation_alignmentPeriod.clone(),
+        args.aggregation_crossSeriesReducer.clone(),
+        args.aggregation_groupByFields.clone(),
+        args.aggregation_perSeriesAligner.clone(),
+        args.filter.clone(),
+        args.interval_endTime.clone(),
+        args.interval_startTime.clone(),
+        args.orderBy.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.secondaryAggregation_alignmentPeriod.clone(),
+        args.secondaryAggregation_crossSeriesReducer.clone(),
+        args.secondaryAggregation_groupByFields.clone(),
+        args.secondaryAggregation_perSeriesAligner.clone(),
+        args.view.clone(),
     )?;
     monitoring_folders_time_series_list_execute(builder)
 }
@@ -302,51 +303,48 @@ pub fn monitoring_folders_time_series_list(
 
 pub fn monitoring_organizations_time_series_list_builder(
     client: &SimpleHttpClient,
-    name: &str,
-    aggregation_alignmentPeriod: Option<&str>,
-    aggregation_crossSeriesReducer: Option<&str>,
-    aggregation_groupByFields: Option<&str>,
-    aggregation_perSeriesAligner: Option<&str>,
-    filter: Option<&str>,
-    interval_endTime: Option<&str>,
-    interval_startTime: Option<&str>,
-    orderBy: Option<&str>,
+    name: String,
+    aggregation_alignmentPeriod: Option<String>,
+    aggregation_crossSeriesReducer: Option<String>,
+    aggregation_groupByFields: Option<String>,
+    aggregation_perSeriesAligner: Option<String>,
+    filter: Option<String>,
+    interval_endTime: Option<String>,
+    interval_startTime: Option<String>,
+    orderBy: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    secondaryAggregation_alignmentPeriod: Option<&str>,
-    secondaryAggregation_crossSeriesReducer: Option<&str>,
-    secondaryAggregation_groupByFields: Option<&str>,
-    secondaryAggregation_perSeriesAligner: Option<&str>,
-    view: Option<&str>,
+    pageToken: Option<String>,
+    secondaryAggregation_alignmentPeriod: Option<String>,
+    secondaryAggregation_crossSeriesReducer: Option<String>,
+    secondaryAggregation_groupByFields: Option<String>,
+    secondaryAggregation_perSeriesAligner: Option<String>,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/organizations/{}/timeSeries",
-        name,
-    );
+    let endpoint_url = format!("https://monitoring.googleapis.com/v3/organizations/{}/timeSeries",);
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = aggregation_alignmentPeriod {
-        query_parts.push(format!("aggregation_alignmentPeriod={}", val));
+        query_parts.push(format!("aggregation.alignmentPeriod={}", val));
     }
     if let Some(val) = aggregation_crossSeriesReducer {
-        query_parts.push(format!("aggregation_crossSeriesReducer={}", val));
+        query_parts.push(format!("aggregation.crossSeriesReducer={}", val));
     }
     if let Some(val) = aggregation_groupByFields {
-        query_parts.push(format!("aggregation_groupByFields={}", val));
+        query_parts.push(format!("aggregation.groupByFields={}", val));
     }
     if let Some(val) = aggregation_perSeriesAligner {
-        query_parts.push(format!("aggregation_perSeriesAligner={}", val));
+        query_parts.push(format!("aggregation.perSeriesAligner={}", val));
     }
     if let Some(val) = filter {
         query_parts.push(format!("filter={}", val));
     }
     if let Some(val) = interval_endTime {
-        query_parts.push(format!("interval_endTime={}", val));
+        query_parts.push(format!("interval.endTime={}", val));
     }
     if let Some(val) = interval_startTime {
-        query_parts.push(format!("interval_startTime={}", val));
+        query_parts.push(format!("interval.startTime={}", val));
     }
     if let Some(val) = orderBy {
         query_parts.push(format!("orderBy={}", val));
@@ -358,25 +356,25 @@ pub fn monitoring_organizations_time_series_list_builder(
         query_parts.push(format!("pageToken={}", val));
     }
     if let Some(val) = secondaryAggregation_alignmentPeriod {
-        query_parts.push(format!("secondaryAggregation_alignmentPeriod={}", val));
+        query_parts.push(format!("secondaryAggregation.alignmentPeriod={}", val));
     }
     if let Some(val) = secondaryAggregation_crossSeriesReducer {
-        query_parts.push(format!("secondaryAggregation_crossSeriesReducer={}", val));
+        query_parts.push(format!("secondaryAggregation.crossSeriesReducer={}", val));
     }
     if let Some(val) = secondaryAggregation_groupByFields {
-        query_parts.push(format!("secondaryAggregation_groupByFields={}", val));
+        query_parts.push(format!("secondaryAggregation.groupByFields={}", val));
     }
     if let Some(val) = secondaryAggregation_perSeriesAligner {
-        query_parts.push(format!("secondaryAggregation_perSeriesAligner={}", val));
+        query_parts.push(format!("secondaryAggregation.perSeriesAligner={}", val));
     }
     if let Some(val) = view {
         query_parts.push(format!("view={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -410,8 +408,11 @@ pub fn monitoring_organizations_time_series_list_builder(
 pub fn monitoring_organizations_time_series_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListTimeSeriesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTimeSeriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -548,22 +549,22 @@ pub fn monitoring_organizations_time_series_list(
 > {
     let builder = monitoring_organizations_time_series_list_builder(
         client,
-        &args.name,
-        args.aggregation_alignmentPeriod.as_deref(),
-        args.aggregation_crossSeriesReducer.as_deref(),
-        args.aggregation_groupByFields.as_deref(),
-        args.aggregation_perSeriesAligner.as_deref(),
-        args.filter.as_deref(),
-        args.interval_endTime.as_deref(),
-        args.interval_startTime.as_deref(),
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.secondaryAggregation_alignmentPeriod.as_deref(),
-        args.secondaryAggregation_crossSeriesReducer.as_deref(),
-        args.secondaryAggregation_groupByFields.as_deref(),
-        args.secondaryAggregation_perSeriesAligner.as_deref(),
-        args.view.as_deref(),
+        args.name.clone(),
+        args.aggregation_alignmentPeriod.clone(),
+        args.aggregation_crossSeriesReducer.clone(),
+        args.aggregation_groupByFields.clone(),
+        args.aggregation_perSeriesAligner.clone(),
+        args.filter.clone(),
+        args.interval_endTime.clone(),
+        args.interval_startTime.clone(),
+        args.orderBy.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.secondaryAggregation_alignmentPeriod.clone(),
+        args.secondaryAggregation_crossSeriesReducer.clone(),
+        args.secondaryAggregation_groupByFields.clone(),
+        args.secondaryAggregation_perSeriesAligner.clone(),
+        args.view.clone(),
     )?;
     monitoring_organizations_time_series_list_execute(builder)
 }
@@ -576,18 +577,15 @@ pub fn monitoring_organizations_time_series_list(
 
 pub fn monitoring_projects_alert_policies_create_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &AlertPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/alertPolicies",
-        name,
-    );
+    let endpoint_url = format!("https://monitoring.googleapis.com/v3/projects/{}/alertPolicies",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -619,7 +617,12 @@ pub fn monitoring_projects_alert_policies_create_builder(
 pub fn monitoring_projects_alert_policies_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AlertPolicy>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AlertPolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -722,837 +725,8 @@ pub fn monitoring_projects_alert_policies_create(
     ApiError,
 > {
     let builder =
-        monitoring_projects_alert_policies_create_builder(client, &args.name, &args.body)?;
+        monitoring_projects_alert_policies_create_builder(client, args.name.clone(), &args.body)?;
     monitoring_projects_alert_policies_create_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
-/// Deletes an alerting policy.Design your application to single-thread API calls that modify the state of alerting policies in a single project. This includes calls to CreateAlertPolicy, DeleteAlertPolicy and UpdateAlertPolicy.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_alert_policies_delete_execute()` to send, or `monitoring_projects_alert_policies_delete` for simplest API.
-
-pub fn monitoring_projects_alert_policies_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/alertPolicies/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
-/// Deletes an alerting policy.Design your application to single-thread API calls that modify the state of alerting policies in a single project. This includes calls to CreateAlertPolicy, DeleteAlertPolicy and UpdateAlertPolicy.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_alert_policies_delete_execute()` or `monitoring_projects_alert_policies_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_alert_policies_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_alert_policies_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
-/// Deletes an alerting policy.Design your application to single-thread API calls that modify the state of alerting policies in a single project. This includes calls to CreateAlertPolicy, DeleteAlertPolicy and UpdateAlertPolicy.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_alert_policies_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_alert_policies_delete_task()`.
-/// For the simplest API, use `monitoring_projects_alert_policies_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_alert_policies_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_alert_policies_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_alert_policies_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_alert_policies_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsAlertPoliciesDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
-/// Deletes an alerting policy.Design your application to single-thread API calls that modify the state of alerting policies in a single project. This includes calls to CreateAlertPolicy, DeleteAlertPolicy and UpdateAlertPolicy.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_alert_policies_delete_builder()` + `monitoring_projects_alert_policies_delete_execute()`.
-/// For task-level control, use `monitoring_projects_alert_policies_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_alert_policies_delete(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsAlertPoliciesDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_alert_policies_delete_builder(client, &args.name)?;
-    monitoring_projects_alert_policies_delete_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
-/// Gets a single alerting policy.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_alert_policies_get_execute()` to send, or `monitoring_projects_alert_policies_get` for simplest API.
-
-pub fn monitoring_projects_alert_policies_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/alertPolicies/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
-/// Gets a single alerting policy.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_alert_policies_get_execute()` or `monitoring_projects_alert_policies_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_alert_policies_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_alert_policies_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AlertPolicy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AlertPolicy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
-/// Gets a single alerting policy.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_alert_policies_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_alert_policies_get_task()`.
-/// For the simplest API, use `monitoring_projects_alert_policies_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_alert_policies_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_alert_policies_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AlertPolicy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_alert_policies_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_alert_policies_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsAlertPoliciesGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
-/// Gets a single alerting policy.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_alert_policies_get_builder()` + `monitoring_projects_alert_policies_get_execute()`.
-/// For task-level control, use `monitoring_projects_alert_policies_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_alert_policies_get(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsAlertPoliciesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AlertPolicy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_alert_policies_get_builder(client, &args.name)?;
-    monitoring_projects_alert_policies_get_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies
-/// Lists the existing alerting policies for the workspace.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_alert_policies_list_execute()` to send, or `monitoring_projects_alert_policies_list` for simplest API.
-
-pub fn monitoring_projects_alert_policies_list_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/alertPolicies",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = orderBy {
-        query_parts.push(format!("orderBy={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies
-/// Lists the existing alerting policies for the workspace.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_alert_policies_list_execute()` or `monitoring_projects_alert_policies_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_alert_policies_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_alert_policies_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListAlertPoliciesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListAlertPoliciesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies
-/// Lists the existing alerting policies for the workspace.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_alert_policies_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_alert_policies_list_task()`.
-/// For the simplest API, use `monitoring_projects_alert_policies_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_alert_policies_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_alert_policies_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListAlertPoliciesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_alert_policies_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_alert_policies_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsAlertPoliciesListArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies
-/// Lists the existing alerting policies for the workspace.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_alert_policies_list_builder()` + `monitoring_projects_alert_policies_list_execute()`.
-/// For task-level control, use `monitoring_projects_alert_policies_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_alert_policies_list(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsAlertPoliciesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListAlertPoliciesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_alert_policies_list_builder(
-        client,
-        &args.name,
-        args.filter.as_deref(),
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    monitoring_projects_alert_policies_list_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
-/// Updates an alerting policy. You can either replace the entire policy with a new one or replace only certain fields in the current alerting policy by specifying the fields to be updated via `updateMask`. Returns the updated alerting policy.Design your application to single-thread API calls that modify the state of alerting policies in a single project. This includes calls to CreateAlertPolicy, DeleteAlertPolicy and UpdateAlertPolicy.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_alert_policies_patch_execute()` to send, or `monitoring_projects_alert_policies_patch` for simplest API.
-
-pub fn monitoring_projects_alert_policies_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AlertPolicy,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/alertPolicies/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
-/// Updates an alerting policy. You can either replace the entire policy with a new one or replace only certain fields in the current alerting policy by specifying the fields to be updated via `updateMask`. Returns the updated alerting policy.Design your application to single-thread API calls that modify the state of alerting policies in a single project. This includes calls to CreateAlertPolicy, DeleteAlertPolicy and UpdateAlertPolicy.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_alert_policies_patch_execute()` or `monitoring_projects_alert_policies_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_alert_policies_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_alert_policies_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AlertPolicy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AlertPolicy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
-/// Updates an alerting policy. You can either replace the entire policy with a new one or replace only certain fields in the current alerting policy by specifying the fields to be updated via `updateMask`. Returns the updated alerting policy.Design your application to single-thread API calls that modify the state of alerting policies in a single project. This includes calls to CreateAlertPolicy, DeleteAlertPolicy and UpdateAlertPolicy.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_alert_policies_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_alert_policies_patch_task()`.
-/// For the simplest API, use `monitoring_projects_alert_policies_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_alert_policies_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_alert_policies_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AlertPolicy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_alert_policies_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_alert_policies_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsAlertPoliciesPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: AlertPolicy,
-}
-
-/// GET v3/projects/{projectsId}/alertPolicies/{alertPoliciesId}
-/// Updates an alerting policy. You can either replace the entire policy with a new one or replace only certain fields in the current alerting policy by specifying the fields to be updated via `updateMask`. Returns the updated alerting policy.Design your application to single-thread API calls that modify the state of alerting policies in a single project. This includes calls to CreateAlertPolicy, DeleteAlertPolicy and UpdateAlertPolicy.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_alert_policies_patch_builder()` + `monitoring_projects_alert_policies_patch_execute()`.
-/// For task-level control, use `monitoring_projects_alert_policies_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_alert_policies_patch(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsAlertPoliciesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AlertPolicy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_alert_policies_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    monitoring_projects_alert_policies_patch_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/alerts/{alertsId}
-/// Gets a single alert.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_alerts_get_execute()` to send, or `monitoring_projects_alerts_get` for simplest API.
-
-pub fn monitoring_projects_alerts_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/alerts/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/alerts/{alertsId}
-/// Gets a single alert.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_alerts_get_execute()` or `monitoring_projects_alerts_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_alerts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_alerts_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Alert = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/alerts/{alertsId}
-/// Gets a single alert.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_alerts_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_alerts_get_task()`.
-/// For the simplest API, use `monitoring_projects_alerts_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_alerts_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_alerts_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_alerts_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_alerts_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsAlertsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/projects/{projectsId}/alerts/{alertsId}
-/// Gets a single alert.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_alerts_get_builder()` + `monitoring_projects_alerts_get_execute()`.
-/// For task-level control, use `monitoring_projects_alerts_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_alerts_get(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsAlertsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Alert>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_alerts_get_builder(client, &args.name)?;
-    monitoring_projects_alerts_get_execute(builder)
 }
 
 /// GET v3/projects/{projectsId}/alerts
@@ -1563,17 +737,14 @@ pub fn monitoring_projects_alerts_get(
 
 pub fn monitoring_projects_alerts_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
+    parent: String,
+    filter: Option<String>,
+    orderBy: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/alerts",
-        parent,
-    );
+    let endpoint_url = format!("https://monitoring.googleapis.com/v3/projects/{}/alerts",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1591,9 +762,9 @@ pub fn monitoring_projects_alerts_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1627,8 +798,11 @@ pub fn monitoring_projects_alerts_list_builder(
 pub fn monitoring_projects_alerts_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListAlertsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListAlertsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1743,11 +917,11 @@ pub fn monitoring_projects_alerts_list(
 > {
     let builder = monitoring_projects_alerts_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.orderBy.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     monitoring_projects_alerts_list_execute(builder)
 }
@@ -1760,18 +934,16 @@ pub fn monitoring_projects_alerts_list(
 
 pub fn monitoring_projects_collectd_time_series_create_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &CreateCollectdTimeSeriesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/collectdTimeSeries",
-        name,
-    );
+    let endpoint_url =
+        format!("https://monitoring.googleapis.com/v3/projects/{}/collectdTimeSeries",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1804,8 +976,9 @@ pub fn monitoring_projects_collectd_time_series_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<CreateCollectdTimeSeriesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<CreateCollectdTimeSeriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1917,8 +1090,11 @@ pub fn monitoring_projects_collectd_time_series_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        monitoring_projects_collectd_time_series_create_builder(client, &args.name, &args.body)?;
+    let builder = monitoring_projects_collectd_time_series_create_builder(
+        client,
+        args.name.clone(),
+        &args.body,
+    )?;
     monitoring_projects_collectd_time_series_create_execute(builder)
 }
 
@@ -1930,15 +1106,12 @@ pub fn monitoring_projects_collectd_time_series_create(
 
 pub fn monitoring_projects_groups_create_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     validateOnly: Option<bool>,
     body: &Group,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/groups",
-        name,
-    );
+    let endpoint_url = format!("https://monitoring.googleapis.com/v3/projects/{}/groups",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1947,9 +1120,9 @@ pub fn monitoring_projects_groups_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1985,7 +1158,12 @@ pub fn monitoring_projects_groups_create_builder(
 pub fn monitoring_projects_groups_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Group>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2091,913 +1269,11 @@ pub fn monitoring_projects_groups_create(
 > {
     let builder = monitoring_projects_groups_create_builder(
         client,
-        &args.name,
-        args.validateOnly,
+        args.name.clone(),
+        args.validateOnly.clone(),
         &args.body,
     )?;
     monitoring_projects_groups_create_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}
-/// Deletes an existing group.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_groups_delete_execute()` to send, or `monitoring_projects_groups_delete` for simplest API.
-
-pub fn monitoring_projects_groups_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    recursive: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/groups/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = recursive {
-        query_parts.push(format!("recursive={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}
-/// Deletes an existing group.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_groups_delete_execute()` or `monitoring_projects_groups_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_groups_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_groups_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}
-/// Deletes an existing group.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_groups_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_groups_delete_task()`.
-/// For the simplest API, use `monitoring_projects_groups_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_groups_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_groups_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_groups_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_groups_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsGroupsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: recursive
-    pub recursive: Option<bool>,
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}
-/// Deletes an existing group.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_groups_delete_builder()` + `monitoring_projects_groups_delete_execute()`.
-/// For task-level control, use `monitoring_projects_groups_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_groups_delete(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsGroupsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_groups_delete_builder(client, &args.name, args.recursive)?;
-    monitoring_projects_groups_delete_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}
-/// Gets a single group.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_groups_get_execute()` to send, or `monitoring_projects_groups_get` for simplest API.
-
-pub fn monitoring_projects_groups_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/groups/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}
-/// Gets a single group.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_groups_get_execute()` or `monitoring_projects_groups_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_groups_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_groups_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Group = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}
-/// Gets a single group.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_groups_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_groups_get_task()`.
-/// For the simplest API, use `monitoring_projects_groups_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_groups_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_groups_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_groups_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_groups_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsGroupsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}
-/// Gets a single group.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_groups_get_builder()` + `monitoring_projects_groups_get_execute()`.
-/// For task-level control, use `monitoring_projects_groups_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_groups_get(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsGroupsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_groups_get_builder(client, &args.name)?;
-    monitoring_projects_groups_get_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/groups
-/// Lists the existing groups.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_groups_list_execute()` to send, or `monitoring_projects_groups_list` for simplest API.
-
-pub fn monitoring_projects_groups_list_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    ancestorsOfGroup: Option<&str>,
-    childrenOfGroup: Option<&str>,
-    descendantsOfGroup: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/groups",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = ancestorsOfGroup {
-        query_parts.push(format!("ancestorsOfGroup={}", val));
-    }
-    if let Some(val) = childrenOfGroup {
-        query_parts.push(format!("childrenOfGroup={}", val));
-    }
-    if let Some(val) = descendantsOfGroup {
-        query_parts.push(format!("descendantsOfGroup={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/groups
-/// Lists the existing groups.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_groups_list_execute()` or `monitoring_projects_groups_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_groups_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_groups_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListGroupsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListGroupsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/groups
-/// Lists the existing groups.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_groups_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_groups_list_task()`.
-/// For the simplest API, use `monitoring_projects_groups_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_groups_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_groups_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListGroupsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_groups_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_groups_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsGroupsListArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: ancestorsOfGroup
-    pub ancestorsOfGroup: Option<String>,
-    /// Query parameter: childrenOfGroup
-    pub childrenOfGroup: Option<String>,
-    /// Query parameter: descendantsOfGroup
-    pub descendantsOfGroup: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v3/projects/{projectsId}/groups
-/// Lists the existing groups.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_groups_list_builder()` + `monitoring_projects_groups_list_execute()`.
-/// For task-level control, use `monitoring_projects_groups_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_groups_list(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsGroupsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListGroupsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_groups_list_builder(
-        client,
-        &args.name,
-        args.ancestorsOfGroup.as_deref(),
-        args.childrenOfGroup.as_deref(),
-        args.descendantsOfGroup.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    monitoring_projects_groups_list_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}
-/// Updates an existing group. You can change any group attributes except name.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_groups_update_execute()` to send, or `monitoring_projects_groups_update` for simplest API.
-
-pub fn monitoring_projects_groups_update_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    validateOnly: Option<bool>,
-    body: &Group,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/groups/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = validateOnly {
-        query_parts.push(format!("validateOnly={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}
-/// Updates an existing group. You can change any group attributes except name.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_groups_update_execute()` or `monitoring_projects_groups_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_groups_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_groups_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Group = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}
-/// Updates an existing group. You can change any group attributes except name.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_groups_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_groups_update_task()`.
-/// For the simplest API, use `monitoring_projects_groups_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_groups_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_groups_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_groups_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_groups_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsGroupsUpdateArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: validateOnly
-    pub validateOnly: Option<bool>,
-    /// Request body.
-    pub body: Group,
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}
-/// Updates an existing group. You can change any group attributes except name.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_groups_update_builder()` + `monitoring_projects_groups_update_execute()`.
-/// For task-level control, use `monitoring_projects_groups_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_groups_update(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsGroupsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Group>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_groups_update_builder(
-        client,
-        &args.name,
-        args.validateOnly,
-        &args.body,
-    )?;
-    monitoring_projects_groups_update_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}/members
-/// Lists the monitored resources that are members of a group.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_groups_members_list_execute()` to send, or `monitoring_projects_groups_members_list` for simplest API.
-
-pub fn monitoring_projects_groups_members_list_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    interval_endTime: Option<&str>,
-    interval_startTime: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/groups/{}/members",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = interval_endTime {
-        query_parts.push(format!("interval_endTime={}", val));
-    }
-    if let Some(val) = interval_startTime {
-        query_parts.push(format!("interval_startTime={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}/members
-/// Lists the monitored resources that are members of a group.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_groups_members_list_execute()` or `monitoring_projects_groups_members_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_groups_members_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_groups_members_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListGroupMembersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListGroupMembersResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}/members
-/// Lists the monitored resources that are members of a group.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_groups_members_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_groups_members_list_task()`.
-/// For the simplest API, use `monitoring_projects_groups_members_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_groups_members_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_groups_members_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListGroupMembersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_groups_members_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_groups_members_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsGroupsMembersListArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: interval_endTime
-    pub interval_endTime: Option<String>,
-    /// Query parameter: interval_startTime
-    pub interval_startTime: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v3/projects/{projectsId}/groups/{groupsId}/members
-/// Lists the monitored resources that are members of a group.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_groups_members_list_builder()` + `monitoring_projects_groups_members_list_execute()`.
-/// For task-level control, use `monitoring_projects_groups_members_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_groups_members_list(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsGroupsMembersListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListGroupMembersResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_groups_members_list_builder(
-        client,
-        &args.name,
-        args.filter.as_deref(),
-        args.interval_endTime.as_deref(),
-        args.interval_startTime.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    monitoring_projects_groups_members_list_execute(builder)
 }
 
 /// GET v3/projects/{projectsId}/metricDescriptors
@@ -3008,18 +1284,16 @@ pub fn monitoring_projects_groups_members_list(
 
 pub fn monitoring_projects_metric_descriptors_create_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &MetricDescriptor,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/metricDescriptors",
-        name,
-    );
+    let endpoint_url =
+        format!("https://monitoring.googleapis.com/v3/projects/{}/metricDescriptors",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3051,8 +1325,11 @@ pub fn monitoring_projects_metric_descriptors_create_builder(
 pub fn monitoring_projects_metric_descriptors_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<MetricDescriptor>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<MetricDescriptor>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3159,685 +1436,12 @@ pub fn monitoring_projects_metric_descriptors_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        monitoring_projects_metric_descriptors_create_builder(client, &args.name, &args.body)?;
-    monitoring_projects_metric_descriptors_create_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/metricDescriptors/{metricDescriptorsId}
-/// Deletes a metric descriptor. Only user-created custom metrics (<https://cloud.google.`com/monitoring/custom-metrics`>) can be deleted.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_metric_descriptors_delete_execute()` to send, or `monitoring_projects_metric_descriptors_delete` for simplest API.
-
-pub fn monitoring_projects_metric_descriptors_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/metricDescriptors/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/metricDescriptors/{metricDescriptorsId}
-/// Deletes a metric descriptor. Only user-created custom metrics (<https://cloud.google.`com/monitoring/custom-metrics`>) can be deleted.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_metric_descriptors_delete_execute()` or `monitoring_projects_metric_descriptors_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_metric_descriptors_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_metric_descriptors_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/metricDescriptors/{metricDescriptorsId}
-/// Deletes a metric descriptor. Only user-created custom metrics (<https://cloud.google.`com/monitoring/custom-metrics`>) can be deleted.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_metric_descriptors_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_metric_descriptors_delete_task()`.
-/// For the simplest API, use `monitoring_projects_metric_descriptors_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_metric_descriptors_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_metric_descriptors_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_metric_descriptors_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_metric_descriptors_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsMetricDescriptorsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/projects/{projectsId}/metricDescriptors/{metricDescriptorsId}
-/// Deletes a metric descriptor. Only user-created custom metrics (<https://cloud.google.`com/monitoring/custom-metrics`>) can be deleted.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_metric_descriptors_delete_builder()` + `monitoring_projects_metric_descriptors_delete_execute()`.
-/// For task-level control, use `monitoring_projects_metric_descriptors_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_metric_descriptors_delete(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsMetricDescriptorsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_metric_descriptors_delete_builder(client, &args.name)?;
-    monitoring_projects_metric_descriptors_delete_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/metricDescriptors/{metricDescriptorsId}
-/// Gets a single metric descriptor.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_metric_descriptors_get_execute()` to send, or `monitoring_projects_metric_descriptors_get` for simplest API.
-
-pub fn monitoring_projects_metric_descriptors_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/metricDescriptors/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/metricDescriptors/{metricDescriptorsId}
-/// Gets a single metric descriptor.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_metric_descriptors_get_execute()` or `monitoring_projects_metric_descriptors_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_metric_descriptors_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_metric_descriptors_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<MetricDescriptor>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: MetricDescriptor = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/metricDescriptors/{metricDescriptorsId}
-/// Gets a single metric descriptor.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_metric_descriptors_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_metric_descriptors_get_task()`.
-/// For the simplest API, use `monitoring_projects_metric_descriptors_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_metric_descriptors_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_metric_descriptors_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<MetricDescriptor>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_metric_descriptors_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_metric_descriptors_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsMetricDescriptorsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/projects/{projectsId}/metricDescriptors/{metricDescriptorsId}
-/// Gets a single metric descriptor.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_metric_descriptors_get_builder()` + `monitoring_projects_metric_descriptors_get_execute()`.
-/// For task-level control, use `monitoring_projects_metric_descriptors_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_metric_descriptors_get(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsMetricDescriptorsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<MetricDescriptor>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_metric_descriptors_get_builder(client, &args.name)?;
-    monitoring_projects_metric_descriptors_get_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/metricDescriptors
-/// Lists metric descriptors that match a filter.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_metric_descriptors_list_execute()` to send, or `monitoring_projects_metric_descriptors_list` for simplest API.
-
-pub fn monitoring_projects_metric_descriptors_list_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    activeOnly: Option<bool>,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/metricDescriptors",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = activeOnly {
-        query_parts.push(format!("activeOnly={}", val));
-    }
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/metricDescriptors
-/// Lists metric descriptors that match a filter.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_metric_descriptors_list_execute()` or `monitoring_projects_metric_descriptors_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_metric_descriptors_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_metric_descriptors_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListMetricDescriptorsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListMetricDescriptorsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/metricDescriptors
-/// Lists metric descriptors that match a filter.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_metric_descriptors_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_metric_descriptors_list_task()`.
-/// For the simplest API, use `monitoring_projects_metric_descriptors_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_metric_descriptors_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_metric_descriptors_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListMetricDescriptorsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_metric_descriptors_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_metric_descriptors_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsMetricDescriptorsListArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: activeOnly
-    pub activeOnly: Option<bool>,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v3/projects/{projectsId}/metricDescriptors
-/// Lists metric descriptors that match a filter.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_metric_descriptors_list_builder()` + `monitoring_projects_metric_descriptors_list_execute()`.
-/// For task-level control, use `monitoring_projects_metric_descriptors_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_metric_descriptors_list(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsMetricDescriptorsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListMetricDescriptorsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_metric_descriptors_list_builder(
+    let builder = monitoring_projects_metric_descriptors_create_builder(
         client,
-        &args.name,
-        args.activeOnly,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.name.clone(),
+        &args.body,
     )?;
-    monitoring_projects_metric_descriptors_list_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/monitoredResourceDescriptors/{monitoredResourceDescriptorsId}
-/// Gets a single monitored resource descriptor.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_monitored_resource_descriptors_get_execute()` to send, or `monitoring_projects_monitored_resource_descriptors_get` for simplest API.
-
-pub fn monitoring_projects_monitored_resource_descriptors_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/monitoredResourceDescriptors/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/monitoredResourceDescriptors/{monitoredResourceDescriptorsId}
-/// Gets a single monitored resource descriptor.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_monitored_resource_descriptors_get_execute()` or `monitoring_projects_monitored_resource_descriptors_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_monitored_resource_descriptors_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_monitored_resource_descriptors_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<MonitoredResourceDescriptor>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: MonitoredResourceDescriptor = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/monitoredResourceDescriptors/{monitoredResourceDescriptorsId}
-/// Gets a single monitored resource descriptor.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_monitored_resource_descriptors_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_monitored_resource_descriptors_get_task()`.
-/// For the simplest API, use `monitoring_projects_monitored_resource_descriptors_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_monitored_resource_descriptors_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_monitored_resource_descriptors_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<MonitoredResourceDescriptor>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_monitored_resource_descriptors_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_monitored_resource_descriptors_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsMonitoredResourceDescriptorsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/projects/{projectsId}/monitoredResourceDescriptors/{monitoredResourceDescriptorsId}
-/// Gets a single monitored resource descriptor.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_monitored_resource_descriptors_get_builder()` + `monitoring_projects_monitored_resource_descriptors_get_execute()`.
-/// For task-level control, use `monitoring_projects_monitored_resource_descriptors_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_monitored_resource_descriptors_get(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsMonitoredResourceDescriptorsGetArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<MonitoredResourceDescriptor>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        monitoring_projects_monitored_resource_descriptors_get_builder(client, &args.name)?;
-    monitoring_projects_monitored_resource_descriptors_get_execute(builder)
+    monitoring_projects_metric_descriptors_create_execute(builder)
 }
 
 /// GET v3/projects/{projectsId}/monitoredResourceDescriptors
@@ -3848,16 +1452,14 @@ pub fn monitoring_projects_monitored_resource_descriptors_get(
 
 pub fn monitoring_projects_monitored_resource_descriptors_list_builder(
     client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
+    name: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/monitoredResourceDescriptors",
-        name,
-    );
+    let endpoint_url =
+        format!("https://monitoring.googleapis.com/v3/projects/{}/monitoredResourceDescriptors",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3872,9 +1474,9 @@ pub fn monitoring_projects_monitored_resource_descriptors_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3909,8 +1511,9 @@ pub fn monitoring_projects_monitored_resource_descriptors_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListMonitoredResourceDescriptorsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListMonitoredResourceDescriptorsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -4028,177 +1631,12 @@ pub fn monitoring_projects_monitored_resource_descriptors_list(
 > {
     let builder = monitoring_projects_monitored_resource_descriptors_list_builder(
         client,
-        &args.name,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.name.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     monitoring_projects_monitored_resource_descriptors_list_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/notificationChannelDescriptors/{notificationChannelDescriptorsId}
-/// Gets a single channel descriptor. The descriptor indicates which fields are expected / permitted for a notification channel of the given type.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_notification_channel_descriptors_get_execute()` to send, or `monitoring_projects_notification_channel_descriptors_get` for simplest API.
-
-pub fn monitoring_projects_notification_channel_descriptors_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/notificationChannelDescriptors/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/notificationChannelDescriptors/{notificationChannelDescriptorsId}
-/// Gets a single channel descriptor. The descriptor indicates which fields are expected / permitted for a notification channel of the given type.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_notification_channel_descriptors_get_execute()` or `monitoring_projects_notification_channel_descriptors_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channel_descriptors_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channel_descriptors_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<NotificationChannelDescriptor>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: NotificationChannelDescriptor = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/notificationChannelDescriptors/{notificationChannelDescriptorsId}
-/// Gets a single channel descriptor. The descriptor indicates which fields are expected / permitted for a notification channel of the given type.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_notification_channel_descriptors_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_notification_channel_descriptors_get_task()`.
-/// For the simplest API, use `monitoring_projects_notification_channel_descriptors_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channel_descriptors_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_notification_channel_descriptors_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<NotificationChannelDescriptor>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_notification_channel_descriptors_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_notification_channel_descriptors_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsNotificationChannelDescriptorsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/projects/{projectsId}/notificationChannelDescriptors/{notificationChannelDescriptorsId}
-/// Gets a single channel descriptor. The descriptor indicates which fields are expected / permitted for a notification channel of the given type.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_notification_channel_descriptors_get_builder()` + `monitoring_projects_notification_channel_descriptors_get_execute()`.
-/// For task-level control, use `monitoring_projects_notification_channel_descriptors_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channel_descriptors_get(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsNotificationChannelDescriptorsGetArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<NotificationChannelDescriptor>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        monitoring_projects_notification_channel_descriptors_get_builder(client, &args.name)?;
-    monitoring_projects_notification_channel_descriptors_get_execute(builder)
 }
 
 /// GET v3/projects/{projectsId}/notificationChannelDescriptors
@@ -4209,15 +1647,13 @@ pub fn monitoring_projects_notification_channel_descriptors_get(
 
 pub fn monitoring_projects_notification_channel_descriptors_list_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/notificationChannelDescriptors",
-        name,
-    );
+    let endpoint_url =
+        format!("https://monitoring.googleapis.com/v3/projects/{}/notificationChannelDescriptors",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4229,9 +1665,9 @@ pub fn monitoring_projects_notification_channel_descriptors_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4266,8 +1702,9 @@ pub fn monitoring_projects_notification_channel_descriptors_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListNotificationChannelDescriptorsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListNotificationChannelDescriptorsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -4384,9 +1821,9 @@ pub fn monitoring_projects_notification_channel_descriptors_list(
 > {
     let builder = monitoring_projects_notification_channel_descriptors_list_builder(
         client,
-        &args.name,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.name.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     monitoring_projects_notification_channel_descriptors_list_execute(builder)
 }
@@ -4399,18 +1836,16 @@ pub fn monitoring_projects_notification_channel_descriptors_list(
 
 pub fn monitoring_projects_notification_channels_create_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &NotificationChannel,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels",
-        name,
-    );
+    let endpoint_url =
+        format!("https://monitoring.googleapis.com/v3/projects/{}/notificationChannels",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4442,8 +1877,11 @@ pub fn monitoring_projects_notification_channels_create_builder(
 pub fn monitoring_projects_notification_channels_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<NotificationChannel>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<NotificationChannel>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4550,1214 +1988,12 @@ pub fn monitoring_projects_notification_channels_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        monitoring_projects_notification_channels_create_builder(client, &args.name, &args.body)?;
-    monitoring_projects_notification_channels_create_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
-/// Deletes a notification channel.Design your application to single-thread API calls that modify the state of notification channels in a single project. This includes calls to CreateNotificationChannel, DeleteNotificationChannel and UpdateNotificationChannel.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_notification_channels_delete_execute()` to send, or `monitoring_projects_notification_channels_delete` for simplest API.
-
-pub fn monitoring_projects_notification_channels_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = force {
-        query_parts.push(format!("force={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
-/// Deletes a notification channel.Design your application to single-thread API calls that modify the state of notification channels in a single project. This includes calls to CreateNotificationChannel, DeleteNotificationChannel and UpdateNotificationChannel.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_notification_channels_delete_execute()` or `monitoring_projects_notification_channels_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channels_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channels_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
-/// Deletes a notification channel.Design your application to single-thread API calls that modify the state of notification channels in a single project. This includes calls to CreateNotificationChannel, DeleteNotificationChannel and UpdateNotificationChannel.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_notification_channels_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_notification_channels_delete_task()`.
-/// For the simplest API, use `monitoring_projects_notification_channels_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channels_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_notification_channels_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_notification_channels_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_notification_channels_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsNotificationChannelsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: force
-    pub force: Option<bool>,
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
-/// Deletes a notification channel.Design your application to single-thread API calls that modify the state of notification channels in a single project. This includes calls to CreateNotificationChannel, DeleteNotificationChannel and UpdateNotificationChannel.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_notification_channels_delete_builder()` + `monitoring_projects_notification_channels_delete_execute()`.
-/// For task-level control, use `monitoring_projects_notification_channels_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channels_delete(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsNotificationChannelsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        monitoring_projects_notification_channels_delete_builder(client, &args.name, args.force)?;
-    monitoring_projects_notification_channels_delete_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
-/// Gets a single notification channel. The channel includes the relevant configuration details with which the channel was created. However, the response may truncate or omit passwords, API keys, or other private key matter and thus the response may not be 100% identical to the information that was supplied in the call to the create method.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_notification_channels_get_execute()` to send, or `monitoring_projects_notification_channels_get` for simplest API.
-
-pub fn monitoring_projects_notification_channels_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
-/// Gets a single notification channel. The channel includes the relevant configuration details with which the channel was created. However, the response may truncate or omit passwords, API keys, or other private key matter and thus the response may not be 100% identical to the information that was supplied in the call to the create method.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_notification_channels_get_execute()` or `monitoring_projects_notification_channels_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channels_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channels_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<NotificationChannel>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: NotificationChannel = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
-/// Gets a single notification channel. The channel includes the relevant configuration details with which the channel was created. However, the response may truncate or omit passwords, API keys, or other private key matter and thus the response may not be 100% identical to the information that was supplied in the call to the create method.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_notification_channels_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_notification_channels_get_task()`.
-/// For the simplest API, use `monitoring_projects_notification_channels_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channels_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_notification_channels_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<NotificationChannel>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_notification_channels_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_notification_channels_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsNotificationChannelsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
-/// Gets a single notification channel. The channel includes the relevant configuration details with which the channel was created. However, the response may truncate or omit passwords, API keys, or other private key matter and thus the response may not be 100% identical to the information that was supplied in the call to the create method.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_notification_channels_get_builder()` + `monitoring_projects_notification_channels_get_execute()`.
-/// For task-level control, use `monitoring_projects_notification_channels_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channels_get(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsNotificationChannelsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<NotificationChannel>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_notification_channels_get_builder(client, &args.name)?;
-    monitoring_projects_notification_channels_get_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:getVerificationCode
-/// Requests a verification code for an already verified channel that can then be used in a call to VerifyNotificationChannel() on a different channel with an equivalent identity in the same or in a different project. This makes it possible to copy a channel between projects without requiring manual reverification of the channel. If the channel is not in the verified state, this method will fail (in other words, this may only be used if the SendNotificationChannelVerificationCode and VerifyNotificationChannel paths have already been used to put the given channel into the verified state).There is no guarantee that the verification codes returned by this method will be of a similar structure or form as the ones that are delivered to the channel via SendNotificationChannelVerificationCode; while VerifyNotificationChannel() will recognize both the codes delivered via SendNotificationChannelVerificationCode() and returned from GetNotificationChannelVerificationCode(), it is typically the case that the verification codes delivered via SendNotificationChannelVerificationCode() will be shorter and also have a shorter expiration (e.g. codes such as "G-123456") whereas GetVerificationCode() will typically return a much longer, websafe base 64 encoded string that has a longer expiration time.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_notification_channels_get_verification_code_execute()` to send, or `monitoring_projects_notification_channels_get_verification_code` for simplest API.
-
-pub fn monitoring_projects_notification_channels_get_verification_code_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &GetNotificationChannelVerificationCodeRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels/{}:getVerificationCode",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:getVerificationCode
-/// Requests a verification code for an already verified channel that can then be used in a call to VerifyNotificationChannel() on a different channel with an equivalent identity in the same or in a different project. This makes it possible to copy a channel between projects without requiring manual reverification of the channel. If the channel is not in the verified state, this method will fail (in other words, this may only be used if the SendNotificationChannelVerificationCode and VerifyNotificationChannel paths have already been used to put the given channel into the verified state).There is no guarantee that the verification codes returned by this method will be of a similar structure or form as the ones that are delivered to the channel via SendNotificationChannelVerificationCode; while VerifyNotificationChannel() will recognize both the codes delivered via SendNotificationChannelVerificationCode() and returned from GetNotificationChannelVerificationCode(), it is typically the case that the verification codes delivered via SendNotificationChannelVerificationCode() will be shorter and also have a shorter expiration (e.g. codes such as "G-123456") whereas GetVerificationCode() will typically return a much longer, websafe base 64 encoded string that has a longer expiration time.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_notification_channels_get_verification_code_execute()` or `monitoring_projects_notification_channels_get_verification_code`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channels_get_verification_code_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channels_get_verification_code_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GetNotificationChannelVerificationCodeResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GetNotificationChannelVerificationCodeResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:getVerificationCode
-/// Requests a verification code for an already verified channel that can then be used in a call to VerifyNotificationChannel() on a different channel with an equivalent identity in the same or in a different project. This makes it possible to copy a channel between projects without requiring manual reverification of the channel. If the channel is not in the verified state, this method will fail (in other words, this may only be used if the SendNotificationChannelVerificationCode and VerifyNotificationChannel paths have already been used to put the given channel into the verified state).There is no guarantee that the verification codes returned by this method will be of a similar structure or form as the ones that are delivered to the channel via SendNotificationChannelVerificationCode; while VerifyNotificationChannel() will recognize both the codes delivered via SendNotificationChannelVerificationCode() and returned from GetNotificationChannelVerificationCode(), it is typically the case that the verification codes delivered via SendNotificationChannelVerificationCode() will be shorter and also have a shorter expiration (e.g. codes such as "G-123456") whereas GetVerificationCode() will typically return a much longer, websafe base 64 encoded string that has a longer expiration time.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_notification_channels_get_verification_code_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_notification_channels_get_verification_code_task()`.
-/// For the simplest API, use `monitoring_projects_notification_channels_get_verification_code()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channels_get_verification_code_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_notification_channels_get_verification_code_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GetNotificationChannelVerificationCodeResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_notification_channels_get_verification_code_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_notification_channels_get_verification_code`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsNotificationChannelsGetVerificationCodeArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: GetNotificationChannelVerificationCodeRequest,
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:getVerificationCode
-/// Requests a verification code for an already verified channel that can then be used in a call to VerifyNotificationChannel() on a different channel with an equivalent identity in the same or in a different project. This makes it possible to copy a channel between projects without requiring manual reverification of the channel. If the channel is not in the verified state, this method will fail (in other words, this may only be used if the SendNotificationChannelVerificationCode and VerifyNotificationChannel paths have already been used to put the given channel into the verified state).There is no guarantee that the verification codes returned by this method will be of a similar structure or form as the ones that are delivered to the channel via SendNotificationChannelVerificationCode; while VerifyNotificationChannel() will recognize both the codes delivered via SendNotificationChannelVerificationCode() and returned from GetNotificationChannelVerificationCode(), it is typically the case that the verification codes delivered via SendNotificationChannelVerificationCode() will be shorter and also have a shorter expiration (e.g. codes such as "G-123456") whereas GetVerificationCode() will typically return a much longer, websafe base 64 encoded string that has a longer expiration time.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_notification_channels_get_verification_code_builder()` + `monitoring_projects_notification_channels_get_verification_code_execute()`.
-/// For task-level control, use `monitoring_projects_notification_channels_get_verification_code_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channels_get_verification_code(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsNotificationChannelsGetVerificationCodeArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GetNotificationChannelVerificationCodeResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_notification_channels_get_verification_code_builder(
-        client, &args.name, &args.body,
-    )?;
-    monitoring_projects_notification_channels_get_verification_code_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels
-/// Lists the notification channels that have been created for the project. To list the types of notification channels that are supported, use the ListNotificationChannelDescriptors method.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_notification_channels_list_execute()` to send, or `monitoring_projects_notification_channels_list` for simplest API.
-
-pub fn monitoring_projects_notification_channels_list_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = orderBy {
-        query_parts.push(format!("orderBy={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels
-/// Lists the notification channels that have been created for the project. To list the types of notification channels that are supported, use the ListNotificationChannelDescriptors method.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_notification_channels_list_execute()` or `monitoring_projects_notification_channels_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channels_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channels_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListNotificationChannelsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListNotificationChannelsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels
-/// Lists the notification channels that have been created for the project. To list the types of notification channels that are supported, use the ListNotificationChannelDescriptors method.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_notification_channels_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_notification_channels_list_task()`.
-/// For the simplest API, use `monitoring_projects_notification_channels_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channels_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_notification_channels_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListNotificationChannelsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_notification_channels_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_notification_channels_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsNotificationChannelsListArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels
-/// Lists the notification channels that have been created for the project. To list the types of notification channels that are supported, use the ListNotificationChannelDescriptors method.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_notification_channels_list_builder()` + `monitoring_projects_notification_channels_list_execute()`.
-/// For task-level control, use `monitoring_projects_notification_channels_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channels_list(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsNotificationChannelsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListNotificationChannelsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_notification_channels_list_builder(
+    let builder = monitoring_projects_notification_channels_create_builder(
         client,
-        &args.name,
-        args.filter.as_deref(),
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    monitoring_projects_notification_channels_list_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
-/// Updates a notification channel. Fields not specified in the field mask remain unchanged.Design your application to single-thread API calls that modify the state of notification channels in a single project. This includes calls to CreateNotificationChannel, DeleteNotificationChannel and UpdateNotificationChannel.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_notification_channels_patch_execute()` to send, or `monitoring_projects_notification_channels_patch` for simplest API.
-
-pub fn monitoring_projects_notification_channels_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &NotificationChannel,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
-/// Updates a notification channel. Fields not specified in the field mask remain unchanged.Design your application to single-thread API calls that modify the state of notification channels in a single project. This includes calls to CreateNotificationChannel, DeleteNotificationChannel and UpdateNotificationChannel.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_notification_channels_patch_execute()` or `monitoring_projects_notification_channels_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channels_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channels_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<NotificationChannel>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: NotificationChannel = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
-/// Updates a notification channel. Fields not specified in the field mask remain unchanged.Design your application to single-thread API calls that modify the state of notification channels in a single project. This includes calls to CreateNotificationChannel, DeleteNotificationChannel and UpdateNotificationChannel.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_notification_channels_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_notification_channels_patch_task()`.
-/// For the simplest API, use `monitoring_projects_notification_channels_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channels_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_notification_channels_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<NotificationChannel>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_notification_channels_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_notification_channels_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsNotificationChannelsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: NotificationChannel,
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}
-/// Updates a notification channel. Fields not specified in the field mask remain unchanged.Design your application to single-thread API calls that modify the state of notification channels in a single project. This includes calls to CreateNotificationChannel, DeleteNotificationChannel and UpdateNotificationChannel.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_notification_channels_patch_builder()` + `monitoring_projects_notification_channels_patch_execute()`.
-/// For task-level control, use `monitoring_projects_notification_channels_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channels_patch(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsNotificationChannelsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<NotificationChannel>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_notification_channels_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
+        args.name.clone(),
         &args.body,
     )?;
-    monitoring_projects_notification_channels_patch_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:sendVerificationCode
-/// Causes a verification code to be delivered to the channel. The code can then be supplied in VerifyNotificationChannel to verify the channel.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_notification_channels_send_verification_code_execute()` to send, or `monitoring_projects_notification_channels_send_verification_code` for simplest API.
-
-pub fn monitoring_projects_notification_channels_send_verification_code_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SendNotificationChannelVerificationCodeRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels/{}:sendVerificationCode",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:sendVerificationCode
-/// Causes a verification code to be delivered to the channel. The code can then be supplied in VerifyNotificationChannel to verify the channel.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_notification_channels_send_verification_code_execute()` or `monitoring_projects_notification_channels_send_verification_code`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channels_send_verification_code_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channels_send_verification_code_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:sendVerificationCode
-/// Causes a verification code to be delivered to the channel. The code can then be supplied in VerifyNotificationChannel to verify the channel.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_notification_channels_send_verification_code_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_notification_channels_send_verification_code_task()`.
-/// For the simplest API, use `monitoring_projects_notification_channels_send_verification_code()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channels_send_verification_code_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_notification_channels_send_verification_code_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_notification_channels_send_verification_code_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_notification_channels_send_verification_code`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsNotificationChannelsSendVerificationCodeArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SendNotificationChannelVerificationCodeRequest,
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:sendVerificationCode
-/// Causes a verification code to be delivered to the channel. The code can then be supplied in VerifyNotificationChannel to verify the channel.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_notification_channels_send_verification_code_builder()` + `monitoring_projects_notification_channels_send_verification_code_execute()`.
-/// For task-level control, use `monitoring_projects_notification_channels_send_verification_code_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channels_send_verification_code(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsNotificationChannelsSendVerificationCodeArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_notification_channels_send_verification_code_builder(
-        client, &args.name, &args.body,
-    )?;
-    monitoring_projects_notification_channels_send_verification_code_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:verify
-/// Verifies a NotificationChannel by proving receipt of the code delivered to the channel as a result of calling SendNotificationChannelVerificationCode.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_notification_channels_verify_execute()` to send, or `monitoring_projects_notification_channels_verify` for simplest API.
-
-pub fn monitoring_projects_notification_channels_verify_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &VerifyNotificationChannelRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/notificationChannels/{}:verify",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:verify
-/// Verifies a NotificationChannel by proving receipt of the code delivered to the channel as a result of calling SendNotificationChannelVerificationCode.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_notification_channels_verify_execute()` or `monitoring_projects_notification_channels_verify`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channels_verify_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channels_verify_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<NotificationChannel>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: NotificationChannel = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:verify
-/// Verifies a NotificationChannel by proving receipt of the code delivered to the channel as a result of calling SendNotificationChannelVerificationCode.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_notification_channels_verify_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_notification_channels_verify_task()`.
-/// For the simplest API, use `monitoring_projects_notification_channels_verify()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_notification_channels_verify_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_notification_channels_verify_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<NotificationChannel>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_notification_channels_verify_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_notification_channels_verify`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsNotificationChannelsVerifyArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: VerifyNotificationChannelRequest,
-}
-
-/// GET v3/projects/{projectsId}/notificationChannels/{notificationChannelsId}:verify
-/// Verifies a NotificationChannel by proving receipt of the code delivered to the channel as a result of calling SendNotificationChannelVerificationCode.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_notification_channels_verify_builder()` + `monitoring_projects_notification_channels_verify_execute()`.
-/// For task-level control, use `monitoring_projects_notification_channels_verify_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_notification_channels_verify(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsNotificationChannelsVerifyArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<NotificationChannel>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        monitoring_projects_notification_channels_verify_builder(client, &args.name, &args.body)?;
-    monitoring_projects_notification_channels_verify_execute(builder)
+    monitoring_projects_notification_channels_create_execute(builder)
 }
 
 /// GET v3/projects/{projectsId}/snoozes
@@ -5768,18 +2004,15 @@ pub fn monitoring_projects_notification_channels_verify(
 
 pub fn monitoring_projects_snoozes_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &Snooze,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/snoozes",
-        parent,
-    );
+    let endpoint_url = format!("https://monitoring.googleapis.com/v3/projects/{}/snoozes",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5811,7 +2044,12 @@ pub fn monitoring_projects_snoozes_create_builder(
 pub fn monitoring_projects_snoozes_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Snooze>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Snooze>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5913,526 +2151,9 @@ pub fn monitoring_projects_snoozes_create(
     impl StreamIterator<D = Result<ApiResponse<Snooze>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_snoozes_create_builder(client, &args.parent, &args.body)?;
+    let builder =
+        monitoring_projects_snoozes_create_builder(client, args.parent.clone(), &args.body)?;
     monitoring_projects_snoozes_create_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/snoozes/{snoozesId}
-/// Retrieves a Snooze by name.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_snoozes_get_execute()` to send, or `monitoring_projects_snoozes_get` for simplest API.
-
-pub fn monitoring_projects_snoozes_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/snoozes/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/snoozes/{snoozesId}
-/// Retrieves a Snooze by name.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_snoozes_get_execute()` or `monitoring_projects_snoozes_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_snoozes_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_snoozes_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Snooze>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Snooze = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/snoozes/{snoozesId}
-/// Retrieves a Snooze by name.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_snoozes_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_snoozes_get_task()`.
-/// For the simplest API, use `monitoring_projects_snoozes_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_snoozes_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_snoozes_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Snooze>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_snoozes_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_snoozes_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsSnoozesGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/projects/{projectsId}/snoozes/{snoozesId}
-/// Retrieves a Snooze by name.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_snoozes_get_builder()` + `monitoring_projects_snoozes_get_execute()`.
-/// For task-level control, use `monitoring_projects_snoozes_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_snoozes_get(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsSnoozesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Snooze>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_snoozes_get_builder(client, &args.name)?;
-    monitoring_projects_snoozes_get_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/snoozes
-/// Lists the Snoozes associated with a project. Can optionally pass in filter, which specifies predicates to match Snoozes.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_snoozes_list_execute()` to send, or `monitoring_projects_snoozes_list` for simplest API.
-
-pub fn monitoring_projects_snoozes_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/snoozes",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/snoozes
-/// Lists the Snoozes associated with a project. Can optionally pass in filter, which specifies predicates to match Snoozes.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_snoozes_list_execute()` or `monitoring_projects_snoozes_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_snoozes_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_snoozes_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListSnoozesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListSnoozesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/snoozes
-/// Lists the Snoozes associated with a project. Can optionally pass in filter, which specifies predicates to match Snoozes.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_snoozes_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_snoozes_list_task()`.
-/// For the simplest API, use `monitoring_projects_snoozes_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_snoozes_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_snoozes_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListSnoozesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_snoozes_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_snoozes_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsSnoozesListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v3/projects/{projectsId}/snoozes
-/// Lists the Snoozes associated with a project. Can optionally pass in filter, which specifies predicates to match Snoozes.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_snoozes_list_builder()` + `monitoring_projects_snoozes_list_execute()`.
-/// For task-level control, use `monitoring_projects_snoozes_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_snoozes_list(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsSnoozesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListSnoozesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_snoozes_list_builder(
-        client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    monitoring_projects_snoozes_list_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/snoozes/{snoozesId}
-/// Updates a Snooze, identified by its name, with the parameters in the given Snooze object.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_snoozes_patch_execute()` to send, or `monitoring_projects_snoozes_patch` for simplest API.
-
-pub fn monitoring_projects_snoozes_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Snooze,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/snoozes/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/projects/{projectsId}/snoozes/{snoozesId}
-/// Updates a Snooze, identified by its name, with the parameters in the given Snooze object.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_snoozes_patch_execute()` or `monitoring_projects_snoozes_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_snoozes_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_snoozes_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Snooze>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Snooze = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/snoozes/{snoozesId}
-/// Updates a Snooze, identified by its name, with the parameters in the given Snooze object.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_snoozes_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_snoozes_patch_task()`.
-/// For the simplest API, use `monitoring_projects_snoozes_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_snoozes_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_snoozes_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Snooze>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_snoozes_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_snoozes_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsSnoozesPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Snooze,
-}
-
-/// GET v3/projects/{projectsId}/snoozes/{snoozesId}
-/// Updates a Snooze, identified by its name, with the parameters in the given Snooze object.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_snoozes_patch_builder()` + `monitoring_projects_snoozes_patch_execute()`.
-/// For task-level control, use `monitoring_projects_snoozes_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_snoozes_patch(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsSnoozesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Snooze>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_snoozes_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    monitoring_projects_snoozes_patch_execute(builder)
 }
 
 /// GET v3/projects/{projectsId}/timeSeries
@@ -6443,18 +2164,15 @@ pub fn monitoring_projects_snoozes_patch(
 
 pub fn monitoring_projects_time_series_create_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &CreateTimeSeriesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/timeSeries",
-        name,
-    );
+    let endpoint_url = format!("https://monitoring.googleapis.com/v3/projects/{}/timeSeries",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6486,7 +2204,12 @@ pub fn monitoring_projects_time_series_create_builder(
 pub fn monitoring_projects_time_series_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6588,7 +2311,8 @@ pub fn monitoring_projects_time_series_create(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_time_series_create_builder(client, &args.name, &args.body)?;
+    let builder =
+        monitoring_projects_time_series_create_builder(client, args.name.clone(), &args.body)?;
     monitoring_projects_time_series_create_execute(builder)
 }
 
@@ -6600,18 +2324,16 @@ pub fn monitoring_projects_time_series_create(
 
 pub fn monitoring_projects_time_series_create_service_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &CreateTimeSeriesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/timeSeries:createService",
-        name,
-    );
+    let endpoint_url =
+        format!("https://monitoring.googleapis.com/v3/projects/{}/timeSeries:createService",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6643,7 +2365,12 @@ pub fn monitoring_projects_time_series_create_service_builder(
 pub fn monitoring_projects_time_series_create_service_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6745,283 +2472,12 @@ pub fn monitoring_projects_time_series_create_service(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        monitoring_projects_time_series_create_service_builder(client, &args.name, &args.body)?;
-    monitoring_projects_time_series_create_service_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/timeSeries
-/// Lists time series that match a filter.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_time_series_list_execute()` to send, or `monitoring_projects_time_series_list` for simplest API.
-
-pub fn monitoring_projects_time_series_list_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    aggregation_alignmentPeriod: Option<&str>,
-    aggregation_crossSeriesReducer: Option<&str>,
-    aggregation_groupByFields: Option<&str>,
-    aggregation_perSeriesAligner: Option<&str>,
-    filter: Option<&str>,
-    interval_endTime: Option<&str>,
-    interval_startTime: Option<&str>,
-    orderBy: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    secondaryAggregation_alignmentPeriod: Option<&str>,
-    secondaryAggregation_crossSeriesReducer: Option<&str>,
-    secondaryAggregation_groupByFields: Option<&str>,
-    secondaryAggregation_perSeriesAligner: Option<&str>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/timeSeries",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = aggregation_alignmentPeriod {
-        query_parts.push(format!("aggregation_alignmentPeriod={}", val));
-    }
-    if let Some(val) = aggregation_crossSeriesReducer {
-        query_parts.push(format!("aggregation_crossSeriesReducer={}", val));
-    }
-    if let Some(val) = aggregation_groupByFields {
-        query_parts.push(format!("aggregation_groupByFields={}", val));
-    }
-    if let Some(val) = aggregation_perSeriesAligner {
-        query_parts.push(format!("aggregation_perSeriesAligner={}", val));
-    }
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = interval_endTime {
-        query_parts.push(format!("interval_endTime={}", val));
-    }
-    if let Some(val) = interval_startTime {
-        query_parts.push(format!("interval_startTime={}", val));
-    }
-    if let Some(val) = orderBy {
-        query_parts.push(format!("orderBy={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = secondaryAggregation_alignmentPeriod {
-        query_parts.push(format!("secondaryAggregation_alignmentPeriod={}", val));
-    }
-    if let Some(val) = secondaryAggregation_crossSeriesReducer {
-        query_parts.push(format!("secondaryAggregation_crossSeriesReducer={}", val));
-    }
-    if let Some(val) = secondaryAggregation_groupByFields {
-        query_parts.push(format!("secondaryAggregation_groupByFields={}", val));
-    }
-    if let Some(val) = secondaryAggregation_perSeriesAligner {
-        query_parts.push(format!("secondaryAggregation_perSeriesAligner={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/timeSeries
-/// Lists time series that match a filter.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_time_series_list_execute()` or `monitoring_projects_time_series_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_time_series_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_time_series_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListTimeSeriesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListTimeSeriesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/timeSeries
-/// Lists time series that match a filter.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_time_series_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_time_series_list_task()`.
-/// For the simplest API, use `monitoring_projects_time_series_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_time_series_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_time_series_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListTimeSeriesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_time_series_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_time_series_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsTimeSeriesListArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: aggregation_alignmentPeriod
-    pub aggregation_alignmentPeriod: Option<String>,
-    /// Query parameter: aggregation_crossSeriesReducer
-    pub aggregation_crossSeriesReducer: Option<String>,
-    /// Query parameter: aggregation_groupByFields
-    pub aggregation_groupByFields: Option<String>,
-    /// Query parameter: aggregation_perSeriesAligner
-    pub aggregation_perSeriesAligner: Option<String>,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: interval_endTime
-    pub interval_endTime: Option<String>,
-    /// Query parameter: interval_startTime
-    pub interval_startTime: Option<String>,
-    /// Query parameter: orderBy
-    pub orderBy: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: secondaryAggregation_alignmentPeriod
-    pub secondaryAggregation_alignmentPeriod: Option<String>,
-    /// Query parameter: secondaryAggregation_crossSeriesReducer
-    pub secondaryAggregation_crossSeriesReducer: Option<String>,
-    /// Query parameter: secondaryAggregation_groupByFields
-    pub secondaryAggregation_groupByFields: Option<String>,
-    /// Query parameter: secondaryAggregation_perSeriesAligner
-    pub secondaryAggregation_perSeriesAligner: Option<String>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v3/projects/{projectsId}/timeSeries
-/// Lists time series that match a filter.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_time_series_list_builder()` + `monitoring_projects_time_series_list_execute()`.
-/// For task-level control, use `monitoring_projects_time_series_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_time_series_list(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsTimeSeriesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListTimeSeriesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_time_series_list_builder(
+    let builder = monitoring_projects_time_series_create_service_builder(
         client,
-        &args.name,
-        args.aggregation_alignmentPeriod.as_deref(),
-        args.aggregation_crossSeriesReducer.as_deref(),
-        args.aggregation_groupByFields.as_deref(),
-        args.aggregation_perSeriesAligner.as_deref(),
-        args.filter.as_deref(),
-        args.interval_endTime.as_deref(),
-        args.interval_startTime.as_deref(),
-        args.orderBy.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.secondaryAggregation_alignmentPeriod.as_deref(),
-        args.secondaryAggregation_crossSeriesReducer.as_deref(),
-        args.secondaryAggregation_groupByFields.as_deref(),
-        args.secondaryAggregation_perSeriesAligner.as_deref(),
-        args.view.as_deref(),
+        args.name.clone(),
+        &args.body,
     )?;
-    monitoring_projects_time_series_list_execute(builder)
+    monitoring_projects_time_series_create_service_execute(builder)
 }
 
 /// GET v3/projects/{projectsId}/timeSeries:query
@@ -7032,18 +2488,16 @@ pub fn monitoring_projects_time_series_list(
 
 pub fn monitoring_projects_time_series_query_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &QueryTimeSeriesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/timeSeries:query",
-        name,
-    );
+    let endpoint_url =
+        format!("https://monitoring.googleapis.com/v3/projects/{}/timeSeries:query",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -7075,8 +2529,11 @@ pub fn monitoring_projects_time_series_query_builder(
 pub fn monitoring_projects_time_series_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<QueryTimeSeriesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<QueryTimeSeriesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7183,7 +2640,8 @@ pub fn monitoring_projects_time_series_query(
         + 'static,
     ApiError,
 > {
-    let builder = monitoring_projects_time_series_query_builder(client, &args.name, &args.body)?;
+    let builder =
+        monitoring_projects_time_series_query_builder(client, args.name.clone(), &args.body)?;
     monitoring_projects_time_series_query_execute(builder)
 }
 
@@ -7195,18 +2653,16 @@ pub fn monitoring_projects_time_series_query(
 
 pub fn monitoring_projects_uptime_check_configs_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &UptimeCheckConfig,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/uptimeCheckConfigs",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://monitoring.googleapis.com/v3/projects/{}/uptimeCheckConfigs",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -7238,8 +2694,11 @@ pub fn monitoring_projects_uptime_check_configs_create_builder(
 pub fn monitoring_projects_uptime_check_configs_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UptimeCheckConfig>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UptimeCheckConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7346,2438 +2805,12 @@ pub fn monitoring_projects_uptime_check_configs_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        monitoring_projects_uptime_check_configs_create_builder(client, &args.parent, &args.body)?;
+    let builder = monitoring_projects_uptime_check_configs_create_builder(
+        client,
+        args.parent.clone(),
+        &args.body,
+    )?;
     monitoring_projects_uptime_check_configs_create_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
-/// Deletes an Uptime check configuration. Note that this method will fail if the Uptime check configuration is referenced by an alert policy or other dependent configs that would be rendered invalid by the deletion.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_uptime_check_configs_delete_execute()` to send, or `monitoring_projects_uptime_check_configs_delete` for simplest API.
-
-pub fn monitoring_projects_uptime_check_configs_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/uptimeCheckConfigs/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
-/// Deletes an Uptime check configuration. Note that this method will fail if the Uptime check configuration is referenced by an alert policy or other dependent configs that would be rendered invalid by the deletion.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_uptime_check_configs_delete_execute()` or `monitoring_projects_uptime_check_configs_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_uptime_check_configs_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_uptime_check_configs_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
-/// Deletes an Uptime check configuration. Note that this method will fail if the Uptime check configuration is referenced by an alert policy or other dependent configs that would be rendered invalid by the deletion.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_uptime_check_configs_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_uptime_check_configs_delete_task()`.
-/// For the simplest API, use `monitoring_projects_uptime_check_configs_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_uptime_check_configs_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_uptime_check_configs_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_uptime_check_configs_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_uptime_check_configs_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsUptimeCheckConfigsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
-/// Deletes an Uptime check configuration. Note that this method will fail if the Uptime check configuration is referenced by an alert policy or other dependent configs that would be rendered invalid by the deletion.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_uptime_check_configs_delete_builder()` + `monitoring_projects_uptime_check_configs_delete_execute()`.
-/// For task-level control, use `monitoring_projects_uptime_check_configs_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_uptime_check_configs_delete(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsUptimeCheckConfigsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_uptime_check_configs_delete_builder(client, &args.name)?;
-    monitoring_projects_uptime_check_configs_delete_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
-/// Gets a single Uptime check configuration.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_uptime_check_configs_get_execute()` to send, or `monitoring_projects_uptime_check_configs_get` for simplest API.
-
-pub fn monitoring_projects_uptime_check_configs_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/uptimeCheckConfigs/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
-/// Gets a single Uptime check configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_uptime_check_configs_get_execute()` or `monitoring_projects_uptime_check_configs_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_uptime_check_configs_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_uptime_check_configs_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UptimeCheckConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: UptimeCheckConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
-/// Gets a single Uptime check configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_uptime_check_configs_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_uptime_check_configs_get_task()`.
-/// For the simplest API, use `monitoring_projects_uptime_check_configs_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_uptime_check_configs_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_uptime_check_configs_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UptimeCheckConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_uptime_check_configs_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_uptime_check_configs_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsUptimeCheckConfigsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
-/// Gets a single Uptime check configuration.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_uptime_check_configs_get_builder()` + `monitoring_projects_uptime_check_configs_get_execute()`.
-/// For task-level control, use `monitoring_projects_uptime_check_configs_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_uptime_check_configs_get(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsUptimeCheckConfigsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UptimeCheckConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_uptime_check_configs_get_builder(client, &args.name)?;
-    monitoring_projects_uptime_check_configs_get_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs
-/// Lists the existing valid Uptime check configurations for the project (leaving out any invalid configurations).
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_uptime_check_configs_list_execute()` to send, or `monitoring_projects_uptime_check_configs_list` for simplest API.
-
-pub fn monitoring_projects_uptime_check_configs_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/uptimeCheckConfigs",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs
-/// Lists the existing valid Uptime check configurations for the project (leaving out any invalid configurations).
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_uptime_check_configs_list_execute()` or `monitoring_projects_uptime_check_configs_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_uptime_check_configs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_uptime_check_configs_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListUptimeCheckConfigsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListUptimeCheckConfigsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs
-/// Lists the existing valid Uptime check configurations for the project (leaving out any invalid configurations).
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_uptime_check_configs_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_uptime_check_configs_list_task()`.
-/// For the simplest API, use `monitoring_projects_uptime_check_configs_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_uptime_check_configs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_uptime_check_configs_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListUptimeCheckConfigsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_uptime_check_configs_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_uptime_check_configs_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsUptimeCheckConfigsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs
-/// Lists the existing valid Uptime check configurations for the project (leaving out any invalid configurations).
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_uptime_check_configs_list_builder()` + `monitoring_projects_uptime_check_configs_list_execute()`.
-/// For task-level control, use `monitoring_projects_uptime_check_configs_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_uptime_check_configs_list(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsUptimeCheckConfigsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListUptimeCheckConfigsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_uptime_check_configs_list_builder(
-        client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    monitoring_projects_uptime_check_configs_list_execute(builder)
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
-/// Updates an Uptime check configuration. You can either replace the entire configuration with a new one or replace only certain fields in the current configuration by specifying the fields to be updated via `updateMask`. Returns the updated configuration.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_projects_uptime_check_configs_patch_execute()` to send, or `monitoring_projects_uptime_check_configs_patch` for simplest API.
-
-pub fn monitoring_projects_uptime_check_configs_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &UptimeCheckConfig,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/projects/{}/uptimeCheckConfigs/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
-/// Updates an Uptime check configuration. You can either replace the entire configuration with a new one or replace only certain fields in the current configuration by specifying the fields to be updated via `updateMask`. Returns the updated configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_projects_uptime_check_configs_patch_execute()` or `monitoring_projects_uptime_check_configs_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_uptime_check_configs_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_uptime_check_configs_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UptimeCheckConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: UptimeCheckConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
-/// Updates an Uptime check configuration. You can either replace the entire configuration with a new one or replace only certain fields in the current configuration by specifying the fields to be updated via `updateMask`. Returns the updated configuration.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_projects_uptime_check_configs_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_projects_uptime_check_configs_patch_task()`.
-/// For the simplest API, use `monitoring_projects_uptime_check_configs_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_projects_uptime_check_configs_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_projects_uptime_check_configs_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UptimeCheckConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_projects_uptime_check_configs_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_projects_uptime_check_configs_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringProjectsUptimeCheckConfigsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: UptimeCheckConfig,
-}
-
-/// GET v3/projects/{projectsId}/uptimeCheckConfigs/{uptimeCheckConfigsId}
-/// Updates an Uptime check configuration. You can either replace the entire configuration with a new one or replace only certain fields in the current configuration by specifying the fields to be updated via `updateMask`. Returns the updated configuration.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_projects_uptime_check_configs_patch_builder()` + `monitoring_projects_uptime_check_configs_patch_execute()`.
-/// For task-level control, use `monitoring_projects_uptime_check_configs_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_projects_uptime_check_configs_patch(
-    client: &SimpleHttpClient,
-    args: &MonitoringProjectsUptimeCheckConfigsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<UptimeCheckConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_projects_uptime_check_configs_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    monitoring_projects_uptime_check_configs_patch_execute(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services
-/// Create a Service.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_services_create_execute()` to send, or `monitoring_services_create` for simplest API.
-
-pub fn monitoring_services_create_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    serviceId: Option<&str>,
-    body: &Service,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/{}/{}/services",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = serviceId {
-        query_parts.push(format!("serviceId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services
-/// Create a Service.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_services_create_execute()` or `monitoring_services_create`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_create_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Service = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services
-/// Create a Service.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_services_create_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_services_create_task()`.
-/// For the simplest API, use `monitoring_services_create()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_services_create_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_services_create_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_services_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringServicesCreateArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: serviceId
-    pub serviceId: Option<String>,
-    /// Request body.
-    pub body: Service,
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services
-/// Create a Service.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_services_create_builder()` + `monitoring_services_create_execute()`.
-/// For task-level control, use `monitoring_services_create_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_create(
-    client: &SimpleHttpClient,
-    args: &MonitoringServicesCreateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_services_create_builder(
-        client,
-        &args.parent,
-        args.serviceId.as_deref(),
-        &args.body,
-    )?;
-    monitoring_services_create_execute(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
-/// Soft delete this Service.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_services_delete_execute()` to send, or `monitoring_services_delete` for simplest API.
-
-pub fn monitoring_services_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/{}/{}/services/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
-/// Soft delete this Service.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_services_delete_execute()` or `monitoring_services_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
-/// Soft delete this Service.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_services_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_services_delete_task()`.
-/// For the simplest API, use `monitoring_services_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_services_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_services_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_services_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringServicesDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
-/// Soft delete this Service.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_services_delete_builder()` + `monitoring_services_delete_execute()`.
-/// For task-level control, use `monitoring_services_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_delete(
-    client: &SimpleHttpClient,
-    args: &MonitoringServicesDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_services_delete_builder(client, &args.name)?;
-    monitoring_services_delete_execute(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
-/// Get the named Service.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_services_get_execute()` to send, or `monitoring_services_get` for simplest API.
-
-pub fn monitoring_services_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/{}/{}/services/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
-/// Get the named Service.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_services_get_execute()` or `monitoring_services_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Service = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
-/// Get the named Service.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_services_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_services_get_task()`.
-/// For the simplest API, use `monitoring_services_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_services_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_services_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_services_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringServicesGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
-/// Get the named Service.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_services_get_builder()` + `monitoring_services_get_execute()`.
-/// For task-level control, use `monitoring_services_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_get(
-    client: &SimpleHttpClient,
-    args: &MonitoringServicesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_services_get_builder(client, &args.name)?;
-    monitoring_services_get_execute(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services
-/// List Services for this Metrics Scope.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_services_list_execute()` to send, or `monitoring_services_list` for simplest API.
-
-pub fn monitoring_services_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/{}/{}/services",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services
-/// List Services for this Metrics Scope.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_services_list_execute()` or `monitoring_services_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListServicesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services
-/// List Services for this Metrics Scope.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_services_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_services_list_task()`.
-/// For the simplest API, use `monitoring_services_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_services_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_services_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_services_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringServicesListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services
-/// List Services for this Metrics Scope.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_services_list_builder()` + `monitoring_services_list_execute()`.
-/// For task-level control, use `monitoring_services_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_list(
-    client: &SimpleHttpClient,
-    args: &MonitoringServicesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_services_list_builder(
-        client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    monitoring_services_list_execute(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
-/// Update this Service.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_services_patch_execute()` to send, or `monitoring_services_patch` for simplest API.
-
-pub fn monitoring_services_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &Service,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/{}/{}/services/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
-/// Update this Service.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_services_patch_execute()` or `monitoring_services_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Service = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
-/// Update this Service.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_services_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_services_patch_task()`.
-/// For the simplest API, use `monitoring_services_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_services_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_services_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_services_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringServicesPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Service,
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}
-/// Update this Service.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_services_patch_builder()` + `monitoring_services_patch_execute()`.
-/// For task-level control, use `monitoring_services_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_patch(
-    client: &SimpleHttpClient,
-    args: &MonitoringServicesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_services_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    monitoring_services_patch_execute(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives
-/// Create a ServiceLevelObjective for the given Service.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_services_service_level_objectives_create_execute()` to send, or `monitoring_services_service_level_objectives_create` for simplest API.
-
-pub fn monitoring_services_service_level_objectives_create_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    serviceLevelObjectiveId: Option<&str>,
-    body: &ServiceLevelObjective,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/{}/{}/services/{}/serviceLevelObjectives",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = serviceLevelObjectiveId {
-        query_parts.push(format!("serviceLevelObjectiveId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives
-/// Create a ServiceLevelObjective for the given Service.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_services_service_level_objectives_create_execute()` or `monitoring_services_service_level_objectives_create`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_service_level_objectives_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_service_level_objectives_create_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ServiceLevelObjective>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ServiceLevelObjective = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives
-/// Create a ServiceLevelObjective for the given Service.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_services_service_level_objectives_create_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_services_service_level_objectives_create_task()`.
-/// For the simplest API, use `monitoring_services_service_level_objectives_create()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_service_level_objectives_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_services_service_level_objectives_create_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ServiceLevelObjective>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_services_service_level_objectives_create_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_services_service_level_objectives_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringServicesServiceLevelObjectivesCreateArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: serviceLevelObjectiveId
-    pub serviceLevelObjectiveId: Option<String>,
-    /// Request body.
-    pub body: ServiceLevelObjective,
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives
-/// Create a ServiceLevelObjective for the given Service.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_services_service_level_objectives_create_builder()` + `monitoring_services_service_level_objectives_create_execute()`.
-/// For task-level control, use `monitoring_services_service_level_objectives_create_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_service_level_objectives_create(
-    client: &SimpleHttpClient,
-    args: &MonitoringServicesServiceLevelObjectivesCreateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ServiceLevelObjective>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_services_service_level_objectives_create_builder(
-        client,
-        &args.parent,
-        args.serviceLevelObjectiveId.as_deref(),
-        &args.body,
-    )?;
-    monitoring_services_service_level_objectives_create_execute(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
-/// Delete the given ServiceLevelObjective.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_services_service_level_objectives_delete_execute()` to send, or `monitoring_services_service_level_objectives_delete` for simplest API.
-
-pub fn monitoring_services_service_level_objectives_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/{}/{}/services/{}/serviceLevelObjectives/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
-/// Delete the given ServiceLevelObjective.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_services_service_level_objectives_delete_execute()` or `monitoring_services_service_level_objectives_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_service_level_objectives_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_service_level_objectives_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
-/// Delete the given ServiceLevelObjective.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_services_service_level_objectives_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_services_service_level_objectives_delete_task()`.
-/// For the simplest API, use `monitoring_services_service_level_objectives_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_service_level_objectives_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_services_service_level_objectives_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = monitoring_services_service_level_objectives_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_services_service_level_objectives_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringServicesServiceLevelObjectivesDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
-/// Delete the given ServiceLevelObjective.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_services_service_level_objectives_delete_builder()` + `monitoring_services_service_level_objectives_delete_execute()`.
-/// For task-level control, use `monitoring_services_service_level_objectives_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_service_level_objectives_delete(
-    client: &SimpleHttpClient,
-    args: &MonitoringServicesServiceLevelObjectivesDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = monitoring_services_service_level_objectives_delete_builder(client, &args.name)?;
-    monitoring_services_service_level_objectives_delete_execute(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
-/// Get a ServiceLevelObjective by name.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_services_service_level_objectives_get_execute()` to send, or `monitoring_services_service_level_objectives_get` for simplest API.
-
-pub fn monitoring_services_service_level_objectives_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/{}/{}/services/{}/serviceLevelObjectives/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
-/// Get a ServiceLevelObjective by name.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_services_service_level_objectives_get_execute()` or `monitoring_services_service_level_objectives_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_service_level_objectives_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_service_level_objectives_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ServiceLevelObjective>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ServiceLevelObjective = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
-/// Get a ServiceLevelObjective by name.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_services_service_level_objectives_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_services_service_level_objectives_get_task()`.
-/// For the simplest API, use `monitoring_services_service_level_objectives_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_service_level_objectives_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_services_service_level_objectives_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ServiceLevelObjective>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_services_service_level_objectives_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_services_service_level_objectives_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringServicesServiceLevelObjectivesGetArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
-/// Get a ServiceLevelObjective by name.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_services_service_level_objectives_get_builder()` + `monitoring_services_service_level_objectives_get_execute()`.
-/// For task-level control, use `monitoring_services_service_level_objectives_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_service_level_objectives_get(
-    client: &SimpleHttpClient,
-    args: &MonitoringServicesServiceLevelObjectivesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ServiceLevelObjective>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_services_service_level_objectives_get_builder(
-        client,
-        &args.name,
-        args.view.as_deref(),
-    )?;
-    monitoring_services_service_level_objectives_get_execute(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives
-/// List the ServiceLevelObjectives for the given Service.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_services_service_level_objectives_list_execute()` to send, or `monitoring_services_service_level_objectives_list` for simplest API.
-
-pub fn monitoring_services_service_level_objectives_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/{}/{}/services/{}/serviceLevelObjectives",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives
-/// List the ServiceLevelObjectives for the given Service.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_services_service_level_objectives_list_execute()` or `monitoring_services_service_level_objectives_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_service_level_objectives_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_service_level_objectives_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListServiceLevelObjectivesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListServiceLevelObjectivesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives
-/// List the ServiceLevelObjectives for the given Service.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_services_service_level_objectives_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_services_service_level_objectives_list_task()`.
-/// For the simplest API, use `monitoring_services_service_level_objectives_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_service_level_objectives_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_services_service_level_objectives_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListServiceLevelObjectivesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_services_service_level_objectives_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_services_service_level_objectives_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringServicesServiceLevelObjectivesListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives
-/// List the ServiceLevelObjectives for the given Service.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_services_service_level_objectives_list_builder()` + `monitoring_services_service_level_objectives_list_execute()`.
-/// For task-level control, use `monitoring_services_service_level_objectives_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_service_level_objectives_list(
-    client: &SimpleHttpClient,
-    args: &MonitoringServicesServiceLevelObjectivesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListServiceLevelObjectivesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_services_service_level_objectives_list_builder(
-        client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.view.as_deref(),
-    )?;
-    monitoring_services_service_level_objectives_list_execute(builder)
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
-/// Update the given ServiceLevelObjective.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `monitoring_services_service_level_objectives_patch_execute()` to send, or `monitoring_services_service_level_objectives_patch` for simplest API.
-
-pub fn monitoring_services_service_level_objectives_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &ServiceLevelObjective,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://monitoring.googleapis.com/v3/{}/{}/services/{}/serviceLevelObjectives/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
-/// Update the given ServiceLevelObjective.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `monitoring_services_service_level_objectives_patch_execute()` or `monitoring_services_service_level_objectives_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_service_level_objectives_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_service_level_objectives_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ServiceLevelObjective>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ServiceLevelObjective = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
-/// Update the given ServiceLevelObjective.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `monitoring_services_service_level_objectives_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `monitoring_services_service_level_objectives_patch_task()`.
-/// For the simplest API, use `monitoring_services_service_level_objectives_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `monitoring_services_service_level_objectives_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn monitoring_services_service_level_objectives_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ServiceLevelObjective>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = monitoring_services_service_level_objectives_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`monitoring_services_service_level_objectives_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MonitoringServicesServiceLevelObjectivesPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: ServiceLevelObjective,
-}
-
-/// GET v3/{v3Id}/{v3Id1}/services/{servicesId}/serviceLevelObjectives/{serviceLevelObjectivesId}
-/// Update the given ServiceLevelObjective.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `monitoring_services_service_level_objectives_patch_builder()` + `monitoring_services_service_level_objectives_patch_execute()`.
-/// For task-level control, use `monitoring_services_service_level_objectives_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn monitoring_services_service_level_objectives_patch(
-    client: &SimpleHttpClient,
-    args: &MonitoringServicesServiceLevelObjectivesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ServiceLevelObjective>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = monitoring_services_service_level_objectives_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    monitoring_services_service_level_objectives_patch_execute(builder)
 }
 
 /// GET v3/uptimeCheckIps
@@ -9789,10 +2822,10 @@ pub fn monitoring_services_service_level_objectives_patch(
 pub fn monitoring_uptime_check_ips_list_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://monitoring.googleapis.com/v3/uptimeCheckIps",);
+    let endpoint_url = format!("https://monitoring.googleapis.com/v3/uptimeCheckIps",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -9804,9 +2837,9 @@ pub fn monitoring_uptime_check_ips_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -9840,8 +2873,11 @@ pub fn monitoring_uptime_check_ips_list_builder(
 pub fn monitoring_uptime_check_ips_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListUptimeCheckIpsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListUptimeCheckIpsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -9952,7 +2988,10 @@ pub fn monitoring_uptime_check_ips_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        monitoring_uptime_check_ips_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
+    let builder = monitoring_uptime_check_ips_list_builder(
+        client,
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+    )?;
     monitoring_uptime_check_ips_list_execute(builder)
 }

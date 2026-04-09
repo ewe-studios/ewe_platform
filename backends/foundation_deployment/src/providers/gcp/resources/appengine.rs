@@ -91,7 +91,9 @@ pub struct DebugInstanceRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request message for Versions.ExportAppImage.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -359,7 +361,9 @@ pub struct ProjectEvent {
 
 /// Request message for ''Applications.RepairApplication''.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RepairApplicationRequest {}
+pub struct RepairApplicationRequest {
+    pub value: serde_json::Value,
+}
 
 /// The request that is passed to CLH during per-resource events. The request will be sent with update semantics in all cases except for data governance purge events. These events will be sent with delete semantics and the CLH is expected to delete the resource receiving this event.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

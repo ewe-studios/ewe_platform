@@ -11,30 +11,6 @@ use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// An automated bidding strategy that raises bids for clicks that seem more likely to lead to a conversion and lowers them for clicks where they seem less likely. This bidding strategy is deprecated and cannot be created anymore. Use ManualCpc with enhanced_cpc_enabled set to true for equivalent functionality.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAdsSearchads360v0CommonEnhancedCpc {}
-
-/// A rule specifying the maximum number of times an ad (or some set of ads) can be shown to a user over a particular time period.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAdsSearchads360v0CommonFrequencyCapEntry {}
-
-/// Manual bidding strategy that allows advertiser to set the bid per advertiser-specified action.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAdsSearchads360v0CommonManualCpa {}
-
-/// Manual impression-based bidding where user pays per thousand impressions.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAdsSearchads360v0CommonManualCpm {}
-
-/// A Search Ads 360 product ad.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAdsSearchads360v0CommonSearchAds360ProductAdInfo {}
-
-/// Target CPM (cost per thousand impressions) is an automated bidding strategy that sets bids to optimize performance given the target CPM you set.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleAdsSearchads360v0CommonTargetCpm {}
-
 /// Describes how a Search Ads 360 API call failed. It''s returned inside google.rpc.Status.details when a call fails.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ErrorsSearchAds360Failure {
@@ -1250,7 +1226,7 @@ pub struct GoogleAdsSearchads360v0ResourcesBiddingStrategy {
     pub effective_currency_code: ::core::option::Option<String>,
     /// A bidding strategy that raises bids for clicks that seem more likely to lead to a conversion and lowers them for clicks where they seem less likely.
     #[serde(default, rename = "enhancedCpc")]
-    pub enhanced_cpc: ::core::option::Option<serde_json::Value>,
+    pub enhanced_cpc: ::core::option::Option<GoogleAdsSearchads360v0CommonEnhancedCpc>,
     /// Output only. The ID of the bidding strategy.
     #[serde(default)]
     pub id: ::core::option::Option<String>,
@@ -1353,7 +1329,8 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaign {
     pub final_url_suffix: ::core::option::Option<String>,
     /// A list that limits how often each user will see this campaign''s ads.
     #[serde(default, rename = "frequencyCaps")]
-    pub frequency_caps: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    pub frequency_caps:
+        ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonFrequencyCapEntry>>,
     /// The setting for ads geotargeting.
     #[serde(default, rename = "geoTargetTypeSetting")]
     pub geo_target_type_setting:
@@ -1369,13 +1346,13 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaign {
     pub last_modified_time: ::core::option::Option<String>,
     /// Standard Manual CPA bidding strategy. Manual bidding strategy that allows advertiser to set the bid per advertiser-specified action. Supported only for Local Services campaigns.
     #[serde(default, rename = "manualCpa")]
-    pub manual_cpa: ::core::option::Option<serde_json::Value>,
+    pub manual_cpa: ::core::option::Option<GoogleAdsSearchads360v0CommonManualCpa>,
     /// Standard Manual CPC bidding strategy. Manual click-based bidding where user pays per click.
     #[serde(default, rename = "manualCpc")]
     pub manual_cpc: ::core::option::Option<GoogleAdsSearchads360v0CommonManualCpc>,
     /// Standard Manual CPM bidding strategy. Manual impression-based bidding where user pays per thousand impressions.
     #[serde(default, rename = "manualCpm")]
-    pub manual_cpm: ::core::option::Option<serde_json::Value>,
+    pub manual_cpm: ::core::option::Option<GoogleAdsSearchads360v0CommonManualCpm>,
     /// Standard Maximize Conversion Value bidding strategy that automatically sets bids to maximize revenue while spending your budget.
     #[serde(default, rename = "maximizeConversionValue")]
     pub maximize_conversion_value:
@@ -1427,7 +1404,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaign {
     pub target_cpa: ::core::option::Option<GoogleAdsSearchads360v0CommonTargetCpa>,
     /// A bidding strategy that automatically optimizes cost per thousand impressions.
     #[serde(default, rename = "targetCpm")]
-    pub target_cpm: ::core::option::Option<serde_json::Value>,
+    pub target_cpm: ::core::option::Option<GoogleAdsSearchads360v0CommonTargetCpm>,
     /// Target Impression Share bidding strategy. An automated bidding strategy that sets bids to achieve a chosen percentage of impressions.
     #[serde(default, rename = "targetImpressionShare")]
     pub target_impression_share:
@@ -2853,7 +2830,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAd {
     pub name: ::core::option::Option<String>,
     /// Immutable. Details pertaining to a product ad.
     #[serde(default, rename = "productAd")]
-    pub product_ad: ::core::option::Option<serde_json::Value>,
+    pub product_ad: ::core::option::Option<GoogleAdsSearchads360v0CommonSearchAds360ProductAdInfo>,
     /// Immutable. The resource name of the ad. Ad resource names have the form: customers/{customer_id}/ads/{ad_id}
     #[serde(default, rename = "resourceName")]
     pub resource_name: ::core::option::Option<String>,
@@ -3092,6 +3069,12 @@ pub struct GoogleAdsSearchads360v0ResourcesAssetGroupAssetCombinationData {
         ::core::option::Option<::std::vec::Vec<GoogleAdsSearchads360v0CommonAssetUsage>>,
 }
 
+/// An automated bidding strategy that raises bids for clicks that seem more likely to lead to a conversion and lowers them for clicks where they seem less likely. This bidding strategy is deprecated and cannot be created anymore. Use ManualCpc with enhanced_cpc_enabled set to true for equivalent functionality.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAdsSearchads360v0CommonEnhancedCpc {
+    pub value: serde_json::Value,
+}
+
 /// An automated bidding strategy that sets bids based on the target fraction of auctions where the advertiser should outrank a specific competitor. This strategy is deprecated.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonTargetOutrankShare {
@@ -3114,6 +3097,12 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignDynamicSearchAdsSetting {
     pub use_supplied_urls_only: ::core::option::Option<bool>,
 }
 
+/// A rule specifying the maximum number of times an ad (or some set of ads) can be shown to a user over a particular time period.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAdsSearchads360v0CommonFrequencyCapEntry {
+    pub value: serde_json::Value,
+}
+
 /// Represents a collection of settings related to ads geotargeting.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignGeoTargetTypeSetting {
@@ -3125,12 +3114,24 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignGeoTargetTypeSetting {
     pub positive_geo_target_type: ::core::option::Option<String>,
 }
 
+/// Manual bidding strategy that allows advertiser to set the bid per advertiser-specified action.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAdsSearchads360v0CommonManualCpa {
+    pub value: serde_json::Value,
+}
+
 /// Manual click-based bidding where user pays per click.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonManualCpc {
     /// Whether bids are to be enhanced based on conversion optimizer data.
     #[serde(default, rename = "enhancedCpcEnabled")]
     pub enhanced_cpc_enabled: ::core::option::Option<bool>,
+}
+
+/// Manual impression-based bidding where user pays per thousand impressions.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAdsSearchads360v0CommonManualCpm {
+    pub value: serde_json::Value,
 }
 
 /// An automated bidding strategy to help get the most conversion value for your campaigns while spending your budget.
@@ -3248,6 +3249,12 @@ pub struct GoogleAdsSearchads360v0CommonTargetCpa {
     /// Average CPA target. This target should be greater than or equal to minimum billable unit based on the currency for the account.
     #[serde(default, rename = "targetCpaMicros")]
     pub target_cpa_micros: ::core::option::Option<String>,
+}
+
+/// Target CPM (cost per thousand impressions) is an automated bidding strategy that sets bids to optimize performance given the target CPM you set.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAdsSearchads360v0CommonTargetCpm {
+    pub value: serde_json::Value,
 }
 
 /// An automated bidding strategy that sets bids so that a certain percentage of search ads are shown at the top of the first page (or other targeted location).
@@ -3595,6 +3602,12 @@ pub struct GoogleAdsSearchads360v0CommonFinalAppUrl {
     /// The app deep link URL. Deep links specify a location in an app that corresponds to the content you''d like to show, and should be of the form {scheme}://{host_path} The scheme identifies which app to open. For your app, you can use a custom scheme that starts with the app''s name. The host and path specify the unique location in the app where your content exists. Example: "exampleapp://productid_1234". Required.
     #[serde(default)]
     pub url: ::core::option::Option<String>,
+}
+
+/// A Search Ads 360 product ad.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleAdsSearchads360v0CommonSearchAds360ProductAdInfo {
+    pub value: serde_json::Value,
 }
 
 /// A Search Ads 360 responsive search ad.

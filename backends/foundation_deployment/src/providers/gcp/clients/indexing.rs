@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,10 +29,10 @@ use serde::Serialize;
 
 pub fn indexing_url_notifications_get_metadata_builder(
     client: &SimpleHttpClient,
-    url: Option<&str>,
+    url: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://indexing.googleapis.com/v3/urlNotifications/metadata",);
+    let endpoint_url = format!("https://indexing.googleapis.com/v3/urlNotifications/metadata",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -40,9 +41,9 @@ pub fn indexing_url_notifications_get_metadata_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -76,8 +77,11 @@ pub fn indexing_url_notifications_get_metadata_builder(
 pub fn indexing_url_notifications_get_metadata_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UrlNotificationMetadata>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UrlNotificationMetadata>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -182,7 +186,7 @@ pub fn indexing_url_notifications_get_metadata(
         + 'static,
     ApiError,
 > {
-    let builder = indexing_url_notifications_get_metadata_builder(client, args.url.as_deref())?;
+    let builder = indexing_url_notifications_get_metadata_builder(client, args.url.clone())?;
     indexing_url_notifications_get_metadata_execute(builder)
 }
 
@@ -197,11 +201,11 @@ pub fn indexing_url_notifications_publish_builder(
     body: &UrlNotification,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://indexing.googleapis.com/v3/urlNotifications:publish",);
+    let endpoint_url = format!("https://indexing.googleapis.com/v3/urlNotifications:publish",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -234,8 +238,9 @@ pub fn indexing_url_notifications_publish_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<PublishUrlNotificationResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<PublishUrlNotificationResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,

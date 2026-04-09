@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,12 +29,12 @@ use serde::Serialize;
 
 pub fn drivelabels_labels_create_builder(
     client: &SimpleHttpClient,
-    languageCode: Option<&str>,
+    languageCode: Option<String>,
     useAdminAccess: Option<bool>,
     body: &GoogleAppsDriveLabelsV2Label,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://drivelabels.googleapis.com/v2/labels",);
+    let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -45,9 +46,9 @@ pub fn drivelabels_labels_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -84,8 +85,9 @@ pub fn drivelabels_labels_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -201,8 +203,8 @@ pub fn drivelabels_labels_create(
 > {
     let builder = drivelabels_labels_create_builder(
         client,
-        args.languageCode.as_deref(),
-        args.useAdminAccess,
+        args.languageCode.clone(),
+        args.useAdminAccess.clone(),
         &args.body,
     )?;
     drivelabels_labels_create_execute(builder)
@@ -216,12 +218,12 @@ pub fn drivelabels_labels_create(
 
 pub fn drivelabels_labels_delete_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     useAdminAccess: Option<bool>,
-    writeControl_requiredRevisionId: Option<&str>,
+    writeControl_requiredRevisionId: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://drivelabels.googleapis.com/v2/labels/{}", name,);
+    let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -229,13 +231,13 @@ pub fn drivelabels_labels_delete_builder(
         query_parts.push(format!("useAdminAccess={}", val));
     }
     if let Some(val) = writeControl_requiredRevisionId {
-        query_parts.push(format!("writeControl_requiredRevisionId={}", val));
+        query_parts.push(format!("writeControl.requiredRevisionId={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -269,8 +271,11 @@ pub fn drivelabels_labels_delete_builder(
 pub fn drivelabels_labels_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -381,9 +386,9 @@ pub fn drivelabels_labels_delete(
 > {
     let builder = drivelabels_labels_delete_builder(
         client,
-        &args.name,
-        args.useAdminAccess,
-        args.writeControl_requiredRevisionId.as_deref(),
+        args.name.clone(),
+        args.useAdminAccess.clone(),
+        args.writeControl_requiredRevisionId.clone(),
     )?;
     drivelabels_labels_delete_execute(builder)
 }
@@ -396,18 +401,15 @@ pub fn drivelabels_labels_delete(
 
 pub fn drivelabels_labels_delta_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GoogleAppsDriveLabelsV2DeltaUpdateLabelRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}:delta",
-        name,
-    );
+    let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels/{}:delta",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -440,8 +442,9 @@ pub fn drivelabels_labels_delta_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -554,7 +557,7 @@ pub fn drivelabels_labels_delta(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_delta_builder(client, &args.name, &args.body)?;
+    let builder = drivelabels_labels_delta_builder(client, args.name.clone(), &args.body)?;
     drivelabels_labels_delta_execute(builder)
 }
 
@@ -566,18 +569,15 @@ pub fn drivelabels_labels_delta(
 
 pub fn drivelabels_labels_disable_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GoogleAppsDriveLabelsV2DisableLabelRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}:disable",
-        name,
-    );
+    let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels/{}:disable",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -610,8 +610,9 @@ pub fn drivelabels_labels_disable_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -723,7 +724,7 @@ pub fn drivelabels_labels_disable(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_disable_builder(client, &args.name, &args.body)?;
+    let builder = drivelabels_labels_disable_builder(client, args.name.clone(), &args.body)?;
     drivelabels_labels_disable_execute(builder)
 }
 
@@ -735,18 +736,15 @@ pub fn drivelabels_labels_disable(
 
 pub fn drivelabels_labels_enable_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GoogleAppsDriveLabelsV2EnableLabelRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}:enable",
-        name,
-    );
+    let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels/{}:enable",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -779,8 +777,9 @@ pub fn drivelabels_labels_enable_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -892,425 +891,8 @@ pub fn drivelabels_labels_enable(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_enable_builder(client, &args.name, &args.body)?;
+    let builder = drivelabels_labels_enable_builder(client, args.name.clone(), &args.body)?;
     drivelabels_labels_enable_execute(builder)
-}
-
-/// GET v2/labels/{labelsId}
-/// Get a label by its resource name. For more information, see [Search for labels](<https://developers.google.`com/workspace/drive/labels/guides/search-label`>). Resource name may be any of: * `labels/{id}` - See `labels/{id}`@latest * `labels/{id}`@latest - Gets the latest revision of the label. * `labels/{id}`@published - Gets the current published revision of the label. * `labels/{id}`@{revision_id} - Gets the label at the specified revision ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `drivelabels_labels_get_execute()` to send, or `drivelabels_labels_get` for simplest API.
-
-pub fn drivelabels_labels_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
-    useAdminAccess: Option<bool>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://drivelabels.googleapis.com/v2/labels/{}", name,);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
-        query_parts.push(format!("languageCode={}", val));
-    }
-    if let Some(val) = useAdminAccess {
-        query_parts.push(format!("useAdminAccess={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/labels/{labelsId}
-/// Get a label by its resource name. For more information, see [Search for labels](<https://developers.google.`com/workspace/drive/labels/guides/search-label`>). Resource name may be any of: * `labels/{id}` - See `labels/{id}`@latest * `labels/{id}`@latest - Gets the latest revision of the label. * `labels/{id}`@published - Gets the current published revision of the label. * `labels/{id}`@{revision_id} - Gets the label at the specified revision ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `drivelabels_labels_get_execute()` or `drivelabels_labels_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleAppsDriveLabelsV2Label = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/labels/{labelsId}
-/// Get a label by its resource name. For more information, see [Search for labels](<https://developers.google.`com/workspace/drive/labels/guides/search-label`>). Resource name may be any of: * `labels/{id}` - See `labels/{id}`@latest * `labels/{id}`@latest - Gets the latest revision of the label. * `labels/{id}`@published - Gets the current published revision of the label. * `labels/{id}`@{revision_id} - Gets the label at the specified revision ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `drivelabels_labels_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `drivelabels_labels_get_task()`.
-/// For the simplest API, use `drivelabels_labels_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn drivelabels_labels_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = drivelabels_labels_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`drivelabels_labels_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DrivelabelsLabelsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: languageCode
-    pub languageCode: Option<String>,
-    /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<bool>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v2/labels/{labelsId}
-/// Get a label by its resource name. For more information, see [Search for labels](<https://developers.google.`com/workspace/drive/labels/guides/search-label`>). Resource name may be any of: * `labels/{id}` - See `labels/{id}`@latest * `labels/{id}`@latest - Gets the latest revision of the label. * `labels/{id}`@published - Gets the current published revision of the label. * `labels/{id}`@{revision_id} - Gets the label at the specified revision ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `drivelabels_labels_get_builder()` + `drivelabels_labels_get_execute()`.
-/// For task-level control, use `drivelabels_labels_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_get(
-    client: &SimpleHttpClient,
-    args: &DrivelabelsLabelsGetArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = drivelabels_labels_get_builder(
-        client,
-        &args.name,
-        args.languageCode.as_deref(),
-        args.useAdminAccess,
-        args.view.as_deref(),
-    )?;
-    drivelabels_labels_get_execute(builder)
-}
-
-/// GET v2/labels
-/// List labels. For more information, see [Search for labels](<https://developers.google.`com/workspace/drive/labels/guides/search-label`>).
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `drivelabels_labels_list_execute()` to send, or `drivelabels_labels_list` for simplest API.
-
-pub fn drivelabels_labels_list_builder(
-    client: &SimpleHttpClient,
-    customer: Option<&str>,
-    languageCode: Option<&str>,
-    minimumRole: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    publishedOnly: Option<bool>,
-    useAdminAccess: Option<bool>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://drivelabels.googleapis.com/v2/labels",);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = customer {
-        query_parts.push(format!("customer={}", val));
-    }
-    if let Some(val) = languageCode {
-        query_parts.push(format!("languageCode={}", val));
-    }
-    if let Some(val) = minimumRole {
-        query_parts.push(format!("minimumRole={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = publishedOnly {
-        query_parts.push(format!("publishedOnly={}", val));
-    }
-    if let Some(val) = useAdminAccess {
-        query_parts.push(format!("useAdminAccess={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/labels
-/// List labels. For more information, see [Search for labels](<https://developers.google.`com/workspace/drive/labels/guides/search-label`>).
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `drivelabels_labels_list_execute()` or `drivelabels_labels_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleAppsDriveLabelsV2ListLabelsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/labels
-/// List labels. For more information, see [Search for labels](<https://developers.google.`com/workspace/drive/labels/guides/search-label`>).
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `drivelabels_labels_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `drivelabels_labels_list_task()`.
-/// For the simplest API, use `drivelabels_labels_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn drivelabels_labels_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = drivelabels_labels_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`drivelabels_labels_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DrivelabelsLabelsListArgs {
-    /// Query parameter: customer
-    pub customer: Option<String>,
-    /// Query parameter: languageCode
-    pub languageCode: Option<String>,
-    /// Query parameter: minimumRole
-    pub minimumRole: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: publishedOnly
-    pub publishedOnly: Option<bool>,
-    /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<bool>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v2/labels
-/// List labels. For more information, see [Search for labels](<https://developers.google.`com/workspace/drive/labels/guides/search-label`>).
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `drivelabels_labels_list_builder()` + `drivelabels_labels_list_execute()`.
-/// For task-level control, use `drivelabels_labels_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_list(
-    client: &SimpleHttpClient,
-    args: &DrivelabelsLabelsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = drivelabels_labels_list_builder(
-        client,
-        args.customer.as_deref(),
-        args.languageCode.as_deref(),
-        args.minimumRole.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.publishedOnly,
-        args.useAdminAccess,
-        args.view.as_deref(),
-    )?;
-    drivelabels_labels_list_execute(builder)
 }
 
 /// GET v2/labels/{labelsId}:publish
@@ -1321,18 +903,15 @@ pub fn drivelabels_labels_list(
 
 pub fn drivelabels_labels_publish_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GoogleAppsDriveLabelsV2PublishLabelRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}:publish",
-        name,
-    );
+    let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels/{}:publish",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1365,8 +944,9 @@ pub fn drivelabels_labels_publish_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1478,7 +1058,7 @@ pub fn drivelabels_labels_publish(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_labels_publish_builder(client, &args.name, &args.body)?;
+    let builder = drivelabels_labels_publish_builder(client, args.name.clone(), &args.body)?;
     drivelabels_labels_publish_execute(builder)
 }
 
@@ -1490,18 +1070,16 @@ pub fn drivelabels_labels_publish(
 
 pub fn drivelabels_labels_update_label_copy_mode_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GoogleAppsDriveLabelsV2UpdateLabelCopyModeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}:updateLabelCopyMode",
-        name,
-    );
+    let endpoint_url =
+        format!("https://drivelabels.googleapis.com/v2/labels/{}:updateLabelCopyMode",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1534,8 +1112,9 @@ pub fn drivelabels_labels_update_label_copy_mode_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1648,7 +1227,7 @@ pub fn drivelabels_labels_update_label_copy_mode(
     ApiError,
 > {
     let builder =
-        drivelabels_labels_update_label_copy_mode_builder(client, &args.name, &args.body)?;
+        drivelabels_labels_update_label_copy_mode_builder(client, args.name.clone(), &args.body)?;
     drivelabels_labels_update_label_copy_mode_execute(builder)
 }
 
@@ -1660,18 +1239,16 @@ pub fn drivelabels_labels_update_label_copy_mode(
 
 pub fn drivelabels_labels_update_label_enabled_app_settings_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &GoogleAppsDriveLabelsV2UpdateLabelEnabledAppSettingsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}:updateLabelEnabledAppSettings",
-        name,
-    );
+    let endpoint_url =
+        format!("https://drivelabels.googleapis.com/v2/labels/{}:updateLabelEnabledAppSettings",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1704,8 +1281,9 @@ pub fn drivelabels_labels_update_label_enabled_app_settings_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleAppsDriveLabelsV2Label>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1818,7 +1396,9 @@ pub fn drivelabels_labels_update_label_enabled_app_settings(
     ApiError,
 > {
     let builder = drivelabels_labels_update_label_enabled_app_settings_builder(
-        client, &args.name, &args.body,
+        client,
+        args.name.clone(),
+        &args.body,
     )?;
     drivelabels_labels_update_label_enabled_app_settings_execute(builder)
 }
@@ -1831,15 +1411,12 @@ pub fn drivelabels_labels_update_label_enabled_app_settings(
 
 pub fn drivelabels_labels_update_permissions_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     useAdminAccess: Option<bool>,
     body: &GoogleAppsDriveLabelsV2LabelPermission,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}/permissions",
-        parent,
-    );
+    let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels/{}/permissions",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1848,9 +1425,9 @@ pub fn drivelabels_labels_update_permissions_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1887,8 +1464,9 @@ pub fn drivelabels_labels_update_permissions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2004,8 +1582,8 @@ pub fn drivelabels_labels_update_permissions(
 > {
     let builder = drivelabels_labels_update_permissions_builder(
         client,
-        &args.parent,
-        args.useAdminAccess,
+        args.parent.clone(),
+        args.useAdminAccess.clone(),
         &args.body,
     )?;
     drivelabels_labels_update_permissions_execute(builder)
@@ -2019,15 +1597,12 @@ pub fn drivelabels_labels_update_permissions(
 
 pub fn drivelabels_labels_locks_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}/locks",
-        parent,
-    );
+    let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels/{}/locks",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2039,9 +1614,9 @@ pub fn drivelabels_labels_locks_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2076,8 +1651,9 @@ pub fn drivelabels_labels_locks_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelLocksResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelLocksResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2194,9 +1770,9 @@ pub fn drivelabels_labels_locks_list(
 > {
     let builder = drivelabels_labels_locks_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     drivelabels_labels_locks_list_execute(builder)
 }
@@ -2209,18 +1785,16 @@ pub fn drivelabels_labels_locks_list(
 
 pub fn drivelabels_labels_permissions_batch_delete_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &GoogleAppsDriveLabelsV2BatchDeleteLabelPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}/permissions:batchDelete",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://drivelabels.googleapis.com/v2/labels/{}/permissions:batchDelete",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2252,8 +1826,11 @@ pub fn drivelabels_labels_permissions_batch_delete_builder(
 pub fn drivelabels_labels_permissions_batch_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2360,8 +1937,11 @@ pub fn drivelabels_labels_permissions_batch_delete(
         + 'static,
     ApiError,
 > {
-    let builder =
-        drivelabels_labels_permissions_batch_delete_builder(client, &args.parent, &args.body)?;
+    let builder = drivelabels_labels_permissions_batch_delete_builder(
+        client,
+        args.parent.clone(),
+        &args.body,
+    )?;
     drivelabels_labels_permissions_batch_delete_execute(builder)
 }
 
@@ -2373,18 +1953,16 @@ pub fn drivelabels_labels_permissions_batch_delete(
 
 pub fn drivelabels_labels_permissions_batch_update_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}/permissions:batchUpdate",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://drivelabels.googleapis.com/v2/labels/{}/permissions:batchUpdate",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2417,11 +1995,12 @@ pub fn drivelabels_labels_permissions_batch_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2540,1856 +2119,12 @@ pub fn drivelabels_labels_permissions_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder =
-        drivelabels_labels_permissions_batch_update_builder(client, &args.parent, &args.body)?;
+    let builder = drivelabels_labels_permissions_batch_update_builder(
+        client,
+        args.parent.clone(),
+        &args.body,
+    )?;
     drivelabels_labels_permissions_batch_update_execute(builder)
-}
-
-/// GET v2/labels/{labelsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `drivelabels_labels_permissions_create_execute()` to send, or `drivelabels_labels_permissions_create` for simplest API.
-
-pub fn drivelabels_labels_permissions_create_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    useAdminAccess: Option<bool>,
-    body: &GoogleAppsDriveLabelsV2LabelPermission,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}/permissions",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = useAdminAccess {
-        query_parts.push(format!("useAdminAccess={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v2/labels/{labelsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `drivelabels_labels_permissions_create_execute()` or `drivelabels_labels_permissions_create`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_permissions_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_permissions_create_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleAppsDriveLabelsV2LabelPermission = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/labels/{labelsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `drivelabels_labels_permissions_create_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `drivelabels_labels_permissions_create_task()`.
-/// For the simplest API, use `drivelabels_labels_permissions_create()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_permissions_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn drivelabels_labels_permissions_create_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = drivelabels_labels_permissions_create_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`drivelabels_labels_permissions_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DrivelabelsLabelsPermissionsCreateArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<bool>,
-    /// Request body.
-    pub body: GoogleAppsDriveLabelsV2LabelPermission,
-}
-
-/// GET v2/labels/{labelsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `drivelabels_labels_permissions_create_builder()` + `drivelabels_labels_permissions_create_execute()`.
-/// For task-level control, use `drivelabels_labels_permissions_create_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_permissions_create(
-    client: &SimpleHttpClient,
-    args: &DrivelabelsLabelsPermissionsCreateArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = drivelabels_labels_permissions_create_builder(
-        client,
-        &args.parent,
-        args.useAdminAccess,
-        &args.body,
-    )?;
-    drivelabels_labels_permissions_create_execute(builder)
-}
-
-/// GET v2/labels/{labelsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `drivelabels_labels_permissions_delete_execute()` to send, or `drivelabels_labels_permissions_delete` for simplest API.
-
-pub fn drivelabels_labels_permissions_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    useAdminAccess: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}/permissions/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = useAdminAccess {
-        query_parts.push(format!("useAdminAccess={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/labels/{labelsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `drivelabels_labels_permissions_delete_execute()` or `drivelabels_labels_permissions_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_permissions_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_permissions_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/labels/{labelsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `drivelabels_labels_permissions_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `drivelabels_labels_permissions_delete_task()`.
-/// For the simplest API, use `drivelabels_labels_permissions_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_permissions_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn drivelabels_labels_permissions_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = drivelabels_labels_permissions_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`drivelabels_labels_permissions_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DrivelabelsLabelsPermissionsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<bool>,
-}
-
-/// GET v2/labels/{labelsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `drivelabels_labels_permissions_delete_builder()` + `drivelabels_labels_permissions_delete_execute()`.
-/// For task-level control, use `drivelabels_labels_permissions_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_permissions_delete(
-    client: &SimpleHttpClient,
-    args: &DrivelabelsLabelsPermissionsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        drivelabels_labels_permissions_delete_builder(client, &args.name, args.useAdminAccess)?;
-    drivelabels_labels_permissions_delete_execute(builder)
-}
-
-/// GET v2/labels/{labelsId}/permissions
-/// Lists a label's permissions.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `drivelabels_labels_permissions_list_execute()` to send, or `drivelabels_labels_permissions_list` for simplest API.
-
-pub fn drivelabels_labels_permissions_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    useAdminAccess: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}/permissions",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = useAdminAccess {
-        query_parts.push(format!("useAdminAccess={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/labels/{labelsId}/permissions
-/// Lists a label's permissions.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `drivelabels_labels_permissions_list_execute()` or `drivelabels_labels_permissions_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_permissions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_permissions_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelPermissionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleAppsDriveLabelsV2ListLabelPermissionsResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/labels/{labelsId}/permissions
-/// Lists a label's permissions.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `drivelabels_labels_permissions_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `drivelabels_labels_permissions_list_task()`.
-/// For the simplest API, use `drivelabels_labels_permissions_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_permissions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn drivelabels_labels_permissions_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelPermissionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = drivelabels_labels_permissions_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`drivelabels_labels_permissions_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DrivelabelsLabelsPermissionsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<bool>,
-}
-
-/// GET v2/labels/{labelsId}/permissions
-/// Lists a label's permissions.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `drivelabels_labels_permissions_list_builder()` + `drivelabels_labels_permissions_list_execute()`.
-/// For task-level control, use `drivelabels_labels_permissions_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_permissions_list(
-    client: &SimpleHttpClient,
-    args: &DrivelabelsLabelsPermissionsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelPermissionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = drivelabels_labels_permissions_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.useAdminAccess,
-    )?;
-    drivelabels_labels_permissions_list_execute(builder)
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `drivelabels_labels_revisions_update_permissions_execute()` to send, or `drivelabels_labels_revisions_update_permissions` for simplest API.
-
-pub fn drivelabels_labels_revisions_update_permissions_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    useAdminAccess: Option<bool>,
-    body: &GoogleAppsDriveLabelsV2LabelPermission,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}/revisions/{}/permissions",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = useAdminAccess {
-        query_parts.push(format!("useAdminAccess={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `drivelabels_labels_revisions_update_permissions_execute()` or `drivelabels_labels_revisions_update_permissions`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_revisions_update_permissions_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_revisions_update_permissions_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleAppsDriveLabelsV2LabelPermission = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `drivelabels_labels_revisions_update_permissions_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `drivelabels_labels_revisions_update_permissions_task()`.
-/// For the simplest API, use `drivelabels_labels_revisions_update_permissions()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_revisions_update_permissions_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn drivelabels_labels_revisions_update_permissions_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = drivelabels_labels_revisions_update_permissions_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`drivelabels_labels_revisions_update_permissions`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DrivelabelsLabelsRevisionsUpdatePermissionsArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<bool>,
-    /// Request body.
-    pub body: GoogleAppsDriveLabelsV2LabelPermission,
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `drivelabels_labels_revisions_update_permissions_builder()` + `drivelabels_labels_revisions_update_permissions_execute()`.
-/// For task-level control, use `drivelabels_labels_revisions_update_permissions_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_revisions_update_permissions(
-    client: &SimpleHttpClient,
-    args: &DrivelabelsLabelsRevisionsUpdatePermissionsArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = drivelabels_labels_revisions_update_permissions_builder(
-        client,
-        &args.parent,
-        args.useAdminAccess,
-        &args.body,
-    )?;
-    drivelabels_labels_revisions_update_permissions_execute(builder)
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/locks
-/// Lists the label locks on a label.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `drivelabels_labels_revisions_locks_list_execute()` to send, or `drivelabels_labels_revisions_locks_list` for simplest API.
-
-pub fn drivelabels_labels_revisions_locks_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}/revisions/{}/locks",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/locks
-/// Lists the label locks on a label.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `drivelabels_labels_revisions_locks_list_execute()` or `drivelabels_labels_revisions_locks_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_revisions_locks_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_revisions_locks_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelLocksResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleAppsDriveLabelsV2ListLabelLocksResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/locks
-/// Lists the label locks on a label.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `drivelabels_labels_revisions_locks_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `drivelabels_labels_revisions_locks_list_task()`.
-/// For the simplest API, use `drivelabels_labels_revisions_locks_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_revisions_locks_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn drivelabels_labels_revisions_locks_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelLocksResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = drivelabels_labels_revisions_locks_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`drivelabels_labels_revisions_locks_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DrivelabelsLabelsRevisionsLocksListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/locks
-/// Lists the label locks on a label.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `drivelabels_labels_revisions_locks_list_builder()` + `drivelabels_labels_revisions_locks_list_execute()`.
-/// For task-level control, use `drivelabels_labels_revisions_locks_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_revisions_locks_list(
-    client: &SimpleHttpClient,
-    args: &DrivelabelsLabelsRevisionsLocksListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelLocksResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = drivelabels_labels_revisions_locks_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    drivelabels_labels_revisions_locks_list_execute(builder)
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchDelete
-/// Deletes label permissions. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `drivelabels_labels_revisions_permissions_batch_delete_execute()` to send, or `drivelabels_labels_revisions_permissions_batch_delete` for simplest API.
-
-pub fn drivelabels_labels_revisions_permissions_batch_delete_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleAppsDriveLabelsV2BatchDeleteLabelPermissionsRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}/revisions/{}/permissions:batchDelete",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchDelete
-/// Deletes label permissions. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `drivelabels_labels_revisions_permissions_batch_delete_execute()` or `drivelabels_labels_revisions_permissions_batch_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_revisions_permissions_batch_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_revisions_permissions_batch_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchDelete
-/// Deletes label permissions. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `drivelabels_labels_revisions_permissions_batch_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `drivelabels_labels_revisions_permissions_batch_delete_task()`.
-/// For the simplest API, use `drivelabels_labels_revisions_permissions_batch_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_revisions_permissions_batch_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn drivelabels_labels_revisions_permissions_batch_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = drivelabels_labels_revisions_permissions_batch_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`drivelabels_labels_revisions_permissions_batch_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DrivelabelsLabelsRevisionsPermissionsBatchDeleteArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Request body.
-    pub body: GoogleAppsDriveLabelsV2BatchDeleteLabelPermissionsRequest,
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchDelete
-/// Deletes label permissions. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `drivelabels_labels_revisions_permissions_batch_delete_builder()` + `drivelabels_labels_revisions_permissions_batch_delete_execute()`.
-/// For task-level control, use `drivelabels_labels_revisions_permissions_batch_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_revisions_permissions_batch_delete(
-    client: &SimpleHttpClient,
-    args: &DrivelabelsLabelsRevisionsPermissionsBatchDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = drivelabels_labels_revisions_permissions_batch_delete_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
-    drivelabels_labels_revisions_permissions_batch_delete_execute(builder)
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchUpdate
-/// Updates label permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `drivelabels_labels_revisions_permissions_batch_update_execute()` to send, or `drivelabels_labels_revisions_permissions_batch_update` for simplest API.
-
-pub fn drivelabels_labels_revisions_permissions_batch_update_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    body: &GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}/revisions/{}/permissions:batchUpdate",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchUpdate
-/// Updates label permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `drivelabels_labels_revisions_permissions_batch_update_execute()` or `drivelabels_labels_revisions_permissions_batch_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_revisions_permissions_batch_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_revisions_permissions_batch_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<
-                ApiResponse<GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse>,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchUpdate
-/// Updates label permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `drivelabels_labels_revisions_permissions_batch_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `drivelabels_labels_revisions_permissions_batch_update_task()`.
-/// For the simplest API, use `drivelabels_labels_revisions_permissions_batch_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_revisions_permissions_batch_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn drivelabels_labels_revisions_permissions_batch_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<
-                ApiResponse<GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse>,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = drivelabels_labels_revisions_permissions_batch_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`drivelabels_labels_revisions_permissions_batch_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DrivelabelsLabelsRevisionsPermissionsBatchUpdateArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Request body.
-    pub body: GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsRequest,
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions:batchUpdate
-/// Updates label permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `drivelabels_labels_revisions_permissions_batch_update_builder()` + `drivelabels_labels_revisions_permissions_batch_update_execute()`.
-/// For task-level control, use `drivelabels_labels_revisions_permissions_batch_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_revisions_permissions_batch_update(
-    client: &SimpleHttpClient,
-    args: &DrivelabelsLabelsRevisionsPermissionsBatchUpdateArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<
-                ApiResponse<GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse>,
-                ApiError,
-            >,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = drivelabels_labels_revisions_permissions_batch_update_builder(
-        client,
-        &args.parent,
-        &args.body,
-    )?;
-    drivelabels_labels_revisions_permissions_batch_update_execute(builder)
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `drivelabels_labels_revisions_permissions_create_execute()` to send, or `drivelabels_labels_revisions_permissions_create` for simplest API.
-
-pub fn drivelabels_labels_revisions_permissions_create_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    useAdminAccess: Option<bool>,
-    body: &GoogleAppsDriveLabelsV2LabelPermission,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}/revisions/{}/permissions",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = useAdminAccess {
-        query_parts.push(format!("useAdminAccess={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `drivelabels_labels_revisions_permissions_create_execute()` or `drivelabels_labels_revisions_permissions_create`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_revisions_permissions_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_revisions_permissions_create_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleAppsDriveLabelsV2LabelPermission = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `drivelabels_labels_revisions_permissions_create_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `drivelabels_labels_revisions_permissions_create_task()`.
-/// For the simplest API, use `drivelabels_labels_revisions_permissions_create()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_revisions_permissions_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn drivelabels_labels_revisions_permissions_create_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = drivelabels_labels_revisions_permissions_create_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`drivelabels_labels_revisions_permissions_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DrivelabelsLabelsRevisionsPermissionsCreateArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<bool>,
-    /// Request body.
-    pub body: GoogleAppsDriveLabelsV2LabelPermission,
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Updates a label's permissions. If a permission for the indicated principal doesn't exist, a label permission is created, otherwise the existing permission is updated. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `drivelabels_labels_revisions_permissions_create_builder()` + `drivelabels_labels_revisions_permissions_create_execute()`.
-/// For task-level control, use `drivelabels_labels_revisions_permissions_create_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_revisions_permissions_create(
-    client: &SimpleHttpClient,
-    args: &DrivelabelsLabelsRevisionsPermissionsCreateArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelPermission>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = drivelabels_labels_revisions_permissions_create_builder(
-        client,
-        &args.parent,
-        args.useAdminAccess,
-        &args.body,
-    )?;
-    drivelabels_labels_revisions_permissions_create_execute(builder)
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `drivelabels_labels_revisions_permissions_delete_execute()` to send, or `drivelabels_labels_revisions_permissions_delete` for simplest API.
-
-pub fn drivelabels_labels_revisions_permissions_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    useAdminAccess: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}/revisions/{}/permissions/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = useAdminAccess {
-        query_parts.push(format!("useAdminAccess={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `drivelabels_labels_revisions_permissions_delete_execute()` or `drivelabels_labels_revisions_permissions_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_revisions_permissions_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_revisions_permissions_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleProtobufEmpty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `drivelabels_labels_revisions_permissions_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `drivelabels_labels_revisions_permissions_delete_task()`.
-/// For the simplest API, use `drivelabels_labels_revisions_permissions_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_revisions_permissions_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn drivelabels_labels_revisions_permissions_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = drivelabels_labels_revisions_permissions_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`drivelabels_labels_revisions_permissions_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DrivelabelsLabelsRevisionsPermissionsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<bool>,
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions/{permissionsId}
-/// Deletes a label's permission. Permissions affect the label resource as a whole, aren't revisioned, and don't require publishing.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `drivelabels_labels_revisions_permissions_delete_builder()` + `drivelabels_labels_revisions_permissions_delete_execute()`.
-/// For task-level control, use `drivelabels_labels_revisions_permissions_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_revisions_permissions_delete(
-    client: &SimpleHttpClient,
-    args: &DrivelabelsLabelsRevisionsPermissionsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GoogleProtobufEmpty>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = drivelabels_labels_revisions_permissions_delete_builder(
-        client,
-        &args.name,
-        args.useAdminAccess,
-    )?;
-    drivelabels_labels_revisions_permissions_delete_execute(builder)
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Lists a label's permissions.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `drivelabels_labels_revisions_permissions_list_execute()` to send, or `drivelabels_labels_revisions_permissions_list` for simplest API.
-
-pub fn drivelabels_labels_revisions_permissions_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    useAdminAccess: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/labels/{}/revisions/{}/permissions",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = useAdminAccess {
-        query_parts.push(format!("useAdminAccess={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Lists a label's permissions.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `drivelabels_labels_revisions_permissions_list_execute()` or `drivelabels_labels_revisions_permissions_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_revisions_permissions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_revisions_permissions_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelPermissionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleAppsDriveLabelsV2ListLabelPermissionsResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Lists a label's permissions.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `drivelabels_labels_revisions_permissions_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `drivelabels_labels_revisions_permissions_list_task()`.
-/// For the simplest API, use `drivelabels_labels_revisions_permissions_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `drivelabels_labels_revisions_permissions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn drivelabels_labels_revisions_permissions_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelPermissionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = drivelabels_labels_revisions_permissions_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`drivelabels_labels_revisions_permissions_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct DrivelabelsLabelsRevisionsPermissionsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: useAdminAccess
-    pub useAdminAccess: Option<bool>,
-}
-
-/// GET v2/labels/{labelsId}/revisions/{revisionsId}/permissions
-/// Lists a label's permissions.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `drivelabels_labels_revisions_permissions_list_builder()` + `drivelabels_labels_revisions_permissions_list_execute()`.
-/// For task-level control, use `drivelabels_labels_revisions_permissions_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn drivelabels_labels_revisions_permissions_list(
-    client: &SimpleHttpClient,
-    args: &DrivelabelsLabelsRevisionsPermissionsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2ListLabelPermissionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = drivelabels_labels_revisions_permissions_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.useAdminAccess,
-    )?;
-    drivelabels_labels_revisions_permissions_list_execute(builder)
 }
 
 /// GET v2/limits/label
@@ -4400,10 +2135,10 @@ pub fn drivelabels_labels_revisions_permissions_list(
 
 pub fn drivelabels_limits_get_label_builder(
     client: &SimpleHttpClient,
-    name: Option<&str>,
+    name: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://drivelabels.googleapis.com/v2/limits/label",);
+    let endpoint_url = format!("https://drivelabels.googleapis.com/v2/limits/label",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4412,9 +2147,9 @@ pub fn drivelabels_limits_get_label_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4449,8 +2184,9 @@ pub fn drivelabels_limits_get_label_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelLimits>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleAppsDriveLabelsV2LabelLimits>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -4560,7 +2296,7 @@ pub fn drivelabels_limits_get_label(
         + 'static,
     ApiError,
 > {
-    let builder = drivelabels_limits_get_label_builder(client, args.name.as_deref())?;
+    let builder = drivelabels_limits_get_label_builder(client, args.name.clone())?;
     drivelabels_limits_get_label_execute(builder)
 }
 
@@ -4572,14 +2308,11 @@ pub fn drivelabels_limits_get_label(
 
 pub fn drivelabels_users_get_capabilities_builder(
     client: &SimpleHttpClient,
-    name: &str,
-    customer: Option<&str>,
+    name: String,
+    customer: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://drivelabels.googleapis.com/v2/users/{}/capabilities",
-        name,
-    );
+    let endpoint_url = format!("https://drivelabels.googleapis.com/v2/users/{}/capabilities",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4588,9 +2321,9 @@ pub fn drivelabels_users_get_capabilities_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4625,8 +2358,9 @@ pub fn drivelabels_users_get_capabilities_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleAppsDriveLabelsV2UserCapabilities>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleAppsDriveLabelsV2UserCapabilities>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -4739,7 +2473,10 @@ pub fn drivelabels_users_get_capabilities(
         + 'static,
     ApiError,
 > {
-    let builder =
-        drivelabels_users_get_capabilities_builder(client, &args.name, args.customer.as_deref())?;
+    let builder = drivelabels_users_get_capabilities_builder(
+        client,
+        args.name.clone(),
+        args.customer.clone(),
+    )?;
     drivelabels_users_get_capabilities_execute(builder)
 }

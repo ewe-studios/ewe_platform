@@ -13,11 +13,15 @@ use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Instance represents the interface for SLM services to actuate the state of control plane resources. Example Instance in JSON, where consumer-project-number=123456, producer-project-id=cloud-sql: json Instance: { "name": "projects/123456/locations/us-east1/instances/prod-instance", "create_time": { "seconds": 1526406431, }, "labels": { "env": "prod", "foo": "bar" }, "state": READY, "software_versions": { "software_update": "cloud-sql-09-28-2018", }, "maintenance_policy_names": { "UpdatePolicy": "projects/123456/locations/us-east1/maintenancePolicies/prod-update-policy", } "tenant_project_id": "cloud-sql-test-tenant", "producer_metadata": { "cloud-sql-tier": "basic", "cloud-sql-instance-size": "1G", }, "provisioned_resources": [ { "resource-type": "compute-instance", "resource-url": "https://www.googleapis.com/compute/v1/projects/cloud-sql/zones/us-east1-b/instances/vm-1", } ], "maintenance_schedules": { "csa_rollout": { "start_time": { "seconds": 1526406431, }, "end_time": { "seconds": 1535406431, }, }, "ncsa_rollout": { "start_time": { "seconds": 1526406431, }, "end_time": { "seconds": 1535406431, }, } }, "consumer_defined_name": "my-sql-instance1", }  LINT.IfChange
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -242,7 +246,9 @@ pub struct OperationMetadata {
 
 /// PauseReplicaRequest pauses a Filestore standby instance (replica).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PauseReplicaRequest {}
+pub struct PauseReplicaRequest {
+    pub value: serde_json::Value,
+}
 
 /// PromoteReplicaRequest promotes a Filestore standby instance (replica).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -265,7 +271,9 @@ pub struct RestoreInstanceRequest {
 
 /// ResumeReplicaRequest resumes a Filestore standby instance (replica).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResumeReplicaRequest {}
+pub struct ResumeReplicaRequest {
+    pub value: serde_json::Value,
+}
 
 /// RevertInstanceRequest reverts the given instance''s file share to the specified snapshot.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

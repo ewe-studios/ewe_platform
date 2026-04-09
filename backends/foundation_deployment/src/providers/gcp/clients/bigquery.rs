@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,15 +29,13 @@ use serde::Serialize;
 
 pub fn bigquery_datasets_delete_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
+    projectId: String,
+    datasetId: String,
     deleteContents: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}",
-        projectId, datasetId,
-    );
+    let endpoint_url =
+        format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -45,9 +44,9 @@ pub fn bigquery_datasets_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -81,7 +80,12 @@ pub fn bigquery_datasets_delete_builder(
 pub fn bigquery_datasets_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -184,192 +188,11 @@ pub fn bigquery_datasets_delete(
 > {
     let builder = bigquery_datasets_delete_builder(
         client,
-        &args.projectId,
-        &args.datasetId,
-        args.deleteContents,
+        args.projectId.clone(),
+        args.datasetId.clone(),
+        args.deleteContents.clone(),
     )?;
     bigquery_datasets_delete_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}
-/// Returns the dataset specified by `datasetID`.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_datasets_get_execute()` to send, or `bigquery_datasets_get` for simplest API.
-
-pub fn bigquery_datasets_get_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    accessPolicyVersion: Option<i32>,
-    datasetView: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}",
-        projectId, datasetId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = accessPolicyVersion {
-        query_parts.push(format!("accessPolicyVersion={}", val));
-    }
-    if let Some(val) = datasetView {
-        query_parts.push(format!("datasetView={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}
-/// Returns the dataset specified by `datasetID`.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_datasets_get_execute()` or `bigquery_datasets_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_datasets_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_datasets_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Dataset = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}
-/// Returns the dataset specified by `datasetID`.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_datasets_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_datasets_get_task()`.
-/// For the simplest API, use `bigquery_datasets_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_datasets_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_datasets_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_datasets_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_datasets_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryDatasetsGetArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Query parameter: accessPolicyVersion
-    pub accessPolicyVersion: Option<i32>,
-    /// Query parameter: datasetView
-    pub datasetView: Option<String>,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}
-/// Returns the dataset specified by `datasetID`.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_datasets_get_builder()` + `bigquery_datasets_get_execute()`.
-/// For task-level control, use `bigquery_datasets_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_datasets_get(
-    client: &SimpleHttpClient,
-    args: &BigqueryDatasetsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_datasets_get_builder(
-        client,
-        &args.projectId,
-        &args.datasetId,
-        args.accessPolicyVersion,
-        args.datasetView.as_deref(),
-    )?;
-    bigquery_datasets_get_execute(builder)
 }
 
 /// GET projects/{projectsId}/datasets
@@ -380,15 +203,12 @@ pub fn bigquery_datasets_get(
 
 pub fn bigquery_datasets_insert_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
+    projectId: String,
     accessPolicyVersion: Option<i32>,
     body: &Dataset,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets",
-        projectId,
-    );
+    let endpoint_url = format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -397,9 +217,9 @@ pub fn bigquery_datasets_insert_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -435,7 +255,12 @@ pub fn bigquery_datasets_insert_builder(
 pub fn bigquery_datasets_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Dataset>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -541,389 +366,11 @@ pub fn bigquery_datasets_insert(
 > {
     let builder = bigquery_datasets_insert_builder(
         client,
-        &args.projectId,
-        args.accessPolicyVersion,
+        args.projectId.clone(),
+        args.accessPolicyVersion.clone(),
         &args.body,
     )?;
     bigquery_datasets_insert_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets
-/// Lists all datasets in the specified project to which the user has been granted the READER dataset role.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_datasets_list_execute()` to send, or `bigquery_datasets_list` for simplest API.
-
-pub fn bigquery_datasets_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    all: Option<bool>,
-    filter: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets",
-        projectId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = all {
-        query_parts.push(format!("all={}", val));
-    }
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET projects/{projectsId}/datasets
-/// Lists all datasets in the specified project to which the user has been granted the READER dataset role.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_datasets_list_execute()` or `bigquery_datasets_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_datasets_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_datasets_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DatasetList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: DatasetList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets
-/// Lists all datasets in the specified project to which the user has been granted the READER dataset role.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_datasets_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_datasets_list_task()`.
-/// For the simplest API, use `bigquery_datasets_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_datasets_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_datasets_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DatasetList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_datasets_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_datasets_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryDatasetsListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Query parameter: all
-    pub all: Option<bool>,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET projects/{projectsId}/datasets
-/// Lists all datasets in the specified project to which the user has been granted the READER dataset role.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_datasets_list_builder()` + `bigquery_datasets_list_execute()`.
-/// For task-level control, use `bigquery_datasets_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_datasets_list(
-    client: &SimpleHttpClient,
-    args: &BigqueryDatasetsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DatasetList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_datasets_list_builder(
-        client,
-        &args.projectId,
-        args.all,
-        args.filter.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-    )?;
-    bigquery_datasets_list_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}
-/// Updates information in an existing dataset. The update method replaces the entire dataset resource, whereas the patch method only replaces fields that are provided in the submitted dataset resource. This method supports RFC5789 patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_datasets_patch_execute()` to send, or `bigquery_datasets_patch` for simplest API.
-
-pub fn bigquery_datasets_patch_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    accessPolicyVersion: Option<i32>,
-    updateMode: Option<&str>,
-    body: &Dataset,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}",
-        projectId, datasetId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = accessPolicyVersion {
-        query_parts.push(format!("accessPolicyVersion={}", val));
-    }
-    if let Some(val) = updateMode {
-        query_parts.push(format!("updateMode={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}
-/// Updates information in an existing dataset. The update method replaces the entire dataset resource, whereas the patch method only replaces fields that are provided in the submitted dataset resource. This method supports RFC5789 patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_datasets_patch_execute()` or `bigquery_datasets_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_datasets_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_datasets_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Dataset = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}
-/// Updates information in an existing dataset. The update method replaces the entire dataset resource, whereas the patch method only replaces fields that are provided in the submitted dataset resource. This method supports RFC5789 patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_datasets_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_datasets_patch_task()`.
-/// For the simplest API, use `bigquery_datasets_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_datasets_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_datasets_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_datasets_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_datasets_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryDatasetsPatchArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Query parameter: accessPolicyVersion
-    pub accessPolicyVersion: Option<i32>,
-    /// Query parameter: updateMode
-    pub updateMode: Option<String>,
-    /// Request body.
-    pub body: Dataset,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}
-/// Updates information in an existing dataset. The update method replaces the entire dataset resource, whereas the patch method only replaces fields that are provided in the submitted dataset resource. This method supports RFC5789 patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_datasets_patch_builder()` + `bigquery_datasets_patch_execute()`.
-/// For task-level control, use `bigquery_datasets_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_datasets_patch(
-    client: &SimpleHttpClient,
-    args: &BigqueryDatasetsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_datasets_patch_builder(
-        client,
-        &args.projectId,
-        &args.datasetId,
-        args.accessPolicyVersion,
-        args.updateMode.as_deref(),
-        &args.body,
-    )?;
-    bigquery_datasets_patch_execute(builder)
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}:undelete
@@ -934,19 +381,17 @@ pub fn bigquery_datasets_patch(
 
 pub fn bigquery_datasets_undelete_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
+    projectId: String,
+    datasetId: String,
     body: &UndeleteDatasetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}:undelete",
-        projectId, datasetId,
-    );
+    let endpoint_url =
+        format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}:undelete",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -978,7 +423,12 @@ pub fn bigquery_datasets_undelete_builder(
 pub fn bigquery_datasets_undelete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Dataset>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1082,196 +532,13 @@ pub fn bigquery_datasets_undelete(
     impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquery_datasets_undelete_builder(client, &args.projectId, &args.datasetId, &args.body)?;
-    bigquery_datasets_undelete_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}
-/// Updates information in an existing dataset. The update method replaces the entire dataset resource, whereas the patch method only replaces fields that are provided in the submitted dataset resource.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_datasets_update_execute()` to send, or `bigquery_datasets_update` for simplest API.
-
-pub fn bigquery_datasets_update_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    accessPolicyVersion: Option<i32>,
-    updateMode: Option<&str>,
-    body: &Dataset,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}",
-        projectId, datasetId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = accessPolicyVersion {
-        query_parts.push(format!("accessPolicyVersion={}", val));
-    }
-    if let Some(val) = updateMode {
-        query_parts.push(format!("updateMode={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}
-/// Updates information in an existing dataset. The update method replaces the entire dataset resource, whereas the patch method only replaces fields that are provided in the submitted dataset resource.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_datasets_update_execute()` or `bigquery_datasets_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_datasets_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_datasets_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Dataset = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}
-/// Updates information in an existing dataset. The update method replaces the entire dataset resource, whereas the patch method only replaces fields that are provided in the submitted dataset resource.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_datasets_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_datasets_update_task()`.
-/// For the simplest API, use `bigquery_datasets_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_datasets_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_datasets_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_datasets_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_datasets_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryDatasetsUpdateArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Query parameter: accessPolicyVersion
-    pub accessPolicyVersion: Option<i32>,
-    /// Query parameter: updateMode
-    pub updateMode: Option<String>,
-    /// Request body.
-    pub body: Dataset,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}
-/// Updates information in an existing dataset. The update method replaces the entire dataset resource, whereas the patch method only replaces fields that are provided in the submitted dataset resource.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_datasets_update_builder()` + `bigquery_datasets_update_execute()`.
-/// For task-level control, use `bigquery_datasets_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_datasets_update(
-    client: &SimpleHttpClient,
-    args: &BigqueryDatasetsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Dataset>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_datasets_update_builder(
+    let builder = bigquery_datasets_undelete_builder(
         client,
-        &args.projectId,
-        &args.datasetId,
-        args.accessPolicyVersion,
-        args.updateMode.as_deref(),
+        args.projectId.clone(),
+        args.datasetId.clone(),
         &args.body,
     )?;
-    bigquery_datasets_update_execute(builder)
+    bigquery_datasets_undelete_execute(builder)
 }
 
 /// GET projects/{projectsId}/jobs/{jobsId}/cancel
@@ -1282,15 +549,13 @@ pub fn bigquery_datasets_update(
 
 pub fn bigquery_jobs_cancel_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
-    location: Option<&str>,
+    projectId: String,
+    jobId: String,
+    location: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs/{}/cancel",
-        projectId, jobId,
-    );
+    let endpoint_url =
+        format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs/{}/cancel",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1299,9 +564,9 @@ pub fn bigquery_jobs_cancel_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1335,8 +600,11 @@ pub fn bigquery_jobs_cancel_builder(
 pub fn bigquery_jobs_cancel_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<JobCancelResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<JobCancelResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1447,9 +715,9 @@ pub fn bigquery_jobs_cancel(
 > {
     let builder = bigquery_jobs_cancel_builder(
         client,
-        &args.projectId,
-        &args.jobId,
-        args.location.as_deref(),
+        args.projectId.clone(),
+        args.jobId.clone(),
+        args.location.clone(),
     )?;
     bigquery_jobs_cancel_execute(builder)
 }
@@ -1462,15 +730,13 @@ pub fn bigquery_jobs_cancel(
 
 pub fn bigquery_jobs_delete_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
-    location: Option<&str>,
+    projectId: String,
+    jobId: String,
+    location: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs/{}/delete",
-        projectId, jobId,
-    );
+    let endpoint_url =
+        format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs/{}/delete",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1479,9 +745,9 @@ pub fn bigquery_jobs_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1515,7 +781,12 @@ pub fn bigquery_jobs_delete_builder(
 pub fn bigquery_jobs_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1618,9 +889,9 @@ pub fn bigquery_jobs_delete(
 > {
     let builder = bigquery_jobs_delete_builder(
         client,
-        &args.projectId,
-        &args.jobId,
-        args.location.as_deref(),
+        args.projectId.clone(),
+        args.jobId.clone(),
+        args.location.clone(),
     )?;
     bigquery_jobs_delete_execute(builder)
 }
@@ -1633,15 +904,12 @@ pub fn bigquery_jobs_delete(
 
 pub fn bigquery_jobs_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
-    location: Option<&str>,
+    projectId: String,
+    jobId: String,
+    location: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs/{}",
-        projectId, jobId,
-    );
+    let endpoint_url = format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1650,9 +918,9 @@ pub fn bigquery_jobs_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1686,7 +954,12 @@ pub fn bigquery_jobs_get_builder(
 pub fn bigquery_jobs_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1792,9 +1065,9 @@ pub fn bigquery_jobs_get(
 > {
     let builder = bigquery_jobs_get_builder(
         client,
-        &args.projectId,
-        &args.jobId,
-        args.location.as_deref(),
+        args.projectId.clone(),
+        args.jobId.clone(),
+        args.location.clone(),
     )?;
     bigquery_jobs_get_execute(builder)
 }
@@ -1807,29 +1080,27 @@ pub fn bigquery_jobs_get(
 
 pub fn bigquery_jobs_get_query_results_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    jobId: &str,
-    formatOptions_timestampOutputFormat: Option<&str>,
+    projectId: String,
+    jobId: String,
+    formatOptions_timestampOutputFormat: Option<String>,
     formatOptions_useInt64Timestamp: Option<bool>,
-    location: Option<&str>,
+    location: Option<String>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    startIndex: Option<&str>,
+    pageToken: Option<String>,
+    startIndex: Option<String>,
     timeoutMs: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/queries/{}",
-        projectId, jobId,
-    );
+    let endpoint_url =
+        format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/queries/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = formatOptions_timestampOutputFormat {
-        query_parts.push(format!("formatOptions_timestampOutputFormat={}", val));
+        query_parts.push(format!("formatOptions.timestampOutputFormat={}", val));
     }
     if let Some(val) = formatOptions_useInt64Timestamp {
-        query_parts.push(format!("formatOptions_useInt64Timestamp={}", val));
+        query_parts.push(format!("formatOptions.useInt64Timestamp={}", val));
     }
     if let Some(val) = location {
         query_parts.push(format!("location={}", val));
@@ -1848,9 +1119,9 @@ pub fn bigquery_jobs_get_query_results_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1884,8 +1155,11 @@ pub fn bigquery_jobs_get_query_results_builder(
 pub fn bigquery_jobs_get_query_results_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetQueryResultsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetQueryResultsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2008,15 +1282,15 @@ pub fn bigquery_jobs_get_query_results(
 > {
     let builder = bigquery_jobs_get_query_results_builder(
         client,
-        &args.projectId,
-        &args.jobId,
-        args.formatOptions_timestampOutputFormat.as_deref(),
-        args.formatOptions_useInt64Timestamp,
-        args.location.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.startIndex.as_deref(),
-        args.timeoutMs,
+        args.projectId.clone(),
+        args.jobId.clone(),
+        args.formatOptions_timestampOutputFormat.clone(),
+        args.formatOptions_useInt64Timestamp.clone(),
+        args.location.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
+        args.startIndex.clone(),
+        args.timeoutMs.clone(),
     )?;
     bigquery_jobs_get_query_results_execute(builder)
 }
@@ -2029,18 +1303,15 @@ pub fn bigquery_jobs_get_query_results(
 
 pub fn bigquery_jobs_insert_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
+    projectId: String,
     body: &Job,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs",
-        projectId,
-    );
+    let endpoint_url = format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2072,7 +1343,12 @@ pub fn bigquery_jobs_insert_builder(
 pub fn bigquery_jobs_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Job>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2174,227 +1450,8 @@ pub fn bigquery_jobs_insert(
     impl StreamIterator<D = Result<ApiResponse<Job>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = bigquery_jobs_insert_builder(client, &args.projectId, &args.body)?;
+    let builder = bigquery_jobs_insert_builder(client, args.projectId.clone(), &args.body)?;
     bigquery_jobs_insert_execute(builder)
-}
-
-/// GET projects/{projectsId}/jobs
-/// Lists all jobs that you started in the specified project. Job information is available for a six month period after creation. The job list is sorted in reverse chronological order, by job creation time. Requires the Can View project role, or the Is Owner project role if you set the `allUsers` property.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_jobs_list_execute()` to send, or `bigquery_jobs_list` for simplest API.
-
-pub fn bigquery_jobs_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    allUsers: Option<bool>,
-    maxCreationTime: Option<&str>,
-    maxResults: Option<i32>,
-    minCreationTime: Option<&str>,
-    pageToken: Option<&str>,
-    parentJobId: Option<&str>,
-    projection: Option<&str>,
-    stateFilter: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/jobs",
-        projectId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = allUsers {
-        query_parts.push(format!("allUsers={}", val));
-    }
-    if let Some(val) = maxCreationTime {
-        query_parts.push(format!("maxCreationTime={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = minCreationTime {
-        query_parts.push(format!("minCreationTime={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = parentJobId {
-        query_parts.push(format!("parentJobId={}", val));
-    }
-    if let Some(val) = projection {
-        query_parts.push(format!("projection={}", val));
-    }
-    if let Some(val) = stateFilter {
-        query_parts.push(format!("stateFilter={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET projects/{projectsId}/jobs
-/// Lists all jobs that you started in the specified project. Job information is available for a six month period after creation. The job list is sorted in reverse chronological order, by job creation time. Requires the Can View project role, or the Is Owner project role if you set the `allUsers` property.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_jobs_list_execute()` or `bigquery_jobs_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_jobs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_jobs_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<JobList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: JobList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/jobs
-/// Lists all jobs that you started in the specified project. Job information is available for a six month period after creation. The job list is sorted in reverse chronological order, by job creation time. Requires the Can View project role, or the Is Owner project role if you set the `allUsers` property.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_jobs_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_jobs_list_task()`.
-/// For the simplest API, use `bigquery_jobs_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_jobs_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_jobs_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<JobList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_jobs_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_jobs_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryJobsListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Query parameter: allUsers
-    pub allUsers: Option<bool>,
-    /// Query parameter: maxCreationTime
-    pub maxCreationTime: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: minCreationTime
-    pub minCreationTime: Option<String>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: parentJobId
-    pub parentJobId: Option<String>,
-    /// Query parameter: projection
-    pub projection: Option<String>,
-    /// Query parameter: stateFilter
-    pub stateFilter: Option<String>,
-}
-
-/// GET projects/{projectsId}/jobs
-/// Lists all jobs that you started in the specified project. Job information is available for a six month period after creation. The job list is sorted in reverse chronological order, by job creation time. Requires the Can View project role, or the Is Owner project role if you set the `allUsers` property.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_jobs_list_builder()` + `bigquery_jobs_list_execute()`.
-/// For task-level control, use `bigquery_jobs_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_jobs_list(
-    client: &SimpleHttpClient,
-    args: &BigqueryJobsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<JobList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_jobs_list_builder(
-        client,
-        &args.projectId,
-        args.allUsers,
-        args.maxCreationTime.as_deref(),
-        args.maxResults,
-        args.minCreationTime.as_deref(),
-        args.pageToken.as_deref(),
-        args.parentJobId.as_deref(),
-        args.projection.as_deref(),
-        args.stateFilter.as_deref(),
-    )?;
-    bigquery_jobs_list_execute(builder)
 }
 
 /// GET projects/{projectsId}/queries
@@ -2405,18 +1462,15 @@ pub fn bigquery_jobs_list(
 
 pub fn bigquery_jobs_query_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
+    projectId: String,
     body: &QueryRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/queries",
-        projectId,
-    );
+    let endpoint_url = format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/queries",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2448,7 +1502,12 @@ pub fn bigquery_jobs_query_builder(
 pub fn bigquery_jobs_query_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<QueryResponse>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<QueryResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2554,7 +1613,7 @@ pub fn bigquery_jobs_query(
         + 'static,
     ApiError,
 > {
-    let builder = bigquery_jobs_query_builder(client, &args.projectId, &args.body)?;
+    let builder = bigquery_jobs_query_builder(client, args.projectId.clone(), &args.body)?;
     bigquery_jobs_query_execute(builder)
 }
 
@@ -2566,19 +1625,17 @@ pub fn bigquery_jobs_query(
 
 pub fn bigquery_models_delete_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    modelId: &str,
+    projectId: String,
+    datasetId: String,
+    modelId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/models/{}",
-        projectId, datasetId, modelId,
-    );
+    let endpoint_url =
+        format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/models/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2608,7 +1665,12 @@ pub fn bigquery_models_delete_builder(
 pub fn bigquery_models_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2709,168 +1771,13 @@ pub fn bigquery_models_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquery_models_delete_builder(client, &args.projectId, &args.datasetId, &args.modelId)?;
+    let builder = bigquery_models_delete_builder(
+        client,
+        args.projectId.clone(),
+        args.datasetId.clone(),
+        args.modelId.clone(),
+    )?;
     bigquery_models_delete_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/models/{modelsId}
-/// Gets the specified model resource by model ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_models_get_execute()` to send, or `bigquery_models_get` for simplest API.
-
-pub fn bigquery_models_get_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    modelId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/models/{}",
-        projectId, datasetId, modelId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/models/{modelsId}
-/// Gets the specified model resource by model ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_models_get_execute()` or `bigquery_models_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_models_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_models_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Model>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Model = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/models/{modelsId}
-/// Gets the specified model resource by model ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_models_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_models_get_task()`.
-/// For the simplest API, use `bigquery_models_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_models_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_models_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Model>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_models_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_models_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryModelsGetArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Path parameter: modelId
-    pub modelId: String,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/models/{modelsId}
-/// Gets the specified model resource by model ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_models_get_builder()` + `bigquery_models_get_execute()`.
-/// For task-level control, use `bigquery_models_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_models_get(
-    client: &SimpleHttpClient,
-    args: &BigqueryModelsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Model>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        bigquery_models_get_builder(client, &args.projectId, &args.datasetId, &args.modelId)?;
-    bigquery_models_get_execute(builder)
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}/models
@@ -2881,16 +1788,14 @@ pub fn bigquery_models_get(
 
 pub fn bigquery_models_list_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
+    projectId: String,
+    datasetId: String,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/models",
-        projectId, datasetId,
-    );
+    let endpoint_url =
+        format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/models",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2902,9 +1807,9 @@ pub fn bigquery_models_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2938,8 +1843,11 @@ pub fn bigquery_models_list_builder(
 pub fn bigquery_models_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListModelsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListModelsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3052,181 +1960,12 @@ pub fn bigquery_models_list(
 > {
     let builder = bigquery_models_list_builder(
         client,
-        &args.projectId,
-        &args.datasetId,
-        args.maxResults,
-        args.pageToken.as_deref(),
+        args.projectId.clone(),
+        args.datasetId.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
     )?;
     bigquery_models_list_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/models/{modelsId}
-/// Patch specific fields in the specified model.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_models_patch_execute()` to send, or `bigquery_models_patch` for simplest API.
-
-pub fn bigquery_models_patch_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    modelId: &str,
-    body: &Model,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/models/{}",
-        projectId, datasetId, modelId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/models/{modelsId}
-/// Patch specific fields in the specified model.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_models_patch_execute()` or `bigquery_models_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_models_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_models_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Model>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Model = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/models/{modelsId}
-/// Patch specific fields in the specified model.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_models_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_models_patch_task()`.
-/// For the simplest API, use `bigquery_models_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_models_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_models_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Model>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_models_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_models_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryModelsPatchArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Path parameter: modelId
-    pub modelId: String,
-    /// Request body.
-    pub body: Model,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/models/{modelsId}
-/// Patch specific fields in the specified model.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_models_patch_builder()` + `bigquery_models_patch_execute()`.
-/// For task-level control, use `bigquery_models_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_models_patch(
-    client: &SimpleHttpClient,
-    args: &BigqueryModelsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Model>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_models_patch_builder(
-        client,
-        &args.projectId,
-        &args.datasetId,
-        &args.modelId,
-        &args.body,
-    )?;
-    bigquery_models_patch_execute(builder)
 }
 
 /// GET projects/{projectsId}/serviceAccount
@@ -3237,17 +1976,15 @@ pub fn bigquery_models_patch(
 
 pub fn bigquery_projects_get_service_account_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
+    projectId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/serviceAccount",
-        projectId,
-    );
+    let endpoint_url =
+        format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/serviceAccount",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3277,8 +2014,11 @@ pub fn bigquery_projects_get_service_account_builder(
 pub fn bigquery_projects_get_service_account_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetServiceAccountResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GetServiceAccountResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3383,7 +2123,7 @@ pub fn bigquery_projects_get_service_account(
         + 'static,
     ApiError,
 > {
-    let builder = bigquery_projects_get_service_account_builder(client, &args.projectId)?;
+    let builder = bigquery_projects_get_service_account_builder(client, args.projectId.clone())?;
     bigquery_projects_get_service_account_execute(builder)
 }
 
@@ -3396,10 +2136,10 @@ pub fn bigquery_projects_get_service_account(
 pub fn bigquery_projects_list_builder(
     client: &SimpleHttpClient,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://bigquery.googleapis.com/bigquery/v2/projects",);
+    let endpoint_url = format!("https://bigquery.googleapis.com/bigquery/v2/projects",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3411,9 +2151,9 @@ pub fn bigquery_projects_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3447,7 +2187,12 @@ pub fn bigquery_projects_list_builder(
 pub fn bigquery_projects_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProjectList>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3550,7 +2295,7 @@ pub fn bigquery_projects_list(
     ApiError,
 > {
     let builder =
-        bigquery_projects_list_builder(client, args.maxResults, args.pageToken.as_deref())?;
+        bigquery_projects_list_builder(client, args.maxResults.clone(), args.pageToken.clone())?;
     bigquery_projects_list_execute(builder)
 }
 
@@ -3562,19 +2307,17 @@ pub fn bigquery_projects_list(
 
 pub fn bigquery_routines_delete_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    routineId: &str,
+    projectId: String,
+    datasetId: String,
+    routineId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines/{}",
-        projectId, datasetId, routineId,
-    );
+    let endpoint_url =
+        format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3604,7 +2347,12 @@ pub fn bigquery_routines_delete_builder(
 pub fn bigquery_routines_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3707,346 +2455,11 @@ pub fn bigquery_routines_delete(
 > {
     let builder = bigquery_routines_delete_builder(
         client,
-        &args.projectId,
-        &args.datasetId,
-        &args.routineId,
+        args.projectId.clone(),
+        args.datasetId.clone(),
+        args.routineId.clone(),
     )?;
     bigquery_routines_delete_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}
-/// Gets the specified routine resource by routine ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_routines_get_execute()` to send, or `bigquery_routines_get` for simplest API.
-
-pub fn bigquery_routines_get_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    routineId: &str,
-    readMask: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines/{}",
-        projectId, datasetId, routineId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = readMask {
-        query_parts.push(format!("readMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}
-/// Gets the specified routine resource by routine ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_routines_get_execute()` or `bigquery_routines_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_routines_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_routines_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Routine>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Routine = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}
-/// Gets the specified routine resource by routine ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_routines_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_routines_get_task()`.
-/// For the simplest API, use `bigquery_routines_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_routines_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_routines_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Routine>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_routines_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_routines_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryRoutinesGetArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Path parameter: routineId
-    pub routineId: String,
-    /// Query parameter: readMask
-    pub readMask: Option<String>,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}
-/// Gets the specified routine resource by routine ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_routines_get_builder()` + `bigquery_routines_get_execute()`.
-/// For task-level control, use `bigquery_routines_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_routines_get(
-    client: &SimpleHttpClient,
-    args: &BigqueryRoutinesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Routine>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_routines_get_builder(
-        client,
-        &args.projectId,
-        &args.datasetId,
-        &args.routineId,
-        args.readMask.as_deref(),
-    )?;
-    bigquery_routines_get_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_routines_get_iam_policy_execute()` to send, or `bigquery_routines_get_iam_policy` for simplest API.
-
-pub fn bigquery_routines_get_iam_policy_builder(
-    client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines/{}:getIamPolicy",
-        resource,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_routines_get_iam_policy_execute()` or `bigquery_routines_get_iam_policy`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_routines_get_iam_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_routines_get_iam_policy_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Policy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_routines_get_iam_policy_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_routines_get_iam_policy_task()`.
-/// For the simplest API, use `bigquery_routines_get_iam_policy()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_routines_get_iam_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_routines_get_iam_policy_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_routines_get_iam_policy_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_routines_get_iam_policy`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryRoutinesGetIamPolicyArgs {
-    /// Path parameter: resource
-    pub resource: String,
-    /// Request body.
-    pub body: GetIamPolicyRequest,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_routines_get_iam_policy_builder()` + `bigquery_routines_get_iam_policy_execute()`.
-/// For task-level control, use `bigquery_routines_get_iam_policy_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_routines_get_iam_policy(
-    client: &SimpleHttpClient,
-    args: &BigqueryRoutinesGetIamPolicyArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_routines_get_iam_policy_builder(client, &args.resource, &args.body)?;
-    bigquery_routines_get_iam_policy_execute(builder)
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}/routines
@@ -4057,19 +2470,17 @@ pub fn bigquery_routines_get_iam_policy(
 
 pub fn bigquery_routines_insert_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
+    projectId: String,
+    datasetId: String,
     body: &Routine,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines",
-        projectId, datasetId,
-    );
+    let endpoint_url =
+        format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4101,7 +2512,12 @@ pub fn bigquery_routines_insert_builder(
 pub fn bigquery_routines_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Routine>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Routine>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4205,704 +2621,13 @@ pub fn bigquery_routines_insert(
     impl StreamIterator<D = Result<ApiResponse<Routine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquery_routines_insert_builder(client, &args.projectId, &args.datasetId, &args.body)?;
-    bigquery_routines_insert_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines
-/// Lists all routines in the specified dataset. Requires the READER dataset role.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_routines_list_execute()` to send, or `bigquery_routines_list` for simplest API.
-
-pub fn bigquery_routines_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    filter: Option<&str>,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    readMask: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines",
-        projectId, datasetId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = readMask {
-        query_parts.push(format!("readMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines
-/// Lists all routines in the specified dataset. Requires the READER dataset role.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_routines_list_execute()` or `bigquery_routines_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_routines_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_routines_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListRoutinesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListRoutinesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines
-/// Lists all routines in the specified dataset. Requires the READER dataset role.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_routines_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_routines_list_task()`.
-/// For the simplest API, use `bigquery_routines_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_routines_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_routines_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListRoutinesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = bigquery_routines_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_routines_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryRoutinesListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: readMask
-    pub readMask: Option<String>,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines
-/// Lists all routines in the specified dataset. Requires the READER dataset role.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_routines_list_builder()` + `bigquery_routines_list_execute()`.
-/// For task-level control, use `bigquery_routines_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_routines_list(
-    client: &SimpleHttpClient,
-    args: &BigqueryRoutinesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListRoutinesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = bigquery_routines_list_builder(
+    let builder = bigquery_routines_insert_builder(
         client,
-        &args.projectId,
-        &args.datasetId,
-        args.filter.as_deref(),
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.readMask.as_deref(),
-    )?;
-    bigquery_routines_list_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:setIamPolicy
-/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_routines_set_iam_policy_execute()` to send, or `bigquery_routines_set_iam_policy` for simplest API.
-
-pub fn bigquery_routines_set_iam_policy_builder(
-    client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines/{}:setIamPolicy",
-        resource,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:setIamPolicy
-/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_routines_set_iam_policy_execute()` or `bigquery_routines_set_iam_policy`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_routines_set_iam_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_routines_set_iam_policy_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Policy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:setIamPolicy
-/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_routines_set_iam_policy_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_routines_set_iam_policy_task()`.
-/// For the simplest API, use `bigquery_routines_set_iam_policy()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_routines_set_iam_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_routines_set_iam_policy_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_routines_set_iam_policy_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_routines_set_iam_policy`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryRoutinesSetIamPolicyArgs {
-    /// Path parameter: resource
-    pub resource: String,
-    /// Request body.
-    pub body: SetIamPolicyRequest,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:setIamPolicy
-/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_routines_set_iam_policy_builder()` + `bigquery_routines_set_iam_policy_execute()`.
-/// For task-level control, use `bigquery_routines_set_iam_policy_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_routines_set_iam_policy(
-    client: &SimpleHttpClient,
-    args: &BigqueryRoutinesSetIamPolicyArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_routines_set_iam_policy_builder(client, &args.resource, &args.body)?;
-    bigquery_routines_set_iam_policy_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_routines_test_iam_permissions_execute()` to send, or `bigquery_routines_test_iam_permissions` for simplest API.
-
-pub fn bigquery_routines_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines/{}:testIamPermissions",
-        resource,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_routines_test_iam_permissions_execute()` or `bigquery_routines_test_iam_permissions`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_routines_test_iam_permissions_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_routines_test_iam_permissions_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_routines_test_iam_permissions_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_routines_test_iam_permissions_task()`.
-/// For the simplest API, use `bigquery_routines_test_iam_permissions()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_routines_test_iam_permissions_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_routines_test_iam_permissions_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = bigquery_routines_test_iam_permissions_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_routines_test_iam_permissions`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryRoutinesTestIamPermissionsArgs {
-    /// Path parameter: resource
-    pub resource: String,
-    /// Request body.
-    pub body: TestIamPermissionsRequest,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_routines_test_iam_permissions_builder()` + `bigquery_routines_test_iam_permissions_execute()`.
-/// For task-level control, use `bigquery_routines_test_iam_permissions_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_routines_test_iam_permissions(
-    client: &SimpleHttpClient,
-    args: &BigqueryRoutinesTestIamPermissionsArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        bigquery_routines_test_iam_permissions_builder(client, &args.resource, &args.body)?;
-    bigquery_routines_test_iam_permissions_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}
-/// Updates information in an existing routine. The update method replaces the entire Routine resource.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_routines_update_execute()` to send, or `bigquery_routines_update` for simplest API.
-
-pub fn bigquery_routines_update_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    routineId: &str,
-    body: &Routine,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/routines/{}",
-        projectId, datasetId, routineId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}
-/// Updates information in an existing routine. The update method replaces the entire Routine resource.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_routines_update_execute()` or `bigquery_routines_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_routines_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_routines_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Routine>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Routine = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}
-/// Updates information in an existing routine. The update method replaces the entire Routine resource.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_routines_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_routines_update_task()`.
-/// For the simplest API, use `bigquery_routines_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_routines_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_routines_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Routine>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_routines_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_routines_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryRoutinesUpdateArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Path parameter: routineId
-    pub routineId: String,
-    /// Request body.
-    pub body: Routine,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/routines/{routinesId}
-/// Updates information in an existing routine. The update method replaces the entire Routine resource.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_routines_update_builder()` + `bigquery_routines_update_execute()`.
-/// For task-level control, use `bigquery_routines_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_routines_update(
-    client: &SimpleHttpClient,
-    args: &BigqueryRoutinesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Routine>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_routines_update_builder(
-        client,
-        &args.projectId,
-        &args.datasetId,
-        &args.routineId,
+        args.projectId.clone(),
+        args.datasetId.clone(),
         &args.body,
     )?;
-    bigquery_routines_update_execute(builder)
+    bigquery_routines_insert_execute(builder)
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies:batchDelete
@@ -4913,22 +2638,19 @@ pub fn bigquery_routines_update(
 
 pub fn bigquery_row_access_policies_batch_delete_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
+    projectId: String,
+    datasetId: String,
+    tableId: String,
     body: &BatchDeleteRowAccessPoliciesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/rowAccessPolicies:batchDelete",
-        projectId,
-        datasetId,
-        tableId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4960,7 +2682,12 @@ pub fn bigquery_row_access_policies_batch_delete_builder(
 pub fn bigquery_row_access_policies_batch_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5065,9 +2792,9 @@ pub fn bigquery_row_access_policies_batch_delete(
 > {
     let builder = bigquery_row_access_policies_batch_delete_builder(
         client,
-        &args.projectId,
-        &args.datasetId,
-        &args.tableId,
+        args.projectId.clone(),
+        args.datasetId.clone(),
+        args.tableId.clone(),
         &args.body,
     )?;
     bigquery_row_access_policies_batch_delete_execute(builder)
@@ -5081,19 +2808,15 @@ pub fn bigquery_row_access_policies_batch_delete(
 
 pub fn bigquery_row_access_policies_delete_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    policyId: &str,
+    projectId: String,
+    datasetId: String,
+    tableId: String,
+    policyId: String,
     force: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/rowAccessPolicies/{}",
-        projectId,
-        datasetId,
-        tableId,
-        policyId,
     );
 
     // Build request
@@ -5103,9 +2826,9 @@ pub fn bigquery_row_access_policies_delete_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5139,7 +2862,12 @@ pub fn bigquery_row_access_policies_delete_builder(
 pub fn bigquery_row_access_policies_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5246,347 +2974,13 @@ pub fn bigquery_row_access_policies_delete(
 > {
     let builder = bigquery_row_access_policies_delete_builder(
         client,
-        &args.projectId,
-        &args.datasetId,
-        &args.tableId,
-        &args.policyId,
-        args.force,
+        args.projectId.clone(),
+        args.datasetId.clone(),
+        args.tableId.clone(),
+        args.policyId.clone(),
+        args.force.clone(),
     )?;
     bigquery_row_access_policies_delete_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}
-/// Gets the specified row access policy by policy ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_row_access_policies_get_execute()` to send, or `bigquery_row_access_policies_get` for simplest API.
-
-pub fn bigquery_row_access_policies_get_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    policyId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/rowAccessPolicies/{}",
-        projectId,
-        datasetId,
-        tableId,
-        policyId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}
-/// Gets the specified row access policy by policy ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_row_access_policies_get_execute()` or `bigquery_row_access_policies_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_row_access_policies_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_row_access_policies_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RowAccessPolicy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: RowAccessPolicy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}
-/// Gets the specified row access policy by policy ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_row_access_policies_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_row_access_policies_get_task()`.
-/// For the simplest API, use `bigquery_row_access_policies_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_row_access_policies_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_row_access_policies_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RowAccessPolicy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = bigquery_row_access_policies_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_row_access_policies_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryRowAccessPoliciesGetArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Path parameter: tableId
-    pub tableId: String,
-    /// Path parameter: policyId
-    pub policyId: String,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}
-/// Gets the specified row access policy by policy ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_row_access_policies_get_builder()` + `bigquery_row_access_policies_get_execute()`.
-/// For task-level control, use `bigquery_row_access_policies_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_row_access_policies_get(
-    client: &SimpleHttpClient,
-    args: &BigqueryRowAccessPoliciesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RowAccessPolicy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = bigquery_row_access_policies_get_builder(
-        client,
-        &args.projectId,
-        &args.datasetId,
-        &args.tableId,
-        &args.policyId,
-    )?;
-    bigquery_row_access_policies_get_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_row_access_policies_get_iam_policy_execute()` to send, or `bigquery_row_access_policies_get_iam_policy` for simplest API.
-
-pub fn bigquery_row_access_policies_get_iam_policy_builder(
-    client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/rowAccessPolicies/{}:getIamPolicy",
-        resource,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_row_access_policies_get_iam_policy_execute()` or `bigquery_row_access_policies_get_iam_policy`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_row_access_policies_get_iam_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_row_access_policies_get_iam_policy_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Policy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_row_access_policies_get_iam_policy_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_row_access_policies_get_iam_policy_task()`.
-/// For the simplest API, use `bigquery_row_access_policies_get_iam_policy()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_row_access_policies_get_iam_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_row_access_policies_get_iam_policy_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_row_access_policies_get_iam_policy_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_row_access_policies_get_iam_policy`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryRowAccessPoliciesGetIamPolicyArgs {
-    /// Path parameter: resource
-    pub resource: String,
-    /// Request body.
-    pub body: GetIamPolicyRequest,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_row_access_policies_get_iam_policy_builder()` + `bigquery_row_access_policies_get_iam_policy_execute()`.
-/// For task-level control, use `bigquery_row_access_policies_get_iam_policy_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_row_access_policies_get_iam_policy(
-    client: &SimpleHttpClient,
-    args: &BigqueryRowAccessPoliciesGetIamPolicyArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        bigquery_row_access_policies_get_iam_policy_builder(client, &args.resource, &args.body)?;
-    bigquery_row_access_policies_get_iam_policy_execute(builder)
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies
@@ -5597,22 +2991,19 @@ pub fn bigquery_row_access_policies_get_iam_policy(
 
 pub fn bigquery_row_access_policies_insert_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
+    projectId: String,
+    datasetId: String,
+    tableId: String,
     body: &RowAccessPolicy,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/rowAccessPolicies",
-        projectId,
-        datasetId,
-        tableId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5644,8 +3035,11 @@ pub fn bigquery_row_access_policies_insert_builder(
 pub fn bigquery_row_access_policies_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RowAccessPolicy>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<RowAccessPolicy>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5758,564 +3152,12 @@ pub fn bigquery_row_access_policies_insert(
 > {
     let builder = bigquery_row_access_policies_insert_builder(
         client,
-        &args.projectId,
-        &args.datasetId,
-        &args.tableId,
+        args.projectId.clone(),
+        args.datasetId.clone(),
+        args.tableId.clone(),
         &args.body,
     )?;
     bigquery_row_access_policies_insert_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies
-/// Lists all row access policies on the specified table.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_row_access_policies_list_execute()` to send, or `bigquery_row_access_policies_list` for simplest API.
-
-pub fn bigquery_row_access_policies_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/rowAccessPolicies",
-        projectId,
-        datasetId,
-        tableId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies
-/// Lists all row access policies on the specified table.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_row_access_policies_list_execute()` or `bigquery_row_access_policies_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_row_access_policies_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_row_access_policies_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListRowAccessPoliciesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListRowAccessPoliciesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies
-/// Lists all row access policies on the specified table.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_row_access_policies_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_row_access_policies_list_task()`.
-/// For the simplest API, use `bigquery_row_access_policies_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_row_access_policies_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_row_access_policies_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListRowAccessPoliciesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = bigquery_row_access_policies_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_row_access_policies_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryRowAccessPoliciesListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Path parameter: tableId
-    pub tableId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies
-/// Lists all row access policies on the specified table.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_row_access_policies_list_builder()` + `bigquery_row_access_policies_list_execute()`.
-/// For task-level control, use `bigquery_row_access_policies_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_row_access_policies_list(
-    client: &SimpleHttpClient,
-    args: &BigqueryRowAccessPoliciesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListRowAccessPoliciesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = bigquery_row_access_policies_list_builder(
-        client,
-        &args.projectId,
-        &args.datasetId,
-        &args.tableId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    bigquery_row_access_policies_list_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_row_access_policies_test_iam_permissions_execute()` to send, or `bigquery_row_access_policies_test_iam_permissions` for simplest API.
-
-pub fn bigquery_row_access_policies_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/rowAccessPolicies/{}:testIamPermissions",
-        resource,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_row_access_policies_test_iam_permissions_execute()` or `bigquery_row_access_policies_test_iam_permissions`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_row_access_policies_test_iam_permissions_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_row_access_policies_test_iam_permissions_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_row_access_policies_test_iam_permissions_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_row_access_policies_test_iam_permissions_task()`.
-/// For the simplest API, use `bigquery_row_access_policies_test_iam_permissions()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_row_access_policies_test_iam_permissions_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_row_access_policies_test_iam_permissions_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = bigquery_row_access_policies_test_iam_permissions_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_row_access_policies_test_iam_permissions`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryRowAccessPoliciesTestIamPermissionsArgs {
-    /// Path parameter: resource
-    pub resource: String,
-    /// Request body.
-    pub body: TestIamPermissionsRequest,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_row_access_policies_test_iam_permissions_builder()` + `bigquery_row_access_policies_test_iam_permissions_execute()`.
-/// For task-level control, use `bigquery_row_access_policies_test_iam_permissions_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_row_access_policies_test_iam_permissions(
-    client: &SimpleHttpClient,
-    args: &BigqueryRowAccessPoliciesTestIamPermissionsArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = bigquery_row_access_policies_test_iam_permissions_builder(
-        client,
-        &args.resource,
-        &args.body,
-    )?;
-    bigquery_row_access_policies_test_iam_permissions_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}
-/// Updates a row access policy.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_row_access_policies_update_execute()` to send, or `bigquery_row_access_policies_update` for simplest API.
-
-pub fn bigquery_row_access_policies_update_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    policyId: &str,
-    body: &RowAccessPolicy,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/rowAccessPolicies/{}",
-        projectId,
-        datasetId,
-        tableId,
-        policyId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}
-/// Updates a row access policy.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_row_access_policies_update_execute()` or `bigquery_row_access_policies_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_row_access_policies_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_row_access_policies_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<RowAccessPolicy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: RowAccessPolicy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}
-/// Updates a row access policy.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_row_access_policies_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_row_access_policies_update_task()`.
-/// For the simplest API, use `bigquery_row_access_policies_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_row_access_policies_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_row_access_policies_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RowAccessPolicy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = bigquery_row_access_policies_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_row_access_policies_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryRowAccessPoliciesUpdateArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Path parameter: tableId
-    pub tableId: String,
-    /// Path parameter: policyId
-    pub policyId: String,
-    /// Request body.
-    pub body: RowAccessPolicy,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/rowAccessPolicies/{rowAccessPoliciesId}
-/// Updates a row access policy.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_row_access_policies_update_builder()` + `bigquery_row_access_policies_update_execute()`.
-/// For task-level control, use `bigquery_row_access_policies_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_row_access_policies_update(
-    client: &SimpleHttpClient,
-    args: &BigqueryRowAccessPoliciesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RowAccessPolicy>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = bigquery_row_access_policies_update_builder(
-        client,
-        &args.projectId,
-        &args.datasetId,
-        &args.tableId,
-        &args.policyId,
-        &args.body,
-    )?;
-    bigquery_row_access_policies_update_execute(builder)
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}/insertAll
@@ -6326,20 +3168,19 @@ pub fn bigquery_row_access_policies_update(
 
 pub fn bigquery_tabledata_insert_all_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
+    projectId: String,
+    datasetId: String,
+    tableId: String,
     body: &TableDataInsertAllRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/insertAll",
-        projectId, datasetId, tableId,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6371,8 +3212,11 @@ pub fn bigquery_tabledata_insert_all_builder(
 pub fn bigquery_tabledata_insert_all_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TableDataInsertAllResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TableDataInsertAllResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -6489,9 +3333,9 @@ pub fn bigquery_tabledata_insert_all(
 > {
     let builder = bigquery_tabledata_insert_all_builder(
         client,
-        &args.projectId,
-        &args.datasetId,
-        &args.tableId,
+        args.projectId.clone(),
+        args.datasetId.clone(),
+        args.tableId.clone(),
         &args.body,
     )?;
     bigquery_tabledata_insert_all_execute(builder)
@@ -6505,29 +3349,28 @@ pub fn bigquery_tabledata_insert_all(
 
 pub fn bigquery_tabledata_list_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    formatOptions_timestampOutputFormat: Option<&str>,
+    projectId: String,
+    datasetId: String,
+    tableId: String,
+    formatOptions_timestampOutputFormat: Option<String>,
     formatOptions_useInt64Timestamp: Option<bool>,
     maxResults: Option<i32>,
-    pageToken: Option<&str>,
-    selectedFields: Option<&str>,
-    startIndex: Option<&str>,
+    pageToken: Option<String>,
+    selectedFields: Option<String>,
+    startIndex: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}/data",
-        projectId, datasetId, tableId,
     );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = formatOptions_timestampOutputFormat {
-        query_parts.push(format!("formatOptions_timestampOutputFormat={}", val));
+        query_parts.push(format!("formatOptions.timestampOutputFormat={}", val));
     }
     if let Some(val) = formatOptions_useInt64Timestamp {
-        query_parts.push(format!("formatOptions_useInt64Timestamp={}", val));
+        query_parts.push(format!("formatOptions.useInt64Timestamp={}", val));
     }
     if let Some(val) = maxResults {
         query_parts.push(format!("maxResults={}", val));
@@ -6543,9 +3386,9 @@ pub fn bigquery_tabledata_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6579,7 +3422,12 @@ pub fn bigquery_tabledata_list_builder(
 pub fn bigquery_tabledata_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TableDataList>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TableDataList>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6701,15 +3549,15 @@ pub fn bigquery_tabledata_list(
 > {
     let builder = bigquery_tabledata_list_builder(
         client,
-        &args.projectId,
-        &args.datasetId,
-        &args.tableId,
-        args.formatOptions_timestampOutputFormat.as_deref(),
-        args.formatOptions_useInt64Timestamp,
-        args.maxResults,
-        args.pageToken.as_deref(),
-        args.selectedFields.as_deref(),
-        args.startIndex.as_deref(),
+        args.projectId.clone(),
+        args.datasetId.clone(),
+        args.tableId.clone(),
+        args.formatOptions_timestampOutputFormat.clone(),
+        args.formatOptions_useInt64Timestamp.clone(),
+        args.maxResults.clone(),
+        args.pageToken.clone(),
+        args.selectedFields.clone(),
+        args.startIndex.clone(),
     )?;
     bigquery_tabledata_list_execute(builder)
 }
@@ -6722,19 +3570,17 @@ pub fn bigquery_tabledata_list(
 
 pub fn bigquery_tables_delete_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
+    projectId: String,
+    datasetId: String,
+    tableId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}",
-        projectId, datasetId, tableId,
-    );
+    let endpoint_url =
+        format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6764,7 +3610,12 @@ pub fn bigquery_tables_delete_builder(
 pub fn bigquery_tables_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<()>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6865,351 +3716,13 @@ pub fn bigquery_tables_delete(
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquery_tables_delete_builder(client, &args.projectId, &args.datasetId, &args.tableId)?;
-    bigquery_tables_delete_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
-/// Gets the specified table resource by table ID. This method does not return the data in the table, it only returns the table resource, which describes the structure of this table.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_tables_get_execute()` to send, or `bigquery_tables_get` for simplest API.
-
-pub fn bigquery_tables_get_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    selectedFields: Option<&str>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}",
-        projectId, datasetId, tableId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = selectedFields {
-        query_parts.push(format!("selectedFields={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
-/// Gets the specified table resource by table ID. This method does not return the data in the table, it only returns the table resource, which describes the structure of this table.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_tables_get_execute()` or `bigquery_tables_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_tables_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_tables_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Table = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
-/// Gets the specified table resource by table ID. This method does not return the data in the table, it only returns the table resource, which describes the structure of this table.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_tables_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_tables_get_task()`.
-/// For the simplest API, use `bigquery_tables_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_tables_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_tables_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_tables_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_tables_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryTablesGetArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Path parameter: tableId
-    pub tableId: String,
-    /// Query parameter: selectedFields
-    pub selectedFields: Option<String>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
-/// Gets the specified table resource by table ID. This method does not return the data in the table, it only returns the table resource, which describes the structure of this table.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_tables_get_builder()` + `bigquery_tables_get_execute()`.
-/// For task-level control, use `bigquery_tables_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_tables_get(
-    client: &SimpleHttpClient,
-    args: &BigqueryTablesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_tables_get_builder(
+    let builder = bigquery_tables_delete_builder(
         client,
-        &args.projectId,
-        &args.datasetId,
-        &args.tableId,
-        args.selectedFields.as_deref(),
-        args.view.as_deref(),
+        args.projectId.clone(),
+        args.datasetId.clone(),
+        args.tableId.clone(),
     )?;
-    bigquery_tables_get_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_tables_get_iam_policy_execute()` to send, or `bigquery_tables_get_iam_policy` for simplest API.
-
-pub fn bigquery_tables_get_iam_policy_builder(
-    client: &SimpleHttpClient,
-    resource: &str,
-    body: &GetIamPolicyRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}:getIamPolicy",
-        resource,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_tables_get_iam_policy_execute()` or `bigquery_tables_get_iam_policy`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_tables_get_iam_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_tables_get_iam_policy_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Policy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_tables_get_iam_policy_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_tables_get_iam_policy_task()`.
-/// For the simplest API, use `bigquery_tables_get_iam_policy()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_tables_get_iam_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_tables_get_iam_policy_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_tables_get_iam_policy_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_tables_get_iam_policy`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryTablesGetIamPolicyArgs {
-    /// Path parameter: resource
-    pub resource: String,
-    /// Request body.
-    pub body: GetIamPolicyRequest,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:getIamPolicy
-/// Gets the access control policy for a resource. Returns an empty policy if the resource exists and does not have a policy set.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_tables_get_iam_policy_builder()` + `bigquery_tables_get_iam_policy_execute()`.
-/// For task-level control, use `bigquery_tables_get_iam_policy_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_tables_get_iam_policy(
-    client: &SimpleHttpClient,
-    args: &BigqueryTablesGetIamPolicyArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_tables_get_iam_policy_builder(client, &args.resource, &args.body)?;
-    bigquery_tables_get_iam_policy_execute(builder)
+    bigquery_tables_delete_execute(builder)
 }
 
 /// GET projects/{projectsId}/datasets/{datasetsId}/tables
@@ -7220,19 +3733,17 @@ pub fn bigquery_tables_get_iam_policy(
 
 pub fn bigquery_tables_insert_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
+    projectId: String,
+    datasetId: String,
     body: &Table,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables",
-        projectId, datasetId,
-    );
+    let endpoint_url =
+        format!("https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -7264,7 +3775,12 @@ pub fn bigquery_tables_insert_builder(
 pub fn bigquery_tables_insert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Table>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7368,880 +3884,11 @@ pub fn bigquery_tables_insert(
     impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        bigquery_tables_insert_builder(client, &args.projectId, &args.datasetId, &args.body)?;
+    let builder = bigquery_tables_insert_builder(
+        client,
+        args.projectId.clone(),
+        args.datasetId.clone(),
+        &args.body,
+    )?;
     bigquery_tables_insert_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables
-/// Lists all tables in the specified dataset. Requires the READER dataset role.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_tables_list_execute()` to send, or `bigquery_tables_list` for simplest API.
-
-pub fn bigquery_tables_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    maxResults: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables",
-        projectId, datasetId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = maxResults {
-        query_parts.push(format!("maxResults={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables
-/// Lists all tables in the specified dataset. Requires the READER dataset role.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_tables_list_execute()` or `bigquery_tables_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_tables_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_tables_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TableList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TableList = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables
-/// Lists all tables in the specified dataset. Requires the READER dataset role.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_tables_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_tables_list_task()`.
-/// For the simplest API, use `bigquery_tables_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_tables_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_tables_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TableList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_tables_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_tables_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryTablesListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Query parameter: maxResults
-    pub maxResults: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables
-/// Lists all tables in the specified dataset. Requires the READER dataset role.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_tables_list_builder()` + `bigquery_tables_list_execute()`.
-/// For task-level control, use `bigquery_tables_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_tables_list(
-    client: &SimpleHttpClient,
-    args: &BigqueryTablesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<TableList>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_tables_list_builder(
-        client,
-        &args.projectId,
-        &args.datasetId,
-        args.maxResults,
-        args.pageToken.as_deref(),
-    )?;
-    bigquery_tables_list_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
-/// Updates information in an existing table. The update method replaces the entire table resource, whereas the patch method only replaces fields that are provided in the submitted table resource. This method supports RFC5789 patch semantics.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_tables_patch_execute()` to send, or `bigquery_tables_patch` for simplest API.
-
-pub fn bigquery_tables_patch_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    autodetect_schema: Option<bool>,
-    body: &Table,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}",
-        projectId, datasetId, tableId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = autodetect_schema {
-        query_parts.push(format!("autodetect_schema={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
-/// Updates information in an existing table. The update method replaces the entire table resource, whereas the patch method only replaces fields that are provided in the submitted table resource. This method supports RFC5789 patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_tables_patch_execute()` or `bigquery_tables_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_tables_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_tables_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Table = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
-/// Updates information in an existing table. The update method replaces the entire table resource, whereas the patch method only replaces fields that are provided in the submitted table resource. This method supports RFC5789 patch semantics.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_tables_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_tables_patch_task()`.
-/// For the simplest API, use `bigquery_tables_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_tables_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_tables_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_tables_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_tables_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryTablesPatchArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Path parameter: tableId
-    pub tableId: String,
-    /// Query parameter: autodetect_schema
-    pub autodetect_schema: Option<bool>,
-    /// Request body.
-    pub body: Table,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
-/// Updates information in an existing table. The update method replaces the entire table resource, whereas the patch method only replaces fields that are provided in the submitted table resource. This method supports RFC5789 patch semantics.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_tables_patch_builder()` + `bigquery_tables_patch_execute()`.
-/// For task-level control, use `bigquery_tables_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_tables_patch(
-    client: &SimpleHttpClient,
-    args: &BigqueryTablesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_tables_patch_builder(
-        client,
-        &args.projectId,
-        &args.datasetId,
-        &args.tableId,
-        args.autodetect_schema,
-        &args.body,
-    )?;
-    bigquery_tables_patch_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:setIamPolicy
-/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_tables_set_iam_policy_execute()` to send, or `bigquery_tables_set_iam_policy` for simplest API.
-
-pub fn bigquery_tables_set_iam_policy_builder(
-    client: &SimpleHttpClient,
-    resource: &str,
-    body: &SetIamPolicyRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}:setIamPolicy",
-        resource,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:setIamPolicy
-/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_tables_set_iam_policy_execute()` or `bigquery_tables_set_iam_policy`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_tables_set_iam_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_tables_set_iam_policy_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Policy = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:setIamPolicy
-/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_tables_set_iam_policy_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_tables_set_iam_policy_task()`.
-/// For the simplest API, use `bigquery_tables_set_iam_policy()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_tables_set_iam_policy_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_tables_set_iam_policy_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_tables_set_iam_policy_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_tables_set_iam_policy`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryTablesSetIamPolicyArgs {
-    /// Path parameter: resource
-    pub resource: String,
-    /// Request body.
-    pub body: SetIamPolicyRequest,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:setIamPolicy
-/// Sets the access control policy on the specified resource. Replaces any existing policy. Can return NOT_FOUND, INVALID_ARGUMENT, and PERMISSION_DENIED errors.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_tables_set_iam_policy_builder()` + `bigquery_tables_set_iam_policy_execute()`.
-/// For task-level control, use `bigquery_tables_set_iam_policy_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_tables_set_iam_policy(
-    client: &SimpleHttpClient,
-    args: &BigqueryTablesSetIamPolicyArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Policy>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_tables_set_iam_policy_builder(client, &args.resource, &args.body)?;
-    bigquery_tables_set_iam_policy_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_tables_test_iam_permissions_execute()` to send, or `bigquery_tables_test_iam_permissions` for simplest API.
-
-pub fn bigquery_tables_test_iam_permissions_builder(
-    client: &SimpleHttpClient,
-    resource: &str,
-    body: &TestIamPermissionsRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}:testIamPermissions",
-        resource,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_tables_test_iam_permissions_execute()` or `bigquery_tables_test_iam_permissions`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_tables_test_iam_permissions_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_tables_test_iam_permissions_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: TestIamPermissionsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_tables_test_iam_permissions_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_tables_test_iam_permissions_task()`.
-/// For the simplest API, use `bigquery_tables_test_iam_permissions()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_tables_test_iam_permissions_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_tables_test_iam_permissions_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = bigquery_tables_test_iam_permissions_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_tables_test_iam_permissions`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryTablesTestIamPermissionsArgs {
-    /// Path parameter: resource
-    pub resource: String,
-    /// Request body.
-    pub body: TestIamPermissionsRequest,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}:testIamPermissions
-/// Returns permissions that a caller has on the specified resource. If the resource does not exist, this will return an empty set of permissions, not a NOT_FOUND error. Note: This operation is designed to be used for building permission-aware UIs and command-line tools, not for authorization checking. This operation may "fail open" without warning.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_tables_test_iam_permissions_builder()` + `bigquery_tables_test_iam_permissions_execute()`.
-/// For task-level control, use `bigquery_tables_test_iam_permissions_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_tables_test_iam_permissions(
-    client: &SimpleHttpClient,
-    args: &BigqueryTablesTestIamPermissionsArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<TestIamPermissionsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = bigquery_tables_test_iam_permissions_builder(client, &args.resource, &args.body)?;
-    bigquery_tables_test_iam_permissions_execute(builder)
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
-/// Updates information in an existing table. The update method replaces the entire Table resource, whereas the patch method only replaces fields that are provided in the submitted Table resource.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `bigquery_tables_update_execute()` to send, or `bigquery_tables_update` for simplest API.
-
-pub fn bigquery_tables_update_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    datasetId: &str,
-    tableId: &str,
-    autodetect_schema: Option<bool>,
-    body: &Table,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://bigquery.googleapis.com/bigquery/v2/projects/{}/datasets/{}/tables/{}",
-        projectId, datasetId, tableId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = autodetect_schema {
-        query_parts.push(format!("autodetect_schema={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
-/// Updates information in an existing table. The update method replaces the entire Table resource, whereas the patch method only replaces fields that are provided in the submitted Table resource.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `bigquery_tables_update_execute()` or `bigquery_tables_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_tables_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_tables_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Table = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
-/// Updates information in an existing table. The update method replaces the entire Table resource, whereas the patch method only replaces fields that are provided in the submitted Table resource.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `bigquery_tables_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `bigquery_tables_update_task()`.
-/// For the simplest API, use `bigquery_tables_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `bigquery_tables_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn bigquery_tables_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = bigquery_tables_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`bigquery_tables_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct BigqueryTablesUpdateArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: datasetId
-    pub datasetId: String,
-    /// Path parameter: tableId
-    pub tableId: String,
-    /// Query parameter: autodetect_schema
-    pub autodetect_schema: Option<bool>,
-    /// Request body.
-    pub body: Table,
-}
-
-/// GET projects/{projectsId}/datasets/{datasetsId}/tables/{tablesId}
-/// Updates information in an existing table. The update method replaces the entire Table resource, whereas the patch method only replaces fields that are provided in the submitted Table resource.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `bigquery_tables_update_builder()` + `bigquery_tables_update_execute()`.
-/// For task-level control, use `bigquery_tables_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn bigquery_tables_update(
-    client: &SimpleHttpClient,
-    args: &BigqueryTablesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Table>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = bigquery_tables_update_builder(
-        client,
-        &args.projectId,
-        &args.datasetId,
-        &args.tableId,
-        args.autodetect_schema,
-        &args.body,
-    )?;
-    bigquery_tables_update_execute(builder)
 }

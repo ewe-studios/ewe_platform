@@ -36,7 +36,9 @@ pub struct GoogleApiHttpBody {
 
 /// Request for ActivateNatAddressRequest. Activate the nat address request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ActivateNatAddressRequest {}
+pub struct GoogleCloudApigeeV1ActivateNatAddressRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request for AdjustAppGroupBalance.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -292,7 +294,9 @@ pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequest {
     >,
     /// Include all resources under the scope.
     #[serde(default, rename = "includeAllResources")]
-    pub include_all_resources: ::core::option::Option<serde_json::Value>,
+    pub include_all_resources: ::core::option::Option<
+        GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestIncludeAll,
+    >,
     /// Optional. The maximum number of results to return. The service may return fewer than this value. If unspecified, at most 50 results will be returned.
     #[serde(default, rename = "pageSize")]
     pub page_size: ::core::option::Option<i32>,
@@ -306,10 +310,6 @@ pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequest {
     #[serde(default)]
     pub scope: ::core::option::Option<String>,
 }
-
-/// Message for include_all_resources option.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestIncludeAll {}
 
 /// Response for BatchComputeSecurityAssessmentResults.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -575,11 +575,15 @@ pub struct GoogleCloudApigeeV1DeveloperMonetizationConfig {
 
 /// Message to disable an enabled SecurityAction.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1DisableSecurityActionRequest {}
+pub struct GoogleCloudApigeeV1DisableSecurityActionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Message to enable a disabled SecurityAction.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1EnableSecurityActionRequest {}
+pub struct GoogleCloudApigeeV1EnableSecurityActionRequest {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudApigeeV1Environment resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -711,11 +715,15 @@ pub struct GoogleCloudApigeeV1EnvironmentConfig {
 
 /// Request for ExpireAppGroupSubscription.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ExpireAppGroupSubscriptionRequest {}
+pub struct GoogleCloudApigeeV1ExpireAppGroupSubscriptionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request for ExpireDeveloperSubscription.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ExpireDeveloperSubscriptionRequest {}
+pub struct GoogleCloudApigeeV1ExpireDeveloperSubscriptionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request body for [CreateExportRequest]
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -759,7 +767,9 @@ pub struct GoogleCloudApigeeV1FlowHook {
 
 /// Request for GenerateDownloadUrl method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1GenerateDownloadUrlRequest {}
+pub struct GoogleCloudApigeeV1GenerateDownloadUrlRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for GenerateDownloadUrl method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -771,7 +781,9 @@ pub struct GoogleCloudApigeeV1GenerateDownloadUrlResponse {
 
 /// Request for GenerateUploadUrl method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1GenerateUploadUrlRequest {}
+pub struct GoogleCloudApigeeV1GenerateUploadUrlRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for GenerateUploadUrl method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -793,7 +805,9 @@ pub struct GoogleCloudApigeeV1GetAsyncQueryResultUrlResponse {
 
 /// Request for GetSyncAuthorization.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1GetSyncAuthorizationRequest {}
+pub struct GoogleCloudApigeeV1GetSyncAuthorizationRequest {
+    pub value: serde_json::Value,
+}
 
 /// GoogleCloudApigeeV1IngressConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1474,30 +1488,6 @@ pub struct GoogleCloudApigeeV1Organization {
     pub type_: ::core::option::Option<String>,
 }
 
-/// Checks for abuse, which includes any requests sent to the API for purposes other than what it is intended for, such as high volumes of requests, data scraping, and abuse related to authorization.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ProfileConfigAbuse {}
-
-/// By default, following policies will be included: - JWS - JWT - OAuth - BasicAuth - APIKey
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ProfileConfigAuthorization {}
-
-/// Checks to see if you have CORS policy in place.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ProfileConfigCORS {}
-
-/// Checks to see if you have configured mTLS for the target server.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ProfileConfigMTLS {}
-
-/// By default, following policies will be included: - OASValidation - SOAPMessageValidation
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ProfileConfigMediation {}
-
-/// By default, following policies will be included: - XMLThreatProtection - JSONThreatProtection
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ProfileConfigThreat {}
-
 /// Request for ProvisionOrganization.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1ProvisionOrganizationRequest {
@@ -1668,7 +1658,9 @@ pub struct GoogleCloudApigeeV1ReportInstanceStatusRequest {
 
 /// Placeholder for future enhancements to status reporting protocol
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1ReportInstanceStatusResponse {}
+pub struct GoogleCloudApigeeV1ReportInstanceStatusResponse {
+    pub value: serde_json::Value,
+}
 
 /// Runtime configuration for the organization. Response for GetRuntimeConfig.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1700,10 +1692,6 @@ pub struct GoogleCloudApigeeV1Schema {
     #[serde(default)]
     pub metrics: ::core::option::Option<::std::vec::Vec<GoogleCloudApigeeV1SchemaSchemaElement>>,
 }
-
-/// Message that should be set in case of an Allow Action. This does not have any fields.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudApigeeV1SecurityActionAllow {}
 
 /// SecurityActionsConfig reflects the current state of the SecurityActions feature. This is a singleton resource: https://google.aip.dev/156
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2044,7 +2032,9 @@ pub struct GoogleLongrunningListOperationsResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// A message type used to describe a single bundle validation error.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -3571,7 +3561,7 @@ pub struct GoogleCloudApigeeV1RatePlan {
 pub struct GoogleCloudApigeeV1SecurityAction {
     /// Allow a request through if it matches this SecurityAction.
     #[serde(default)]
-    pub allow: ::core::option::Option<serde_json::Value>,
+    pub allow: ::core::option::Option<GoogleCloudApigeeV1SecurityActionAllow>,
     /// Optional. If unset, this would apply to all proxies in the environment. If set, this action is enforced only if at least one proxy in the repeated list is deployed at the time of enforcement. If set, several restrictions are enforced on SecurityActions. There can be at most 100 enabled actions with proxies set in an env. Several other restrictions apply on conditions and are detailed later.
     #[serde(default, rename = "apiProxies")]
     pub api_proxies: ::core::option::Option<::std::vec::Vec<String>>,
@@ -3653,7 +3643,9 @@ pub struct GoogleCloudApigeeV1SecurityMonitoringCondition {
     >,
     /// Include all resources under the scope.
     #[serde(default, rename = "includeAllResources")]
-    pub include_all_resources: ::core::option::Option<serde_json::Value>,
+    pub include_all_resources: ::core::option::Option<
+        GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestIncludeAll,
+    >,
     /// Identifier. Name of the security monitoring condition resource. Format: organizations/{org}/securityMonitoringConditions/{security_monitoring_condition}
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -4859,6 +4851,12 @@ pub struct GoogleCloudApigeeV1RevenueShareRange {
     pub start: ::core::option::Option<String>,
 }
 
+/// Message that should be set in case of an Allow Action. This does not have any fields.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1SecurityActionAllow {
+    pub value: serde_json::Value,
+}
+
 /// The following are a list of conditions. A valid SecurityAction must contain at least one condition. Within a condition, each element is ORed. Across conditions elements are ANDed. For example if a SecurityAction has the following: ip_address_ranges: ["ip1", "ip2"] and bot_reasons: ["Flooder", "Robot Abuser"] then this is interpreted as: enforce the action if the incoming request has ((ip_address_ranges = "ip1" OR ip_address_ranges = "ip2") AND (bot_reasons="Flooder" OR bot_reasons="Robot Abuser")). Conditions other than ip_address_ranges and bot_reasons cannot be ANDed.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudApigeeV1SecurityActionConditionConfig {
@@ -4935,6 +4933,12 @@ pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResour
             GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResourceArrayResource,
         >,
     >,
+}
+
+/// Message for include_all_resources option.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestIncludeAll {
+    pub value: serde_json::Value,
 }
 
 /// Environment information of attached environments. Scoring an environment is enabled only if it is attached to a security profile.
@@ -5520,22 +5524,22 @@ pub struct GoogleCloudApigeeV1BatchComputeSecurityAssessmentResultsRequestResour
 pub struct GoogleCloudApigeeV1ProfileConfigCategory {
     /// Checks for abuse, which includes any requests sent to the API for purposes other than what it is intended for, such as high volumes of requests, data scraping, and abuse related to authorization.
     #[serde(default)]
-    pub abuse: ::core::option::Option<serde_json::Value>,
+    pub abuse: ::core::option::Option<GoogleCloudApigeeV1ProfileConfigAbuse>,
     /// Checks to see if you have an authorization policy in place.
     #[serde(default)]
-    pub authorization: ::core::option::Option<serde_json::Value>,
+    pub authorization: ::core::option::Option<GoogleCloudApigeeV1ProfileConfigAuthorization>,
     /// Checks to see if you have CORS policy in place.
     #[serde(default)]
-    pub cors: ::core::option::Option<serde_json::Value>,
+    pub cors: ::core::option::Option<GoogleCloudApigeeV1ProfileConfigCORS>,
     /// Checks to see if you have a mediation policy in place.
     #[serde(default)]
-    pub mediation: ::core::option::Option<serde_json::Value>,
+    pub mediation: ::core::option::Option<GoogleCloudApigeeV1ProfileConfigMediation>,
     /// Checks to see if you have configured mTLS for the target server.
     #[serde(default)]
-    pub mtls: ::core::option::Option<serde_json::Value>,
+    pub mtls: ::core::option::Option<GoogleCloudApigeeV1ProfileConfigMTLS>,
     /// Checks to see if you have a threat protection policy in place.
     #[serde(default)]
-    pub threat: ::core::option::Option<serde_json::Value>,
+    pub threat: ::core::option::Option<GoogleCloudApigeeV1ProfileConfigThreat>,
 }
 
 /// Details on why a resource update failed in the runtime.
@@ -5736,6 +5740,42 @@ pub struct GoogleTypeTimeOfDay {
     /// Seconds of a minute. Must be greater than or equal to 0 and typically must be less than or equal to 59. An API may allow the value 60 if it allows leap-seconds.
     #[serde(default)]
     pub seconds: ::core::option::Option<i32>,
+}
+
+/// Checks for abuse, which includes any requests sent to the API for purposes other than what it is intended for, such as high volumes of requests, data scraping, and abuse related to authorization.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ProfileConfigAbuse {
+    pub value: serde_json::Value,
+}
+
+/// By default, following policies will be included: - JWS - JWT - OAuth - BasicAuth - APIKey
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ProfileConfigAuthorization {
+    pub value: serde_json::Value,
+}
+
+/// Checks to see if you have CORS policy in place.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ProfileConfigCORS {
+    pub value: serde_json::Value,
+}
+
+/// By default, following policies will be included: - OASValidation - SOAPMessageValidation
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ProfileConfigMediation {
+    pub value: serde_json::Value,
+}
+
+/// Checks to see if you have configured mTLS for the target server.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ProfileConfigMTLS {
+    pub value: serde_json::Value,
+}
+
+/// By default, following policies will be included: - XMLThreatProtection - JSONThreatProtection
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudApigeeV1ProfileConfigThreat {
+    pub value: serde_json::Value,
 }
 
 /// Action context are all the relevant details for the action.

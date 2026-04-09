@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,17 @@ use serde::Serialize;
 
 pub fn mybusinessverifications_locations_fetch_verification_options_builder(
     client: &SimpleHttpClient,
-    location: &str,
+    location: String,
     body: &FetchVerificationOptionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://mybusinessverifications.googleapis.com/v1/locations/{}:fetchVerificationOptions",
-        location,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -72,8 +72,9 @@ pub fn mybusinessverifications_locations_fetch_verification_options_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<FetchVerificationOptionsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<FetchVerificationOptionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -187,7 +188,7 @@ pub fn mybusinessverifications_locations_fetch_verification_options(
 > {
     let builder = mybusinessverifications_locations_fetch_verification_options_builder(
         client,
-        &args.location,
+        args.location.clone(),
         &args.body,
     )?;
     mybusinessverifications_locations_fetch_verification_options_execute(builder)
@@ -201,17 +202,16 @@ pub fn mybusinessverifications_locations_fetch_verification_options(
 
 pub fn mybusinessverifications_locations_get_voice_of_merchant_state_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://mybusinessverifications.googleapis.com/v1/locations/{}/VoiceOfMerchantState",
-        name,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -241,8 +241,11 @@ pub fn mybusinessverifications_locations_get_voice_of_merchant_state_builder(
 pub fn mybusinessverifications_locations_get_voice_of_merchant_state_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<VoiceOfMerchantState>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VoiceOfMerchantState>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -347,8 +350,10 @@ pub fn mybusinessverifications_locations_get_voice_of_merchant_state(
         + 'static,
     ApiError,
 > {
-    let builder =
-        mybusinessverifications_locations_get_voice_of_merchant_state_builder(client, &args.name)?;
+    let builder = mybusinessverifications_locations_get_voice_of_merchant_state_builder(
+        client,
+        args.name.clone(),
+    )?;
     mybusinessverifications_locations_get_voice_of_merchant_state_execute(builder)
 }
 
@@ -360,18 +365,16 @@ pub fn mybusinessverifications_locations_get_voice_of_merchant_state(
 
 pub fn mybusinessverifications_locations_verify_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &VerifyLocationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://mybusinessverifications.googleapis.com/v1/locations/{}:verify",
-        name,
-    );
+    let endpoint_url =
+        format!("https://mybusinessverifications.googleapis.com/v1/locations/{}:verify",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -403,8 +406,11 @@ pub fn mybusinessverifications_locations_verify_builder(
 pub fn mybusinessverifications_locations_verify_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<VerifyLocationResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VerifyLocationResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -511,179 +517,9 @@ pub fn mybusinessverifications_locations_verify(
         + 'static,
     ApiError,
 > {
-    let builder = mybusinessverifications_locations_verify_builder(client, &args.name, &args.body)?;
+    let builder =
+        mybusinessverifications_locations_verify_builder(client, args.name.clone(), &args.body)?;
     mybusinessverifications_locations_verify_execute(builder)
-}
-
-/// GET v1/locations/{locationsId}/verifications/{verificationsId}:complete
-/// Completes a `PENDING` verification. It is only necessary for non AUTO verification methods. AUTO verification request is instantly VERIFIED upon creation.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `mybusinessverifications_locations_verifications_complete_execute()` to send, or `mybusinessverifications_locations_verifications_complete` for simplest API.
-
-pub fn mybusinessverifications_locations_verifications_complete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &CompleteVerificationRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://mybusinessverifications.googleapis.com/v1/locations/{}/verifications/{}:complete",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/locations/{locationsId}/verifications/{verificationsId}:complete
-/// Completes a `PENDING` verification. It is only necessary for non AUTO verification methods. AUTO verification request is instantly VERIFIED upon creation.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `mybusinessverifications_locations_verifications_complete_execute()` or `mybusinessverifications_locations_verifications_complete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessverifications_locations_verifications_complete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn mybusinessverifications_locations_verifications_complete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<CompleteVerificationResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CompleteVerificationResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/locations/{locationsId}/verifications/{verificationsId}:complete
-/// Completes a `PENDING` verification. It is only necessary for non AUTO verification methods. AUTO verification request is instantly VERIFIED upon creation.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `mybusinessverifications_locations_verifications_complete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `mybusinessverifications_locations_verifications_complete_task()`.
-/// For the simplest API, use `mybusinessverifications_locations_verifications_complete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `mybusinessverifications_locations_verifications_complete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn mybusinessverifications_locations_verifications_complete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<CompleteVerificationResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = mybusinessverifications_locations_verifications_complete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`mybusinessverifications_locations_verifications_complete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct MybusinessverificationsLocationsVerificationsCompleteArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: CompleteVerificationRequest,
-}
-
-/// GET v1/locations/{locationsId}/verifications/{verificationsId}:complete
-/// Completes a `PENDING` verification. It is only necessary for non AUTO verification methods. AUTO verification request is instantly VERIFIED upon creation.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `mybusinessverifications_locations_verifications_complete_builder()` + `mybusinessverifications_locations_verifications_complete_execute()`.
-/// For task-level control, use `mybusinessverifications_locations_verifications_complete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn mybusinessverifications_locations_verifications_complete(
-    client: &SimpleHttpClient,
-    args: &MybusinessverificationsLocationsVerificationsCompleteArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<CompleteVerificationResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = mybusinessverifications_locations_verifications_complete_builder(
-        client, &args.name, &args.body,
-    )?;
-    mybusinessverifications_locations_verifications_complete_execute(builder)
 }
 
 /// GET v1/locations/{locationsId}/verifications
@@ -694,15 +530,13 @@ pub fn mybusinessverifications_locations_verifications_complete(
 
 pub fn mybusinessverifications_locations_verifications_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://mybusinessverifications.googleapis.com/v1/locations/{}/verifications",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://mybusinessverifications.googleapis.com/v1/locations/{}/verifications",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -714,9 +548,9 @@ pub fn mybusinessverifications_locations_verifications_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -750,8 +584,11 @@ pub fn mybusinessverifications_locations_verifications_list_builder(
 pub fn mybusinessverifications_locations_verifications_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListVerificationsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListVerificationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -862,9 +699,9 @@ pub fn mybusinessverifications_locations_verifications_list(
 > {
     let builder = mybusinessverifications_locations_verifications_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     mybusinessverifications_locations_verifications_list_execute(builder)
 }
@@ -880,12 +717,12 @@ pub fn mybusinessverifications_verification_tokens_generate_builder(
     body: &GenerateInstantVerificationTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://mybusinessverifications.googleapis.com/v1/verificationTokens:generate",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -918,8 +755,9 @@ pub fn mybusinessverifications_verification_tokens_generate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GenerateInstantVerificationTokenResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GenerateInstantVerificationTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,

@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// Response message for deleting error events.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteEventsResponse {}
+pub struct DeleteEventsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Contains a set of requested error events.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,7 +47,9 @@ pub struct ListGroupStatsResponse {
 
 /// Response for reporting an individual error event. Data may be added to this message in the future.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReportErrorEventResponse {}
+pub struct ReportErrorEventResponse {
+    pub value: serde_json::Value,
+}
 
 /// An error event which is reported to the Error Reporting system.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

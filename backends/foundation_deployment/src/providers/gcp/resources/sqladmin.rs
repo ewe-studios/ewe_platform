@@ -85,7 +85,9 @@ pub struct DatabasesListResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The request payload used to execute SQL statements.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -505,7 +507,9 @@ pub struct SqlInstancesRescheduleMaintenanceRequestBody {
 
 /// Instance reset replica size request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlInstancesResetReplicaSizeRequest {}
+pub struct SqlInstancesResetReplicaSizeRequest {
+    pub value: serde_json::Value,
+}
 
 /// Instance start external sync request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

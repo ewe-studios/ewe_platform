@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Export data from Parallelstore to Cloud Storage.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -37,7 +39,9 @@ pub struct ExportDataRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// Import data from Cloud Storage into a Parallelstore instance.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

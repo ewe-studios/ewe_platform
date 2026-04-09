@@ -71,7 +71,9 @@ pub struct AndroidAppConfig {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// FinalizeDefaultLocationRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -166,10 +168,6 @@ pub struct ListWebAppsResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// This is proto2''s version of MessageSet. DEPRECATED: DO NOT USE FOR NEW FIELDS. If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead. MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2. This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MessageSet {}
-
 /// This resource represents a long-running operation that is the result of a network API call.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
@@ -192,7 +190,9 @@ pub struct Operation {
 
 /// Describes the progress of an LRO. It is included in the metadata field of the Operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OperationMetadata {}
+pub struct OperationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata about a long-running Product operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -286,7 +286,7 @@ pub struct StatusProto {
     pub message: ::core::option::Option<String>,
     /// message_set associates an arbitrary proto message with the status. copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional proto2.bridge.MessageSet message_set = 5;
     #[serde(default, rename = "messageSet")]
-    pub message_set: ::core::option::Option<serde_json::Value>,
+    pub message_set: ::core::option::Option<MessageSet>,
     /// copybara:strip_begin(b/383363683) Space to which this status belongs copybara:strip_end_and_replace optional string space = 2; // Space to which this status belongs
     #[serde(default)]
     pub space: ::core::option::Option<String>,
@@ -617,6 +617,12 @@ pub struct FirebaseAppInfo {
     /// Output only. The lifecycle state of the App. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "DELETED"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
+}
+
+/// This is proto2''s version of MessageSet. DEPRECATED: DO NOT USE FOR NEW FIELDS. If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead. MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2. This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MessageSet {
+    pub value: serde_json::Value,
 }
 
 /// **DEPRECATED.** _Auto-provisioning of these resources is changing, so this object no longer reliably provides information about the resources within the Project. Instead, retrieve information about each resource directly from its resource-specific API._ The default auto-provisioned resources associated with the Project.

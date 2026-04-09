@@ -46,11 +46,15 @@ pub struct AddMatterPermissionsRequest {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Close a matter by ID.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloseMatterRequest {}
+pub struct CloseMatterRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response to a CloseMatterRequest.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -104,15 +108,9 @@ pub struct CountArtifactsResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// Additional options for Gemini search
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GeminiOptions {}
-
-/// Options for Calendar holds.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct HeldCalendarQuery {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The exports for a matter.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -206,7 +204,9 @@ pub struct RemoveMatterPermissionsRequest {
 
 /// Reopen a matter by ID.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReopenMatterRequest {}
+pub struct ReopenMatterRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response to a ReopenMatterRequest.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -218,7 +218,9 @@ pub struct ReopenMatterResponse {
 
 /// Undelete a matter by ID.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UndeleteMatterRequest {}
+pub struct UndeleteMatterRequest {
+    pub value: serde_json::Value,
+}
 
 /// The status of each account creation, and the **HeldAccount**, if successful.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -507,7 +509,7 @@ pub struct HeldOrgUnit {
 pub struct CorpusQuery {
     /// Service-specific options for Calendar holds. If set, **CorpusType** must be **CALENDAR**.
     #[serde(default, rename = "calendarQuery")]
-    pub calendar_query: ::core::option::Option<serde_json::Value>,
+    pub calendar_query: ::core::option::Option<HeldCalendarQuery>,
     /// Service-specific options for Drive holds. If set, **CorpusType** must be **DRIVE**.
     #[serde(default, rename = "driveQuery")]
     pub drive_query: ::core::option::Option<HeldDriveQuery>,
@@ -565,7 +567,7 @@ pub struct Query {
     pub end_time: ::core::option::Option<String>,
     /// Set Gemini search-specific options.
     #[serde(default, rename = "geminiOptions")]
-    pub gemini_options: ::core::option::Option<serde_json::Value>,
+    pub gemini_options: ::core::option::Option<GeminiOptions>,
     /// Required when **SearchMethod** is **ROOM**. (read-only)
     #[serde(default, rename = "hangoutsChatInfo")]
     pub hangouts_chat_info: ::core::option::Option<HangoutsChatInfo>,
@@ -711,6 +713,12 @@ pub struct VoiceExportOptions {
     pub export_format: ::core::option::Option<String>,
 }
 
+/// Options for Calendar holds.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HeldCalendarQuery {
+    pub value: serde_json::Value,
+}
+
 /// Options for Drive holds.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeldDriveQuery {
@@ -820,6 +828,12 @@ pub struct DriveOptions {
     /// Search the current version of the Drive file, but export the contents of the last version saved before 12:00 AM UTC on the specified date. Enter the date in UTC.
     #[serde(default, rename = "versionDate")]
     pub version_date: ::core::option::Option<String>,
+}
+
+/// Additional options for Gemini search
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GeminiOptions {
+    pub value: serde_json::Value,
 }
 
 /// The Chat spaces to search

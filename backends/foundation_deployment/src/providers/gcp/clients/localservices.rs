@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -32,25 +33,25 @@ pub fn localservices_account_reports_search_builder(
     endDate_month: Option<i32>,
     endDate_year: Option<i32>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    pageToken: Option<String>,
+    query: Option<String>,
     startDate_day: Option<i32>,
     startDate_month: Option<i32>,
     startDate_year: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://localservices.googleapis.com/v1/accountReports:search",);
+    let endpoint_url = format!("https://localservices.googleapis.com/v1/accountReports:search",);
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = endDate_day {
-        query_parts.push(format!("endDate_day={}", val));
+        query_parts.push(format!("endDate.day={}", val));
     }
     if let Some(val) = endDate_month {
-        query_parts.push(format!("endDate_month={}", val));
+        query_parts.push(format!("endDate.month={}", val));
     }
     if let Some(val) = endDate_year {
-        query_parts.push(format!("endDate_year={}", val));
+        query_parts.push(format!("endDate.year={}", val));
     }
     if let Some(val) = pageSize {
         query_parts.push(format!("pageSize={}", val));
@@ -62,19 +63,19 @@ pub fn localservices_account_reports_search_builder(
         query_parts.push(format!("query={}", val));
     }
     if let Some(val) = startDate_day {
-        query_parts.push(format!("startDate_day={}", val));
+        query_parts.push(format!("startDate.day={}", val));
     }
     if let Some(val) = startDate_month {
-        query_parts.push(format!("startDate_month={}", val));
+        query_parts.push(format!("startDate.month={}", val));
     }
     if let Some(val) = startDate_year {
-        query_parts.push(format!("startDate_year={}", val));
+        query_parts.push(format!("startDate.year={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -109,11 +110,12 @@ pub fn localservices_account_reports_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleAdsHomeservicesLocalservicesV1SearchAccountReportsResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -248,15 +250,15 @@ pub fn localservices_account_reports_search(
 > {
     let builder = localservices_account_reports_search_builder(
         client,
-        args.endDate_day,
-        args.endDate_month,
-        args.endDate_year,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.query.as_deref(),
-        args.startDate_day,
-        args.startDate_month,
-        args.startDate_year,
+        args.endDate_day.clone(),
+        args.endDate_month.clone(),
+        args.endDate_year.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.query.clone(),
+        args.startDate_day.clone(),
+        args.startDate_month.clone(),
+        args.startDate_year.clone(),
     )?;
     localservices_account_reports_search_execute(builder)
 }
@@ -273,25 +275,26 @@ pub fn localservices_detailed_lead_reports_search_builder(
     endDate_month: Option<i32>,
     endDate_year: Option<i32>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    pageToken: Option<String>,
+    query: Option<String>,
     startDate_day: Option<i32>,
     startDate_month: Option<i32>,
     startDate_year: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://localservices.googleapis.com/v1/detailedLeadReports:search",);
+    let endpoint_url =
+        format!("https://localservices.googleapis.com/v1/detailedLeadReports:search",);
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = endDate_day {
-        query_parts.push(format!("endDate_day={}", val));
+        query_parts.push(format!("endDate.day={}", val));
     }
     if let Some(val) = endDate_month {
-        query_parts.push(format!("endDate_month={}", val));
+        query_parts.push(format!("endDate.month={}", val));
     }
     if let Some(val) = endDate_year {
-        query_parts.push(format!("endDate_year={}", val));
+        query_parts.push(format!("endDate.year={}", val));
     }
     if let Some(val) = pageSize {
         query_parts.push(format!("pageSize={}", val));
@@ -303,19 +306,19 @@ pub fn localservices_detailed_lead_reports_search_builder(
         query_parts.push(format!("query={}", val));
     }
     if let Some(val) = startDate_day {
-        query_parts.push(format!("startDate_day={}", val));
+        query_parts.push(format!("startDate.day={}", val));
     }
     if let Some(val) = startDate_month {
-        query_parts.push(format!("startDate_month={}", val));
+        query_parts.push(format!("startDate.month={}", val));
     }
     if let Some(val) = startDate_year {
-        query_parts.push(format!("startDate_year={}", val));
+        query_parts.push(format!("startDate.year={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -350,11 +353,12 @@ pub fn localservices_detailed_lead_reports_search_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -488,15 +492,15 @@ pub fn localservices_detailed_lead_reports_search(
 > {
     let builder = localservices_detailed_lead_reports_search_builder(
         client,
-        args.endDate_day,
-        args.endDate_month,
-        args.endDate_year,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.query.as_deref(),
-        args.startDate_day,
-        args.startDate_month,
-        args.startDate_year,
+        args.endDate_day.clone(),
+        args.endDate_month.clone(),
+        args.endDate_year.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.query.clone(),
+        args.startDate_day.clone(),
+        args.startDate_month.clone(),
+        args.startDate_year.clone(),
     )?;
     localservices_detailed_lead_reports_search_execute(builder)
 }

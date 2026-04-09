@@ -24,39 +24,57 @@ pub struct DetachLunRequest {
 
 /// Message requesting to perform disable hyperthreading operation on a server.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisableHyperthreadingRequest {}
+pub struct DisableHyperthreadingRequest {
+    pub value: serde_json::Value,
+}
 
 /// Message for disabling the interactive serial console on an instance.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisableInteractiveSerialConsoleRequest {}
+pub struct DisableInteractiveSerialConsoleRequest {
+    pub value: serde_json::Value,
+}
 
 /// Message for response of DisableInteractiveSerialConsole.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisableInteractiveSerialConsoleResponse {}
+pub struct DisableInteractiveSerialConsoleResponse {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Message requesting to perform enable hyperthreading operation on a server.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnableHyperthreadingRequest {}
+pub struct EnableHyperthreadingRequest {
+    pub value: serde_json::Value,
+}
 
 /// Message for enabling the interactive serial console on an instance.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnableInteractiveSerialConsoleRequest {}
+pub struct EnableInteractiveSerialConsoleRequest {
+    pub value: serde_json::Value,
+}
 
 /// Message for response of EnableInteractiveSerialConsole.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnableInteractiveSerialConsoleResponse {}
+pub struct EnableInteractiveSerialConsoleResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request for skip lun cooloff and delete it.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EvictLunRequest {}
+pub struct EvictLunRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request for skip volume cooloff and delete it.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EvictVolumeRequest {}
+pub struct EvictVolumeRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for the list of servers.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -273,11 +291,15 @@ pub struct RenameVolumeRequest {
 
 /// Message requesting to reset a server.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResetInstanceRequest {}
+pub struct ResetInstanceRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message from resetting a server.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResetInstanceResponse {}
+pub struct ResetInstanceResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request for emergency resize Volume.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -289,7 +311,9 @@ pub struct ResizeVolumeRequest {
 
 /// Message for restoring a volume snapshot.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestoreVolumeSnapshotRequest {}
+pub struct RestoreVolumeSnapshotRequest {
+    pub value: serde_json::Value,
+}
 
 /// Network template.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -309,19 +333,27 @@ pub struct ServerNetworkTemplate {
 
 /// Message requesting to start a server.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StartInstanceRequest {}
+pub struct StartInstanceRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message from starting a server.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StartInstanceResponse {}
+pub struct StartInstanceResponse {
+    pub value: serde_json::Value,
+}
 
 /// Message requesting to stop a server.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopInstanceRequest {}
+pub struct StopInstanceRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message from stopping a server.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopInstanceResponse {}
+pub struct StopInstanceResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request for SubmitProvisioningConfig.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

@@ -83,39 +83,57 @@ pub struct CreateProjectMetadata {
 
 /// Runtime operation information for creating a TagValue.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateTagBindingMetadata {}
+pub struct CreateTagBindingMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Runtime operation information for creating a TagKey.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateTagKeyMetadata {}
+pub struct CreateTagKeyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Runtime operation information for creating a TagValue.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateTagValueMetadata {}
+pub struct CreateTagValueMetadata {
+    pub value: serde_json::Value,
+}
 
 /// A status object which is used as the metadata field for the Operation returned by DeleteFolder.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteFolderMetadata {}
+pub struct DeleteFolderMetadata {
+    pub value: serde_json::Value,
+}
 
 /// A status object which is used as the metadata field for the operation returned by DeleteOrganization.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteOrganizationMetadata {}
+pub struct DeleteOrganizationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// A status object which is used as the metadata field for the Operation returned by DeleteProject.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteProjectMetadata {}
+pub struct DeleteProjectMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Runtime operation information for deleting a TagBinding.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteTagBindingMetadata {}
+pub struct DeleteTagBindingMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Runtime operation information for deleting a TagKey.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteTagKeyMetadata {}
+pub struct DeleteTagKeyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Runtime operation information for deleting a TagValue.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteTagValueMetadata {}
+pub struct DeleteTagValueMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Represents a collection of effective tag bindings for a GCP resource.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -133,7 +151,9 @@ pub struct EffectiveTagBindingCollection {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Metadata describing a long running folder operation
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -280,7 +300,9 @@ pub struct MoveFolderRequest {
 
 /// A status object which is used as the metadata field for the Operation returned by MoveProject.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MoveProjectMetadata {}
+pub struct MoveProjectMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request sent to MoveProject method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -403,39 +425,57 @@ pub struct TestIamPermissionsResponse {
 
 /// A status object which is used as the metadata field for the Operation returned by UndeleteFolder.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UndeleteFolderMetadata {}
+pub struct UndeleteFolderMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The UndeleteFolder request message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UndeleteFolderRequest {}
+pub struct UndeleteFolderRequest {
+    pub value: serde_json::Value,
+}
 
 /// A status object which is used as the metadata field for the Operation returned by UndeleteOrganization.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UndeleteOrganizationMetadata {}
+pub struct UndeleteOrganizationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// A status object which is used as the metadata field for the Operation returned by UndeleteProject.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UndeleteProjectMetadata {}
+pub struct UndeleteProjectMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request sent to the UndeleteProject method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UndeleteProjectRequest {}
+pub struct UndeleteProjectRequest {
+    pub value: serde_json::Value,
+}
 
 /// A status object which is used as the metadata field for the Operation returned by UpdateFolder.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateFolderMetadata {}
+pub struct UpdateFolderMetadata {
+    pub value: serde_json::Value,
+}
 
 /// A status object which is used as the metadata field for the Operation returned by UpdateProject.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateProjectMetadata {}
+pub struct UpdateProjectMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Runtime operation information for updating a TagKey.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateTagKeyMetadata {}
+pub struct UpdateTagKeyMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Runtime operation information for updating a TagValue.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateTagValueMetadata {}
+pub struct UpdateTagValueMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Encapsulates settings provided to GetIamPolicy.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

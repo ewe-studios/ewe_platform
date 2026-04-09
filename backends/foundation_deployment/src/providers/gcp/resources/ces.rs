@@ -11,10 +11,6 @@ use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// Default agent type. The agent uses instructions and callbacks specified in the agent to perform the task using a large language model.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgentLlmAgent {}
-
 /// Request message for AgentService.BatchDeleteConversations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteConversationsRequest {
@@ -25,11 +21,15 @@ pub struct BatchDeleteConversationsRequest {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ToolService.ExecuteTool.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -376,7 +376,9 @@ pub struct OperationMetadata {
 
 /// Request message for AgentService.RestoreAppVersion
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestoreAppVersionRequest {}
+pub struct RestoreAppVersionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for ToolService.RetrieveToolSchema.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -460,10 +462,6 @@ pub struct SecuritySettings {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
-
-/// Configurations for authentication with [ID token](https://cloud.google.com/docs/authentication/token-types#id) generated from service agent.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ServiceAgentIdTokenAuthConfig {}
 
 /// Configuration for how the agent response should be synthesized.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1013,7 +1011,7 @@ pub struct Agent {
     pub instruction: ::core::option::Option<String>,
     /// Optional. The default agent type.
     #[serde(default, rename = "llmAgent")]
-    pub llm_agent: ::core::option::Option<serde_json::Value>,
+    pub llm_agent: ::core::option::Option<AgentLlmAgent>,
     /// Optional. Configurations for the LLM model.
     #[serde(default, rename = "modelSettings")]
     pub model_settings: ::core::option::Option<ModelSettings>,
@@ -1343,6 +1341,12 @@ pub struct WebSearchQuery {
     /// The URI to the Google Search results page for the query.
     #[serde(default)]
     pub uri: ::core::option::Option<String>,
+}
+
+/// Default agent type. The agent uses instructions and callbacks specified in the agent to perform the task using a large language model.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AgentLlmAgent {
+    pub value: serde_json::Value,
 }
 
 /// The agent which will transfer execution to a remote [Dialogflow CX](https://docs.cloud.google.com/dialogflow/cx/docs/concept/agent) agent. The Dialogflow agent will process subsequent user queries until the session ends or flow ends, and the control is transferred back to the parent CES agent.
@@ -2377,7 +2381,7 @@ pub struct ApiAuthentication {
     pub service_account_auth_config: ::core::option::Option<ServiceAccountAuthConfig>,
     /// Optional. Config for ID token auth generated from CES service agent.
     #[serde(default, rename = "serviceAgentIdTokenAuthConfig")]
-    pub service_agent_id_token_auth_config: ::core::option::Option<serde_json::Value>,
+    pub service_agent_id_token_auth_config: ::core::option::Option<ServiceAgentIdTokenAuthConfig>,
 }
 
 /// Configuration for tools using Service Directory.
@@ -2709,6 +2713,12 @@ pub struct ServiceAccountAuthConfig {
     /// Required. The email address of the service account used for authentication. CES uses this service account to exchange an access token and the access token is then sent in the Authorization header of the request. The service account must have the roles/iam.serviceAccountTokenCreator role granted to the CES service agent service-@gcp-sa-ces.iam.gserviceaccount.com.
     #[serde(default, rename = "serviceAccount")]
     pub service_account: ::core::option::Option<String>,
+}
+
+/// Configurations for authentication with [ID token](https://cloud.google.com/docs/authentication/token-types#id) generated from service agent.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceAgentIdTokenAuthConfig {
+    pub value: serde_json::Value,
 }
 
 /// The CA certificate.

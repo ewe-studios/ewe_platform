@@ -304,7 +304,9 @@ pub struct GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse {
 
 /// Request for the Deprovision rpc
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaDeprovisionClientRequest {}
+pub struct GoogleCloudIntegrationsV1alphaDeprovisionClientRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for downloading an execution.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -428,7 +430,9 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteTestCaseRequest {
 
 /// Request for ExecuteTestCases.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaExecuteTestCasesRequest {}
+pub struct GoogleCloudIntegrationsV1alphaExecuteTestCasesRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for ExecuteTestCases.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -710,7 +714,9 @@ pub struct GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorRequest {
 
 /// Response for PostProvisioning rpc call.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse {}
+pub struct GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request for the Provision rpc
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -748,7 +754,9 @@ pub struct GoogleCloudIntegrationsV1alphaPublishIntegrationVersionRequest {
 
 /// Response for PublishIntegrationVersion.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse {}
+pub struct GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request for the ReplaceServiceAccount rpc
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -799,7 +807,9 @@ pub struct GoogleCloudIntegrationsV1alphaResolveSuspensionRequest {
 
 /// Response for Suspensions.ResolveSuspensions.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaResolveSuspensionResponse {}
+pub struct GoogleCloudIntegrationsV1alphaResolveSuspensionResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request for scheduling an integration.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -896,7 +906,9 @@ pub struct GoogleCloudIntegrationsV1alphaSwitchVariableMaskingRequest {
 
 /// Request for TakeoverEditLock.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaTakeoverEditLockRequest {}
+pub struct GoogleCloudIntegrationsV1alphaTakeoverEditLockRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for TakeoverEditLock.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -909,7 +921,9 @@ pub struct GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse {
 
 /// Request for TakeoverTestCaseEditLock.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaTakeoverTestCaseEditLockRequest {}
+pub struct GoogleCloudIntegrationsV1alphaTakeoverTestCaseEditLockRequest {
+    pub value: serde_json::Value,
+}
 
 /// The request for testing an integration.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -973,7 +987,9 @@ pub struct GoogleCloudIntegrationsV1alphaToggleHttpRequest {
 
 /// Request for UnpublishIntegrationVersion.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudIntegrationsV1alphaUnpublishIntegrationVersionRequest {}
+pub struct GoogleCloudIntegrationsV1alphaUnpublishIntegrationVersionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request to Unshare template
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1071,7 +1087,9 @@ pub struct GoogleCloudIntegrationsV1alphaUseTemplateResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// EnterpriseCrmEventbusProtoConnectorsConnection resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

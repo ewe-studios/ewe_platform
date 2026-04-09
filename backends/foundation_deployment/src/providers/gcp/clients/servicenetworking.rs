@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,15 @@ use serde::Serialize;
 
 pub fn servicenetworking_operations_cancel_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
     body: &CancelOperationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/operations/{}:cancel",
-        name,
-    );
+    let endpoint_url = format!("https://servicenetworking.googleapis.com/v1/operations/{}:cancel",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -71,7 +69,12 @@ pub fn servicenetworking_operations_cancel_builder(
 pub fn servicenetworking_operations_cancel_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -173,7 +176,8 @@ pub fn servicenetworking_operations_cancel(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_operations_cancel_builder(client, &args.name, &args.body)?;
+    let builder =
+        servicenetworking_operations_cancel_builder(client, args.name.clone(), &args.body)?;
     servicenetworking_operations_cancel_execute(builder)
 }
 
@@ -185,17 +189,14 @@ pub fn servicenetworking_operations_cancel(
 
 pub fn servicenetworking_operations_delete_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/operations/{}",
-        name,
-    );
+    let endpoint_url = format!("https://servicenetworking.googleapis.com/v1/operations/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -225,7 +226,12 @@ pub fn servicenetworking_operations_delete_builder(
 pub fn servicenetworking_operations_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -325,515 +331,8 @@ pub fn servicenetworking_operations_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_operations_delete_builder(client, &args.name)?;
+    let builder = servicenetworking_operations_delete_builder(client, args.name.clone())?;
     servicenetworking_operations_delete_execute(builder)
-}
-
-/// GET v1/operations/{operationsId}
-/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicenetworking_operations_get_execute()` to send, or `servicenetworking_operations_get` for simplest API.
-
-pub fn servicenetworking_operations_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/operations/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/operations/{operationsId}
-/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicenetworking_operations_get_execute()` or `servicenetworking_operations_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_operations_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_operations_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/operations/{operationsId}
-/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicenetworking_operations_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicenetworking_operations_get_task()`.
-/// For the simplest API, use `servicenetworking_operations_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_operations_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicenetworking_operations_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = servicenetworking_operations_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicenetworking_operations_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicenetworkingOperationsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/operations/{operationsId}
-/// Gets the latest state of a long-running operation. Clients can use this method to poll the operation result at intervals as recommended by the API service.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicenetworking_operations_get_builder()` + `servicenetworking_operations_get_execute()`.
-/// For task-level control, use `servicenetworking_operations_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_operations_get(
-    client: &SimpleHttpClient,
-    args: &ServicenetworkingOperationsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = servicenetworking_operations_get_builder(client, &args.name)?;
-    servicenetworking_operations_get_execute(builder)
-}
-
-/// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicenetworking_operations_list_execute()` to send, or `servicenetworking_operations_list` for simplest API.
-
-pub fn servicenetworking_operations_list_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    filter: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    returnPartialSuccess: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/operations",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = returnPartialSuccess {
-        query_parts.push(format!("returnPartialSuccess={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicenetworking_operations_list_execute()` or `servicenetworking_operations_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_operations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_operations_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListOperationsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicenetworking_operations_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicenetworking_operations_list_task()`.
-/// For the simplest API, use `servicenetworking_operations_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_operations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicenetworking_operations_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = servicenetworking_operations_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicenetworking_operations_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicenetworkingOperationsListArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: returnPartialSuccess
-    pub returnPartialSuccess: Option<bool>,
-}
-
-/// GET v1/operations
-/// Lists operations that match the specified filter in the request. If the server doesn't support this method, it returns UNIMPLEMENTED.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicenetworking_operations_list_builder()` + `servicenetworking_operations_list_execute()`.
-/// For task-level control, use `servicenetworking_operations_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_operations_list(
-    client: &SimpleHttpClient,
-    args: &ServicenetworkingOperationsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = servicenetworking_operations_list_builder(
-        client,
-        &args.name,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.returnPartialSuccess,
-    )?;
-    servicenetworking_operations_list_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/{servicesId1}/{servicesId2}:addSubnetwork
-/// For service producers, provisions a new subnet in a peered service's shared VPC network in the requested region and with the requested size that's expressed as a CIDR range (number of leading bits of `ipV4` network mask). The method checks against the assigned allocated ranges to find a non-conflicting IP address range. The method will reuse a subnet if subsequent calls contain the same subnet name, region, and prefix length. This method will make producer's tenant project to be a shared VPC service project as needed.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicenetworking_services_add_subnetwork_execute()` to send, or `servicenetworking_services_add_subnetwork` for simplest API.
-
-pub fn servicenetworking_services_add_subnetwork_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    body: &AddSubnetworkRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/{}/{}:addSubnetwork",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/services/{servicesId}/{servicesId1}/{servicesId2}:addSubnetwork
-/// For service producers, provisions a new subnet in a peered service's shared VPC network in the requested region and with the requested size that's expressed as a CIDR range (number of leading bits of `ipV4` network mask). The method checks against the assigned allocated ranges to find a non-conflicting IP address range. The method will reuse a subnet if subsequent calls contain the same subnet name, region, and prefix length. This method will make producer's tenant project to be a shared VPC service project as needed.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicenetworking_services_add_subnetwork_execute()` or `servicenetworking_services_add_subnetwork`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_add_subnetwork_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_add_subnetwork_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/{servicesId1}/{servicesId2}:addSubnetwork
-/// For service producers, provisions a new subnet in a peered service's shared VPC network in the requested region and with the requested size that's expressed as a CIDR range (number of leading bits of `ipV4` network mask). The method checks against the assigned allocated ranges to find a non-conflicting IP address range. The method will reuse a subnet if subsequent calls contain the same subnet name, region, and prefix length. This method will make producer's tenant project to be a shared VPC service project as needed.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicenetworking_services_add_subnetwork_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicenetworking_services_add_subnetwork_task()`.
-/// For the simplest API, use `servicenetworking_services_add_subnetwork()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_add_subnetwork_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicenetworking_services_add_subnetwork_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = servicenetworking_services_add_subnetwork_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicenetworking_services_add_subnetwork`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicenetworkingServicesAddSubnetworkArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Request body.
-    pub body: AddSubnetworkRequest,
-}
-
-/// GET v1/services/{servicesId}/{servicesId1}/{servicesId2}:addSubnetwork
-/// For service producers, provisions a new subnet in a peered service's shared VPC network in the requested region and with the requested size that's expressed as a CIDR range (number of leading bits of `ipV4` network mask). The method checks against the assigned allocated ranges to find a non-conflicting IP address range. The method will reuse a subnet if subsequent calls contain the same subnet name, region, and prefix length. This method will make producer's tenant project to be a shared VPC service project as needed.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicenetworking_services_add_subnetwork_builder()` + `servicenetworking_services_add_subnetwork_execute()`.
-/// For task-level control, use `servicenetworking_services_add_subnetwork_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_add_subnetwork(
-    client: &SimpleHttpClient,
-    args: &ServicenetworkingServicesAddSubnetworkArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        servicenetworking_services_add_subnetwork_builder(client, &args.parent, &args.body)?;
-    servicenetworking_services_add_subnetwork_execute(builder)
 }
 
 /// GET v1/services/{servicesId}:disableVpcServiceControls
@@ -844,18 +343,17 @@ pub fn servicenetworking_services_add_subnetwork(
 
 pub fn servicenetworking_services_disable_vpc_service_controls_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &DisableVpcServiceControlsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}:disableVpcServiceControls",
-        parent,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -887,7 +385,12 @@ pub fn servicenetworking_services_disable_vpc_service_controls_builder(
 pub fn servicenetworking_services_disable_vpc_service_controls_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -991,7 +494,7 @@ pub fn servicenetworking_services_disable_vpc_service_controls(
 > {
     let builder = servicenetworking_services_disable_vpc_service_controls_builder(
         client,
-        &args.parent,
+        args.parent.clone(),
         &args.body,
     )?;
     servicenetworking_services_disable_vpc_service_controls_execute(builder)
@@ -1005,18 +508,17 @@ pub fn servicenetworking_services_disable_vpc_service_controls(
 
 pub fn servicenetworking_services_enable_vpc_service_controls_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &EnableVpcServiceControlsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://servicenetworking.googleapis.com/v1/services/{}:enableVpcServiceControls",
-        parent,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1048,7 +550,12 @@ pub fn servicenetworking_services_enable_vpc_service_controls_builder(
 pub fn servicenetworking_services_enable_vpc_service_controls_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1152,7 +659,7 @@ pub fn servicenetworking_services_enable_vpc_service_controls(
 > {
     let builder = servicenetworking_services_enable_vpc_service_controls_builder(
         client,
-        &args.parent,
+        args.parent.clone(),
         &args.body,
     )?;
     servicenetworking_services_enable_vpc_service_controls_execute(builder)
@@ -1166,18 +673,16 @@ pub fn servicenetworking_services_enable_vpc_service_controls(
 
 pub fn servicenetworking_services_search_range_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &SearchRangeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}:searchRange",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://servicenetworking.googleapis.com/v1/services/{}:searchRange",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1209,7 +714,12 @@ pub fn servicenetworking_services_search_range_builder(
 pub fn servicenetworking_services_search_range_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1312,7 +822,7 @@ pub fn servicenetworking_services_search_range(
     ApiError,
 > {
     let builder =
-        servicenetworking_services_search_range_builder(client, &args.parent, &args.body)?;
+        servicenetworking_services_search_range_builder(client, args.parent.clone(), &args.body)?;
     servicenetworking_services_search_range_execute(builder)
 }
 
@@ -1324,18 +834,15 @@ pub fn servicenetworking_services_search_range(
 
 pub fn servicenetworking_services_validate_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &ValidateConsumerConfigRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}:validate",
-        parent,
-    );
+    let endpoint_url = format!("https://servicenetworking.googleapis.com/v1/services/{}:validate",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1368,8 +875,9 @@ pub fn servicenetworking_services_validate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ValidateConsumerConfigResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ValidateConsumerConfigResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1481,7 +989,8 @@ pub fn servicenetworking_services_validate(
         + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_validate_builder(client, &args.parent, &args.body)?;
+    let builder =
+        servicenetworking_services_validate_builder(client, args.parent.clone(), &args.body)?;
     servicenetworking_services_validate_execute(builder)
 }
 
@@ -1493,18 +1002,16 @@ pub fn servicenetworking_services_validate(
 
 pub fn servicenetworking_services_connections_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &Connection,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/connections",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://servicenetworking.googleapis.com/v1/services/{}/connections",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1536,7 +1043,12 @@ pub fn servicenetworking_services_connections_create_builder(
 pub fn servicenetworking_services_connections_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1638,527 +1150,12 @@ pub fn servicenetworking_services_connections_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicenetworking_services_connections_create_builder(client, &args.parent, &args.body)?;
-    servicenetworking_services_connections_create_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/connections/{connectionsId}
-/// Deletes a private service access connection.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicenetworking_services_connections_delete_connection_execute()` to send, or `servicenetworking_services_connections_delete_connection` for simplest API.
-
-pub fn servicenetworking_services_connections_delete_connection_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &DeleteConnectionRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/connections/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/services/{servicesId}/connections/{connectionsId}
-/// Deletes a private service access connection.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicenetworking_services_connections_delete_connection_execute()` or `servicenetworking_services_connections_delete_connection`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_connections_delete_connection_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_connections_delete_connection_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/connections/{connectionsId}
-/// Deletes a private service access connection.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicenetworking_services_connections_delete_connection_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicenetworking_services_connections_delete_connection_task()`.
-/// For the simplest API, use `servicenetworking_services_connections_delete_connection()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_connections_delete_connection_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicenetworking_services_connections_delete_connection_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = servicenetworking_services_connections_delete_connection_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicenetworking_services_connections_delete_connection`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicenetworkingServicesConnectionsDeleteConnectionArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: DeleteConnectionRequest,
-}
-
-/// GET v1/services/{servicesId}/connections/{connectionsId}
-/// Deletes a private service access connection.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicenetworking_services_connections_delete_connection_builder()` + `servicenetworking_services_connections_delete_connection_execute()`.
-/// For task-level control, use `servicenetworking_services_connections_delete_connection_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_connections_delete_connection(
-    client: &SimpleHttpClient,
-    args: &ServicenetworkingServicesConnectionsDeleteConnectionArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = servicenetworking_services_connections_delete_connection_builder(
-        client, &args.name, &args.body,
-    )?;
-    servicenetworking_services_connections_delete_connection_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/connections
-/// List the private connections that are configured in a service consumer's VPC network.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicenetworking_services_connections_list_execute()` to send, or `servicenetworking_services_connections_list` for simplest API.
-
-pub fn servicenetworking_services_connections_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    network: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/connections",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = network {
-        query_parts.push(format!("network={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/services/{servicesId}/connections
-/// List the private connections that are configured in a service consumer's VPC network.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicenetworking_services_connections_list_execute()` or `servicenetworking_services_connections_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_connections_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_connections_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListConnectionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListConnectionsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/connections
-/// List the private connections that are configured in a service consumer's VPC network.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicenetworking_services_connections_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicenetworking_services_connections_list_task()`.
-/// For the simplest API, use `servicenetworking_services_connections_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_connections_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicenetworking_services_connections_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListConnectionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = servicenetworking_services_connections_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicenetworking_services_connections_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicenetworkingServicesConnectionsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: network
-    pub network: Option<String>,
-}
-
-/// GET v1/services/{servicesId}/connections
-/// List the private connections that are configured in a service consumer's VPC network.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicenetworking_services_connections_list_builder()` + `servicenetworking_services_connections_list_execute()`.
-/// For task-level control, use `servicenetworking_services_connections_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_connections_list(
-    client: &SimpleHttpClient,
-    args: &ServicenetworkingServicesConnectionsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListConnectionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = servicenetworking_services_connections_list_builder(
+    let builder = servicenetworking_services_connections_create_builder(
         client,
-        &args.parent,
-        args.network.as_deref(),
-    )?;
-    servicenetworking_services_connections_list_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/connections/{connectionsId}
-/// Updates the allocated ranges that are assigned to a connection.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicenetworking_services_connections_patch_execute()` to send, or `servicenetworking_services_connections_patch` for simplest API.
-
-pub fn servicenetworking_services_connections_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    force: Option<bool>,
-    updateMask: Option<&str>,
-    body: &Connection,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/connections/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = force {
-        query_parts.push(format!("force={}", val));
-    }
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/services/{servicesId}/connections/{connectionsId}
-/// Updates the allocated ranges that are assigned to a connection.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicenetworking_services_connections_patch_execute()` or `servicenetworking_services_connections_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_connections_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_connections_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/connections/{connectionsId}
-/// Updates the allocated ranges that are assigned to a connection.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicenetworking_services_connections_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicenetworking_services_connections_patch_task()`.
-/// For the simplest API, use `servicenetworking_services_connections_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_connections_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicenetworking_services_connections_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = servicenetworking_services_connections_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicenetworking_services_connections_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicenetworkingServicesConnectionsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: force
-    pub force: Option<bool>,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Connection,
-}
-
-/// GET v1/services/{servicesId}/connections/{connectionsId}
-/// Updates the allocated ranges that are assigned to a connection.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicenetworking_services_connections_patch_builder()` + `servicenetworking_services_connections_patch_execute()`.
-/// For task-level control, use `servicenetworking_services_connections_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_connections_patch(
-    client: &SimpleHttpClient,
-    args: &ServicenetworkingServicesConnectionsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = servicenetworking_services_connections_patch_builder(
-        client,
-        &args.name,
-        args.force,
-        args.updateMask.as_deref(),
+        args.parent.clone(),
         &args.body,
     )?;
-    servicenetworking_services_connections_patch_execute(builder)
+    servicenetworking_services_connections_create_execute(builder)
 }
 
 /// GET v1/services/{servicesId}/dnsRecordSets:add
@@ -2169,18 +1166,16 @@ pub fn servicenetworking_services_connections_patch(
 
 pub fn servicenetworking_services_dns_record_sets_add_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &AddDnsRecordSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:add",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:add",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2212,7 +1207,12 @@ pub fn servicenetworking_services_dns_record_sets_add_builder(
 pub fn servicenetworking_services_dns_record_sets_add_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2314,8 +1314,11 @@ pub fn servicenetworking_services_dns_record_sets_add(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicenetworking_services_dns_record_sets_add_builder(client, &args.parent, &args.body)?;
+    let builder = servicenetworking_services_dns_record_sets_add_builder(
+        client,
+        args.parent.clone(),
+        &args.body,
+    )?;
     servicenetworking_services_dns_record_sets_add_execute(builder)
 }
 
@@ -2327,17 +1330,15 @@ pub fn servicenetworking_services_dns_record_sets_add(
 
 pub fn servicenetworking_services_dns_record_sets_get_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    consumerNetwork: Option<&str>,
-    domain: Option<&str>,
-    type_rs: Option<&str>,
-    zone: Option<&str>,
+    parent: String,
+    consumerNetwork: Option<String>,
+    domain: Option<String>,
+    type_rs: Option<String>,
+    zone: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:get",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:get",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2355,9 +1356,9 @@ pub fn servicenetworking_services_dns_record_sets_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2391,7 +1392,12 @@ pub fn servicenetworking_services_dns_record_sets_get_builder(
 pub fn servicenetworking_services_dns_record_sets_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DnsRecordSet>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<DnsRecordSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2505,11 +1511,11 @@ pub fn servicenetworking_services_dns_record_sets_get(
 > {
     let builder = servicenetworking_services_dns_record_sets_get_builder(
         client,
-        &args.parent,
-        args.consumerNetwork.as_deref(),
-        args.domain.as_deref(),
-        args.type_rs.as_deref(),
-        args.zone.as_deref(),
+        args.parent.clone(),
+        args.consumerNetwork.clone(),
+        args.domain.clone(),
+        args.type_rs.clone(),
+        args.zone.clone(),
     )?;
     servicenetworking_services_dns_record_sets_get_execute(builder)
 }
@@ -2522,15 +1528,13 @@ pub fn servicenetworking_services_dns_record_sets_get(
 
 pub fn servicenetworking_services_dns_record_sets_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    consumerNetwork: Option<&str>,
-    zone: Option<&str>,
+    parent: String,
+    consumerNetwork: Option<String>,
+    zone: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:list",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:list",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2542,9 +1546,9 @@ pub fn servicenetworking_services_dns_record_sets_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2578,8 +1582,11 @@ pub fn servicenetworking_services_dns_record_sets_list_builder(
 pub fn servicenetworking_services_dns_record_sets_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListDnsRecordSetsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListDnsRecordSetsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2690,9 +1697,9 @@ pub fn servicenetworking_services_dns_record_sets_list(
 > {
     let builder = servicenetworking_services_dns_record_sets_list_builder(
         client,
-        &args.parent,
-        args.consumerNetwork.as_deref(),
-        args.zone.as_deref(),
+        args.parent.clone(),
+        args.consumerNetwork.clone(),
+        args.zone.clone(),
     )?;
     servicenetworking_services_dns_record_sets_list_execute(builder)
 }
@@ -2705,18 +1712,16 @@ pub fn servicenetworking_services_dns_record_sets_list(
 
 pub fn servicenetworking_services_dns_record_sets_remove_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &RemoveDnsRecordSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:remove",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:remove",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2748,7 +1753,12 @@ pub fn servicenetworking_services_dns_record_sets_remove_builder(
 pub fn servicenetworking_services_dns_record_sets_remove_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2852,7 +1862,7 @@ pub fn servicenetworking_services_dns_record_sets_remove(
 > {
     let builder = servicenetworking_services_dns_record_sets_remove_builder(
         client,
-        &args.parent,
+        args.parent.clone(),
         &args.body,
     )?;
     servicenetworking_services_dns_record_sets_remove_execute(builder)
@@ -2866,18 +1876,16 @@ pub fn servicenetworking_services_dns_record_sets_remove(
 
 pub fn servicenetworking_services_dns_record_sets_update_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &UpdateDnsRecordSetRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:update",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://servicenetworking.googleapis.com/v1/services/{}/dnsRecordSets:update",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2909,7 +1917,12 @@ pub fn servicenetworking_services_dns_record_sets_update_builder(
 pub fn servicenetworking_services_dns_record_sets_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3013,7 +2026,7 @@ pub fn servicenetworking_services_dns_record_sets_update(
 > {
     let builder = servicenetworking_services_dns_record_sets_update_builder(
         client,
-        &args.parent,
+        args.parent.clone(),
         &args.body,
     )?;
     servicenetworking_services_dns_record_sets_update_execute(builder)
@@ -3027,18 +2040,16 @@ pub fn servicenetworking_services_dns_record_sets_update(
 
 pub fn servicenetworking_services_dns_zones_add_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &AddDnsZoneRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/dnsZones:add",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://servicenetworking.googleapis.com/v1/services/{}/dnsZones:add",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3070,7 +2081,12 @@ pub fn servicenetworking_services_dns_zones_add_builder(
 pub fn servicenetworking_services_dns_zones_add_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3173,7 +2189,7 @@ pub fn servicenetworking_services_dns_zones_add(
     ApiError,
 > {
     let builder =
-        servicenetworking_services_dns_zones_add_builder(client, &args.parent, &args.body)?;
+        servicenetworking_services_dns_zones_add_builder(client, args.parent.clone(), &args.body)?;
     servicenetworking_services_dns_zones_add_execute(builder)
 }
 
@@ -3185,18 +2201,16 @@ pub fn servicenetworking_services_dns_zones_add(
 
 pub fn servicenetworking_services_dns_zones_remove_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &RemoveDnsZoneRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/dnsZones:remove",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://servicenetworking.googleapis.com/v1/services/{}/dnsZones:remove",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3228,7 +2242,12 @@ pub fn servicenetworking_services_dns_zones_remove_builder(
 pub fn servicenetworking_services_dns_zones_remove_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3330,1321 +2349,12 @@ pub fn servicenetworking_services_dns_zones_remove(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        servicenetworking_services_dns_zones_remove_builder(client, &args.parent, &args.body)?;
+    let builder = servicenetworking_services_dns_zones_remove_builder(
+        client,
+        args.parent.clone(),
+        &args.body,
+    )?;
     servicenetworking_services_dns_zones_remove_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}
-/// Service producers use this method to get the configuration of their connection including the `import/export` of custom routes and subnetwork routes with public IP.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicenetworking_services_projects_global_networks_get_execute()` to send, or `servicenetworking_services_projects_global_networks_get` for simplest API.
-
-pub fn servicenetworking_services_projects_global_networks_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    includeUsedIpRanges: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/projects/{}/global/networks/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = includeUsedIpRanges {
-        query_parts.push(format!("includeUsedIpRanges={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}
-/// Service producers use this method to get the configuration of their connection including the `import/export` of custom routes and subnetwork routes with public IP.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicenetworking_services_projects_global_networks_get_execute()` or `servicenetworking_services_projects_global_networks_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ConsumerConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ConsumerConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}
-/// Service producers use this method to get the configuration of their connection including the `import/export` of custom routes and subnetwork routes with public IP.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicenetworking_services_projects_global_networks_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_get_task()`.
-/// For the simplest API, use `servicenetworking_services_projects_global_networks_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicenetworking_services_projects_global_networks_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ConsumerConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = servicenetworking_services_projects_global_networks_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicenetworking_services_projects_global_networks_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicenetworkingServicesProjectsGlobalNetworksGetArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: includeUsedIpRanges
-    pub includeUsedIpRanges: Option<bool>,
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}
-/// Service producers use this method to get the configuration of their connection including the `import/export` of custom routes and subnetwork routes with public IP.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicenetworking_services_projects_global_networks_get_builder()` + `servicenetworking_services_projects_global_networks_get_execute()`.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_get(
-    client: &SimpleHttpClient,
-    args: &ServicenetworkingServicesProjectsGlobalNetworksGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ConsumerConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = servicenetworking_services_projects_global_networks_get_builder(
-        client,
-        &args.name,
-        args.includeUsedIpRanges,
-    )?;
-    servicenetworking_services_projects_global_networks_get_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/vpcServiceControls
-/// Consumers use this method to find out the state of VPC Service Controls. The controls could be enabled or disabled for a connection.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicenetworking_services_projects_global_networks_get_vpc_service_controls_execute()` to send, or `servicenetworking_services_projects_global_networks_get_vpc_service_controls` for simplest API.
-
-pub fn servicenetworking_services_projects_global_networks_get_vpc_service_controls_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/projects/{}/global/networks/{}/vpcServiceControls",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/vpcServiceControls
-/// Consumers use this method to find out the state of VPC Service Controls. The controls could be enabled or disabled for a connection.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicenetworking_services_projects_global_networks_get_vpc_service_controls_execute()` or `servicenetworking_services_projects_global_networks_get_vpc_service_controls`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_get_vpc_service_controls_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_get_vpc_service_controls_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<VpcServiceControls>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: VpcServiceControls = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/vpcServiceControls
-/// Consumers use this method to find out the state of VPC Service Controls. The controls could be enabled or disabled for a connection.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicenetworking_services_projects_global_networks_get_vpc_service_controls_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_get_vpc_service_controls_task()`.
-/// For the simplest API, use `servicenetworking_services_projects_global_networks_get_vpc_service_controls()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_get_vpc_service_controls_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicenetworking_services_projects_global_networks_get_vpc_service_controls_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<VpcServiceControls>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        servicenetworking_services_projects_global_networks_get_vpc_service_controls_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicenetworking_services_projects_global_networks_get_vpc_service_controls`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicenetworkingServicesProjectsGlobalNetworksGetVpcServiceControlsArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/vpcServiceControls
-/// Consumers use this method to find out the state of VPC Service Controls. The controls could be enabled or disabled for a connection.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicenetworking_services_projects_global_networks_get_vpc_service_controls_builder()` + `servicenetworking_services_projects_global_networks_get_vpc_service_controls_execute()`.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_get_vpc_service_controls_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_get_vpc_service_controls(
-    client: &SimpleHttpClient,
-    args: &ServicenetworkingServicesProjectsGlobalNetworksGetVpcServiceControlsArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<VpcServiceControls>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        servicenetworking_services_projects_global_networks_get_vpc_service_controls_builder(
-            client, &args.name,
-        )?;
-    servicenetworking_services_projects_global_networks_get_vpc_service_controls_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}:updateConsumerConfig
-/// Service producers use this method to update the configuration of their connection including the `import/export` of custom routes and subnetwork routes with public IP.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicenetworking_services_projects_global_networks_update_consumer_config_execute()` to send, or `servicenetworking_services_projects_global_networks_update_consumer_config` for simplest API.
-
-pub fn servicenetworking_services_projects_global_networks_update_consumer_config_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    body: &UpdateConsumerConfigRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/projects/{}/global/networks/{}:updateConsumerConfig",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}:updateConsumerConfig
-/// Service producers use this method to update the configuration of their connection including the `import/export` of custom routes and subnetwork routes with public IP.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicenetworking_services_projects_global_networks_update_consumer_config_execute()` or `servicenetworking_services_projects_global_networks_update_consumer_config`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_update_consumer_config_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_update_consumer_config_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}:updateConsumerConfig
-/// Service producers use this method to update the configuration of their connection including the `import/export` of custom routes and subnetwork routes with public IP.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicenetworking_services_projects_global_networks_update_consumer_config_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_update_consumer_config_task()`.
-/// For the simplest API, use `servicenetworking_services_projects_global_networks_update_consumer_config()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_update_consumer_config_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicenetworking_services_projects_global_networks_update_consumer_config_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task =
-        servicenetworking_services_projects_global_networks_update_consumer_config_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicenetworking_services_projects_global_networks_update_consumer_config`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicenetworkingServicesProjectsGlobalNetworksUpdateConsumerConfigArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Request body.
-    pub body: UpdateConsumerConfigRequest,
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}:updateConsumerConfig
-/// Service producers use this method to update the configuration of their connection including the `import/export` of custom routes and subnetwork routes with public IP.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicenetworking_services_projects_global_networks_update_consumer_config_builder()` + `servicenetworking_services_projects_global_networks_update_consumer_config_execute()`.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_update_consumer_config_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_update_consumer_config(
-    client: &SimpleHttpClient,
-    args: &ServicenetworkingServicesProjectsGlobalNetworksUpdateConsumerConfigArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        servicenetworking_services_projects_global_networks_update_consumer_config_builder(
-            client,
-            &args.parent,
-            &args.body,
-        )?;
-    servicenetworking_services_projects_global_networks_update_consumer_config_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/dnsZones/{dnsZonesId}
-/// Service producers can use this method to retrieve a DNS zone in the shared producer host project and the matching peering zones in consumer project
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicenetworking_services_projects_global_networks_dns_zones_get_execute()` to send, or `servicenetworking_services_projects_global_networks_dns_zones_get` for simplest API.
-
-pub fn servicenetworking_services_projects_global_networks_dns_zones_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/projects/{}/global/networks/{}/dnsZones/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/dnsZones/{dnsZonesId}
-/// Service producers can use this method to retrieve a DNS zone in the shared producer host project and the matching peering zones in consumer project
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicenetworking_services_projects_global_networks_dns_zones_get_execute()` or `servicenetworking_services_projects_global_networks_dns_zones_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_dns_zones_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_dns_zones_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GetDnsZoneResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GetDnsZoneResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/dnsZones/{dnsZonesId}
-/// Service producers can use this method to retrieve a DNS zone in the shared producer host project and the matching peering zones in consumer project
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicenetworking_services_projects_global_networks_dns_zones_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_dns_zones_get_task()`.
-/// For the simplest API, use `servicenetworking_services_projects_global_networks_dns_zones_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_dns_zones_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicenetworking_services_projects_global_networks_dns_zones_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GetDnsZoneResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = servicenetworking_services_projects_global_networks_dns_zones_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicenetworking_services_projects_global_networks_dns_zones_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicenetworkingServicesProjectsGlobalNetworksDnsZonesGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/dnsZones/{dnsZonesId}
-/// Service producers can use this method to retrieve a DNS zone in the shared producer host project and the matching peering zones in consumer project
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicenetworking_services_projects_global_networks_dns_zones_get_builder()` + `servicenetworking_services_projects_global_networks_dns_zones_get_execute()`.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_dns_zones_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_dns_zones_get(
-    client: &SimpleHttpClient,
-    args: &ServicenetworkingServicesProjectsGlobalNetworksDnsZonesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<GetDnsZoneResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = servicenetworking_services_projects_global_networks_dns_zones_get_builder(
-        client, &args.name,
-    )?;
-    servicenetworking_services_projects_global_networks_dns_zones_get_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/dnsZones:list
-/// * Service producers can use this method to retrieve a list of available DNS zones in the shared producer host project and the matching peering zones in the consumer project. *
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicenetworking_services_projects_global_networks_dns_zones_list_execute()` to send, or `servicenetworking_services_projects_global_networks_dns_zones_list` for simplest API.
-
-pub fn servicenetworking_services_projects_global_networks_dns_zones_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/projects/{}/global/networks/{}/dnsZones:list",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/dnsZones:list
-/// * Service producers can use this method to retrieve a list of available DNS zones in the shared producer host project and the matching peering zones in the consumer project. *
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicenetworking_services_projects_global_networks_dns_zones_list_execute()` or `servicenetworking_services_projects_global_networks_dns_zones_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_dns_zones_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_dns_zones_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListDnsZonesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListDnsZonesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/dnsZones:list
-/// * Service producers can use this method to retrieve a list of available DNS zones in the shared producer host project and the matching peering zones in the consumer project. *
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicenetworking_services_projects_global_networks_dns_zones_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_dns_zones_list_task()`.
-/// For the simplest API, use `servicenetworking_services_projects_global_networks_dns_zones_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_dns_zones_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicenetworking_services_projects_global_networks_dns_zones_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListDnsZonesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = servicenetworking_services_projects_global_networks_dns_zones_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicenetworking_services_projects_global_networks_dns_zones_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicenetworkingServicesProjectsGlobalNetworksDnsZonesListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/dnsZones:list
-/// * Service producers can use this method to retrieve a list of available DNS zones in the shared producer host project and the matching peering zones in the consumer project. *
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicenetworking_services_projects_global_networks_dns_zones_list_builder()` + `servicenetworking_services_projects_global_networks_dns_zones_list_execute()`.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_dns_zones_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_dns_zones_list(
-    client: &SimpleHttpClient,
-    args: &ServicenetworkingServicesProjectsGlobalNetworksDnsZonesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListDnsZonesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = servicenetworking_services_projects_global_networks_dns_zones_list_builder(
-        client,
-        &args.parent,
-    )?;
-    servicenetworking_services_projects_global_networks_dns_zones_list_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains
-/// Creates a peered DNS domain which sends requests for records in given namespace originating in the service producer VPC network to the consumer VPC network to be resolved.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicenetworking_services_projects_global_networks_peered_dns_domains_create_execute()` to send, or `servicenetworking_services_projects_global_networks_peered_dns_domains_create` for simplest API.
-
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_create_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    body: &PeeredDnsDomain,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/projects/{}/global/networks/{}/peeredDnsDomains",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains
-/// Creates a peered DNS domain which sends requests for records in given namespace originating in the service producer VPC network to the consumer VPC network to be resolved.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicenetworking_services_projects_global_networks_peered_dns_domains_create_execute()` or `servicenetworking_services_projects_global_networks_peered_dns_domains_create`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_peered_dns_domains_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_create_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains
-/// Creates a peered DNS domain which sends requests for records in given namespace originating in the service producer VPC network to the consumer VPC network to be resolved.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicenetworking_services_projects_global_networks_peered_dns_domains_create_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_peered_dns_domains_create_task()`.
-/// For the simplest API, use `servicenetworking_services_projects_global_networks_peered_dns_domains_create()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_peered_dns_domains_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_create_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = servicenetworking_services_projects_global_networks_peered_dns_domains_create_task(
-        builder,
-    )?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicenetworking_services_projects_global_networks_peered_dns_domains_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicenetworkingServicesProjectsGlobalNetworksPeeredDnsDomainsCreateArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Request body.
-    pub body: PeeredDnsDomain,
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains
-/// Creates a peered DNS domain which sends requests for records in given namespace originating in the service producer VPC network to the consumer VPC network to be resolved.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicenetworking_services_projects_global_networks_peered_dns_domains_create_builder()` + `servicenetworking_services_projects_global_networks_peered_dns_domains_create_execute()`.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_peered_dns_domains_create_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_create(
-    client: &SimpleHttpClient,
-    args: &ServicenetworkingServicesProjectsGlobalNetworksPeeredDnsDomainsCreateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        servicenetworking_services_projects_global_networks_peered_dns_domains_create_builder(
-            client,
-            &args.parent,
-            &args.body,
-        )?;
-    servicenetworking_services_projects_global_networks_peered_dns_domains_create_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains/{peeredDnsDomainsId}
-/// Deletes a peered DNS domain.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicenetworking_services_projects_global_networks_peered_dns_domains_delete_execute()` to send, or `servicenetworking_services_projects_global_networks_peered_dns_domains_delete` for simplest API.
-
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/projects/{}/global/networks/{}/peeredDnsDomains/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains/{peeredDnsDomainsId}
-/// Deletes a peered DNS domain.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicenetworking_services_projects_global_networks_peered_dns_domains_delete_execute()` or `servicenetworking_services_projects_global_networks_peered_dns_domains_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_peered_dns_domains_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains/{peeredDnsDomainsId}
-/// Deletes a peered DNS domain.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicenetworking_services_projects_global_networks_peered_dns_domains_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_peered_dns_domains_delete_task()`.
-/// For the simplest API, use `servicenetworking_services_projects_global_networks_peered_dns_domains_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_peered_dns_domains_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = servicenetworking_services_projects_global_networks_peered_dns_domains_delete_task(
-        builder,
-    )?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicenetworking_services_projects_global_networks_peered_dns_domains_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicenetworkingServicesProjectsGlobalNetworksPeeredDnsDomainsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains/{peeredDnsDomainsId}
-/// Deletes a peered DNS domain.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicenetworking_services_projects_global_networks_peered_dns_domains_delete_builder()` + `servicenetworking_services_projects_global_networks_peered_dns_domains_delete_execute()`.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_peered_dns_domains_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_delete(
-    client: &SimpleHttpClient,
-    args: &ServicenetworkingServicesProjectsGlobalNetworksPeeredDnsDomainsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        servicenetworking_services_projects_global_networks_peered_dns_domains_delete_builder(
-            client, &args.name,
-        )?;
-    servicenetworking_services_projects_global_networks_peered_dns_domains_delete_execute(builder)
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains
-/// Lists peered DNS domains for a connection.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `servicenetworking_services_projects_global_networks_peered_dns_domains_list_execute()` to send, or `servicenetworking_services_projects_global_networks_peered_dns_domains_list` for simplest API.
-
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/projects/{}/global/networks/{}/peeredDnsDomains",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains
-/// Lists peered DNS domains for a connection.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `servicenetworking_services_projects_global_networks_peered_dns_domains_list_execute()` or `servicenetworking_services_projects_global_networks_peered_dns_domains_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_peered_dns_domains_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListPeeredDnsDomainsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListPeeredDnsDomainsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains
-/// Lists peered DNS domains for a connection.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `servicenetworking_services_projects_global_networks_peered_dns_domains_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_peered_dns_domains_list_task()`.
-/// For the simplest API, use `servicenetworking_services_projects_global_networks_peered_dns_domains_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `servicenetworking_services_projects_global_networks_peered_dns_domains_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListPeeredDnsDomainsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        servicenetworking_services_projects_global_networks_peered_dns_domains_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`servicenetworking_services_projects_global_networks_peered_dns_domains_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ServicenetworkingServicesProjectsGlobalNetworksPeeredDnsDomainsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-}
-
-/// GET v1/services/{servicesId}/projects/{projectsId}/global/networks/{networksId}/peeredDnsDomains
-/// Lists peered DNS domains for a connection.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `servicenetworking_services_projects_global_networks_peered_dns_domains_list_builder()` + `servicenetworking_services_projects_global_networks_peered_dns_domains_list_execute()`.
-/// For task-level control, use `servicenetworking_services_projects_global_networks_peered_dns_domains_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_list(
-    client: &SimpleHttpClient,
-    args: &ServicenetworkingServicesProjectsGlobalNetworksPeeredDnsDomainsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListPeeredDnsDomainsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        servicenetworking_services_projects_global_networks_peered_dns_domains_list_builder(
-            client,
-            &args.parent,
-        )?;
-    servicenetworking_services_projects_global_networks_peered_dns_domains_list_execute(builder)
 }
 
 /// GET v1/services/{servicesId}/roles:add
@@ -4655,18 +2365,16 @@ pub fn servicenetworking_services_projects_global_networks_peered_dns_domains_li
 
 pub fn servicenetworking_services_roles_add_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &AddRolesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://servicenetworking.googleapis.com/v1/services/{}/roles:add",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://servicenetworking.googleapis.com/v1/services/{}/roles:add",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4698,7 +2406,12 @@ pub fn servicenetworking_services_roles_add_builder(
 pub fn servicenetworking_services_roles_add_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4800,6 +2513,7 @@ pub fn servicenetworking_services_roles_add(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = servicenetworking_services_roles_add_builder(client, &args.parent, &args.body)?;
+    let builder =
+        servicenetworking_services_roles_add_builder(client, args.parent.clone(), &args.body)?;
     servicenetworking_services_roles_add_execute(builder)
 }

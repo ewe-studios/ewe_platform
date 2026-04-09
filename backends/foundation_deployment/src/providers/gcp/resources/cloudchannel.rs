@@ -460,10 +460,6 @@ pub struct GoogleCloudChannelV1RegisterSubscriberResponse {
     pub topic: ::core::option::Option<String>,
 }
 
-/// Applies the repricing configuration at the channel partner level. The channel partner value is derived from the resource name. Takes an empty json object. Deprecated: This is no longer supported. Use RepricingConfig.EntitlementGranularity instead.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudChannelV1RepricingConfigChannelPartnerGranularity {}
-
 /// Request message for CloudChannelReportsService.RunReportJob.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudChannelV1RunReportJobRequest {
@@ -630,7 +626,9 @@ pub struct GoogleCloudChannelV1alpha1TransferEntitlementsResponse {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleLongrunningCancelOperationRequest {}
+pub struct GoogleLongrunningCancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -648,7 +646,9 @@ pub struct GoogleLongrunningListOperationsResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// Entity representing a Cloud Identity account that may be associated with a Channel Services API partner.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1210,7 +1210,8 @@ pub struct GoogleCloudChannelV1RepricingConfig {
     pub adjustment: ::core::option::Option<GoogleCloudChannelV1RepricingAdjustment>,
     /// Applies the repricing configuration at the channel partner level. Only ChannelPartnerRepricingConfig supports this value. Deprecated: This is no longer supported. Use RepricingConfig.entitlement_granularity instead.
     #[serde(default, rename = "channelPartnerGranularity")]
-    pub channel_partner_granularity: ::core::option::Option<serde_json::Value>,
+    pub channel_partner_granularity:
+        ::core::option::Option<GoogleCloudChannelV1RepricingConfigChannelPartnerGranularity>,
     /// The conditional overrides to apply for this configuration. If you list multiple overrides, only the first valid override is used. If you don''t list any overrides, the API uses the normal adjustment and rebilling basis.
     #[serde(default, rename = "conditionalOverrides")]
     pub conditional_overrides:
@@ -1606,6 +1607,12 @@ pub struct GoogleRpcStatus {
     /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
     #[serde(default)]
     pub message: ::core::option::Option<String>,
+}
+
+/// Applies the repricing configuration at the channel partner level. The channel partner value is derived from the resource name. Takes an empty json object. Deprecated: This is no longer supported. Use RepricingConfig.EntitlementGranularity instead.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudChannelV1RepricingConfigChannelPartnerGranularity {
+    pub value: serde_json::Value,
 }
 
 /// Specifies the override to conditionally apply.

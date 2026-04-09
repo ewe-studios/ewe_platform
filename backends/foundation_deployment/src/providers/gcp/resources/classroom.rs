@@ -45,12 +45,14 @@ pub struct AddOnContext {
     pub supports_student_work: ::core::option::Option<bool>,
     /// Add-on context corresponding to the requesting user''s role as a teacher. Its presence implies that the requesting user is a teacher in the course.
     #[serde(default, rename = "teacherContext")]
-    pub teacher_context: ::core::option::Option<serde_json::Value>,
+    pub teacher_context: ::core::option::Option<TeacherContext>,
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Grading period settings that include all the individual grading periods in a course.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -271,7 +273,9 @@ pub struct ModifyCourseWorkAssigneesRequest {
 
 /// Request to reclaim a student submission.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReclaimStudentSubmissionRequest {}
+pub struct ReclaimStudentSubmissionRequest {
+    pub value: serde_json::Value,
+}
 
 /// An instruction to Classroom to send notifications from the feed to the provided destination.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -292,7 +296,9 @@ pub struct Registration {
 
 /// Request to return a student submission.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReturnStudentSubmissionRequest {}
+pub struct ReturnStudentSubmissionRequest {
+    pub value: serde_json::Value,
+}
 
 /// A rubric grade set for the student submission. There is at most one entry per rubric criterion.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -308,13 +314,11 @@ pub struct RubricGrade {
     pub points: ::core::option::Option<f64>,
 }
 
-/// Role-specific context if the requesting user is a teacher.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeacherContext {}
-
 /// Request to turn in a student submission.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TurnInStudentSubmissionRequest {}
+pub struct TurnInStudentSubmissionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Role-specific context if the requesting user is a student.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -322,6 +326,12 @@ pub struct StudentContext {
     /// Requesting user''s submission id to be used for grade passback and to identify the student when showing student work to the teacher. This is set exactly when supportsStudentWork is true.
     #[serde(default, rename = "submissionId")]
     pub submission_id: ::core::option::Option<String>,
+}
+
+/// Role-specific context if the requesting user is a teacher.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TeacherContext {
+    pub value: serde_json::Value,
 }
 
 /// An individual grading period. Grading periods must not have overlapping date ranges and must be listed in chronological order. For example, if the end_date of a grading period is 2024-01-25, then the start_date of the next grading period must be 2024-01-26 or later. Each grading period must have a unique title within a course.

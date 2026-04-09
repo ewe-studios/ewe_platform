@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// Response to deleting a reader of a publication.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteReaderResponse {}
+pub struct DeleteReaderResponse {
+    pub value: serde_json::Value,
+}
 
 /// A reader of a publication.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

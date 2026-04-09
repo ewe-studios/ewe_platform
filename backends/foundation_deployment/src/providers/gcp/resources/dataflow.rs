@@ -33,7 +33,9 @@ pub struct CreateJobFromTemplateRequest {
 
 /// Response from deleting a snapshot.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteSnapshotResponse {}
+pub struct DeleteSnapshotResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request to get updated debug configuration for component.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -294,10 +296,6 @@ pub struct ReportWorkItemStatusResponse {
     pub work_item_service_states: ::core::option::Option<::std::vec::Vec<WorkItemServiceState>>,
 }
 
-/// Service-side response to WorkerMessage reporting resource utilization.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceUtilizationReportResponse {}
-
 /// Request to send encoded debug information. Next ID: 8
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SendDebugCaptureRequest {
@@ -320,7 +318,9 @@ pub struct SendDebugCaptureRequest {
 
 /// Response to a send capture request. nothing
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SendDebugCaptureResponse {}
+pub struct SendDebugCaptureResponse {
+    pub value: serde_json::Value,
+}
 
 /// A request for sending worker messages to the service.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -384,10 +384,6 @@ pub struct StringList {
     #[serde(default)]
     pub elements: ::core::option::Option<::std::vec::Vec<String>>,
 }
-
-/// Service-side response to WorkerMessage issuing shutdown notice.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkerShutdownNoticeResponse {}
 
 /// RuntimeMetadata describing a runtime environment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -884,10 +880,10 @@ pub struct WorkerMessageResponse {
     pub worker_health_report_response: ::core::option::Option<WorkerHealthReportResponse>,
     /// Service''s response to reporting worker metrics (currently empty).
     #[serde(default, rename = "workerMetricsResponse")]
-    pub worker_metrics_response: ::core::option::Option<serde_json::Value>,
+    pub worker_metrics_response: ::core::option::Option<ResourceUtilizationReportResponse>,
     /// Service''s response to shutdown notice (currently empty).
     #[serde(default, rename = "workerShutdownNoticeResponse")]
-    pub worker_shutdown_notice_response: ::core::option::Option<serde_json::Value>,
+    pub worker_shutdown_notice_response: ::core::option::Option<WorkerShutdownNoticeResponse>,
     /// Service''s thread scaling recommendation for workers.
     #[serde(default, rename = "workerThreadScalingReportResponse")]
     pub worker_thread_scaling_report_response:
@@ -1661,6 +1657,18 @@ pub struct WorkerHealthReportResponse {
     /// A positive value indicates the worker should change its reporting interval to the specified value. The default value of zero means no change in report rate is requested by the server.
     #[serde(default, rename = "reportInterval")]
     pub report_interval: ::core::option::Option<String>,
+}
+
+/// Service-side response to WorkerMessage reporting resource utilization.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ResourceUtilizationReportResponse {
+    pub value: serde_json::Value,
+}
+
+/// Service-side response to WorkerMessage issuing shutdown notice.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkerShutdownNoticeResponse {
+    pub value: serde_json::Value,
 }
 
 /// Contains the thread scaling recommendation for a worker from the backend.

@@ -13,15 +13,21 @@ use serde::{Deserialize, Serialize};
 
 /// Request to cancel a Portability Archive job.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelPortabilityArchiveRequest {}
+pub struct CancelPortabilityArchiveRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response to canceling a Data Portability Archive job.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelPortabilityArchiveResponse {}
+pub struct CancelPortabilityArchiveResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request to check the token''s access type. All required information is derived from the attached OAuth token.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckAccessTypeRequest {}
+pub struct CheckAccessTypeRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response to checking the token''s access type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -36,7 +42,9 @@ pub struct CheckAccessTypeResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request to kick off an Archive job.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -85,11 +93,15 @@ pub struct PortabilityArchiveState {
 
 /// Request to reset exhausted OAuth scopes.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResetAuthorizationRequest {}
+pub struct ResetAuthorizationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request to retry a failed Portability Archive job.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RetryPortabilityArchiveRequest {}
+pub struct RetryPortabilityArchiveRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response from retrying a Portability Archive.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

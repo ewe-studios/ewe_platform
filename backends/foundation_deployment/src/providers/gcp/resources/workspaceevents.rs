@@ -21,7 +21,9 @@ pub struct CancelTaskRequest {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The response message for SubscriptionsService.ListSubscriptions.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -67,7 +69,9 @@ pub struct Operation {
 
 /// The request message for SubscriptionsService.ReactivateSubscription.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReactivateSubscriptionRequest {}
+pub struct ReactivateSubscriptionRequest {
+    pub value: serde_json::Value,
+}
 
 /// /////////// Request Messages ///////////
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

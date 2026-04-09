@@ -24,7 +24,9 @@ pub struct ApproveSingleTenantHsmInstanceProposalRequest {
 
 /// Response message for HsmManagement.ApproveSingleTenantHsmInstanceProposal.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ApproveSingleTenantHsmInstanceProposalResponse {}
+pub struct ApproveSingleTenantHsmInstanceProposalResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request message for KeyManagementService.AsymmetricDecrypt.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -179,17 +181,11 @@ pub struct DecryptResponse {
     pub used_primary: ::core::option::Option<bool>,
 }
 
-/// Delete the SingleTenantHsmInstance. Deleting a SingleTenantHsmInstance will make all CryptoKeys attached to the SingleTenantHsmInstance unusable. The SingleTenantHsmInstance must not be in the DELETING or DELETED state to perform this operation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteSingleTenantHsmInstance {}
-
 /// Request message for KeyManagementService.DestroyCryptoKeyVersion.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DestroyCryptoKeyVersionRequest {}
-
-/// Disable the SingleTenantHsmInstance. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisableSingleTenantHsmInstance {}
+pub struct DestroyCryptoKeyVersionRequest {
+    pub value: serde_json::Value,
+}
 
 /// An EkmConfig is a singleton resource that represents configuration parameters that apply to all CryptoKeys and CryptoKeyVersions with a ProtectionLevel of EXTERNAL_VPC in a given project and location.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -204,11 +200,9 @@ pub struct EkmConfig {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// Enable the SingleTenantHsmInstance. The SingleTenantHsmInstance must be in the DISABLED state to perform this operation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnableSingleTenantHsmInstance {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Request message for KeyManagementService.Encrypt.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -252,7 +246,9 @@ pub struct EncryptResponse {
 
 /// Request message for HsmManagement.ExecuteSingleTenantHsmInstanceProposal.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ExecuteSingleTenantHsmInstanceProposalRequest {}
+pub struct ExecuteSingleTenantHsmInstanceProposalRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for KeyManagementService.GenerateRandomBytes.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -670,13 +666,11 @@ pub struct RawEncryptResponse {
     pub verified_plaintext_crc32c: ::core::option::Option<bool>,
 }
 
-/// Refreshes the SingleTenantHsmInstance. This operation must be performed periodically to keep the SingleTenantHsmInstance active. This operation must be performed before unrefreshed_duration_until_disable has passed. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RefreshSingleTenantHsmInstance {}
-
 /// Request message for KeyManagementService.RestoreCryptoKeyVersion.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RestoreCryptoKeyVersionRequest {}
+pub struct RestoreCryptoKeyVersionRequest {
+    pub value: serde_json::Value,
+}
 
 /// Request message for SetIamPolicy method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -745,7 +739,9 @@ pub struct UpdateCryptoKeyPrimaryVersionRequest {
 
 /// Response message for EkmService.VerifyConnectivity.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VerifyConnectivityResponse {}
+pub struct VerifyConnectivityResponse {
+    pub value: serde_json::Value,
+}
 
 /// The reply to QuorumParameters for approving the proposal.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -958,16 +954,16 @@ pub struct SingleTenantHsmInstanceProposal {
     pub create_time: ::core::option::Option<String>,
     /// Delete the SingleTenantHsmInstance. Deleting a SingleTenantHsmInstance will make all CryptoKeys attached to the SingleTenantHsmInstance unusable. The SingleTenantHsmInstance must be in the DISABLED or PENDING_TWO_FACTOR_AUTH_REGISTRATION state to perform this operation.
     #[serde(default, rename = "deleteSingleTenantHsmInstance")]
-    pub delete_single_tenant_hsm_instance: ::core::option::Option<serde_json::Value>,
+    pub delete_single_tenant_hsm_instance: ::core::option::Option<DeleteSingleTenantHsmInstance>,
     /// Output only. The time at which the SingleTenantHsmInstanceProposal was deleted.
     #[serde(default, rename = "deleteTime")]
     pub delete_time: ::core::option::Option<String>,
     /// Disable the SingleTenantHsmInstance. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.
     #[serde(default, rename = "disableSingleTenantHsmInstance")]
-    pub disable_single_tenant_hsm_instance: ::core::option::Option<serde_json::Value>,
+    pub disable_single_tenant_hsm_instance: ::core::option::Option<DisableSingleTenantHsmInstance>,
     /// Enable the SingleTenantHsmInstance. The SingleTenantHsmInstance must be in the DISABLED state to perform this operation.
     #[serde(default, rename = "enableSingleTenantHsmInstance")]
-    pub enable_single_tenant_hsm_instance: ::core::option::Option<serde_json::Value>,
+    pub enable_single_tenant_hsm_instance: ::core::option::Option<EnableSingleTenantHsmInstance>,
     /// The time at which the SingleTenantHsmInstanceProposal will expire if not approved and executed.
     #[serde(default, rename = "expireTime")]
     pub expire_time: ::core::option::Option<String>,
@@ -985,7 +981,7 @@ pub struct SingleTenantHsmInstanceProposal {
     pub quorum_parameters: ::core::option::Option<QuorumParameters>,
     /// Refreshes the SingleTenantHsmInstance. This operation must be performed periodically to keep the SingleTenantHsmInstance active. This operation must be performed before unrefreshed_duration_until_disable has passed. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.
     #[serde(default, rename = "refreshSingleTenantHsmInstance")]
-    pub refresh_single_tenant_hsm_instance: ::core::option::Option<serde_json::Value>,
+    pub refresh_single_tenant_hsm_instance: ::core::option::Option<RefreshSingleTenantHsmInstance>,
     /// Register 2FA keys for the SingleTenantHsmInstance. This operation requires all N Challenges to be signed by 2FA keys. The SingleTenantHsmInstance must be in the PENDING_TWO_FACTOR_AUTH_REGISTRATION state to perform this operation.
     #[serde(default, rename = "registerTwoFactorAuthKeys")]
     pub register_two_factor_auth_keys: ::core::option::Option<RegisterTwoFactorAuthKeys>,
@@ -1205,6 +1201,24 @@ pub struct AddQuorumMember {
     pub two_factor_public_key_pem: ::core::option::Option<String>,
 }
 
+/// Delete the SingleTenantHsmInstance. Deleting a SingleTenantHsmInstance will make all CryptoKeys attached to the SingleTenantHsmInstance unusable. The SingleTenantHsmInstance must not be in the DELETING or DELETED state to perform this operation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteSingleTenantHsmInstance {
+    pub value: serde_json::Value,
+}
+
+/// Disable the SingleTenantHsmInstance. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DisableSingleTenantHsmInstance {
+    pub value: serde_json::Value,
+}
+
+/// Enable the SingleTenantHsmInstance. The SingleTenantHsmInstance must be in the DISABLED state to perform this operation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EnableSingleTenantHsmInstance {
+    pub value: serde_json::Value,
+}
+
 /// Parameters of quorum approval for the SingleTenantHsmInstanceProposal.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuorumParameters {
@@ -1217,6 +1231,12 @@ pub struct QuorumParameters {
     /// Output only. The required numbers of approvers. This is the M value used for M of N quorum auth. It is less than the number of public keys.
     #[serde(default, rename = "requiredApproverCount")]
     pub required_approver_count: ::core::option::Option<i32>,
+}
+
+/// Refreshes the SingleTenantHsmInstance. This operation must be performed periodically to keep the SingleTenantHsmInstance active. This operation must be performed before unrefreshed_duration_until_disable has passed. The SingleTenantHsmInstance must be in the ACTIVE state to perform this operation.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RefreshSingleTenantHsmInstance {
+    pub value: serde_json::Value,
 }
 
 /// Register 2FA keys for the SingleTenantHsmInstance. This operation requires all Challenges to be signed by 2FA keys. The SingleTenantHsmInstance must be in the PENDING_TWO_FACTOR_AUTH_REGISTRATION state to perform this operation.

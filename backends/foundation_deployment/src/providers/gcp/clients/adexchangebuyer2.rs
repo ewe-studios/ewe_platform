@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,18 @@ use serde::Serialize;
 
 pub fn adexchangebuyer2_accounts_clients_create_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
+    accountId: String,
     body: &Client,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients",
-        accountId,
+        accountId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -71,7 +72,12 @@ pub fn adexchangebuyer2_accounts_clients_create_builder(
 pub fn adexchangebuyer2_accounts_clients_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Client>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -173,8 +179,11 @@ pub fn adexchangebuyer2_accounts_clients_create(
     impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_accounts_clients_create_builder(client, &args.accountId, &args.body)?;
+    let builder = adexchangebuyer2_accounts_clients_create_builder(
+        client,
+        args.accountId.clone(),
+        &args.body,
+    )?;
     adexchangebuyer2_accounts_clients_create_execute(builder)
 }
 
@@ -186,18 +195,19 @@ pub fn adexchangebuyer2_accounts_clients_create(
 
 pub fn adexchangebuyer2_accounts_clients_get_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
+    accountId: String,
+    clientAccountId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}",
-        accountId, clientAccountId,
+        accountId.as_str(),
+        clientAccountId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -227,7 +237,12 @@ pub fn adexchangebuyer2_accounts_clients_get_builder(
 pub fn adexchangebuyer2_accounts_clients_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Client>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -331,365 +346,10 @@ pub fn adexchangebuyer2_accounts_clients_get(
 > {
     let builder = adexchangebuyer2_accounts_clients_get_builder(
         client,
-        &args.accountId,
-        &args.clientAccountId,
+        args.accountId.clone(),
+        args.clientAccountId.clone(),
     )?;
     adexchangebuyer2_accounts_clients_get_execute(builder)
-}
-
-/// GET v2beta1/accounts/{accountId}/clients
-/// Lists all the clients for the current sponsor buyer.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_accounts_clients_list_execute()` to send, or `adexchangebuyer2_accounts_clients_list` for simplest API.
-
-pub fn adexchangebuyer2_accounts_clients_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    partnerClientId: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients",
-        accountId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = partnerClientId {
-        query_parts.push(format!("partnerClientId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/accounts/{accountId}/clients
-/// Lists all the clients for the current sponsor buyer.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_accounts_clients_list_execute()` or `adexchangebuyer2_accounts_clients_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_clients_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_clients_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListClientsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListClientsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/accounts/{accountId}/clients
-/// Lists all the clients for the current sponsor buyer.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_accounts_clients_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_accounts_clients_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_accounts_clients_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_clients_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_accounts_clients_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListClientsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_accounts_clients_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_accounts_clients_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2AccountsClientsListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: partnerClientId
-    pub partnerClientId: Option<String>,
-}
-
-/// GET v2beta1/accounts/{accountId}/clients
-/// Lists all the clients for the current sponsor buyer.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_accounts_clients_list_builder()` + `adexchangebuyer2_accounts_clients_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_accounts_clients_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_clients_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2AccountsClientsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListClientsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_accounts_clients_list_builder(
-        client,
-        &args.accountId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.partnerClientId.as_deref(),
-    )?;
-    adexchangebuyer2_accounts_clients_list_execute(builder)
-}
-
-/// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}
-/// Updates an existing client buyer.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_accounts_clients_update_execute()` to send, or `adexchangebuyer2_accounts_clients_update` for simplest API.
-
-pub fn adexchangebuyer2_accounts_clients_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
-    body: &Client,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}",
-        accountId, clientAccountId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}
-/// Updates an existing client buyer.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_accounts_clients_update_execute()` or `adexchangebuyer2_accounts_clients_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_clients_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_clients_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Client = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}
-/// Updates an existing client buyer.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_accounts_clients_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_accounts_clients_update_task()`.
-/// For the simplest API, use `adexchangebuyer2_accounts_clients_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_clients_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_accounts_clients_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_accounts_clients_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_accounts_clients_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2AccountsClientsUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: clientAccountId
-    pub clientAccountId: String,
-    /// Request body.
-    pub body: Client,
-}
-
-/// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}
-/// Updates an existing client buyer.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_accounts_clients_update_builder()` + `adexchangebuyer2_accounts_clients_update_execute()`.
-/// For task-level control, use `adexchangebuyer2_accounts_clients_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_clients_update(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2AccountsClientsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Client>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_accounts_clients_update_builder(
-        client,
-        &args.accountId,
-        &args.clientAccountId,
-        &args.body,
-    )?;
-    adexchangebuyer2_accounts_clients_update_execute(builder)
 }
 
 /// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/invitations
@@ -700,19 +360,20 @@ pub fn adexchangebuyer2_accounts_clients_update(
 
 pub fn adexchangebuyer2_accounts_clients_invitations_create_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
+    accountId: String,
+    clientAccountId: String,
     body: &ClientUserInvitation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/invitations",
-        accountId, clientAccountId,
+        accountId.as_str(),
+        clientAccountId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -744,8 +405,11 @@ pub fn adexchangebuyer2_accounts_clients_invitations_create_builder(
 pub fn adexchangebuyer2_accounts_clients_invitations_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ClientUserInvitation>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ClientUserInvitation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -856,8 +520,8 @@ pub fn adexchangebuyer2_accounts_clients_invitations_create(
 > {
     let builder = adexchangebuyer2_accounts_clients_invitations_create_builder(
         client,
-        &args.accountId,
-        &args.clientAccountId,
+        args.accountId.clone(),
+        args.clientAccountId.clone(),
         &args.body,
     )?;
     adexchangebuyer2_accounts_clients_invitations_create_execute(builder)
@@ -871,19 +535,21 @@ pub fn adexchangebuyer2_accounts_clients_invitations_create(
 
 pub fn adexchangebuyer2_accounts_clients_invitations_get_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
-    invitationId: &str,
+    accountId: String,
+    clientAccountId: String,
+    invitationId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/invitations/{}",
-        accountId, clientAccountId, invitationId,
+        accountId.as_str(),
+        clientAccountId.as_str(),
+        invitationId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -913,8 +579,11 @@ pub fn adexchangebuyer2_accounts_clients_invitations_get_builder(
 pub fn adexchangebuyer2_accounts_clients_invitations_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ClientUserInvitation>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ClientUserInvitation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1025,204 +694,11 @@ pub fn adexchangebuyer2_accounts_clients_invitations_get(
 > {
     let builder = adexchangebuyer2_accounts_clients_invitations_get_builder(
         client,
-        &args.accountId,
-        &args.clientAccountId,
-        &args.invitationId,
+        args.accountId.clone(),
+        args.clientAccountId.clone(),
+        args.invitationId.clone(),
     )?;
     adexchangebuyer2_accounts_clients_invitations_get_execute(builder)
-}
-
-/// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/invitations
-/// Lists all the client users invitations for a client with a given account ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_accounts_clients_invitations_list_execute()` to send, or `adexchangebuyer2_accounts_clients_invitations_list` for simplest API.
-
-pub fn adexchangebuyer2_accounts_clients_invitations_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/invitations",
-        accountId, clientAccountId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/invitations
-/// Lists all the client users invitations for a client with a given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_accounts_clients_invitations_list_execute()` or `adexchangebuyer2_accounts_clients_invitations_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_clients_invitations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_clients_invitations_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListClientUserInvitationsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListClientUserInvitationsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/invitations
-/// Lists all the client users invitations for a client with a given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_accounts_clients_invitations_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_accounts_clients_invitations_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_accounts_clients_invitations_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_clients_invitations_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_accounts_clients_invitations_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListClientUserInvitationsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_accounts_clients_invitations_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_accounts_clients_invitations_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2AccountsClientsInvitationsListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: clientAccountId
-    pub clientAccountId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/invitations
-/// Lists all the client users invitations for a client with a given account ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_accounts_clients_invitations_list_builder()` + `adexchangebuyer2_accounts_clients_invitations_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_accounts_clients_invitations_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_clients_invitations_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2AccountsClientsInvitationsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListClientUserInvitationsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_accounts_clients_invitations_list_builder(
-        client,
-        &args.accountId,
-        &args.clientAccountId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_accounts_clients_invitations_list_execute(builder)
 }
 
 /// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/users/{userId}
@@ -1233,19 +709,21 @@ pub fn adexchangebuyer2_accounts_clients_invitations_list(
 
 pub fn adexchangebuyer2_accounts_clients_users_get_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
-    userId: &str,
+    accountId: String,
+    clientAccountId: String,
+    userId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/users/{}",
-        accountId, clientAccountId, userId,
+        accountId.as_str(),
+        clientAccountId.as_str(),
+        userId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1275,7 +753,12 @@ pub fn adexchangebuyer2_accounts_clients_users_get_builder(
 pub fn adexchangebuyer2_accounts_clients_users_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ClientUser>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ClientUser>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1381,9 +864,9 @@ pub fn adexchangebuyer2_accounts_clients_users_get(
 > {
     let builder = adexchangebuyer2_accounts_clients_users_get_builder(
         client,
-        &args.accountId,
-        &args.clientAccountId,
-        &args.userId,
+        args.accountId.clone(),
+        args.clientAccountId.clone(),
+        args.userId.clone(),
     )?;
     adexchangebuyer2_accounts_clients_users_get_execute(builder)
 }
@@ -1396,15 +879,16 @@ pub fn adexchangebuyer2_accounts_clients_users_get(
 
 pub fn adexchangebuyer2_accounts_clients_users_list_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
+    accountId: String,
+    clientAccountId: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/users",
-        accountId, clientAccountId,
+        accountId.as_str(),
+        clientAccountId.as_str(),
     );
 
     // Build request
@@ -1417,9 +901,9 @@ pub fn adexchangebuyer2_accounts_clients_users_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1453,8 +937,11 @@ pub fn adexchangebuyer2_accounts_clients_users_list_builder(
 pub fn adexchangebuyer2_accounts_clients_users_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListClientUsersResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListClientUsersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1567,181 +1054,12 @@ pub fn adexchangebuyer2_accounts_clients_users_list(
 > {
     let builder = adexchangebuyer2_accounts_clients_users_list_builder(
         client,
-        &args.accountId,
-        &args.clientAccountId,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.accountId.clone(),
+        args.clientAccountId.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     adexchangebuyer2_accounts_clients_users_list_execute(builder)
-}
-
-/// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/users/{userId}
-/// Updates an existing client user. Only the user status can be changed on update.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_accounts_clients_users_update_execute()` to send, or `adexchangebuyer2_accounts_clients_users_update` for simplest API.
-
-pub fn adexchangebuyer2_accounts_clients_users_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    clientAccountId: &str,
-    userId: &str,
-    body: &ClientUser,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/clients/{}/users/{}",
-        accountId, clientAccountId, userId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/users/{userId}
-/// Updates an existing client user. Only the user status can be changed on update.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_accounts_clients_users_update_execute()` or `adexchangebuyer2_accounts_clients_users_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_clients_users_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_clients_users_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ClientUser>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ClientUser = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/users/{userId}
-/// Updates an existing client user. Only the user status can be changed on update.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_accounts_clients_users_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_accounts_clients_users_update_task()`.
-/// For the simplest API, use `adexchangebuyer2_accounts_clients_users_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_clients_users_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_accounts_clients_users_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ClientUser>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_accounts_clients_users_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_accounts_clients_users_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2AccountsClientsUsersUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: clientAccountId
-    pub clientAccountId: String,
-    /// Path parameter: userId
-    pub userId: String,
-    /// Request body.
-    pub body: ClientUser,
-}
-
-/// GET v2beta1/accounts/{accountId}/clients/{clientAccountId}/users/{userId}
-/// Updates an existing client user. Only the user status can be changed on update.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_accounts_clients_users_update_builder()` + `adexchangebuyer2_accounts_clients_users_update_execute()`.
-/// For task-level control, use `adexchangebuyer2_accounts_clients_users_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_clients_users_update(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2AccountsClientsUsersUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ClientUser>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_accounts_clients_users_update_builder(
-        client,
-        &args.accountId,
-        &args.clientAccountId,
-        &args.userId,
-        &args.body,
-    )?;
-    adexchangebuyer2_accounts_clients_users_update_execute(builder)
 }
 
 /// GET v2beta1/accounts/{accountId}/creatives
@@ -1752,14 +1070,14 @@ pub fn adexchangebuyer2_accounts_clients_users_update(
 
 pub fn adexchangebuyer2_accounts_creatives_create_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    duplicateIdMode: Option<&str>,
+    accountId: String,
+    duplicateIdMode: Option<String>,
     body: &Creative,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives",
-        accountId,
+        accountId.as_str(),
     );
 
     // Build request
@@ -1769,9 +1087,9 @@ pub fn adexchangebuyer2_accounts_creatives_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1807,7 +1125,12 @@ pub fn adexchangebuyer2_accounts_creatives_create_builder(
 pub fn adexchangebuyer2_accounts_creatives_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Creative>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1913,8 +1236,8 @@ pub fn adexchangebuyer2_accounts_creatives_create(
 > {
     let builder = adexchangebuyer2_accounts_creatives_create_builder(
         client,
-        &args.accountId,
-        args.duplicateIdMode.as_deref(),
+        args.accountId.clone(),
+        args.duplicateIdMode.clone(),
         &args.body,
     )?;
     adexchangebuyer2_accounts_creatives_create_execute(builder)
@@ -1928,18 +1251,19 @@ pub fn adexchangebuyer2_accounts_creatives_create(
 
 pub fn adexchangebuyer2_accounts_creatives_get_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    creativeId: &str,
+    accountId: String,
+    creativeId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}",
-        accountId, creativeId,
+        accountId.as_str(),
+        creativeId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1969,7 +1293,12 @@ pub fn adexchangebuyer2_accounts_creatives_get_builder(
 pub fn adexchangebuyer2_accounts_creatives_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Creative>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2071,199 +1400,12 @@ pub fn adexchangebuyer2_accounts_creatives_get(
     impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_accounts_creatives_get_builder(client, &args.accountId, &args.creativeId)?;
-    adexchangebuyer2_accounts_creatives_get_execute(builder)
-}
-
-/// GET v2beta1/accounts/{accountId}/creatives
-/// Lists creatives.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_accounts_creatives_list_execute()` to send, or `adexchangebuyer2_accounts_creatives_list` for simplest API.
-
-pub fn adexchangebuyer2_accounts_creatives_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives",
-        accountId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = query {
-        query_parts.push(format!("query={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/accounts/{accountId}/creatives
-/// Lists creatives.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_accounts_creatives_list_execute()` or `adexchangebuyer2_accounts_creatives_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_creatives_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_creatives_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListCreativesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListCreativesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/accounts/{accountId}/creatives
-/// Lists creatives.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_accounts_creatives_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_accounts_creatives_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_accounts_creatives_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_creatives_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_accounts_creatives_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListCreativesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_accounts_creatives_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_accounts_creatives_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2AccountsCreativesListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: query
-    pub query: Option<String>,
-}
-
-/// GET v2beta1/accounts/{accountId}/creatives
-/// Lists creatives.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_accounts_creatives_list_builder()` + `adexchangebuyer2_accounts_creatives_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_accounts_creatives_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_creatives_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2AccountsCreativesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListCreativesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_accounts_creatives_list_builder(
+    let builder = adexchangebuyer2_accounts_creatives_get_builder(
         client,
-        &args.accountId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.query.as_deref(),
+        args.accountId.clone(),
+        args.creativeId.clone(),
     )?;
-    adexchangebuyer2_accounts_creatives_list_execute(builder)
+    adexchangebuyer2_accounts_creatives_get_execute(builder)
 }
 
 /// GET v2beta1/accounts/{accountId}/creatives/{creativeId}:stopWatching
@@ -2274,19 +1416,20 @@ pub fn adexchangebuyer2_accounts_creatives_list(
 
 pub fn adexchangebuyer2_accounts_creatives_stop_watching_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    creativeId: &str,
+    accountId: String,
+    creativeId: String,
     body: &StopWatchingCreativeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}:stopWatching",
-        accountId, creativeId,
+        accountId.as_str(),
+        creativeId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2318,7 +1461,12 @@ pub fn adexchangebuyer2_accounts_creatives_stop_watching_builder(
 pub fn adexchangebuyer2_accounts_creatives_stop_watching_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2424,176 +1572,11 @@ pub fn adexchangebuyer2_accounts_creatives_stop_watching(
 > {
     let builder = adexchangebuyer2_accounts_creatives_stop_watching_builder(
         client,
-        &args.accountId,
-        &args.creativeId,
+        args.accountId.clone(),
+        args.creativeId.clone(),
         &args.body,
     )?;
     adexchangebuyer2_accounts_creatives_stop_watching_execute(builder)
-}
-
-/// GET v2beta1/accounts/{accountId}/creatives/{creativeId}
-/// Updates a creative.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_accounts_creatives_update_execute()` to send, or `adexchangebuyer2_accounts_creatives_update` for simplest API.
-
-pub fn adexchangebuyer2_accounts_creatives_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    creativeId: &str,
-    body: &Creative,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}",
-        accountId, creativeId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v2beta1/accounts/{accountId}/creatives/{creativeId}
-/// Updates a creative.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_accounts_creatives_update_execute()` or `adexchangebuyer2_accounts_creatives_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_creatives_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_creatives_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Creative = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/accounts/{accountId}/creatives/{creativeId}
-/// Updates a creative.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_accounts_creatives_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_accounts_creatives_update_task()`.
-/// For the simplest API, use `adexchangebuyer2_accounts_creatives_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_creatives_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_accounts_creatives_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_accounts_creatives_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_accounts_creatives_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2AccountsCreativesUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: creativeId
-    pub creativeId: String,
-    /// Request body.
-    pub body: Creative,
-}
-
-/// GET v2beta1/accounts/{accountId}/creatives/{creativeId}
-/// Updates a creative.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_accounts_creatives_update_builder()` + `adexchangebuyer2_accounts_creatives_update_execute()`.
-/// For task-level control, use `adexchangebuyer2_accounts_creatives_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_creatives_update(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2AccountsCreativesUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Creative>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_accounts_creatives_update_builder(
-        client,
-        &args.accountId,
-        &args.creativeId,
-        &args.body,
-    )?;
-    adexchangebuyer2_accounts_creatives_update_execute(builder)
 }
 
 /// GET v2beta1/accounts/{accountId}/creatives/{creativeId}:watch
@@ -2604,19 +1587,20 @@ pub fn adexchangebuyer2_accounts_creatives_update(
 
 pub fn adexchangebuyer2_accounts_creatives_watch_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    creativeId: &str,
+    accountId: String,
+    creativeId: String,
     body: &WatchCreativeRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}:watch",
-        accountId, creativeId,
+        accountId.as_str(),
+        creativeId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2648,7 +1632,12 @@ pub fn adexchangebuyer2_accounts_creatives_watch_builder(
 pub fn adexchangebuyer2_accounts_creatives_watch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2754,8 +1743,8 @@ pub fn adexchangebuyer2_accounts_creatives_watch(
 > {
     let builder = adexchangebuyer2_accounts_creatives_watch_builder(
         client,
-        &args.accountId,
-        &args.creativeId,
+        args.accountId.clone(),
+        args.creativeId.clone(),
         &args.body,
     )?;
     adexchangebuyer2_accounts_creatives_watch_execute(builder)
@@ -2769,20 +1758,20 @@ pub fn adexchangebuyer2_accounts_creatives_watch(
 
 pub fn adexchangebuyer2_accounts_creatives_deal_associations_add_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    creativeId: &str,
+    accountId: String,
+    creativeId: String,
     body: &AddDealAssociationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}/dealAssociations:add",
-        accountId,
-        creativeId,
+        accountId.as_str(),
+        creativeId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2814,7 +1803,12 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_add_builder(
 pub fn adexchangebuyer2_accounts_creatives_deal_associations_add_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2920,8 +1914,8 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_add(
 > {
     let builder = adexchangebuyer2_accounts_creatives_deal_associations_add_builder(
         client,
-        &args.accountId,
-        &args.creativeId,
+        args.accountId.clone(),
+        args.creativeId.clone(),
         &args.body,
     )?;
     adexchangebuyer2_accounts_creatives_deal_associations_add_execute(builder)
@@ -2935,16 +1929,17 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_add(
 
 pub fn adexchangebuyer2_accounts_creatives_deal_associations_list_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    creativeId: &str,
+    accountId: String,
+    creativeId: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    query: Option<&str>,
+    pageToken: Option<String>,
+    query: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}/dealAssociations",
-        accountId, creativeId,
+        accountId.as_str(),
+        creativeId.as_str(),
     );
 
     // Build request
@@ -2960,9 +1955,9 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2997,8 +1992,9 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListDealAssociationsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListDealAssociationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3118,11 +2114,11 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_list(
 > {
     let builder = adexchangebuyer2_accounts_creatives_deal_associations_list_builder(
         client,
-        &args.accountId,
-        &args.creativeId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.query.as_deref(),
+        args.accountId.clone(),
+        args.creativeId.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.query.clone(),
     )?;
     adexchangebuyer2_accounts_creatives_deal_associations_list_execute(builder)
 }
@@ -3135,20 +2131,20 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_list(
 
 pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    creativeId: &str,
+    accountId: String,
+    creativeId: String,
     body: &RemoveDealAssociationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/creatives/{}/dealAssociations:remove",
-        accountId,
-        creativeId,
+        accountId.as_str(),
+        creativeId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3180,7 +2176,12 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove_builder(
 pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3286,8 +2287,8 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove(
 > {
     let builder = adexchangebuyer2_accounts_creatives_deal_associations_remove_builder(
         client,
-        &args.accountId,
-        &args.creativeId,
+        args.accountId.clone(),
+        args.creativeId.clone(),
         &args.body,
     )?;
     adexchangebuyer2_accounts_creatives_deal_associations_remove_execute(builder)
@@ -3301,16 +2302,16 @@ pub fn adexchangebuyer2_accounts_creatives_deal_associations_remove(
 
 pub fn adexchangebuyer2_accounts_finalized_proposals_list_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    filter: Option<&str>,
-    filterSyntax: Option<&str>,
+    accountId: String,
+    filter: Option<String>,
+    filterSyntax: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/finalizedProposals",
-        accountId,
+        accountId.as_str(),
     );
 
     // Build request
@@ -3329,9 +2330,9 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3365,8 +2366,11 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_list_builder(
 pub fn adexchangebuyer2_accounts_finalized_proposals_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListProposalsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListProposalsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3481,11 +2485,11 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_list(
 > {
     let builder = adexchangebuyer2_accounts_finalized_proposals_list_builder(
         client,
-        &args.accountId,
-        args.filter.as_deref(),
-        args.filterSyntax.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.accountId.clone(),
+        args.filter.clone(),
+        args.filterSyntax.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     adexchangebuyer2_accounts_finalized_proposals_list_execute(builder)
 }
@@ -3498,19 +2502,20 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_list(
 
 pub fn adexchangebuyer2_accounts_finalized_proposals_pause_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
+    accountId: String,
+    proposalId: String,
     body: &PauseProposalDealsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/finalizedProposals/{}:pause",
-        accountId, proposalId,
+        accountId.as_str(),
+        proposalId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3542,7 +2547,12 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_pause_builder(
 pub fn adexchangebuyer2_accounts_finalized_proposals_pause_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Proposal>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3648,8 +2658,8 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_pause(
 > {
     let builder = adexchangebuyer2_accounts_finalized_proposals_pause_builder(
         client,
-        &args.accountId,
-        &args.proposalId,
+        args.accountId.clone(),
+        args.proposalId.clone(),
         &args.body,
     )?;
     adexchangebuyer2_accounts_finalized_proposals_pause_execute(builder)
@@ -3663,19 +2673,20 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_pause(
 
 pub fn adexchangebuyer2_accounts_finalized_proposals_resume_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
+    accountId: String,
+    proposalId: String,
     body: &ResumeProposalDealsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/finalizedProposals/{}:resume",
-        accountId, proposalId,
+        accountId.as_str(),
+        proposalId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3707,7 +2718,12 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_resume_builder(
 pub fn adexchangebuyer2_accounts_finalized_proposals_resume_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Proposal>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3813,8 +2829,8 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_resume(
 > {
     let builder = adexchangebuyer2_accounts_finalized_proposals_resume_builder(
         client,
-        &args.accountId,
-        &args.proposalId,
+        args.accountId.clone(),
+        args.proposalId.clone(),
         &args.body,
     )?;
     adexchangebuyer2_accounts_finalized_proposals_resume_execute(builder)
@@ -3828,18 +2844,19 @@ pub fn adexchangebuyer2_accounts_finalized_proposals_resume(
 
 pub fn adexchangebuyer2_accounts_products_get_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    productId: &str,
+    accountId: String,
+    productId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/products/{}",
-        accountId, productId,
+        accountId.as_str(),
+        productId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3869,7 +2886,12 @@ pub fn adexchangebuyer2_accounts_products_get_builder(
 pub fn adexchangebuyer2_accounts_products_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Product>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3971,8 +2993,11 @@ pub fn adexchangebuyer2_accounts_products_get(
     impl StreamIterator<D = Result<ApiResponse<Product>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_accounts_products_get_builder(client, &args.accountId, &args.productId)?;
+    let builder = adexchangebuyer2_accounts_products_get_builder(
+        client,
+        args.accountId.clone(),
+        args.productId.clone(),
+    )?;
     adexchangebuyer2_accounts_products_get_execute(builder)
 }
 
@@ -3984,15 +3009,15 @@ pub fn adexchangebuyer2_accounts_products_get(
 
 pub fn adexchangebuyer2_accounts_products_list_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    filter: Option<&str>,
+    accountId: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/products",
-        accountId,
+        accountId.as_str(),
     );
 
     // Build request
@@ -4008,9 +3033,9 @@ pub fn adexchangebuyer2_accounts_products_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4044,8 +3069,11 @@ pub fn adexchangebuyer2_accounts_products_list_builder(
 pub fn adexchangebuyer2_accounts_products_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListProductsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListProductsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4158,10 +3186,10 @@ pub fn adexchangebuyer2_accounts_products_list(
 > {
     let builder = adexchangebuyer2_accounts_products_list_builder(
         client,
-        &args.accountId,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.accountId.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     adexchangebuyer2_accounts_products_list_execute(builder)
 }
@@ -4174,19 +3202,20 @@ pub fn adexchangebuyer2_accounts_products_list(
 
 pub fn adexchangebuyer2_accounts_proposals_accept_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
+    accountId: String,
+    proposalId: String,
     body: &AcceptProposalRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:accept",
-        accountId, proposalId,
+        accountId.as_str(),
+        proposalId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4218,7 +3247,12 @@ pub fn adexchangebuyer2_accounts_proposals_accept_builder(
 pub fn adexchangebuyer2_accounts_proposals_accept_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Proposal>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4324,8 +3358,8 @@ pub fn adexchangebuyer2_accounts_proposals_accept(
 > {
     let builder = adexchangebuyer2_accounts_proposals_accept_builder(
         client,
-        &args.accountId,
-        &args.proposalId,
+        args.accountId.clone(),
+        args.proposalId.clone(),
         &args.body,
     )?;
     adexchangebuyer2_accounts_proposals_accept_execute(builder)
@@ -4339,19 +3373,20 @@ pub fn adexchangebuyer2_accounts_proposals_accept(
 
 pub fn adexchangebuyer2_accounts_proposals_add_note_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
+    accountId: String,
+    proposalId: String,
     body: &AddNoteRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:addNote",
-        accountId, proposalId,
+        accountId.as_str(),
+        proposalId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4383,7 +3418,12 @@ pub fn adexchangebuyer2_accounts_proposals_add_note_builder(
 pub fn adexchangebuyer2_accounts_proposals_add_note_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Note>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Note>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4489,8 +3529,8 @@ pub fn adexchangebuyer2_accounts_proposals_add_note(
 > {
     let builder = adexchangebuyer2_accounts_proposals_add_note_builder(
         client,
-        &args.accountId,
-        &args.proposalId,
+        args.accountId.clone(),
+        args.proposalId.clone(),
         &args.body,
     )?;
     adexchangebuyer2_accounts_proposals_add_note_execute(builder)
@@ -4504,19 +3544,20 @@ pub fn adexchangebuyer2_accounts_proposals_add_note(
 
 pub fn adexchangebuyer2_accounts_proposals_cancel_negotiation_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
+    accountId: String,
+    proposalId: String,
     body: &CancelNegotiationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:cancelNegotiation",
-        accountId, proposalId,
+        accountId.as_str(),
+        proposalId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4548,7 +3589,12 @@ pub fn adexchangebuyer2_accounts_proposals_cancel_negotiation_builder(
 pub fn adexchangebuyer2_accounts_proposals_cancel_negotiation_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Proposal>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4654,8 +3700,8 @@ pub fn adexchangebuyer2_accounts_proposals_cancel_negotiation(
 > {
     let builder = adexchangebuyer2_accounts_proposals_cancel_negotiation_builder(
         client,
-        &args.accountId,
-        &args.proposalId,
+        args.accountId.clone(),
+        args.proposalId.clone(),
         &args.body,
     )?;
     adexchangebuyer2_accounts_proposals_cancel_negotiation_execute(builder)
@@ -4669,19 +3715,20 @@ pub fn adexchangebuyer2_accounts_proposals_cancel_negotiation(
 
 pub fn adexchangebuyer2_accounts_proposals_complete_setup_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
+    accountId: String,
+    proposalId: String,
     body: &CompleteSetupRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:completeSetup",
-        accountId, proposalId,
+        accountId.as_str(),
+        proposalId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4713,7 +3760,12 @@ pub fn adexchangebuyer2_accounts_proposals_complete_setup_builder(
 pub fn adexchangebuyer2_accounts_proposals_complete_setup_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Proposal>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4819,8 +3871,8 @@ pub fn adexchangebuyer2_accounts_proposals_complete_setup(
 > {
     let builder = adexchangebuyer2_accounts_proposals_complete_setup_builder(
         client,
-        &args.accountId,
-        &args.proposalId,
+        args.accountId.clone(),
+        args.proposalId.clone(),
         &args.body,
     )?;
     adexchangebuyer2_accounts_proposals_complete_setup_execute(builder)
@@ -4834,18 +3886,18 @@ pub fn adexchangebuyer2_accounts_proposals_complete_setup(
 
 pub fn adexchangebuyer2_accounts_proposals_create_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
+    accountId: String,
     body: &Proposal,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals",
-        accountId,
+        accountId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4877,7 +3929,12 @@ pub fn adexchangebuyer2_accounts_proposals_create_builder(
 pub fn adexchangebuyer2_accounts_proposals_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Proposal>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4979,8 +4036,11 @@ pub fn adexchangebuyer2_accounts_proposals_create(
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_accounts_proposals_create_builder(client, &args.accountId, &args.body)?;
+    let builder = adexchangebuyer2_accounts_proposals_create_builder(
+        client,
+        args.accountId.clone(),
+        &args.body,
+    )?;
     adexchangebuyer2_accounts_proposals_create_execute(builder)
 }
 
@@ -4992,18 +4052,19 @@ pub fn adexchangebuyer2_accounts_proposals_create(
 
 pub fn adexchangebuyer2_accounts_proposals_get_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
+    accountId: String,
+    proposalId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}",
-        accountId, proposalId,
+        accountId.as_str(),
+        proposalId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5033,7 +4094,12 @@ pub fn adexchangebuyer2_accounts_proposals_get_builder(
 pub fn adexchangebuyer2_accounts_proposals_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Proposal>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5135,206 +4201,12 @@ pub fn adexchangebuyer2_accounts_proposals_get(
     impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        adexchangebuyer2_accounts_proposals_get_builder(client, &args.accountId, &args.proposalId)?;
-    adexchangebuyer2_accounts_proposals_get_execute(builder)
-}
-
-/// GET v2beta1/accounts/{accountId}/proposals
-/// List proposals. A filter expression (PQL query) may be specified to filter the results. To retrieve all finalized proposals, regardless if a proposal is being renegotiated, see the FinalizedProposals resource. Note that B`idder/ChildSeat` relationships differ from the usual behavior. A Bidder account can only see its child seats' proposals by specifying the ChildSeat's `accountId` in the request path.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_accounts_proposals_list_execute()` to send, or `adexchangebuyer2_accounts_proposals_list` for simplest API.
-
-pub fn adexchangebuyer2_accounts_proposals_list_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    filter: Option<&str>,
-    filterSyntax: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals",
-        accountId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = filterSyntax {
-        query_parts.push(format!("filterSyntax={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/accounts/{accountId}/proposals
-/// List proposals. A filter expression (PQL query) may be specified to filter the results. To retrieve all finalized proposals, regardless if a proposal is being renegotiated, see the FinalizedProposals resource. Note that B`idder/ChildSeat` relationships differ from the usual behavior. A Bidder account can only see its child seats' proposals by specifying the ChildSeat's `accountId` in the request path.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_accounts_proposals_list_execute()` or `adexchangebuyer2_accounts_proposals_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_proposals_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_proposals_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListProposalsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListProposalsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/accounts/{accountId}/proposals
-/// List proposals. A filter expression (PQL query) may be specified to filter the results. To retrieve all finalized proposals, regardless if a proposal is being renegotiated, see the FinalizedProposals resource. Note that B`idder/ChildSeat` relationships differ from the usual behavior. A Bidder account can only see its child seats' proposals by specifying the ChildSeat's `accountId` in the request path.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_accounts_proposals_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_accounts_proposals_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_accounts_proposals_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_proposals_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_accounts_proposals_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListProposalsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_accounts_proposals_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_accounts_proposals_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2AccountsProposalsListArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: filterSyntax
-    pub filterSyntax: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/accounts/{accountId}/proposals
-/// List proposals. A filter expression (PQL query) may be specified to filter the results. To retrieve all finalized proposals, regardless if a proposal is being renegotiated, see the FinalizedProposals resource. Note that B`idder/ChildSeat` relationships differ from the usual behavior. A Bidder account can only see its child seats' proposals by specifying the ChildSeat's `accountId` in the request path.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_accounts_proposals_list_builder()` + `adexchangebuyer2_accounts_proposals_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_accounts_proposals_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_proposals_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2AccountsProposalsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListProposalsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_accounts_proposals_list_builder(
+    let builder = adexchangebuyer2_accounts_proposals_get_builder(
         client,
-        &args.accountId,
-        args.filter.as_deref(),
-        args.filterSyntax.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.accountId.clone(),
+        args.proposalId.clone(),
     )?;
-    adexchangebuyer2_accounts_proposals_list_execute(builder)
+    adexchangebuyer2_accounts_proposals_get_execute(builder)
 }
 
 /// GET v2beta1/accounts/{accountId}/proposals/{proposalId}:pause
@@ -5345,19 +4217,20 @@ pub fn adexchangebuyer2_accounts_proposals_list(
 
 pub fn adexchangebuyer2_accounts_proposals_pause_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
+    accountId: String,
+    proposalId: String,
     body: &PauseProposalRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:pause",
-        accountId, proposalId,
+        accountId.as_str(),
+        proposalId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5389,7 +4262,12 @@ pub fn adexchangebuyer2_accounts_proposals_pause_builder(
 pub fn adexchangebuyer2_accounts_proposals_pause_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Proposal>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5495,8 +4373,8 @@ pub fn adexchangebuyer2_accounts_proposals_pause(
 > {
     let builder = adexchangebuyer2_accounts_proposals_pause_builder(
         client,
-        &args.accountId,
-        &args.proposalId,
+        args.accountId.clone(),
+        args.proposalId.clone(),
         &args.body,
     )?;
     adexchangebuyer2_accounts_proposals_pause_execute(builder)
@@ -5510,19 +4388,20 @@ pub fn adexchangebuyer2_accounts_proposals_pause(
 
 pub fn adexchangebuyer2_accounts_proposals_resume_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
+    accountId: String,
+    proposalId: String,
     body: &ResumeProposalRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}:resume",
-        accountId, proposalId,
+        accountId.as_str(),
+        proposalId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5554,7 +4433,12 @@ pub fn adexchangebuyer2_accounts_proposals_resume_builder(
 pub fn adexchangebuyer2_accounts_proposals_resume_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Proposal>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5660,176 +4544,11 @@ pub fn adexchangebuyer2_accounts_proposals_resume(
 > {
     let builder = adexchangebuyer2_accounts_proposals_resume_builder(
         client,
-        &args.accountId,
-        &args.proposalId,
+        args.accountId.clone(),
+        args.proposalId.clone(),
         &args.body,
     )?;
     adexchangebuyer2_accounts_proposals_resume_execute(builder)
-}
-
-/// GET v2beta1/accounts/{accountId}/proposals/{proposalId}
-/// Update the given proposal at the client known revision number. If the server revision has advanced since the passed-in proposal.proposal_revision, an ABORTED error message will be returned. Only the buyer-modifiable fields of the proposal will be updated. Note that the deals in the proposal will be updated to match the passed-in copy. If a passed-in deal does not have a deal_id, the server will assign a new unique ID and create the deal. If passed-in deal has a deal_id, it will be updated to match the passed-in copy. Any existing deals not present in the passed-in proposal will be deleted. It is an error to pass in a deal with a deal_id not present at head.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_accounts_proposals_update_execute()` to send, or `adexchangebuyer2_accounts_proposals_update` for simplest API.
-
-pub fn adexchangebuyer2_accounts_proposals_update_builder(
-    client: &SimpleHttpClient,
-    accountId: &str,
-    proposalId: &str,
-    body: &Proposal,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/proposals/{}",
-        accountId, proposalId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v2beta1/accounts/{accountId}/proposals/{proposalId}
-/// Update the given proposal at the client known revision number. If the server revision has advanced since the passed-in proposal.proposal_revision, an ABORTED error message will be returned. Only the buyer-modifiable fields of the proposal will be updated. Note that the deals in the proposal will be updated to match the passed-in copy. If a passed-in deal does not have a deal_id, the server will assign a new unique ID and create the deal. If passed-in deal has a deal_id, it will be updated to match the passed-in copy. Any existing deals not present in the passed-in proposal will be deleted. It is an error to pass in a deal with a deal_id not present at head.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_accounts_proposals_update_execute()` or `adexchangebuyer2_accounts_proposals_update`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_proposals_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_proposals_update_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Proposal = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/accounts/{accountId}/proposals/{proposalId}
-/// Update the given proposal at the client known revision number. If the server revision has advanced since the passed-in proposal.proposal_revision, an ABORTED error message will be returned. Only the buyer-modifiable fields of the proposal will be updated. Note that the deals in the proposal will be updated to match the passed-in copy. If a passed-in deal does not have a deal_id, the server will assign a new unique ID and create the deal. If passed-in deal has a deal_id, it will be updated to match the passed-in copy. Any existing deals not present in the passed-in proposal will be deleted. It is an error to pass in a deal with a deal_id not present at head.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_accounts_proposals_update_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_accounts_proposals_update_task()`.
-/// For the simplest API, use `adexchangebuyer2_accounts_proposals_update()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_accounts_proposals_update_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_accounts_proposals_update_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_accounts_proposals_update_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_accounts_proposals_update`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2AccountsProposalsUpdateArgs {
-    /// Path parameter: accountId
-    pub accountId: String,
-    /// Path parameter: proposalId
-    pub proposalId: String,
-    /// Request body.
-    pub body: Proposal,
-}
-
-/// GET v2beta1/accounts/{accountId}/proposals/{proposalId}
-/// Update the given proposal at the client known revision number. If the server revision has advanced since the passed-in proposal.proposal_revision, an ABORTED error message will be returned. Only the buyer-modifiable fields of the proposal will be updated. Note that the deals in the proposal will be updated to match the passed-in copy. If a passed-in deal does not have a deal_id, the server will assign a new unique ID and create the deal. If passed-in deal has a deal_id, it will be updated to match the passed-in copy. Any existing deals not present in the passed-in proposal will be deleted. It is an error to pass in a deal with a deal_id not present at head.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_accounts_proposals_update_builder()` + `adexchangebuyer2_accounts_proposals_update_execute()`.
-/// For task-level control, use `adexchangebuyer2_accounts_proposals_update_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_accounts_proposals_update(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2AccountsProposalsUpdateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Proposal>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_accounts_proposals_update_builder(
-        client,
-        &args.accountId,
-        &args.proposalId,
-        &args.body,
-    )?;
-    adexchangebuyer2_accounts_proposals_update_execute(builder)
 }
 
 /// GET v2beta1/accounts/{accountId}/publisherProfiles/{publisherProfileId}
@@ -5840,18 +4559,19 @@ pub fn adexchangebuyer2_accounts_proposals_update(
 
 pub fn adexchangebuyer2_accounts_publisher_profiles_get_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
-    publisherProfileId: &str,
+    accountId: String,
+    publisherProfileId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/publisherProfiles/{}",
-        accountId, publisherProfileId,
+        accountId.as_str(),
+        publisherProfileId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5881,8 +4601,11 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_get_builder(
 pub fn adexchangebuyer2_accounts_publisher_profiles_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PublisherProfile>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PublisherProfile>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5991,8 +4714,8 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_get(
 > {
     let builder = adexchangebuyer2_accounts_publisher_profiles_get_builder(
         client,
-        &args.accountId,
-        &args.publisherProfileId,
+        args.accountId.clone(),
+        args.publisherProfileId.clone(),
     )?;
     adexchangebuyer2_accounts_publisher_profiles_get_execute(builder)
 }
@@ -6005,14 +4728,14 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_get(
 
 pub fn adexchangebuyer2_accounts_publisher_profiles_list_builder(
     client: &SimpleHttpClient,
-    accountId: &str,
+    accountId: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://adexchangebuyer.googleapis.com/v2beta1/accounts/{}/publisherProfiles",
-        accountId,
+        accountId.as_str(),
     );
 
     // Build request
@@ -6025,9 +4748,9 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6062,8 +4785,9 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListPublisherProfilesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListPublisherProfilesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -6179,2568 +4903,11 @@ pub fn adexchangebuyer2_accounts_publisher_profiles_list(
 > {
     let builder = adexchangebuyer2_accounts_publisher_profiles_list_builder(
         client,
-        &args.accountId,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.accountId.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     adexchangebuyer2_accounts_publisher_profiles_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets
-/// Creates the specified filter set for the account with the given account ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_accounts_filter_sets_create_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_create` for simplest API.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_create_builder(
-    client: &SimpleHttpClient,
-    ownerName: &str,
-    isTransient: Option<bool>,
-    body: &FilterSet,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets",
-        ownerName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = isTransient {
-        query_parts.push(format!("isTransient={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets
-/// Creates the specified filter set for the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_accounts_filter_sets_create_execute()` or `adexchangebuyer2_bidders_accounts_filter_sets_create`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_create_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FilterSet = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets
-/// Creates the specified filter set for the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_accounts_filter_sets_create_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_create_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_accounts_filter_sets_create()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_create_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_accounts_filter_sets_create_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersAccountsFilterSetsCreateArgs {
-    /// Path parameter: ownerName
-    pub ownerName: String,
-    /// Query parameter: isTransient
-    pub isTransient: Option<bool>,
-    /// Request body.
-    pub body: FilterSet,
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets
-/// Creates the specified filter set for the account with the given account ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_accounts_filter_sets_create_builder()` + `adexchangebuyer2_bidders_accounts_filter_sets_create_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_create_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_create(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersAccountsFilterSetsCreateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_accounts_filter_sets_create_builder(
-        client,
-        &args.ownerName,
-        args.isTransient,
-        &args.body,
-    )?;
-    adexchangebuyer2_bidders_accounts_filter_sets_create_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}
-/// Deletes the requested filter set from the account with the given account ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_accounts_filter_sets_delete_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_delete` for simplest API.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}
-/// Deletes the requested filter set from the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_accounts_filter_sets_delete_execute()` or `adexchangebuyer2_bidders_accounts_filter_sets_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}
-/// Deletes the requested filter set from the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_accounts_filter_sets_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_delete_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_accounts_filter_sets_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_accounts_filter_sets_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersAccountsFilterSetsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}
-/// Deletes the requested filter set from the account with the given account ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_accounts_filter_sets_delete_builder()` + `adexchangebuyer2_bidders_accounts_filter_sets_delete_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_delete(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersAccountsFilterSetsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_accounts_filter_sets_delete_builder(client, &args.name)?;
-    adexchangebuyer2_bidders_accounts_filter_sets_delete_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}
-/// Retrieves the requested filter set for the account with the given account ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_accounts_filter_sets_get_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_get` for simplest API.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}
-/// Retrieves the requested filter set for the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_accounts_filter_sets_get_execute()` or `adexchangebuyer2_bidders_accounts_filter_sets_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FilterSet = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}
-/// Retrieves the requested filter set for the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_accounts_filter_sets_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_get_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_accounts_filter_sets_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_accounts_filter_sets_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersAccountsFilterSetsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}
-/// Retrieves the requested filter set for the account with the given account ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_accounts_filter_sets_get_builder()` + `adexchangebuyer2_bidders_accounts_filter_sets_get_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_get(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersAccountsFilterSetsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_accounts_filter_sets_get_builder(client, &args.name)?;
-    adexchangebuyer2_bidders_accounts_filter_sets_get_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets
-/// Lists all filter sets for the account with the given account ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_accounts_filter_sets_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_list_builder(
-    client: &SimpleHttpClient,
-    ownerName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets",
-        ownerName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets
-/// Lists all filter sets for the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_accounts_filter_sets_list_execute()` or `adexchangebuyer2_bidders_accounts_filter_sets_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListFilterSetsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListFilterSetsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets
-/// Lists all filter sets for the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_accounts_filter_sets_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_accounts_filter_sets_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListFilterSetsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_accounts_filter_sets_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersAccountsFilterSetsListArgs {
-    /// Path parameter: ownerName
-    pub ownerName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets
-/// Lists all filter sets for the account with the given account ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_accounts_filter_sets_list_builder()` + `adexchangebuyer2_bidders_accounts_filter_sets_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersAccountsFilterSetsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListFilterSetsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_accounts_filter_sets_list_builder(
-        client,
-        &args.ownerName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_accounts_filter_sets_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidMetrics
-/// Lists all metrics that are measured in terms of number of bids.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets/{}/bidMetrics",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidMetrics
-/// Lists all metrics that are measured in terms of number of bids.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_execute()` or `adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListBidMetricsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListBidMetricsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidMetrics
-/// Lists all metrics that are measured in terms of number of bids.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListBidMetricsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersAccountsFilterSetsBidMetricsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidMetrics
-/// Lists all metrics that are measured in terms of number of bids.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_builder()` + `adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersAccountsFilterSetsBidMetricsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListBidMetricsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_accounts_filter_sets_bid_metrics_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidResponseErrors
-/// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets/{}/bidResponseErrors",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidResponseErrors
-/// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_execute()` or `adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListBidResponseErrorsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListBidResponseErrorsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidResponseErrors
-/// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListBidResponseErrorsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersAccountsFilterSetsBidResponseErrorsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidResponseErrors
-/// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_builder()` + `adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersAccountsFilterSetsBidResponseErrorsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListBidResponseErrorsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_accounts_filter_sets_bid_response_errors_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
-/// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets/{}/bidResponsesWithoutBids",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
-/// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_execute()` or `adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListBidResponsesWithoutBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListBidResponsesWithoutBidsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
-/// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListBidResponsesWithoutBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_task(
-        builder,
-    )?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersAccountsFilterSetsBidResponsesWithoutBidsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
-/// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_builder()` + `adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersAccountsFilterSetsBidResponsesWithoutBidsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListBidResponsesWithoutBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_builder(
-            client,
-            &args.filterSetName,
-            args.pageSize,
-            args.pageToken.as_deref(),
-        )?;
-    adexchangebuyer2_bidders_accounts_filter_sets_bid_responses_without_bids_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBidRequests
-/// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets/{}/filteredBidRequests",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBidRequests
-/// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_execute()` or `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListFilteredBidRequestsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListFilteredBidRequestsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBidRequests
-/// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListFilteredBidRequestsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidRequestsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBidRequests
-/// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_builder()` + `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidRequestsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListFilteredBidRequestsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_accounts_filter_sets_filtered_bid_requests_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids
-/// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets/{}/filteredBids",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids
-/// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_execute()` or `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListFilteredBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListFilteredBidsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids
-/// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListFilteredBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids
-/// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_builder()` + `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListFilteredBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
-/// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    creativeStatusId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets/{}/filteredBids/{}/creatives",
-        filterSetName,
-        creativeStatusId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
-/// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_execute()` or `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByCreativeResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListCreativeStatusBreakdownByCreativeResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
-/// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByCreativeResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsCreativesListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Path parameter: creativeStatusId
-    pub creativeStatusId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
-/// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_builder()` + `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsCreativesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByCreativeResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_builder(
-            client,
-            &args.filterSetName,
-            &args.creativeStatusId,
-            args.pageSize,
-            args.pageToken.as_deref(),
-        )?;
-    adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_creatives_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
-/// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    creativeStatusId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets/{}/filteredBids/{}/details",
-        filterSetName,
-        creativeStatusId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
-/// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_execute()` or `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByDetailResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListCreativeStatusBreakdownByDetailResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
-/// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByDetailResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsDetailsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Path parameter: creativeStatusId
-    pub creativeStatusId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
-/// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_builder()` + `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsDetailsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByDetailResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_builder(
-        client,
-        &args.filterSetName,
-        &args.creativeStatusId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_accounts_filter_sets_filtered_bids_details_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/impressionMetrics
-/// Lists all metrics that are measured in terms of number of impressions.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets/{}/impressionMetrics",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/impressionMetrics
-/// Lists all metrics that are measured in terms of number of impressions.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_execute()` or `adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListImpressionMetricsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListImpressionMetricsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/impressionMetrics
-/// Lists all metrics that are measured in terms of number of impressions.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListImpressionMetricsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersAccountsFilterSetsImpressionMetricsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/impressionMetrics
-/// Lists all metrics that are measured in terms of number of impressions.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_builder()` + `adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersAccountsFilterSetsImpressionMetricsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListImpressionMetricsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_accounts_filter_sets_impression_metrics_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/losingBids
-/// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets/{}/losingBids",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/losingBids
-/// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_execute()` or `adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListLosingBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListLosingBidsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/losingBids
-/// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListLosingBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersAccountsFilterSetsLosingBidsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/losingBids
-/// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_builder()` + `adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersAccountsFilterSetsLosingBidsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListLosingBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_accounts_filter_sets_losing_bids_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/nonBillableWinningBids
-/// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_execute()` to send, or `adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/accounts/{}/filterSets/{}/nonBillableWinningBids",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/nonBillableWinningBids
-/// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_execute()` or `adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListNonBillableWinningBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListNonBillableWinningBidsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/nonBillableWinningBids
-/// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListNonBillableWinningBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersAccountsFilterSetsNonBillableWinningBidsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/accounts/{accountsId}/filterSets/{filterSetsId}/nonBillableWinningBids
-/// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_builder()` + `adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersAccountsFilterSetsNonBillableWinningBidsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListNonBillableWinningBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_builder(
-            client,
-            &args.filterSetName,
-            args.pageSize,
-            args.pageToken.as_deref(),
-        )?;
-    adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_list_execute(builder)
 }
 
 /// GET v2beta1/bidders/{biddersId}/filterSets
@@ -8751,15 +4918,13 @@ pub fn adexchangebuyer2_bidders_accounts_filter_sets_non_billable_winning_bids_l
 
 pub fn adexchangebuyer2_bidders_filter_sets_create_builder(
     client: &SimpleHttpClient,
-    ownerName: &str,
+    ownerName: String,
     isTransient: Option<bool>,
     body: &FilterSet,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets",
-        ownerName,
-    );
+    let endpoint_url =
+        format!("https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -8768,9 +4933,9 @@ pub fn adexchangebuyer2_bidders_filter_sets_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -8806,7 +4971,12 @@ pub fn adexchangebuyer2_bidders_filter_sets_create_builder(
 pub fn adexchangebuyer2_bidders_filter_sets_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FilterSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8912,2382 +5082,11 @@ pub fn adexchangebuyer2_bidders_filter_sets_create(
 > {
     let builder = adexchangebuyer2_bidders_filter_sets_create_builder(
         client,
-        &args.ownerName,
-        args.isTransient,
+        args.ownerName.clone(),
+        args.isTransient.clone(),
         &args.body,
     )?;
     adexchangebuyer2_bidders_filter_sets_create_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}
-/// Deletes the requested filter set from the account with the given account ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_filter_sets_delete_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_delete` for simplest API.
-
-pub fn adexchangebuyer2_bidders_filter_sets_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}
-/// Deletes the requested filter set from the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_filter_sets_delete_execute()` or `adexchangebuyer2_bidders_filter_sets_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}
-/// Deletes the requested filter set from the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_filter_sets_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_delete_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_filter_sets_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_filter_sets_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_filter_sets_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_filter_sets_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersFilterSetsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}
-/// Deletes the requested filter set from the account with the given account ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_filter_sets_delete_builder()` + `adexchangebuyer2_bidders_filter_sets_delete_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_delete(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersFilterSetsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_filter_sets_delete_builder(client, &args.name)?;
-    adexchangebuyer2_bidders_filter_sets_delete_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}
-/// Retrieves the requested filter set for the account with the given account ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_filter_sets_get_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_get` for simplest API.
-
-pub fn adexchangebuyer2_bidders_filter_sets_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}
-/// Retrieves the requested filter set for the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_filter_sets_get_execute()` or `adexchangebuyer2_bidders_filter_sets_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FilterSet = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}
-/// Retrieves the requested filter set for the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_filter_sets_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_get_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_filter_sets_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_filter_sets_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_filter_sets_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_filter_sets_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersFilterSetsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}
-/// Retrieves the requested filter set for the account with the given account ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_filter_sets_get_builder()` + `adexchangebuyer2_bidders_filter_sets_get_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_get(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersFilterSetsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_filter_sets_get_builder(client, &args.name)?;
-    adexchangebuyer2_bidders_filter_sets_get_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets
-/// Lists all filter sets for the account with the given account ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_filter_sets_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_filter_sets_list_builder(
-    client: &SimpleHttpClient,
-    ownerName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets",
-        ownerName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets
-/// Lists all filter sets for the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_filter_sets_list_execute()` or `adexchangebuyer2_bidders_filter_sets_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListFilterSetsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListFilterSetsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets
-/// Lists all filter sets for the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_filter_sets_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_filter_sets_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_filter_sets_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListFilterSetsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_filter_sets_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_filter_sets_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersFilterSetsListArgs {
-    /// Path parameter: ownerName
-    pub ownerName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets
-/// Lists all filter sets for the account with the given account ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_filter_sets_list_builder()` + `adexchangebuyer2_bidders_filter_sets_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersFilterSetsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListFilterSetsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_filter_sets_list_builder(
-        client,
-        &args.ownerName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_filter_sets_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidMetrics
-/// Lists all metrics that are measured in terms of number of bids.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_filter_sets_bid_metrics_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_bid_metrics_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_filter_sets_bid_metrics_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{}/bidMetrics",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidMetrics
-/// Lists all metrics that are measured in terms of number of bids.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_filter_sets_bid_metrics_list_execute()` or `adexchangebuyer2_bidders_filter_sets_bid_metrics_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_bid_metrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_bid_metrics_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListBidMetricsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListBidMetricsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidMetrics
-/// Lists all metrics that are measured in terms of number of bids.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_filter_sets_bid_metrics_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_bid_metrics_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_filter_sets_bid_metrics_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_bid_metrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_filter_sets_bid_metrics_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListBidMetricsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_filter_sets_bid_metrics_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_filter_sets_bid_metrics_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersFilterSetsBidMetricsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidMetrics
-/// Lists all metrics that are measured in terms of number of bids.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_filter_sets_bid_metrics_list_builder()` + `adexchangebuyer2_bidders_filter_sets_bid_metrics_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_bid_metrics_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_bid_metrics_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersFilterSetsBidMetricsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListBidMetricsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_filter_sets_bid_metrics_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_filter_sets_bid_metrics_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidResponseErrors
-/// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_bid_response_errors_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{}/bidResponseErrors",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidResponseErrors
-/// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_execute()` or `adexchangebuyer2_bidders_filter_sets_bid_response_errors_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListBidResponseErrorsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListBidResponseErrorsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidResponseErrors
-/// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_filter_sets_bid_response_errors_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListBidResponseErrorsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_filter_sets_bid_response_errors_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersFilterSetsBidResponseErrorsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidResponseErrors
-/// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_builder()` + `adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_bid_response_errors_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersFilterSetsBidResponseErrorsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListBidResponseErrorsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_filter_sets_bid_response_errors_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
-/// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{}/bidResponsesWithoutBids",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
-/// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_execute()` or `adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListBidResponsesWithoutBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListBidResponsesWithoutBidsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
-/// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListBidResponsesWithoutBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersFilterSetsBidResponsesWithoutBidsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
-/// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_builder()` + `adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersFilterSetsBidResponsesWithoutBidsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListBidResponsesWithoutBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_filter_sets_bid_responses_without_bids_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBidRequests
-/// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{}/filteredBidRequests",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBidRequests
-/// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_execute()` or `adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListFilteredBidRequestsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListFilteredBidRequestsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBidRequests
-/// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListFilteredBidRequestsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersFilterSetsFilteredBidRequestsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBidRequests
-/// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_builder()` + `adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersFilterSetsFilteredBidRequestsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListFilteredBidRequestsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_filter_sets_filtered_bid_requests_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids
-/// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_filter_sets_filtered_bids_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_filtered_bids_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{}/filteredBids",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids
-/// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_list_execute()` or `adexchangebuyer2_bidders_filter_sets_filtered_bids_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_filtered_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListFilteredBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListFilteredBidsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids
-/// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_filtered_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListFilteredBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_filter_sets_filtered_bids_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_filter_sets_filtered_bids_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersFilterSetsFilteredBidsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids
-/// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_list_builder()` + `adexchangebuyer2_bidders_filter_sets_filtered_bids_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersFilterSetsFilteredBidsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListFilteredBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_filter_sets_filtered_bids_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_filter_sets_filtered_bids_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
-/// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    creativeStatusId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{}/filteredBids/{}/creatives",
-        filterSetName,
-        creativeStatusId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
-/// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_execute()` or `adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByCreativeResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListCreativeStatusBreakdownByCreativeResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
-/// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByCreativeResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersFilterSetsFilteredBidsCreativesListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Path parameter: creativeStatusId
-    pub creativeStatusId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
-/// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_builder()` + `adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersFilterSetsFilteredBidsCreativesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByCreativeResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_builder(
-        client,
-        &args.filterSetName,
-        &args.creativeStatusId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_filter_sets_filtered_bids_creatives_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
-/// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    creativeStatusId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{}/filteredBids/{}/details",
-        filterSetName,
-        creativeStatusId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
-/// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_execute()` or `adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByDetailResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListCreativeStatusBreakdownByDetailResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
-/// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByDetailResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersFilterSetsFilteredBidsDetailsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Path parameter: creativeStatusId
-    pub creativeStatusId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
-/// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_builder()` + `adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersFilterSetsFilteredBidsDetailsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByDetailResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_builder(
-        client,
-        &args.filterSetName,
-        &args.creativeStatusId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_filter_sets_filtered_bids_details_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/impressionMetrics
-/// Lists all metrics that are measured in terms of number of impressions.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_filter_sets_impression_metrics_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_impression_metrics_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_filter_sets_impression_metrics_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{}/impressionMetrics",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/impressionMetrics
-/// Lists all metrics that are measured in terms of number of impressions.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_filter_sets_impression_metrics_list_execute()` or `adexchangebuyer2_bidders_filter_sets_impression_metrics_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_impression_metrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_impression_metrics_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListImpressionMetricsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListImpressionMetricsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/impressionMetrics
-/// Lists all metrics that are measured in terms of number of impressions.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_filter_sets_impression_metrics_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_impression_metrics_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_filter_sets_impression_metrics_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_impression_metrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_filter_sets_impression_metrics_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListImpressionMetricsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_filter_sets_impression_metrics_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_filter_sets_impression_metrics_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersFilterSetsImpressionMetricsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/impressionMetrics
-/// Lists all metrics that are measured in terms of number of impressions.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_filter_sets_impression_metrics_list_builder()` + `adexchangebuyer2_bidders_filter_sets_impression_metrics_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_impression_metrics_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_impression_metrics_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersFilterSetsImpressionMetricsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListImpressionMetricsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_filter_sets_impression_metrics_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_filter_sets_impression_metrics_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/losingBids
-/// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_filter_sets_losing_bids_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_losing_bids_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_filter_sets_losing_bids_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{}/losingBids",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/losingBids
-/// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_filter_sets_losing_bids_list_execute()` or `adexchangebuyer2_bidders_filter_sets_losing_bids_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_losing_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_losing_bids_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListLosingBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListLosingBidsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/losingBids
-/// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_filter_sets_losing_bids_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_losing_bids_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_filter_sets_losing_bids_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_losing_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_filter_sets_losing_bids_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListLosingBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_filter_sets_losing_bids_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_filter_sets_losing_bids_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersFilterSetsLosingBidsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/losingBids
-/// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_filter_sets_losing_bids_list_builder()` + `adexchangebuyer2_bidders_filter_sets_losing_bids_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_losing_bids_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_losing_bids_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersFilterSetsLosingBidsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListLosingBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_filter_sets_losing_bids_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_filter_sets_losing_bids_list_execute(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/nonBillableWinningBids
-/// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_execute()` to send, or `adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list` for simplest API.
-
-pub fn adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/bidders/{}/filterSets/{}/nonBillableWinningBids",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/nonBillableWinningBids
-/// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_execute()` or `adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListNonBillableWinningBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListNonBillableWinningBidsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/nonBillableWinningBids
-/// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListNonBillableWinningBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BiddersFilterSetsNonBillableWinningBidsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/bidders/{biddersId}/filterSets/{filterSetsId}/nonBillableWinningBids
-/// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_builder()` + `adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BiddersFilterSetsNonBillableWinningBidsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListNonBillableWinningBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list_execute(builder)
 }
 
 /// GET v2beta1/buyers/{buyersId}/filterSets
@@ -11298,15 +5097,13 @@ pub fn adexchangebuyer2_bidders_filter_sets_non_billable_winning_bids_list(
 
 pub fn adexchangebuyer2_buyers_filter_sets_create_builder(
     client: &SimpleHttpClient,
-    ownerName: &str,
+    ownerName: String,
     isTransient: Option<bool>,
     body: &FilterSet,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets",
-        ownerName,
-    );
+    let endpoint_url =
+        format!("https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -11315,9 +5112,9 @@ pub fn adexchangebuyer2_buyers_filter_sets_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -11353,7 +5150,12 @@ pub fn adexchangebuyer2_buyers_filter_sets_create_builder(
 pub fn adexchangebuyer2_buyers_filter_sets_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FilterSet>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -11459,2380 +5261,9 @@ pub fn adexchangebuyer2_buyers_filter_sets_create(
 > {
     let builder = adexchangebuyer2_buyers_filter_sets_create_builder(
         client,
-        &args.ownerName,
-        args.isTransient,
+        args.ownerName.clone(),
+        args.isTransient.clone(),
         &args.body,
     )?;
     adexchangebuyer2_buyers_filter_sets_create_execute(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}
-/// Deletes the requested filter set from the account with the given account ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_buyers_filter_sets_delete_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_delete` for simplest API.
-
-pub fn adexchangebuyer2_buyers_filter_sets_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}
-/// Deletes the requested filter set from the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_buyers_filter_sets_delete_execute()` or `adexchangebuyer2_buyers_filter_sets_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}
-/// Deletes the requested filter set from the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_buyers_filter_sets_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_delete_task()`.
-/// For the simplest API, use `adexchangebuyer2_buyers_filter_sets_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_buyers_filter_sets_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_buyers_filter_sets_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_buyers_filter_sets_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BuyersFilterSetsDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}
-/// Deletes the requested filter set from the account with the given account ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_buyers_filter_sets_delete_builder()` + `adexchangebuyer2_buyers_filter_sets_delete_execute()`.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_delete(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BuyersFilterSetsDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_buyers_filter_sets_delete_builder(client, &args.name)?;
-    adexchangebuyer2_buyers_filter_sets_delete_execute(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}
-/// Retrieves the requested filter set for the account with the given account ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_buyers_filter_sets_get_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_get` for simplest API.
-
-pub fn adexchangebuyer2_buyers_filter_sets_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}
-/// Retrieves the requested filter set for the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_buyers_filter_sets_get_execute()` or `adexchangebuyer2_buyers_filter_sets_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FilterSet = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}
-/// Retrieves the requested filter set for the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_buyers_filter_sets_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_get_task()`.
-/// For the simplest API, use `adexchangebuyer2_buyers_filter_sets_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_buyers_filter_sets_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_buyers_filter_sets_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_buyers_filter_sets_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BuyersFilterSetsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}
-/// Retrieves the requested filter set for the account with the given account ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_buyers_filter_sets_get_builder()` + `adexchangebuyer2_buyers_filter_sets_get_execute()`.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_get(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BuyersFilterSetsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FilterSet>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_buyers_filter_sets_get_builder(client, &args.name)?;
-    adexchangebuyer2_buyers_filter_sets_get_execute(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets
-/// Lists all filter sets for the account with the given account ID.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_buyers_filter_sets_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_list` for simplest API.
-
-pub fn adexchangebuyer2_buyers_filter_sets_list_builder(
-    client: &SimpleHttpClient,
-    ownerName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets",
-        ownerName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets
-/// Lists all filter sets for the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_buyers_filter_sets_list_execute()` or `adexchangebuyer2_buyers_filter_sets_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListFilterSetsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListFilterSetsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets
-/// Lists all filter sets for the account with the given account ID.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_buyers_filter_sets_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_buyers_filter_sets_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_buyers_filter_sets_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListFilterSetsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_buyers_filter_sets_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_buyers_filter_sets_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BuyersFilterSetsListArgs {
-    /// Path parameter: ownerName
-    pub ownerName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets
-/// Lists all filter sets for the account with the given account ID.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_buyers_filter_sets_list_builder()` + `adexchangebuyer2_buyers_filter_sets_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BuyersFilterSetsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListFilterSetsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_buyers_filter_sets_list_builder(
-        client,
-        &args.ownerName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_buyers_filter_sets_list_execute(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidMetrics
-/// Lists all metrics that are measured in terms of number of bids.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_buyers_filter_sets_bid_metrics_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_bid_metrics_list` for simplest API.
-
-pub fn adexchangebuyer2_buyers_filter_sets_bid_metrics_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{}/bidMetrics",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidMetrics
-/// Lists all metrics that are measured in terms of number of bids.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_buyers_filter_sets_bid_metrics_list_execute()` or `adexchangebuyer2_buyers_filter_sets_bid_metrics_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_bid_metrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_bid_metrics_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListBidMetricsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListBidMetricsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidMetrics
-/// Lists all metrics that are measured in terms of number of bids.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_buyers_filter_sets_bid_metrics_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_bid_metrics_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_buyers_filter_sets_bid_metrics_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_bid_metrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_buyers_filter_sets_bid_metrics_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListBidMetricsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_buyers_filter_sets_bid_metrics_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_buyers_filter_sets_bid_metrics_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BuyersFilterSetsBidMetricsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidMetrics
-/// Lists all metrics that are measured in terms of number of bids.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_buyers_filter_sets_bid_metrics_list_builder()` + `adexchangebuyer2_buyers_filter_sets_bid_metrics_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_bid_metrics_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_bid_metrics_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BuyersFilterSetsBidMetricsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListBidMetricsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_buyers_filter_sets_bid_metrics_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_buyers_filter_sets_bid_metrics_list_execute(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidResponseErrors
-/// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_bid_response_errors_list` for simplest API.
-
-pub fn adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{}/bidResponseErrors",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidResponseErrors
-/// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_execute()` or `adexchangebuyer2_buyers_filter_sets_bid_response_errors_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListBidResponseErrorsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListBidResponseErrorsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidResponseErrors
-/// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_buyers_filter_sets_bid_response_errors_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListBidResponseErrorsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_buyers_filter_sets_bid_response_errors_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BuyersFilterSetsBidResponseErrorsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidResponseErrors
-/// List all errors that occurred in bid responses, with the number of bid responses affected for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_builder()` + `adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_bid_response_errors_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BuyersFilterSetsBidResponseErrorsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListBidResponseErrorsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_buyers_filter_sets_bid_response_errors_list_execute(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
-/// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list` for simplest API.
-
-pub fn adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{}/bidResponsesWithoutBids",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
-/// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_execute()` or `adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListBidResponsesWithoutBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListBidResponsesWithoutBidsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
-/// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListBidResponsesWithoutBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BuyersFilterSetsBidResponsesWithoutBidsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/bidResponsesWithoutBids
-/// List all reasons for which bid responses were considered to have no applicable bids, with the number of bid responses affected for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_builder()` + `adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BuyersFilterSetsBidResponsesWithoutBidsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListBidResponsesWithoutBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_buyers_filter_sets_bid_responses_without_bids_list_execute(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBidRequests
-/// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list` for simplest API.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{}/filteredBidRequests",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBidRequests
-/// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_execute()` or `adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListFilteredBidRequestsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListFilteredBidRequestsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBidRequests
-/// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListFilteredBidRequestsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BuyersFilterSetsFilteredBidRequestsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBidRequests
-/// List all reasons that caused a bid request not to be sent for an impression, with the number of bid requests not sent for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_builder()` + `adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BuyersFilterSetsFilteredBidRequestsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListFilteredBidRequestsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_buyers_filter_sets_filtered_bid_requests_list_execute(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids
-/// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_buyers_filter_sets_filtered_bids_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_filtered_bids_list` for simplest API.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{}/filteredBids",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids
-/// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_list_execute()` or `adexchangebuyer2_buyers_filter_sets_filtered_bids_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_filtered_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListFilteredBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListFilteredBidsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids
-/// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_filtered_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListFilteredBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_buyers_filter_sets_filtered_bids_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_buyers_filter_sets_filtered_bids_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BuyersFilterSetsFilteredBidsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids
-/// List all reasons for which bids were filtered, with the number of bids filtered for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_list_builder()` + `adexchangebuyer2_buyers_filter_sets_filtered_bids_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BuyersFilterSetsFilteredBidsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListFilteredBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_buyers_filter_sets_filtered_bids_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_buyers_filter_sets_filtered_bids_list_execute(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
-/// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list` for simplest API.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    creativeStatusId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{}/filteredBids/{}/creatives",
-        filterSetName,
-        creativeStatusId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
-/// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_execute()` or `adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByCreativeResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListCreativeStatusBreakdownByCreativeResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
-/// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByCreativeResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BuyersFilterSetsFilteredBidsCreativesListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Path parameter: creativeStatusId
-    pub creativeStatusId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/creatives
-/// List all creatives associated with a specific reason for which bids were filtered, with the number of bids filtered for each creative.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_builder()` + `adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BuyersFilterSetsFilteredBidsCreativesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByCreativeResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_builder(
-        client,
-        &args.filterSetName,
-        &args.creativeStatusId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_buyers_filter_sets_filtered_bids_creatives_list_execute(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
-/// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list` for simplest API.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    creativeStatusId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{}/filteredBids/{}/details",
-        filterSetName,
-        creativeStatusId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
-/// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_execute()` or `adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByDetailResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListCreativeStatusBreakdownByDetailResponse =
-                    serde_json::from_str(&body)
-                        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
-/// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByDetailResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BuyersFilterSetsFilteredBidsDetailsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Path parameter: creativeStatusId
-    pub creativeStatusId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/filteredBids/{creativeStatusId}/details
-/// List all details associated with a specific reason for which bids were filtered, with the number of bids filtered for each detail.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_builder()` + `adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BuyersFilterSetsFilteredBidsDetailsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListCreativeStatusBreakdownByDetailResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_builder(
-        client,
-        &args.filterSetName,
-        &args.creativeStatusId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_buyers_filter_sets_filtered_bids_details_list_execute(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/impressionMetrics
-/// Lists all metrics that are measured in terms of number of impressions.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_buyers_filter_sets_impression_metrics_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_impression_metrics_list` for simplest API.
-
-pub fn adexchangebuyer2_buyers_filter_sets_impression_metrics_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{}/impressionMetrics",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/impressionMetrics
-/// Lists all metrics that are measured in terms of number of impressions.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_buyers_filter_sets_impression_metrics_list_execute()` or `adexchangebuyer2_buyers_filter_sets_impression_metrics_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_impression_metrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_impression_metrics_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListImpressionMetricsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListImpressionMetricsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/impressionMetrics
-/// Lists all metrics that are measured in terms of number of impressions.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_buyers_filter_sets_impression_metrics_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_impression_metrics_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_buyers_filter_sets_impression_metrics_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_impression_metrics_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_buyers_filter_sets_impression_metrics_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListImpressionMetricsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_buyers_filter_sets_impression_metrics_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_buyers_filter_sets_impression_metrics_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BuyersFilterSetsImpressionMetricsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/impressionMetrics
-/// Lists all metrics that are measured in terms of number of impressions.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_buyers_filter_sets_impression_metrics_list_builder()` + `adexchangebuyer2_buyers_filter_sets_impression_metrics_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_impression_metrics_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_impression_metrics_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BuyersFilterSetsImpressionMetricsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListImpressionMetricsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_buyers_filter_sets_impression_metrics_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_buyers_filter_sets_impression_metrics_list_execute(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/losingBids
-/// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_buyers_filter_sets_losing_bids_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_losing_bids_list` for simplest API.
-
-pub fn adexchangebuyer2_buyers_filter_sets_losing_bids_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{}/losingBids",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/losingBids
-/// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_buyers_filter_sets_losing_bids_list_execute()` or `adexchangebuyer2_buyers_filter_sets_losing_bids_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_losing_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_losing_bids_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListLosingBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListLosingBidsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/losingBids
-/// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_buyers_filter_sets_losing_bids_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_losing_bids_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_buyers_filter_sets_losing_bids_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_losing_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_buyers_filter_sets_losing_bids_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListLosingBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_buyers_filter_sets_losing_bids_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_buyers_filter_sets_losing_bids_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BuyersFilterSetsLosingBidsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/losingBids
-/// List all reasons for which bids lost in the auction, with the number of bids that lost for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_buyers_filter_sets_losing_bids_list_builder()` + `adexchangebuyer2_buyers_filter_sets_losing_bids_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_losing_bids_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_losing_bids_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BuyersFilterSetsLosingBidsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListLosingBidsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_buyers_filter_sets_losing_bids_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_buyers_filter_sets_losing_bids_list_execute(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/nonBillableWinningBids
-/// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_execute()` to send, or `adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list` for simplest API.
-
-pub fn adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_builder(
-    client: &SimpleHttpClient,
-    filterSetName: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://adexchangebuyer.googleapis.com/v2beta1/buyers/{}/filterSets/{}/nonBillableWinningBids",
-        filterSetName,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/nonBillableWinningBids
-/// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_execute()` or `adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListNonBillableWinningBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListNonBillableWinningBidsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/nonBillableWinningBids
-/// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_task()`.
-/// For the simplest API, use `adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListNonBillableWinningBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct Adexchangebuyer2BuyersFilterSetsNonBillableWinningBidsListArgs {
-    /// Path parameter: filterSetName
-    pub filterSetName: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v2beta1/buyers/{buyersId}/filterSets/{filterSetsId}/nonBillableWinningBids
-/// List all reasons for which winning bids were not billable, with the number of bids not billed for each reason.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_builder()` + `adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_execute()`.
-/// For task-level control, use `adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list(
-    client: &SimpleHttpClient,
-    args: &Adexchangebuyer2BuyersFilterSetsNonBillableWinningBidsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListNonBillableWinningBidsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_builder(
-        client,
-        &args.filterSetName,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    adexchangebuyer2_buyers_filter_sets_non_billable_winning_bids_list_execute(builder)
 }

@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,15 @@ use serde::Serialize;
 
 pub fn playintegrity_device_recall_write_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     body: &WriteDeviceRecallRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://playintegrity.googleapis.com/v1/{}/deviceRecall:write",
-        packageName,
-    );
+    let endpoint_url = format!("https://playintegrity.googleapis.com/v1/{}/deviceRecall:write",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -71,8 +69,11 @@ pub fn playintegrity_device_recall_write_builder(
 pub fn playintegrity_device_recall_write_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<WriteDeviceRecallResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<WriteDeviceRecallResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -179,7 +180,8 @@ pub fn playintegrity_device_recall_write(
         + 'static,
     ApiError,
 > {
-    let builder = playintegrity_device_recall_write_builder(client, &args.packageName, &args.body)?;
+    let builder =
+        playintegrity_device_recall_write_builder(client, args.packageName.clone(), &args.body)?;
     playintegrity_device_recall_write_execute(builder)
 }
 
@@ -191,18 +193,15 @@ pub fn playintegrity_device_recall_write(
 
 pub fn playintegrity_decode_integrity_token_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     body: &DecodeIntegrityTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://playintegrity.googleapis.com/v1/{}:decodeIntegrityToken",
-        packageName,
-    );
+    let endpoint_url = format!("https://playintegrity.googleapis.com/v1/{}:decodeIntegrityToken",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -235,8 +234,9 @@ pub fn playintegrity_decode_integrity_token_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<DecodeIntegrityTokenResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<DecodeIntegrityTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -349,7 +349,7 @@ pub fn playintegrity_decode_integrity_token(
     ApiError,
 > {
     let builder =
-        playintegrity_decode_integrity_token_builder(client, &args.packageName, &args.body)?;
+        playintegrity_decode_integrity_token_builder(client, args.packageName.clone(), &args.body)?;
     playintegrity_decode_integrity_token_execute(builder)
 }
 
@@ -361,18 +361,16 @@ pub fn playintegrity_decode_integrity_token(
 
 pub fn playintegrity_decode_pc_integrity_token_builder(
     client: &SimpleHttpClient,
-    packageName: &str,
+    packageName: String,
     body: &DecodePcIntegrityTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://playintegrity.googleapis.com/v1/{}:decodePcIntegrityToken",
-        packageName,
-    );
+    let endpoint_url =
+        format!("https://playintegrity.googleapis.com/v1/{}:decodePcIntegrityToken",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -405,8 +403,9 @@ pub fn playintegrity_decode_pc_integrity_token_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<DecodePcIntegrityTokenResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<DecodePcIntegrityTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -518,7 +517,10 @@ pub fn playintegrity_decode_pc_integrity_token(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playintegrity_decode_pc_integrity_token_builder(client, &args.packageName, &args.body)?;
+    let builder = playintegrity_decode_pc_integrity_token_builder(
+        client,
+        args.packageName.clone(),
+        &args.body,
+    )?;
     playintegrity_decode_pc_integrity_token_execute(builder)
 }

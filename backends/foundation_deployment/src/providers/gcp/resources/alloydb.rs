@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Operation metadata returned by the CLH during resource state reconciliation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -45,7 +47,9 @@ pub struct ConnectionInfo {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Export cluster request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -108,7 +112,7 @@ pub struct ImportClusterRequest {
     pub gcs_uri: ::core::option::Option<String>,
     /// Options for importing data in SQL format.
     #[serde(default, rename = "sqlImportOptions")]
-    pub sql_import_options: ::core::option::Option<serde_json::Value>,
+    pub sql_import_options: ::core::option::Option<SqlImportOptions>,
     /// Optional. Database user to be used for importing the data. Note - Value provided should be the same as expected from SELECT current_user; and NOT as a resource reference.
     #[serde(default)]
     pub user: ::core::option::Option<String>,
@@ -317,10 +321,6 @@ pub struct RestoreFromCloudSQLRequest {
     pub cluster_id: ::core::option::Option<String>,
 }
 
-/// Options for importing data in SQL format.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlImportOptions {}
-
 /// DatabaseResourceFeed is the top level proto to be used to ingest different database resource level events into Condor platform. Next ID: 13
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorageDatabasecenterPartnerapiV1mainDatabaseResourceFeed {
@@ -495,6 +495,12 @@ pub struct CsvImportOptions {
     /// Required. The database table to import CSV file into.
     #[serde(default)]
     pub table: ::core::option::Option<String>,
+}
+
+/// Options for importing data in SQL format.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlImportOptions {
+    pub value: serde_json::Value,
 }
 
 /// Message describing Backup object

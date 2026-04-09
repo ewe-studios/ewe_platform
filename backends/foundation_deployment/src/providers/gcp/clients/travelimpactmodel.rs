@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -31,12 +32,12 @@ pub fn travelimpactmodel_flights_compute_flight_emissions_builder(
     body: &ComputeFlightEmissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url =
+    let endpoint_url =
         format!("https://travelimpactmodel.googleapis.com/v1/flights:computeFlightEmissions",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -69,8 +70,9 @@ pub fn travelimpactmodel_flights_compute_flight_emissions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ComputeFlightEmissionsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ComputeFlightEmissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -195,13 +197,13 @@ pub fn travelimpactmodel_flights_compute_scope3_flight_emissions_builder(
     body: &ComputeScope3FlightEmissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://travelimpactmodel.googleapis.com/v1/flights:computeScope3FlightEmissions",
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -234,8 +236,9 @@ pub fn travelimpactmodel_flights_compute_scope3_flight_emissions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ComputeScope3FlightEmissionsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ComputeScope3FlightEmissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -361,13 +364,13 @@ pub fn travelimpactmodel_flights_compute_typical_flight_emissions_builder(
     body: &ComputeTypicalFlightEmissionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://travelimpactmodel.googleapis.com/v1/flights:computeTypicalFlightEmissions",
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -400,8 +403,9 @@ pub fn travelimpactmodel_flights_compute_typical_flight_emissions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ComputeTypicalFlightEmissionsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ComputeTypicalFlightEmissionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,

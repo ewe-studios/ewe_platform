@@ -74,7 +74,7 @@ pub struct AdvisorIssue {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnnotationCreateValueRequest {
     #[serde(default)]
-    pub annotation_value: ::core::option::Option<serde_json::Value>,
+    pub annotation_value: ::core::option::Option<AnnotationValueData>,
 }
 
 /// AnnotationResponse resource type.
@@ -82,10 +82,6 @@ pub struct AnnotationCreateValueRequest {
 pub struct AnnotationResponse {
     pub annotation: AnnotationData,
 }
-
-/// Annotation properties.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnnotationValueData {}
 
 /// AnnotationsMapResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -198,19 +194,29 @@ pub struct BackupSchedule {
     pub schedule: ::std::vec::Vec<BackupScheduleItem>,
 }
 
+/// BranchAnonymizedCreateRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchAnonymizedCreateRequest {
+    #[serde(default)]
+    pub branch_create: ::core::option::Option<BranchCreateRequest>,
+    /// List of masking rules to apply to the branch.
+    #[serde(default)]
+    pub masking_rules: ::core::option::Option<::std::vec::Vec<MaskingRule>>,
+    /// If true, automatically start anonymization after the branch is created.
+    #[serde(default)]
+    pub start_anonymization: ::core::option::Option<bool>,
+}
+
 /// BranchConsumptionResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BranchConsumptionResponse {
     pub consumption: BranchConsumption,
 }
 
-/// BranchCreateRequest resource type.
+/// BranchOperations resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchCreateRequest {
-    #[serde(default)]
-    pub branch: ::core::option::Option<serde_json::Value>,
-    #[serde(default)]
-    pub endpoints: ::core::option::Option<::std::vec::Vec<BranchCreateRequestEndpointOptions>>,
+pub struct BranchOperations {
+    pub value: serde_json::Value,
 }
 
 /// BranchResponse resource type.
@@ -422,6 +428,12 @@ pub struct DatabaseCreateRequest {
     pub database: serde_json::Value,
 }
 
+/// DatabaseOperations resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseOperations {
+    pub value: serde_json::Value,
+}
+
 /// DatabaseResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseResponse {
@@ -442,7 +454,9 @@ pub struct DatabasesResponse {
 
 /// Empty response.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EmptyResponse {}
+pub struct EmptyResponse {
+    pub value: serde_json::Value,
+}
 
 /// EnableNeonAuthIntegrationRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -463,6 +477,12 @@ pub struct EnableOrganizationFeatureRequest {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndpointCreateRequest {
     pub endpoint: serde_json::Value,
+}
+
+/// EndpointOperations resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointOperations {
+    pub value: serde_json::Value,
 }
 
 /// EndpointPasswordlessSessionAuthRequest resource type.
@@ -498,11 +518,9 @@ pub struct EndpointsResponse {
 
 /// FeatureFlags resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FeatureFlags {}
-
-/// Features resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Features {}
+pub struct FeatureFlags {
+    pub value: serde_json::Value,
+}
 
 /// GeneralError resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -534,6 +552,12 @@ pub struct InvitationCreateRequest {
     /// Email to invite
     pub email: String,
     pub role: serde_json::Value,
+}
+
+/// JWKSCreationOperation resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct JWKSCreationOperation {
+    pub value: serde_json::Value,
 }
 
 /// JWKSResponse resource type.
@@ -683,10 +707,6 @@ pub struct NeonAuthEmailAndPasswordConfigUpdate {
     pub send_verification_email_on_sign_up: ::core::option::Option<bool>,
 }
 
-/// NeonAuthEmailServerConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NeonAuthEmailServerConfig {}
-
 /// NeonAuthOrganizationConfigUpdate resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NeonAuthOrganizationConfigUpdate {
@@ -715,7 +735,7 @@ pub struct NeonAuthPluginConfigs {
     #[serde(default)]
     pub email_and_password: ::core::option::Option<NeonAuthEmailAndPasswordConfig>,
     #[serde(default)]
-    pub email_provider: ::core::option::Option<serde_json::Value>,
+    pub email_provider: ::core::option::Option<NeonAuthEmailServerConfig>,
     #[serde(default)]
     pub oauth_providers: ::core::option::Option<::std::vec::Vec<NeonAuthOauthProvider>>,
     #[serde(default)]
@@ -777,6 +797,38 @@ pub struct OperationsResponse {
     pub operations: ::std::vec::Vec<Operation>,
 }
 
+/// OrgApiKeyCreateRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrgApiKeyCreateRequest {
+    /// If set, the API key can access only this project
+    #[serde(default)]
+    pub project_id: ::core::option::Option<String>,
+}
+
+/// OrgApiKeyCreateResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrgApiKeyCreateResponse {
+    /// If set, the API key can access only this project
+    #[serde(default)]
+    pub project_id: ::core::option::Option<String>,
+}
+
+/// OrgApiKeyRevokeResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrgApiKeyRevokeResponse {
+    /// If set, the API key can access only this project
+    #[serde(default)]
+    pub project_id: ::core::option::Option<String>,
+}
+
+/// OrgApiKeysListResponseItem resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrgApiKeysListResponseItem {
+    /// If set, the API key can access only this project
+    #[serde(default)]
+    pub project_id: ::core::option::Option<String>,
+}
+
 /// OrganizationCreateRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationCreateRequest {
@@ -795,6 +847,12 @@ pub struct OrganizationGuest {
     pub project_id: String,
     pub project_name: String,
     pub user_email: String,
+}
+
+/// A list of details for guests of an organization
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationGuestsResponse {
+    pub value: serde_json::Value,
 }
 
 /// OrganizationInvitationsResponse resource type.
@@ -857,14 +915,6 @@ pub struct PaginationResponse {
     pub pagination: ::core::option::Option<Pagination>,
 }
 
-/// A raw representation of Postgres settings
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PgSettingsData {}
-
-/// A raw representation of PgBouncer settings
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PgbouncerSettingsData {}
-
 /// ProjectCreateRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectCreateRequest {
@@ -880,7 +930,7 @@ pub struct ProjectJWKSResponse {
 /// ProjectLimits resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectLimits {
-    pub features: serde_json::Value,
+    pub features: Features,
     pub limits: Limits,
 }
 
@@ -888,6 +938,12 @@ pub struct ProjectLimits {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectPermissions {
     pub project_permissions: ::std::vec::Vec<ProjectPermission>,
+}
+
+/// ProjectRecoverResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectRecoverResponse {
+    pub value: serde_json::Value,
 }
 
 /// ProjectResponse resource type.
@@ -961,6 +1017,12 @@ pub struct RoleCreateRequest {
     pub role: serde_json::Value,
 }
 
+/// RoleOperations resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RoleOperations {
+    pub value: serde_json::Value,
+}
+
 /// RolePasswordResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RolePasswordResponse {
@@ -982,7 +1044,11 @@ pub struct RolesResponse {
 
 /// SendNeonAuthTestEmailRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SendNeonAuthTestEmailRequest {}
+pub struct SendNeonAuthTestEmailRequest {
+    /// The email address to send the test email to.
+    #[serde(default)]
+    pub recipient_email: ::core::option::Option<String>,
+}
 
 /// SendNeonAuthTestEmailResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1178,7 +1244,7 @@ pub struct VPCEndpointsResponse {
 /// VPCEndpointsWithRegionResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VPCEndpointsWithRegionResponse {
-    pub endpoints: ::std::vec::Vec<serde_json::Value>,
+    pub endpoints: ::std::vec::Vec<VPCEndpointWithRegion>,
 }
 
 /// VerifyUserPasswordRequest resource type.
@@ -1210,7 +1276,7 @@ pub struct AnnotationData {
     pub object: AnnotationObjectData,
     #[serde(default)]
     pub updated_at: ::core::option::Option<String>,
-    pub value: serde_json::Value,
+    pub value: AnnotationValueData,
 }
 
 /// Metadata about the most recent anonymization attempt for the branch.
@@ -1273,6 +1339,15 @@ pub struct BackupScheduleItem {
     pub retention_seconds: ::core::option::Option<i64>,
 }
 
+/// BranchCreateRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchCreateRequest {
+    #[serde(default)]
+    pub branch: ::core::option::Option<serde_json::Value>,
+    #[serde(default)]
+    pub endpoints: ::core::option::Option<::std::vec::Vec<BranchCreateRequestEndpointOptions>>,
+}
+
 /// BranchConsumption resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BranchConsumption {
@@ -1286,25 +1361,6 @@ pub struct BranchConsumption {
     pub pitr_history_size_since_parent_bytes: i64,
     /// Bytes. The number of bytes written to the branch since the parent branch.
     pub written_size_since_parent_bytes: i64,
-}
-
-/// BranchCreateRequestEndpointOptions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BranchCreateRequestEndpointOptions {
-    /// The maximum number of Compute Units.
-    #[serde(default)]
-    pub autoscaling_limit_max_cu: ::core::option::Option<serde_json::Value>,
-    /// The minimum number of Compute Units. The minimum value is 0.25.
-    #[serde(default)]
-    pub autoscaling_limit_min_cu: ::core::option::Option<serde_json::Value>,
-    #[serde(default)]
-    pub provisioner: ::core::option::Option<serde_json::Value>,
-    #[serde(default)]
-    pub settings: ::core::option::Option<EndpointSettingsData>,
-    #[serde(default)]
-    pub suspend_timeout_seconds: ::core::option::Option<serde_json::Value>,
-    #[serde(rename = "type")]
-    pub type_: serde_json::Value,
 }
 
 /// BranchSchemaJSON resource type.
@@ -1650,6 +1706,12 @@ pub struct NeonAuthEmailAndPasswordConfig {
     pub send_verification_email_on_sign_up: bool,
 }
 
+/// NeonAuthEmailServerConfig resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NeonAuthEmailServerConfig {
+    pub value: serde_json::Value,
+}
+
 /// NeonAuthOauthProvider resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NeonAuthOauthProvider {
@@ -1782,6 +1844,12 @@ pub struct JWKS {
     pub role_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// The date and time when the JWKS was last modified
     pub updated_at: String,
+}
+
+/// Features resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Features {
+    pub value: serde_json::Value,
 }
 
 /// Limits resource type.
@@ -2030,12 +2098,45 @@ pub struct VPCEndpoint {
     pub vpc_endpoint_id: String,
 }
 
+/// VPCEndpointWithRegion resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VPCEndpointWithRegion {
+    /// The region where the VPC endpoint is located
+    #[serde(default)]
+    pub region_id: ::core::option::Option<String>,
+}
+
 /// AnnotationObjectData resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnnotationObjectData {
     pub id: String,
     #[serde(rename = "type")]
     pub type_: String,
+}
+
+/// Annotation properties.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AnnotationValueData {
+    pub value: serde_json::Value,
+}
+
+/// BranchCreateRequestEndpointOptions resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchCreateRequestEndpointOptions {
+    /// The maximum number of Compute Units.
+    #[serde(default)]
+    pub autoscaling_limit_max_cu: ::core::option::Option<serde_json::Value>,
+    /// The minimum number of Compute Units. The minimum value is 0.25.
+    #[serde(default)]
+    pub autoscaling_limit_min_cu: ::core::option::Option<serde_json::Value>,
+    #[serde(default)]
+    pub provisioner: ::core::option::Option<serde_json::Value>,
+    #[serde(default)]
+    pub settings: ::core::option::Option<EndpointSettingsData>,
+    #[serde(default)]
+    pub suspend_timeout_seconds: ::core::option::Option<serde_json::Value>,
+    #[serde(rename = "type")]
+    pub type_: serde_json::Value,
 }
 
 /// An action that is currently restricted for the branch and the reason why.
@@ -2110,17 +2211,6 @@ pub struct PlanDetails {
     pub version: ::core::option::Option<PlanVersion>,
 }
 
-/// A collection of settings for a compute endpoint
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointSettingsData {
-    #[serde(default)]
-    pub pg_settings: ::core::option::Option<serde_json::Value>,
-    #[serde(default)]
-    pub pgbouncer_settings: ::core::option::Option<serde_json::Value>,
-    #[serde(default)]
-    pub preload_libraries: ::core::option::Option<PreloadLibraries>,
-}
-
 /// Member resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Member {
@@ -2178,9 +2268,9 @@ pub struct DefaultEndpointSettings {
     #[serde(default)]
     pub autoscaling_limit_min_cu: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub pg_settings: ::core::option::Option<serde_json::Value>,
+    pub pg_settings: ::core::option::Option<PgSettingsData>,
     #[serde(default)]
-    pub pgbouncer_settings: ::core::option::Option<serde_json::Value>,
+    pub pgbouncer_settings: ::core::option::Option<PgbouncerSettingsData>,
     #[serde(default)]
     pub suspend_timeout_seconds: ::core::option::Option<serde_json::Value>,
 }
@@ -2209,6 +2299,17 @@ pub struct ProjectSettingsData {
     pub preload_libraries: ::core::option::Option<PreloadLibraries>,
     #[serde(default)]
     pub quota: ::core::option::Option<ProjectQuota>,
+}
+
+/// A collection of settings for a compute endpoint
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointSettingsData {
+    #[serde(default)]
+    pub pg_settings: ::core::option::Option<PgSettingsData>,
+    #[serde(default)]
+    pub pgbouncer_settings: ::core::option::Option<PgbouncerSettingsData>,
+    #[serde(default)]
+    pub preload_libraries: ::core::option::Option<PreloadLibraries>,
 }
 
 /// ConsumptionHistoryPerTimeframe resource type.
@@ -2299,15 +2400,6 @@ pub struct MaintenanceWindow {
     pub weekdays: ::std::vec::Vec<i64>,
 }
 
-/// The shared libraries to preload into the project''s compute instances.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PreloadLibraries {
-    #[serde(default)]
-    pub enabled_libraries: ::core::option::Option<::std::vec::Vec<String>>,
-    #[serde(default)]
-    pub use_defaults: ::core::option::Option<bool>,
-}
-
 /// Per-project consumption quotas. If a quota is exceeded, all active computes
 /// are automatically suspended and cannot be started via API calls or incoming connections.
 ///
@@ -2340,6 +2432,27 @@ pub struct ProjectQuota {
     /// Total amount of data written to all of a project''s branches.
     #[serde(default)]
     pub written_data_bytes: ::core::option::Option<i64>,
+}
+
+/// A raw representation of Postgres settings
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PgSettingsData {
+    pub value: serde_json::Value,
+}
+
+/// A raw representation of PgBouncer settings
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PgbouncerSettingsData {
+    pub value: serde_json::Value,
+}
+
+/// The shared libraries to preload into the project''s compute instances.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PreloadLibraries {
+    #[serde(default)]
+    pub enabled_libraries: ::core::option::Option<::std::vec::Vec<String>>,
+    #[serde(default)]
+    pub use_defaults: ::core::option::Option<bool>,
 }
 
 /// ConsumptionMetricValue resource type.

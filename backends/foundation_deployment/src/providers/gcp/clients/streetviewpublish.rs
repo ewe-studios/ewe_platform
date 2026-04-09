@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -31,11 +32,11 @@ pub fn streetviewpublish_photo_create_builder(
     body: &Photo,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://streetviewpublish.googleapis.com/v1/photo",);
+    let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photo",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -67,7 +68,12 @@ pub fn streetviewpublish_photo_create_builder(
 pub fn streetviewpublish_photo_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Photo>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Photo>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -179,17 +185,17 @@ pub fn streetviewpublish_photo_create(
 
 pub fn streetviewpublish_photo_delete_builder(
     client: &SimpleHttpClient,
-    photoId: &str,
+    photoId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://streetviewpublish.googleapis.com/v1/photo/{}",
-        photoId,
+        photoId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -219,7 +225,12 @@ pub fn streetviewpublish_photo_delete_builder(
 pub fn streetviewpublish_photo_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -319,185 +330,8 @@ pub fn streetviewpublish_photo_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = streetviewpublish_photo_delete_builder(client, &args.photoId)?;
+    let builder = streetviewpublish_photo_delete_builder(client, args.photoId.clone())?;
     streetviewpublish_photo_delete_execute(builder)
-}
-
-/// GET v1/photo/{photoId}
-/// Gets the metadata of the specified Photo. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested Photo. * google.rpc.Code.NOT_FOUND if the requested Photo does not exist. * google.rpc.Code.UNAVAILABLE if the requested Photo is still being indexed.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `streetviewpublish_photo_get_execute()` to send, or `streetviewpublish_photo_get` for simplest API.
-
-pub fn streetviewpublish_photo_get_builder(
-    client: &SimpleHttpClient,
-    photoId: &str,
-    languageCode: Option<&str>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://streetviewpublish.googleapis.com/v1/photo/{}",
-        photoId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = languageCode {
-        query_parts.push(format!("languageCode={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/photo/{photoId}
-/// Gets the metadata of the specified Photo. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested Photo. * google.rpc.Code.NOT_FOUND if the requested Photo does not exist. * google.rpc.Code.UNAVAILABLE if the requested Photo is still being indexed.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `streetviewpublish_photo_get_execute()` or `streetviewpublish_photo_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `streetviewpublish_photo_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn streetviewpublish_photo_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Photo>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Photo = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/photo/{photoId}
-/// Gets the metadata of the specified Photo. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested Photo. * google.rpc.Code.NOT_FOUND if the requested Photo does not exist. * google.rpc.Code.UNAVAILABLE if the requested Photo is still being indexed.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `streetviewpublish_photo_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `streetviewpublish_photo_get_task()`.
-/// For the simplest API, use `streetviewpublish_photo_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `streetviewpublish_photo_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn streetviewpublish_photo_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Photo>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = streetviewpublish_photo_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`streetviewpublish_photo_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StreetviewpublishPhotoGetArgs {
-    /// Path parameter: photoId
-    pub photoId: String,
-    /// Query parameter: languageCode
-    pub languageCode: Option<String>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v1/photo/{photoId}
-/// Gets the metadata of the specified Photo. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested Photo. * google.rpc.Code.NOT_FOUND if the requested Photo does not exist. * google.rpc.Code.UNAVAILABLE if the requested Photo is still being indexed.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `streetviewpublish_photo_get_builder()` + `streetviewpublish_photo_get_execute()`.
-/// For task-level control, use `streetviewpublish_photo_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn streetviewpublish_photo_get(
-    client: &SimpleHttpClient,
-    args: &StreetviewpublishPhotoGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Photo>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = streetviewpublish_photo_get_builder(
-        client,
-        &args.photoId,
-        args.languageCode.as_deref(),
-        args.view.as_deref(),
-    )?;
-    streetviewpublish_photo_get_execute(builder)
 }
 
 /// GET v1/photo:startUpload
@@ -511,11 +345,11 @@ pub fn streetviewpublish_photo_start_upload_builder(
     body: &Empty,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://streetviewpublish.googleapis.com/v1/photo:startUpload",);
+    let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photo:startUpload",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -547,7 +381,12 @@ pub fn streetviewpublish_photo_start_upload_builder(
 pub fn streetviewpublish_photo_start_upload_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UploadRef>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UploadRef>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -659,12 +498,15 @@ pub fn streetviewpublish_photo_start_upload(
 
 pub fn streetviewpublish_photo_update_builder(
     client: &SimpleHttpClient,
-    id: &str,
-    updateMask: Option<&str>,
+    id: String,
+    updateMask: Option<String>,
     body: &Photo,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://streetviewpublish.googleapis.com/v1/photo/{}", id,);
+    let endpoint_url = format!(
+        "https://streetviewpublish.googleapis.com/v1/photo/{}",
+        id.as_str(),
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -673,9 +515,9 @@ pub fn streetviewpublish_photo_update_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -711,7 +553,12 @@ pub fn streetviewpublish_photo_update_builder(
 pub fn streetviewpublish_photo_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Photo>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Photo>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -817,8 +664,8 @@ pub fn streetviewpublish_photo_update(
 > {
     let builder = streetviewpublish_photo_update_builder(
         client,
-        &args.id,
-        args.updateMask.as_deref(),
+        args.id.clone(),
+        args.updateMask.clone(),
         &args.body,
     )?;
     streetviewpublish_photo_update_execute(builder)
@@ -832,11 +679,11 @@ pub fn streetviewpublish_photo_update(
 
 pub fn streetviewpublish_photo_sequence_create_builder(
     client: &SimpleHttpClient,
-    inputType: Option<&str>,
+    inputType: Option<String>,
     body: &PhotoSequence,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://streetviewpublish.googleapis.com/v1/photoSequence",);
+    let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photoSequence",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -845,9 +692,9 @@ pub fn streetviewpublish_photo_sequence_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -883,7 +730,12 @@ pub fn streetviewpublish_photo_sequence_create_builder(
 pub fn streetviewpublish_photo_sequence_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -987,7 +839,7 @@ pub fn streetviewpublish_photo_sequence_create(
 > {
     let builder = streetviewpublish_photo_sequence_create_builder(
         client,
-        args.inputType.as_deref(),
+        args.inputType.clone(),
         &args.body,
     )?;
     streetviewpublish_photo_sequence_create_execute(builder)
@@ -1001,17 +853,17 @@ pub fn streetviewpublish_photo_sequence_create(
 
 pub fn streetviewpublish_photo_sequence_delete_builder(
     client: &SimpleHttpClient,
-    sequenceId: &str,
+    sequenceId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://streetviewpublish.googleapis.com/v1/photoSequence/{}",
-        sequenceId,
+        sequenceId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1041,7 +893,12 @@ pub fn streetviewpublish_photo_sequence_delete_builder(
 pub fn streetviewpublish_photo_sequence_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1141,185 +998,8 @@ pub fn streetviewpublish_photo_sequence_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = streetviewpublish_photo_sequence_delete_builder(client, &args.sequenceId)?;
+    let builder = streetviewpublish_photo_sequence_delete_builder(client, args.sequenceId.clone())?;
     streetviewpublish_photo_sequence_delete_execute(builder)
-}
-
-/// GET v1/photoSequence/{sequenceId}
-/// Gets the metadata of the specified PhotoSequence via the Operation interface. This method returns the following three types of responses: * Operation.done = `false`, if the processing of PhotoSequence is not finished yet. * Operation.done = `true` and Operation.error is populated, if there was an error in processing. * Operation.done = `true` and Operation.response is poulated, which contains a PhotoSequence message. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested PhotoSequence. * google.rpc.Code.NOT_FOUND if the requested PhotoSequence does not exist.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `streetviewpublish_photo_sequence_get_execute()` to send, or `streetviewpublish_photo_sequence_get` for simplest API.
-
-pub fn streetviewpublish_photo_sequence_get_builder(
-    client: &SimpleHttpClient,
-    sequenceId: &str,
-    filter: Option<&str>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://streetviewpublish.googleapis.com/v1/photoSequence/{}",
-        sequenceId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/photoSequence/{sequenceId}
-/// Gets the metadata of the specified PhotoSequence via the Operation interface. This method returns the following three types of responses: * Operation.done = `false`, if the processing of PhotoSequence is not finished yet. * Operation.done = `true` and Operation.error is populated, if there was an error in processing. * Operation.done = `true` and Operation.response is poulated, which contains a PhotoSequence message. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested PhotoSequence. * google.rpc.Code.NOT_FOUND if the requested PhotoSequence does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `streetviewpublish_photo_sequence_get_execute()` or `streetviewpublish_photo_sequence_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `streetviewpublish_photo_sequence_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn streetviewpublish_photo_sequence_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/photoSequence/{sequenceId}
-/// Gets the metadata of the specified PhotoSequence via the Operation interface. This method returns the following three types of responses: * Operation.done = `false`, if the processing of PhotoSequence is not finished yet. * Operation.done = `true` and Operation.error is populated, if there was an error in processing. * Operation.done = `true` and Operation.response is poulated, which contains a PhotoSequence message. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested PhotoSequence. * google.rpc.Code.NOT_FOUND if the requested PhotoSequence does not exist.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `streetviewpublish_photo_sequence_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `streetviewpublish_photo_sequence_get_task()`.
-/// For the simplest API, use `streetviewpublish_photo_sequence_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `streetviewpublish_photo_sequence_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn streetviewpublish_photo_sequence_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = streetviewpublish_photo_sequence_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`streetviewpublish_photo_sequence_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct StreetviewpublishPhotoSequenceGetArgs {
-    /// Path parameter: sequenceId
-    pub sequenceId: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v1/photoSequence/{sequenceId}
-/// Gets the metadata of the specified PhotoSequence via the Operation interface. This method returns the following three types of responses: * Operation.done = `false`, if the processing of PhotoSequence is not finished yet. * Operation.done = `true` and Operation.error is populated, if there was an error in processing. * Operation.done = `true` and Operation.response is poulated, which contains a PhotoSequence message. This method returns the following error codes: * google.rpc.Code.PERMISSION_DENIED if the requesting user did not create the requested PhotoSequence. * google.rpc.Code.NOT_FOUND if the requested PhotoSequence does not exist.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `streetviewpublish_photo_sequence_get_builder()` + `streetviewpublish_photo_sequence_get_execute()`.
-/// For task-level control, use `streetviewpublish_photo_sequence_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn streetviewpublish_photo_sequence_get(
-    client: &SimpleHttpClient,
-    args: &StreetviewpublishPhotoSequenceGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = streetviewpublish_photo_sequence_get_builder(
-        client,
-        &args.sequenceId,
-        args.filter.as_deref(),
-        args.view.as_deref(),
-    )?;
-    streetviewpublish_photo_sequence_get_execute(builder)
 }
 
 /// GET v1/photoSequence:startUpload
@@ -1333,11 +1013,12 @@ pub fn streetviewpublish_photo_sequence_start_upload_builder(
     body: &Empty,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://streetviewpublish.googleapis.com/v1/photoSequence:startUpload",);
+    let endpoint_url =
+        format!("https://streetviewpublish.googleapis.com/v1/photoSequence:startUpload",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1369,7 +1050,12 @@ pub fn streetviewpublish_photo_sequence_start_upload_builder(
 pub fn streetviewpublish_photo_sequence_start_upload_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UploadRef>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UploadRef>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1481,12 +1167,12 @@ pub fn streetviewpublish_photo_sequence_start_upload(
 
 pub fn streetviewpublish_photo_sequences_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://streetviewpublish.googleapis.com/v1/photoSequences",);
+    let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photoSequences",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1501,9 +1187,9 @@ pub fn streetviewpublish_photo_sequences_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1537,8 +1223,11 @@ pub fn streetviewpublish_photo_sequences_list_builder(
 pub fn streetviewpublish_photo_sequences_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListPhotoSequencesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPhotoSequencesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1653,9 +1342,9 @@ pub fn streetviewpublish_photo_sequences_list(
 > {
     let builder = streetviewpublish_photo_sequences_list_builder(
         client,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     streetviewpublish_photo_sequences_list_execute(builder)
 }
@@ -1671,11 +1360,11 @@ pub fn streetviewpublish_photos_batch_delete_builder(
     body: &BatchDeletePhotosRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://streetviewpublish.googleapis.com/v1/photos:batchDelete",);
+    let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photos:batchDelete",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1707,8 +1396,11 @@ pub fn streetviewpublish_photos_batch_delete_builder(
 pub fn streetviewpublish_photos_batch_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BatchDeletePhotosResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchDeletePhotosResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1825,12 +1517,12 @@ pub fn streetviewpublish_photos_batch_delete(
 
 pub fn streetviewpublish_photos_batch_get_builder(
     client: &SimpleHttpClient,
-    languageCode: Option<&str>,
-    photoIds: Option<&str>,
-    view: Option<&str>,
+    languageCode: Option<String>,
+    photoIds: Option<String>,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://streetviewpublish.googleapis.com/v1/photos:batchGet",);
+    let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photos:batchGet",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1845,9 +1537,9 @@ pub fn streetviewpublish_photos_batch_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1881,8 +1573,11 @@ pub fn streetviewpublish_photos_batch_get_builder(
 pub fn streetviewpublish_photos_batch_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BatchGetPhotosResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchGetPhotosResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1993,9 +1688,9 @@ pub fn streetviewpublish_photos_batch_get(
 > {
     let builder = streetviewpublish_photos_batch_get_builder(
         client,
-        args.languageCode.as_deref(),
-        args.photoIds.as_deref(),
-        args.view.as_deref(),
+        args.languageCode.clone(),
+        args.photoIds.clone(),
+        args.view.clone(),
     )?;
     streetviewpublish_photos_batch_get_execute(builder)
 }
@@ -2011,11 +1706,11 @@ pub fn streetviewpublish_photos_batch_update_builder(
     body: &BatchUpdatePhotosRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://streetviewpublish.googleapis.com/v1/photos:batchUpdate",);
+    let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photos:batchUpdate",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2047,8 +1742,11 @@ pub fn streetviewpublish_photos_batch_update_builder(
 pub fn streetviewpublish_photos_batch_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BatchUpdatePhotosResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchUpdatePhotosResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2165,14 +1863,14 @@ pub fn streetviewpublish_photos_batch_update(
 
 pub fn streetviewpublish_photos_list_builder(
     client: &SimpleHttpClient,
-    filter: Option<&str>,
-    languageCode: Option<&str>,
+    filter: Option<String>,
+    languageCode: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
+    pageToken: Option<String>,
+    view: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://streetviewpublish.googleapis.com/v1/photos",);
+    let endpoint_url = format!("https://streetviewpublish.googleapis.com/v1/photos",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2193,9 +1891,9 @@ pub fn streetviewpublish_photos_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2229,8 +1927,11 @@ pub fn streetviewpublish_photos_list_builder(
 pub fn streetviewpublish_photos_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListPhotosResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPhotosResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2345,11 +2046,11 @@ pub fn streetviewpublish_photos_list(
 > {
     let builder = streetviewpublish_photos_list_builder(
         client,
-        args.filter.as_deref(),
-        args.languageCode.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.view.as_deref(),
+        args.filter.clone(),
+        args.languageCode.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.view.clone(),
     )?;
     streetviewpublish_photos_list_execute(builder)
 }

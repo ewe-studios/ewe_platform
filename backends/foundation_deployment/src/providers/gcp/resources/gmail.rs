@@ -49,11 +49,15 @@ pub struct BatchModifyMessagesRequest {
 
 /// Requests to turn off a client-side encryption key pair.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DisableCseKeyPairRequest {}
+pub struct DisableCseKeyPairRequest {
+    pub value: serde_json::Value,
+}
 
 /// Requests to turn on a client-side encryption key pair.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EnableCseKeyPairRequest {}
+pub struct EnableCseKeyPairRequest {
+    pub value: serde_json::Value,
+}
 
 /// IMAP settings for an account.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -230,7 +234,9 @@ pub struct ModifyThreadRequest {
 
 /// Request to obliterate a CSE key pair.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ObliterateCseKeyPairRequest {}
+pub struct ObliterateCseKeyPairRequest {
+    pub value: serde_json::Value,
+}
 
 /// POP settings for an account.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

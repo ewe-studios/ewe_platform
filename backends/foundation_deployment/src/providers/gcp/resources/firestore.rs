@@ -110,7 +110,9 @@ pub struct CommitResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The request for Firestore.ExecutePipeline.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -228,23 +230,27 @@ pub struct GoogleFirestoreAdminV1CloneDatabaseRequest {
 
 /// Metadata related to the create database operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1CreateDatabaseMetadata {}
-
-/// Represents a recurring schedule that runs every day. The time zone is UTC.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1DailyRecurrence {}
+pub struct GoogleFirestoreAdminV1CreateDatabaseMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the delete database operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1DeleteDatabaseMetadata {}
+pub struct GoogleFirestoreAdminV1DeleteDatabaseMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request for FirestoreAdmin.DisableUserCreds.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1DisableUserCredsRequest {}
+pub struct GoogleFirestoreAdminV1DisableUserCredsRequest {
+    pub value: serde_json::Value,
+}
 
 /// The request for FirestoreAdmin.EnableUserCreds.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1EnableUserCredsRequest {}
+pub struct GoogleFirestoreAdminV1EnableUserCredsRequest {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for google.longrunning.Operation results from FirestoreAdmin.ExportDocuments.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -332,14 +338,6 @@ pub struct GoogleFirestoreAdminV1FieldOperationMetadata {
     #[serde(default, rename = "ttlConfigDelta")]
     pub ttl_config_delta: ::core::option::Option<GoogleFirestoreAdminV1TtlConfigDelta>,
 }
-
-/// An index that stores vectors in a flat data structure, and supports exhaustive search.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1FlatIndex {}
-
-/// The configuration options for using Google default encryption.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1GoogleDefaultEncryptionOptions {}
 
 /// Metadata for google.longrunning.Operation results from FirestoreAdmin.ImportDocuments.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -470,11 +468,15 @@ pub struct GoogleFirestoreAdminV1ListUserCredsResponse {
 
 /// The metadata message for google.cloud.location.Location.metadata.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1LocationMetadata {}
+pub struct GoogleFirestoreAdminV1LocationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request for FirestoreAdmin.ResetUserPassword.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1ResetUserPasswordRequest {}
+pub struct GoogleFirestoreAdminV1ResetUserPasswordRequest {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for the long-running operation from the RestoreDatabase request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -516,17 +518,17 @@ pub struct GoogleFirestoreAdminV1RestoreDatabaseRequest {
     pub tags: ::core::option::Option<serde_json::Value>,
 }
 
-/// The configuration options for using the same encryption method as the source.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1SourceEncryptionOptions {}
-
 /// Metadata related to the update database operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleFirestoreAdminV1UpdateDatabaseMetadata {}
+pub struct GoogleFirestoreAdminV1UpdateDatabaseMetadata {
+    pub value: serde_json::Value,
+}
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleLongrunningCancelOperationRequest {}
+pub struct GoogleLongrunningCancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -839,7 +841,7 @@ pub struct GoogleFirestoreAdminV1BackupSchedule {
     pub create_time: ::core::option::Option<String>,
     /// For a schedule that runs daily.
     #[serde(default, rename = "dailyRecurrence")]
-    pub daily_recurrence: ::core::option::Option<serde_json::Value>,
+    pub daily_recurrence: ::core::option::Option<GoogleFirestoreAdminV1DailyRecurrence>,
     /// Output only. The unique backup schedule identifier across all locations and databases for the given project. This will be auto-assigned. Format is projects/{project}/databases/{database}/backupSchedules/{backup_schedule}
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -1014,10 +1016,12 @@ pub struct GoogleFirestoreAdminV1EncryptionConfig {
         ::core::option::Option<GoogleFirestoreAdminV1CustomerManagedEncryptionOptions>,
     /// Use Google default encryption.
     #[serde(default, rename = "googleDefaultEncryption")]
-    pub google_default_encryption: ::core::option::Option<serde_json::Value>,
+    pub google_default_encryption:
+        ::core::option::Option<GoogleFirestoreAdminV1GoogleDefaultEncryptionOptions>,
     /// The database will use the same encryption configuration as the source.
     #[serde(default, rename = "useSourceEncryption")]
-    pub use_source_encryption: ::core::option::Option<serde_json::Value>,
+    pub use_source_encryption:
+        ::core::option::Option<GoogleFirestoreAdminV1SourceEncryptionOptions>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -1245,6 +1249,12 @@ pub struct WriteResult {
     pub update_time: ::core::option::Option<String>,
 }
 
+/// Represents a recurring schedule that runs every day. The time zone is UTC.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1DailyRecurrence {
+    pub value: serde_json::Value,
+}
+
 /// Represents a recurring schedule that runs on a specified day of the week. The time zone is UTC.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirestoreAdminV1WeeklyRecurrence {
@@ -1331,6 +1341,18 @@ pub struct GoogleFirestoreAdminV1CustomerManagedEncryptionOptions {
     /// Required. Only keys in the same location as the database are allowed to be used for encryption. For Firestore''s nam5 multi-region, this corresponds to Cloud KMS multi-region us. For Firestore''s eur3 multi-region, this corresponds to Cloud KMS multi-region europe. See https://cloud.google.com/kms/docs/locations. The expected format is projects/{project_id}/locations/{kms_location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
     #[serde(default, rename = "kmsKeyName")]
     pub kms_key_name: ::core::option::Option<String>,
+}
+
+/// The configuration options for using Google default encryption.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1GoogleDefaultEncryptionOptions {
+    pub value: serde_json::Value,
+}
+
+/// The configuration options for using the same encryption method as the source.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1SourceEncryptionOptions {
+    pub value: serde_json::Value,
 }
 
 /// A target specified by a set of documents names.
@@ -1738,7 +1760,7 @@ pub struct GoogleFirestoreAdminV1VectorConfig {
     pub dimension: ::core::option::Option<i32>,
     /// Indicates the vector index is a flat index.
     #[serde(default)]
-    pub flat: ::core::option::Option<serde_json::Value>,
+    pub flat: ::core::option::Option<GoogleFirestoreAdminV1FlatIndex>,
 }
 
 /// The specification for how to build a geo search index for a field.
@@ -1764,6 +1786,12 @@ pub struct GoogleFirestoreAdminV1SearchTextSpec {
     #[serde(default, rename = "indexSpecs")]
     pub index_specs:
         ::core::option::Option<::std::vec::Vec<GoogleFirestoreAdminV1SearchTextIndexSpec>>,
+}
+
+/// An index that stores vectors in a flat data structure, and supports exhaustive search.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleFirestoreAdminV1FlatIndex {
+    pub value: serde_json::Value,
 }
 
 /// Specification of how the field should be indexed for search text indexes.

@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,18 @@ use serde::Serialize;
 
 pub fn slides_presentations_batch_update_builder(
     client: &SimpleHttpClient,
-    presentationId: &str,
+    presentationId: String,
     body: &BatchUpdatePresentationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://slides.googleapis.com/v1/presentations/{}:batchUpdate",
-        presentationId,
+        presentationId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -72,8 +73,9 @@ pub fn slides_presentations_batch_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchUpdatePresentationResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchUpdatePresentationResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -186,7 +188,7 @@ pub fn slides_presentations_batch_update(
     ApiError,
 > {
     let builder =
-        slides_presentations_batch_update_builder(client, &args.presentationId, &args.body)?;
+        slides_presentations_batch_update_builder(client, args.presentationId.clone(), &args.body)?;
     slides_presentations_batch_update_execute(builder)
 }
 
@@ -201,11 +203,11 @@ pub fn slides_presentations_create_builder(
     body: &Presentation,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://slides.googleapis.com/v1/presentations",);
+    let endpoint_url = format!("https://slides.googleapis.com/v1/presentations",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -237,7 +239,12 @@ pub fn slides_presentations_create_builder(
 pub fn slides_presentations_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Presentation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Presentation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -353,17 +360,14 @@ pub fn slides_presentations_create(
 
 pub fn slides_presentations_get_builder(
     client: &SimpleHttpClient,
-    presentationId: &str,
+    presentationId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://slides.googleapis.com/v1/presentations/{}",
-        presentationId,
-    );
+    let endpoint_url = format!("https://slides.googleapis.com/v1/presentations/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -393,7 +397,12 @@ pub fn slides_presentations_get_builder(
 pub fn slides_presentations_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Presentation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Presentation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -497,7 +506,7 @@ pub fn slides_presentations_get(
         + 'static,
     ApiError,
 > {
-    let builder = slides_presentations_get_builder(client, &args.presentationId)?;
+    let builder = slides_presentations_get_builder(client, args.presentationId.clone())?;
     slides_presentations_get_execute(builder)
 }
 
@@ -509,18 +518,19 @@ pub fn slides_presentations_get(
 
 pub fn slides_presentations_pages_get_builder(
     client: &SimpleHttpClient,
-    presentationId: &str,
-    pageObjectId: &str,
+    presentationId: String,
+    pageObjectId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://slides.googleapis.com/v1/presentations/{}/pages/{}",
-        presentationId, pageObjectId,
+        presentationId.as_str(),
+        pageObjectId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -550,7 +560,12 @@ pub fn slides_presentations_pages_get_builder(
 pub fn slides_presentations_pages_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Page>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -652,8 +667,11 @@ pub fn slides_presentations_pages_get(
     impl StreamIterator<D = Result<ApiResponse<Page>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        slides_presentations_pages_get_builder(client, &args.presentationId, &args.pageObjectId)?;
+    let builder = slides_presentations_pages_get_builder(
+        client,
+        args.presentationId.clone(),
+        args.pageObjectId.clone(),
+    )?;
     slides_presentations_pages_get_execute(builder)
 }
 
@@ -665,30 +683,31 @@ pub fn slides_presentations_pages_get(
 
 pub fn slides_presentations_pages_get_thumbnail_builder(
     client: &SimpleHttpClient,
-    presentationId: &str,
-    pageObjectId: &str,
-    thumbnailProperties_mimeType: Option<&str>,
-    thumbnailProperties_thumbnailSize: Option<&str>,
+    presentationId: String,
+    pageObjectId: String,
+    thumbnailProperties_mimeType: Option<String>,
+    thumbnailProperties_thumbnailSize: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://slides.googleapis.com/v1/presentations/{}/pages/{}/thumbnail",
-        presentationId, pageObjectId,
+        presentationId.as_str(),
+        pageObjectId.as_str(),
     );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = thumbnailProperties_mimeType {
-        query_parts.push(format!("thumbnailProperties_mimeType={}", val));
+        query_parts.push(format!("thumbnailProperties.mimeType={}", val));
     }
     if let Some(val) = thumbnailProperties_thumbnailSize {
-        query_parts.push(format!("thumbnailProperties_thumbnailSize={}", val));
+        query_parts.push(format!("thumbnailProperties.thumbnailSize={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -722,7 +741,12 @@ pub fn slides_presentations_pages_get_thumbnail_builder(
 pub fn slides_presentations_pages_get_thumbnail_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Thumbnail>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Thumbnail>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -830,10 +854,10 @@ pub fn slides_presentations_pages_get_thumbnail(
 > {
     let builder = slides_presentations_pages_get_thumbnail_builder(
         client,
-        &args.presentationId,
-        &args.pageObjectId,
-        args.thumbnailProperties_mimeType.as_deref(),
-        args.thumbnailProperties_thumbnailSize.as_deref(),
+        args.presentationId.clone(),
+        args.pageObjectId.clone(),
+        args.thumbnailProperties_mimeType.clone(),
+        args.thumbnailProperties_thumbnailSize.clone(),
     )?;
     slides_presentations_pages_get_thumbnail_execute(builder)
 }

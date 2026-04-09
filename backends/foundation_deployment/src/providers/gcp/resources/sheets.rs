@@ -221,7 +221,9 @@ pub struct BatchUpdateValuesResponse {
 
 /// The request for clearing a range of values in a spreadsheet.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ClearValuesRequest {}
+pub struct ClearValuesRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response when clearing a range of values in a spreadsheet.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

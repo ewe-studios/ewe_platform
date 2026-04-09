@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -29,10 +30,10 @@ use serde::Serialize;
 pub fn firebase_available_projects_list_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://firebase.googleapis.com/v1beta1/availableProjects",);
+    let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/availableProjects",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -44,9 +45,9 @@ pub fn firebase_available_projects_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -81,8 +82,9 @@ pub fn firebase_available_projects_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListAvailableProjectsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListAvailableProjectsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -194,8 +196,11 @@ pub fn firebase_available_projects_list(
         + 'static,
     ApiError,
 > {
-    let builder =
-        firebase_available_projects_list_builder(client, args.pageSize, args.pageToken.as_deref())?;
+    let builder = firebase_available_projects_list_builder(
+        client,
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+    )?;
     firebase_available_projects_list_execute(builder)
 }
 
@@ -207,17 +212,14 @@ pub fn firebase_available_projects_list(
 
 pub fn firebase_operations_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/operations/{}",
-        name,
-    );
+    let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/operations/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -247,7 +249,12 @@ pub fn firebase_operations_get_builder(
 pub fn firebase_operations_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -347,7 +354,7 @@ pub fn firebase_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebase_operations_get_builder(client, &args.name)?;
+    let builder = firebase_operations_get_builder(client, args.name.clone())?;
     firebase_operations_get_execute(builder)
 }
 
@@ -359,18 +366,15 @@ pub fn firebase_operations_get(
 
 pub fn firebase_projects_add_firebase_builder(
     client: &SimpleHttpClient,
-    project: &str,
+    project: String,
     body: &AddFirebaseRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}:addFirebase",
-        project,
-    );
+    let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/projects/{}:addFirebase",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -402,7 +406,12 @@ pub fn firebase_projects_add_firebase_builder(
 pub fn firebase_projects_add_firebase_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -504,7 +513,7 @@ pub fn firebase_projects_add_firebase(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_add_firebase_builder(client, &args.project, &args.body)?;
+    let builder = firebase_projects_add_firebase_builder(client, args.project.clone(), &args.body)?;
     firebase_projects_add_firebase_execute(builder)
 }
 
@@ -516,18 +525,16 @@ pub fn firebase_projects_add_firebase(
 
 pub fn firebase_projects_add_google_analytics_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &AddGoogleAnalyticsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}:addGoogleAnalytics",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://firebase.googleapis.com/v1beta1/projects/{}:addGoogleAnalytics",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -559,7 +566,12 @@ pub fn firebase_projects_add_google_analytics_builder(
 pub fn firebase_projects_add_google_analytics_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -661,7 +673,8 @@ pub fn firebase_projects_add_google_analytics(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_add_google_analytics_builder(client, &args.parent, &args.body)?;
+    let builder =
+        firebase_projects_add_google_analytics_builder(client, args.parent.clone(), &args.body)?;
     firebase_projects_add_google_analytics_execute(builder)
 }
 
@@ -673,14 +686,14 @@ pub fn firebase_projects_add_google_analytics(
 
 pub fn firebase_projects_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://firebase.googleapis.com/v1beta1/projects/{}", name,);
+    let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/projects/{}",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -710,8 +723,11 @@ pub fn firebase_projects_get_builder(
 pub fn firebase_projects_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FirebaseProject>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FirebaseProject>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -816,7 +832,7 @@ pub fn firebase_projects_get(
         + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_get_builder(client, &args.name)?;
+    let builder = firebase_projects_get_builder(client, args.name.clone())?;
     firebase_projects_get_execute(builder)
 }
 
@@ -828,17 +844,15 @@ pub fn firebase_projects_get(
 
 pub fn firebase_projects_get_admin_sdk_config_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/adminSdkConfig",
-        name,
-    );
+    let endpoint_url =
+        format!("https://firebase.googleapis.com/v1beta1/projects/{}/adminSdkConfig",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -868,8 +882,11 @@ pub fn firebase_projects_get_admin_sdk_config_builder(
 pub fn firebase_projects_get_admin_sdk_config_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AdminSdkConfig>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AdminSdkConfig>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -974,7 +991,7 @@ pub fn firebase_projects_get_admin_sdk_config(
         + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_get_admin_sdk_config_builder(client, &args.name)?;
+    let builder = firebase_projects_get_admin_sdk_config_builder(client, args.name.clone())?;
     firebase_projects_get_admin_sdk_config_execute(builder)
 }
 
@@ -986,17 +1003,15 @@ pub fn firebase_projects_get_admin_sdk_config(
 
 pub fn firebase_projects_get_analytics_details_builder(
     client: &SimpleHttpClient,
-    name: &str,
+    name: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/analyticsDetails",
-        name,
-    );
+    let endpoint_url =
+        format!("https://firebase.googleapis.com/v1beta1/projects/{}/analyticsDetails",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1026,8 +1041,11 @@ pub fn firebase_projects_get_analytics_details_builder(
 pub fn firebase_projects_get_analytics_details_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AnalyticsDetails>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AnalyticsDetails>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1132,7 +1150,7 @@ pub fn firebase_projects_get_analytics_details(
         + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_get_analytics_details_builder(client, &args.name)?;
+    let builder = firebase_projects_get_analytics_details_builder(client, args.name.clone())?;
     firebase_projects_get_analytics_details_execute(builder)
 }
 
@@ -1145,11 +1163,11 @@ pub fn firebase_projects_get_analytics_details(
 pub fn firebase_projects_list_builder(
     client: &SimpleHttpClient,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
     showDeleted: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://firebase.googleapis.com/v1beta1/projects",);
+    let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/projects",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1164,9 +1182,9 @@ pub fn firebase_projects_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1201,8 +1219,9 @@ pub fn firebase_projects_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListFirebaseProjectsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListFirebaseProjectsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1318,190 +1337,11 @@ pub fn firebase_projects_list(
 > {
     let builder = firebase_projects_list_builder(
         client,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.showDeleted,
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.showDeleted.clone(),
     )?;
     firebase_projects_list_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}
-/// Updates the attributes of the specified FirebaseProject. All [query parameters](#query-parameters) are required.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_patch_execute()` to send, or `firebase_projects_patch` for simplest API.
-
-pub fn firebase_projects_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &FirebaseProject,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://firebase.googleapis.com/v1beta1/projects/{}", name,);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta1/projects/{projectsId}
-/// Updates the attributes of the specified FirebaseProject. All [query parameters](#query-parameters) are required.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_patch_execute()` or `firebase_projects_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FirebaseProject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FirebaseProject = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}
-/// Updates the attributes of the specified FirebaseProject. All [query parameters](#query-parameters) are required.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_patch_task()`.
-/// For the simplest API, use `firebase_projects_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FirebaseProject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: FirebaseProject,
-}
-
-/// GET v1beta1/projects/{projectsId}
-/// Updates the attributes of the specified FirebaseProject. All [query parameters](#query-parameters) are required.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_patch_builder()` + `firebase_projects_patch_execute()`.
-/// For task-level control, use `firebase_projects_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_patch(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FirebaseProject>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    firebase_projects_patch_execute(builder)
 }
 
 /// GET v1beta1/projects/{projectsId}:removeAnalytics
@@ -1512,18 +1352,16 @@ pub fn firebase_projects_patch(
 
 pub fn firebase_projects_remove_analytics_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &RemoveAnalyticsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}:removeAnalytics",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://firebase.googleapis.com/v1beta1/projects/{}:removeAnalytics",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1555,7 +1393,12 @@ pub fn firebase_projects_remove_analytics_builder(
 pub fn firebase_projects_remove_analytics_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1657,7 +1500,8 @@ pub fn firebase_projects_remove_analytics(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_remove_analytics_builder(client, &args.parent, &args.body)?;
+    let builder =
+        firebase_projects_remove_analytics_builder(client, args.parent.clone(), &args.body)?;
     firebase_projects_remove_analytics_execute(builder)
 }
 
@@ -1669,17 +1513,14 @@ pub fn firebase_projects_remove_analytics(
 
 pub fn firebase_projects_search_apps_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
     showDeleted: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}:searchApps",
-        parent,
-    );
+    let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/projects/{}:searchApps",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1697,9 +1538,9 @@ pub fn firebase_projects_search_apps_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1733,8 +1574,11 @@ pub fn firebase_projects_search_apps_builder(
 pub fn firebase_projects_search_apps_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SearchFirebaseAppsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SearchFirebaseAppsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1853,11 +1697,11 @@ pub fn firebase_projects_search_apps(
 > {
     let builder = firebase_projects_search_apps_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.showDeleted,
+        args.parent.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.showDeleted.clone(),
     )?;
     firebase_projects_search_apps_execute(builder)
 }
@@ -1870,18 +1714,15 @@ pub fn firebase_projects_search_apps(
 
 pub fn firebase_projects_android_apps_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &AndroidApp,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps",
-        parent,
-    );
+    let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/projects/{}/androidApps",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1913,7 +1754,12 @@ pub fn firebase_projects_android_apps_create_builder(
 pub fn firebase_projects_android_apps_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2015,1476 +1861,9 @@ pub fn firebase_projects_android_apps_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_android_apps_create_builder(client, &args.parent, &args.body)?;
-    firebase_projects_android_apps_create_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}
-/// Gets the specified AndroidApp.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_android_apps_get_execute()` to send, or `firebase_projects_android_apps_get` for simplest API.
-
-pub fn firebase_projects_android_apps_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}
-/// Gets the specified AndroidApp.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_android_apps_get_execute()` or `firebase_projects_android_apps_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AndroidApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AndroidApp = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}
-/// Gets the specified AndroidApp.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_android_apps_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_android_apps_get_task()`.
-/// For the simplest API, use `firebase_projects_android_apps_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_android_apps_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AndroidApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_android_apps_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_android_apps_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsAndroidAppsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}
-/// Gets the specified AndroidApp.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_android_apps_get_builder()` + `firebase_projects_android_apps_get_execute()`.
-/// For task-level control, use `firebase_projects_android_apps_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_get(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsAndroidAppsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AndroidApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_android_apps_get_builder(client, &args.name)?;
-    firebase_projects_android_apps_get_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/config
-/// Gets the configuration artifact associated with the specified AndroidApp.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_android_apps_get_config_execute()` to send, or `firebase_projects_android_apps_get_config` for simplest API.
-
-pub fn firebase_projects_android_apps_get_config_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{}/config",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/config
-/// Gets the configuration artifact associated with the specified AndroidApp.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_android_apps_get_config_execute()` or `firebase_projects_android_apps_get_config`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_get_config_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_get_config_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AndroidAppConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AndroidAppConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/config
-/// Gets the configuration artifact associated with the specified AndroidApp.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_android_apps_get_config_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_android_apps_get_config_task()`.
-/// For the simplest API, use `firebase_projects_android_apps_get_config()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_get_config_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_android_apps_get_config_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AndroidAppConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_android_apps_get_config_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_android_apps_get_config`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsAndroidAppsGetConfigArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/config
-/// Gets the configuration artifact associated with the specified AndroidApp.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_android_apps_get_config_builder()` + `firebase_projects_android_apps_get_config_execute()`.
-/// For task-level control, use `firebase_projects_android_apps_get_config_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_get_config(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsAndroidAppsGetConfigArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AndroidAppConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_android_apps_get_config_builder(client, &args.name)?;
-    firebase_projects_android_apps_get_config_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps
-/// Lists each AndroidApp associated with the specified FirebaseProject. The elements are returned in no particular order, but will be a consistent view of the Apps when additional requests are made with a `pageToken`.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_android_apps_list_execute()` to send, or `firebase_projects_android_apps_list` for simplest API.
-
-pub fn firebase_projects_android_apps_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = showDeleted {
-        query_parts.push(format!("showDeleted={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps
-/// Lists each AndroidApp associated with the specified FirebaseProject. The elements are returned in no particular order, but will be a consistent view of the Apps when additional requests are made with a `pageToken`.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_android_apps_list_execute()` or `firebase_projects_android_apps_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListAndroidAppsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListAndroidAppsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps
-/// Lists each AndroidApp associated with the specified FirebaseProject. The elements are returned in no particular order, but will be a consistent view of the Apps when additional requests are made with a `pageToken`.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_android_apps_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_android_apps_list_task()`.
-/// For the simplest API, use `firebase_projects_android_apps_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_android_apps_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListAndroidAppsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_android_apps_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_android_apps_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsAndroidAppsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: showDeleted
-    pub showDeleted: Option<bool>,
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps
-/// Lists each AndroidApp associated with the specified FirebaseProject. The elements are returned in no particular order, but will be a consistent view of the Apps when additional requests are made with a `pageToken`.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_android_apps_list_builder()` + `firebase_projects_android_apps_list_execute()`.
-/// For task-level control, use `firebase_projects_android_apps_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_list(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsAndroidAppsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListAndroidAppsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_android_apps_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.showDeleted,
-    )?;
-    firebase_projects_android_apps_list_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}
-/// Updates the attributes of the specified AndroidApp.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_android_apps_patch_execute()` to send, or `firebase_projects_android_apps_patch` for simplest API.
-
-pub fn firebase_projects_android_apps_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &AndroidApp,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}
-/// Updates the attributes of the specified AndroidApp.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_android_apps_patch_execute()` or `firebase_projects_android_apps_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AndroidApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AndroidApp = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}
-/// Updates the attributes of the specified AndroidApp.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_android_apps_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_android_apps_patch_task()`.
-/// For the simplest API, use `firebase_projects_android_apps_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_android_apps_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AndroidApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_android_apps_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_android_apps_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsAndroidAppsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: AndroidApp,
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}
-/// Updates the attributes of the specified AndroidApp.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_android_apps_patch_builder()` + `firebase_projects_android_apps_patch_execute()`.
-/// For task-level control, use `firebase_projects_android_apps_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_patch(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsAndroidAppsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AndroidApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_android_apps_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    firebase_projects_android_apps_patch_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}:remove
-/// Removes the specified AndroidApp from the FirebaseProject.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_android_apps_remove_execute()` to send, or `firebase_projects_android_apps_remove` for simplest API.
-
-pub fn firebase_projects_android_apps_remove_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &RemoveAndroidAppRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{}:remove",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}:remove
-/// Removes the specified AndroidApp from the FirebaseProject.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_android_apps_remove_execute()` or `firebase_projects_android_apps_remove`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_remove_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_remove_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}:remove
-/// Removes the specified AndroidApp from the FirebaseProject.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_android_apps_remove_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_android_apps_remove_task()`.
-/// For the simplest API, use `firebase_projects_android_apps_remove()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_remove_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_android_apps_remove_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_android_apps_remove_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_android_apps_remove`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsAndroidAppsRemoveArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: RemoveAndroidAppRequest,
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}:remove
-/// Removes the specified AndroidApp from the FirebaseProject.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_android_apps_remove_builder()` + `firebase_projects_android_apps_remove_execute()`.
-/// For task-level control, use `firebase_projects_android_apps_remove_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_remove(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsAndroidAppsRemoveArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_android_apps_remove_builder(client, &args.name, &args.body)?;
-    firebase_projects_android_apps_remove_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}:undelete
-/// Restores the specified AndroidApp to the FirebaseProject.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_android_apps_undelete_execute()` to send, or `firebase_projects_android_apps_undelete` for simplest API.
-
-pub fn firebase_projects_android_apps_undelete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeleteAndroidAppRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{}:undelete",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}:undelete
-/// Restores the specified AndroidApp to the FirebaseProject.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_android_apps_undelete_execute()` or `firebase_projects_android_apps_undelete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_undelete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_undelete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}:undelete
-/// Restores the specified AndroidApp to the FirebaseProject.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_android_apps_undelete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_android_apps_undelete_task()`.
-/// For the simplest API, use `firebase_projects_android_apps_undelete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_undelete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_android_apps_undelete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_android_apps_undelete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_android_apps_undelete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsAndroidAppsUndeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: UndeleteAndroidAppRequest,
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}:undelete
-/// Restores the specified AndroidApp to the FirebaseProject.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_android_apps_undelete_builder()` + `firebase_projects_android_apps_undelete_execute()`.
-/// For task-level control, use `firebase_projects_android_apps_undelete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_undelete(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsAndroidAppsUndeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_android_apps_undelete_builder(client, &args.name, &args.body)?;
-    firebase_projects_android_apps_undelete_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/sha
-/// Adds a ShaCertificate to the specified AndroidApp.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_android_apps_sha_create_execute()` to send, or `firebase_projects_android_apps_sha_create` for simplest API.
-
-pub fn firebase_projects_android_apps_sha_create_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    body: &ShaCertificate,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{}/sha",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/sha
-/// Adds a ShaCertificate to the specified AndroidApp.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_android_apps_sha_create_execute()` or `firebase_projects_android_apps_sha_create`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_sha_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_sha_create_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ShaCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ShaCertificate = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/sha
-/// Adds a ShaCertificate to the specified AndroidApp.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_android_apps_sha_create_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_android_apps_sha_create_task()`.
-/// For the simplest API, use `firebase_projects_android_apps_sha_create()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_sha_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_android_apps_sha_create_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ShaCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_android_apps_sha_create_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_android_apps_sha_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsAndroidAppsShaCreateArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Request body.
-    pub body: ShaCertificate,
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/sha
-/// Adds a ShaCertificate to the specified AndroidApp.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_android_apps_sha_create_builder()` + `firebase_projects_android_apps_sha_create_execute()`.
-/// For task-level control, use `firebase_projects_android_apps_sha_create_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_sha_create(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsAndroidAppsShaCreateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ShaCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
     let builder =
-        firebase_projects_android_apps_sha_create_builder(client, &args.parent, &args.body)?;
-    firebase_projects_android_apps_sha_create_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/sha/{shaId}
-/// Removes a ShaCertificate from the specified AndroidApp.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_android_apps_sha_delete_execute()` to send, or `firebase_projects_android_apps_sha_delete` for simplest API.
-
-pub fn firebase_projects_android_apps_sha_delete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{}/sha/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/sha/{shaId}
-/// Removes a ShaCertificate from the specified AndroidApp.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_android_apps_sha_delete_execute()` or `firebase_projects_android_apps_sha_delete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_sha_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_sha_delete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Empty = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/sha/{shaId}
-/// Removes a ShaCertificate from the specified AndroidApp.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_android_apps_sha_delete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_android_apps_sha_delete_task()`.
-/// For the simplest API, use `firebase_projects_android_apps_sha_delete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_sha_delete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_android_apps_sha_delete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_android_apps_sha_delete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_android_apps_sha_delete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsAndroidAppsShaDeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/sha/{shaId}
-/// Removes a ShaCertificate from the specified AndroidApp.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_android_apps_sha_delete_builder()` + `firebase_projects_android_apps_sha_delete_execute()`.
-/// For task-level control, use `firebase_projects_android_apps_sha_delete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_sha_delete(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsAndroidAppsShaDeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_android_apps_sha_delete_builder(client, &args.name)?;
-    firebase_projects_android_apps_sha_delete_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/sha
-/// Lists the SHA-1 and SHA-256 certificates for the specified AndroidApp.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_android_apps_sha_list_execute()` to send, or `firebase_projects_android_apps_sha_list` for simplest API.
-
-pub fn firebase_projects_android_apps_sha_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/androidApps/{}/sha",
-        parent,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/sha
-/// Lists the SHA-1 and SHA-256 certificates for the specified AndroidApp.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_android_apps_sha_list_execute()` or `firebase_projects_android_apps_sha_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_sha_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_sha_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListShaCertificatesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListShaCertificatesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/sha
-/// Lists the SHA-1 and SHA-256 certificates for the specified AndroidApp.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_android_apps_sha_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_android_apps_sha_list_task()`.
-/// For the simplest API, use `firebase_projects_android_apps_sha_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_android_apps_sha_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_android_apps_sha_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListShaCertificatesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_android_apps_sha_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_android_apps_sha_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsAndroidAppsShaListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-}
-
-/// GET v1beta1/projects/{projectsId}/androidApps/{androidAppsId}/sha
-/// Lists the SHA-1 and SHA-256 certificates for the specified AndroidApp.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_android_apps_sha_list_builder()` + `firebase_projects_android_apps_sha_list_execute()`.
-/// For task-level control, use `firebase_projects_android_apps_sha_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_android_apps_sha_list(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsAndroidAppsShaListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListShaCertificatesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_android_apps_sha_list_builder(client, &args.parent)?;
-    firebase_projects_android_apps_sha_list_execute(builder)
+        firebase_projects_android_apps_create_builder(client, args.parent.clone(), &args.body)?;
+    firebase_projects_android_apps_create_execute(builder)
 }
 
 /// GET v1beta1/projects/{projectsId}/availableLocations
@@ -3495,15 +1874,13 @@ pub fn firebase_projects_android_apps_sha_list(
 
 pub fn firebase_projects_available_locations_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/availableLocations",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://firebase.googleapis.com/v1beta1/projects/{}/availableLocations",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3515,9 +1892,9 @@ pub fn firebase_projects_available_locations_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -3552,8 +1929,9 @@ pub fn firebase_projects_available_locations_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListAvailableLocationsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListAvailableLocationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -3669,9 +2047,9 @@ pub fn firebase_projects_available_locations_list(
 > {
     let builder = firebase_projects_available_locations_list_builder(
         client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     firebase_projects_available_locations_list_execute(builder)
 }
@@ -3684,18 +2062,16 @@ pub fn firebase_projects_available_locations_list(
 
 pub fn firebase_projects_default_location_finalize_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &FinalizeDefaultLocationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/defaultLocation:finalize",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://firebase.googleapis.com/v1beta1/projects/{}/defaultLocation:finalize",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3727,7 +2103,12 @@ pub fn firebase_projects_default_location_finalize_builder(
 pub fn firebase_projects_default_location_finalize_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3829,8 +2210,11 @@ pub fn firebase_projects_default_location_finalize(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        firebase_projects_default_location_finalize_builder(client, &args.parent, &args.body)?;
+    let builder = firebase_projects_default_location_finalize_builder(
+        client,
+        args.parent.clone(),
+        &args.body,
+    )?;
     firebase_projects_default_location_finalize_execute(builder)
 }
 
@@ -3842,18 +2226,15 @@ pub fn firebase_projects_default_location_finalize(
 
 pub fn firebase_projects_ios_apps_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &IosApp,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/iosApps",
-        parent,
-    );
+    let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/projects/{}/iosApps",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3885,7 +2266,12 @@ pub fn firebase_projects_ios_apps_create_builder(
 pub fn firebase_projects_ios_apps_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3987,996 +2373,9 @@ pub fn firebase_projects_ios_apps_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_ios_apps_create_builder(client, &args.parent, &args.body)?;
+    let builder =
+        firebase_projects_ios_apps_create_builder(client, args.parent.clone(), &args.body)?;
     firebase_projects_ios_apps_create_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}
-/// Gets the specified IosApp.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_ios_apps_get_execute()` to send, or `firebase_projects_ios_apps_get` for simplest API.
-
-pub fn firebase_projects_ios_apps_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/iosApps/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}
-/// Gets the specified IosApp.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_ios_apps_get_execute()` or `firebase_projects_ios_apps_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_ios_apps_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_ios_apps_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<IosApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: IosApp = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}
-/// Gets the specified IosApp.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_ios_apps_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_ios_apps_get_task()`.
-/// For the simplest API, use `firebase_projects_ios_apps_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_ios_apps_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_ios_apps_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<IosApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_ios_apps_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_ios_apps_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsIosAppsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}
-/// Gets the specified IosApp.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_ios_apps_get_builder()` + `firebase_projects_ios_apps_get_execute()`.
-/// For task-level control, use `firebase_projects_ios_apps_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_ios_apps_get(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsIosAppsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<IosApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_ios_apps_get_builder(client, &args.name)?;
-    firebase_projects_ios_apps_get_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}/config
-/// Gets the configuration artifact associated with the specified IosApp.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_ios_apps_get_config_execute()` to send, or `firebase_projects_ios_apps_get_config` for simplest API.
-
-pub fn firebase_projects_ios_apps_get_config_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/iosApps/{}/config",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}/config
-/// Gets the configuration artifact associated with the specified IosApp.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_ios_apps_get_config_execute()` or `firebase_projects_ios_apps_get_config`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_ios_apps_get_config_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_ios_apps_get_config_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<IosAppConfig>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: IosAppConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}/config
-/// Gets the configuration artifact associated with the specified IosApp.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_ios_apps_get_config_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_ios_apps_get_config_task()`.
-/// For the simplest API, use `firebase_projects_ios_apps_get_config()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_ios_apps_get_config_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_ios_apps_get_config_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<IosAppConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_ios_apps_get_config_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_ios_apps_get_config`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsIosAppsGetConfigArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}/config
-/// Gets the configuration artifact associated with the specified IosApp.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_ios_apps_get_config_builder()` + `firebase_projects_ios_apps_get_config_execute()`.
-/// For task-level control, use `firebase_projects_ios_apps_get_config_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_ios_apps_get_config(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsIosAppsGetConfigArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<IosAppConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_ios_apps_get_config_builder(client, &args.name)?;
-    firebase_projects_ios_apps_get_config_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps
-/// Lists each IosApp associated with the specified FirebaseProject. The elements are returned in no particular order, but will be a consistent view of the Apps when additional requests are made with a `pageToken`.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_ios_apps_list_execute()` to send, or `firebase_projects_ios_apps_list` for simplest API.
-
-pub fn firebase_projects_ios_apps_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/iosApps",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = showDeleted {
-        query_parts.push(format!("showDeleted={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps
-/// Lists each IosApp associated with the specified FirebaseProject. The elements are returned in no particular order, but will be a consistent view of the Apps when additional requests are made with a `pageToken`.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_ios_apps_list_execute()` or `firebase_projects_ios_apps_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_ios_apps_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_ios_apps_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListIosAppsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListIosAppsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps
-/// Lists each IosApp associated with the specified FirebaseProject. The elements are returned in no particular order, but will be a consistent view of the Apps when additional requests are made with a `pageToken`.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_ios_apps_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_ios_apps_list_task()`.
-/// For the simplest API, use `firebase_projects_ios_apps_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_ios_apps_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_ios_apps_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListIosAppsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_ios_apps_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_ios_apps_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsIosAppsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: showDeleted
-    pub showDeleted: Option<bool>,
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps
-/// Lists each IosApp associated with the specified FirebaseProject. The elements are returned in no particular order, but will be a consistent view of the Apps when additional requests are made with a `pageToken`.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_ios_apps_list_builder()` + `firebase_projects_ios_apps_list_execute()`.
-/// For task-level control, use `firebase_projects_ios_apps_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_ios_apps_list(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsIosAppsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListIosAppsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_ios_apps_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.showDeleted,
-    )?;
-    firebase_projects_ios_apps_list_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}
-/// Updates the attributes of the specified IosApp.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_ios_apps_patch_execute()` to send, or `firebase_projects_ios_apps_patch` for simplest API.
-
-pub fn firebase_projects_ios_apps_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &IosApp,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/iosApps/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}
-/// Updates the attributes of the specified IosApp.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_ios_apps_patch_execute()` or `firebase_projects_ios_apps_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_ios_apps_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_ios_apps_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<IosApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: IosApp = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}
-/// Updates the attributes of the specified IosApp.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_ios_apps_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_ios_apps_patch_task()`.
-/// For the simplest API, use `firebase_projects_ios_apps_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_ios_apps_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_ios_apps_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<IosApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_ios_apps_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_ios_apps_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsIosAppsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: IosApp,
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}
-/// Updates the attributes of the specified IosApp.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_ios_apps_patch_builder()` + `firebase_projects_ios_apps_patch_execute()`.
-/// For task-level control, use `firebase_projects_ios_apps_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_ios_apps_patch(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsIosAppsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<IosApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_ios_apps_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    firebase_projects_ios_apps_patch_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}:remove
-/// Removes the specified IosApp from the FirebaseProject.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_ios_apps_remove_execute()` to send, or `firebase_projects_ios_apps_remove` for simplest API.
-
-pub fn firebase_projects_ios_apps_remove_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &RemoveIosAppRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/iosApps/{}:remove",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}:remove
-/// Removes the specified IosApp from the FirebaseProject.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_ios_apps_remove_execute()` or `firebase_projects_ios_apps_remove`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_ios_apps_remove_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_ios_apps_remove_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}:remove
-/// Removes the specified IosApp from the FirebaseProject.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_ios_apps_remove_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_ios_apps_remove_task()`.
-/// For the simplest API, use `firebase_projects_ios_apps_remove()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_ios_apps_remove_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_ios_apps_remove_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_ios_apps_remove_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_ios_apps_remove`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsIosAppsRemoveArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: RemoveIosAppRequest,
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}:remove
-/// Removes the specified IosApp from the FirebaseProject.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_ios_apps_remove_builder()` + `firebase_projects_ios_apps_remove_execute()`.
-/// For task-level control, use `firebase_projects_ios_apps_remove_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_ios_apps_remove(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsIosAppsRemoveArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_ios_apps_remove_builder(client, &args.name, &args.body)?;
-    firebase_projects_ios_apps_remove_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}:undelete
-/// Restores the specified IosApp to the FirebaseProject.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_ios_apps_undelete_execute()` to send, or `firebase_projects_ios_apps_undelete` for simplest API.
-
-pub fn firebase_projects_ios_apps_undelete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeleteIosAppRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/iosApps/{}:undelete",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}:undelete
-/// Restores the specified IosApp to the FirebaseProject.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_ios_apps_undelete_execute()` or `firebase_projects_ios_apps_undelete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_ios_apps_undelete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_ios_apps_undelete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}:undelete
-/// Restores the specified IosApp to the FirebaseProject.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_ios_apps_undelete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_ios_apps_undelete_task()`.
-/// For the simplest API, use `firebase_projects_ios_apps_undelete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_ios_apps_undelete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_ios_apps_undelete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_ios_apps_undelete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_ios_apps_undelete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsIosAppsUndeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: UndeleteIosAppRequest,
-}
-
-/// GET v1beta1/projects/{projectsId}/iosApps/{iosAppsId}:undelete
-/// Restores the specified IosApp to the FirebaseProject.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_ios_apps_undelete_builder()` + `firebase_projects_ios_apps_undelete_execute()`.
-/// For task-level control, use `firebase_projects_ios_apps_undelete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_ios_apps_undelete(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsIosAppsUndeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_ios_apps_undelete_builder(client, &args.name, &args.body)?;
-    firebase_projects_ios_apps_undelete_execute(builder)
 }
 
 /// GET v1beta1/projects/{projectsId}/webApps
@@ -4987,18 +2386,15 @@ pub fn firebase_projects_ios_apps_undelete(
 
 pub fn firebase_projects_web_apps_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &WebApp,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/webApps",
-        parent,
-    );
+    let endpoint_url = format!("https://firebase.googleapis.com/v1beta1/projects/{}/webApps",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5030,7 +2426,12 @@ pub fn firebase_projects_web_apps_create_builder(
 pub fn firebase_projects_web_apps_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5132,994 +2533,7 @@ pub fn firebase_projects_web_apps_create(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = firebase_projects_web_apps_create_builder(client, &args.parent, &args.body)?;
+    let builder =
+        firebase_projects_web_apps_create_builder(client, args.parent.clone(), &args.body)?;
     firebase_projects_web_apps_create_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}
-/// Gets the specified WebApp.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_web_apps_get_execute()` to send, or `firebase_projects_web_apps_get` for simplest API.
-
-pub fn firebase_projects_web_apps_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/webApps/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}
-/// Gets the specified WebApp.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_web_apps_get_execute()` or `firebase_projects_web_apps_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_web_apps_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_web_apps_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: WebApp = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}
-/// Gets the specified WebApp.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_web_apps_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_web_apps_get_task()`.
-/// For the simplest API, use `firebase_projects_web_apps_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_web_apps_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_web_apps_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_web_apps_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_web_apps_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsWebAppsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}
-/// Gets the specified WebApp.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_web_apps_get_builder()` + `firebase_projects_web_apps_get_execute()`.
-/// For task-level control, use `firebase_projects_web_apps_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_web_apps_get(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsWebAppsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_web_apps_get_builder(client, &args.name)?;
-    firebase_projects_web_apps_get_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}/config
-/// Gets the configuration artifact associated with the specified WebApp.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_web_apps_get_config_execute()` to send, or `firebase_projects_web_apps_get_config` for simplest API.
-
-pub fn firebase_projects_web_apps_get_config_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/webApps/{}/config",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}/config
-/// Gets the configuration artifact associated with the specified WebApp.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_web_apps_get_config_execute()` or `firebase_projects_web_apps_get_config`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_web_apps_get_config_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_web_apps_get_config_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<WebAppConfig>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: WebAppConfig = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}/config
-/// Gets the configuration artifact associated with the specified WebApp.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_web_apps_get_config_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_web_apps_get_config_task()`.
-/// For the simplest API, use `firebase_projects_web_apps_get_config()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_web_apps_get_config_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_web_apps_get_config_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WebAppConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_web_apps_get_config_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_web_apps_get_config`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsWebAppsGetConfigArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}/config
-/// Gets the configuration artifact associated with the specified WebApp.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_web_apps_get_config_builder()` + `firebase_projects_web_apps_get_config_execute()`.
-/// For task-level control, use `firebase_projects_web_apps_get_config_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_web_apps_get_config(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsWebAppsGetConfigArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WebAppConfig>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_web_apps_get_config_builder(client, &args.name)?;
-    firebase_projects_web_apps_get_config_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps
-/// Lists each WebApp associated with the specified FirebaseProject. The elements are returned in no particular order, but will be a consistent view of the Apps when additional requests are made with a `pageToken`.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_web_apps_list_execute()` to send, or `firebase_projects_web_apps_list` for simplest API.
-
-pub fn firebase_projects_web_apps_list_builder(
-    client: &SimpleHttpClient,
-    parent: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    showDeleted: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/webApps",
-        parent,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = showDeleted {
-        query_parts.push(format!("showDeleted={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps
-/// Lists each WebApp associated with the specified FirebaseProject. The elements are returned in no particular order, but will be a consistent view of the Apps when additional requests are made with a `pageToken`.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_web_apps_list_execute()` or `firebase_projects_web_apps_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_web_apps_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_web_apps_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListWebAppsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListWebAppsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps
-/// Lists each WebApp associated with the specified FirebaseProject. The elements are returned in no particular order, but will be a consistent view of the Apps when additional requests are made with a `pageToken`.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_web_apps_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_web_apps_list_task()`.
-/// For the simplest API, use `firebase_projects_web_apps_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_web_apps_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_web_apps_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListWebAppsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_web_apps_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_web_apps_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsWebAppsListArgs {
-    /// Path parameter: parent
-    pub parent: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: showDeleted
-    pub showDeleted: Option<bool>,
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps
-/// Lists each WebApp associated with the specified FirebaseProject. The elements are returned in no particular order, but will be a consistent view of the Apps when additional requests are made with a `pageToken`.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_web_apps_list_builder()` + `firebase_projects_web_apps_list_execute()`.
-/// For task-level control, use `firebase_projects_web_apps_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_web_apps_list(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsWebAppsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListWebAppsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_web_apps_list_builder(
-        client,
-        &args.parent,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.showDeleted,
-    )?;
-    firebase_projects_web_apps_list_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}
-/// Updates the attributes of the specified WebApp.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_web_apps_patch_execute()` to send, or `firebase_projects_web_apps_patch` for simplest API.
-
-pub fn firebase_projects_web_apps_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &WebApp,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/webApps/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}
-/// Updates the attributes of the specified WebApp.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_web_apps_patch_execute()` or `firebase_projects_web_apps_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_web_apps_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_web_apps_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: WebApp = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}
-/// Updates the attributes of the specified WebApp.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_web_apps_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_web_apps_patch_task()`.
-/// For the simplest API, use `firebase_projects_web_apps_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_web_apps_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_web_apps_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_web_apps_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_web_apps_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsWebAppsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: WebApp,
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}
-/// Updates the attributes of the specified WebApp.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_web_apps_patch_builder()` + `firebase_projects_web_apps_patch_execute()`.
-/// For task-level control, use `firebase_projects_web_apps_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_web_apps_patch(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsWebAppsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WebApp>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_web_apps_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    firebase_projects_web_apps_patch_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}:remove
-/// Removes the specified WebApp from the FirebaseProject.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_web_apps_remove_execute()` to send, or `firebase_projects_web_apps_remove` for simplest API.
-
-pub fn firebase_projects_web_apps_remove_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &RemoveWebAppRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/webApps/{}:remove",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}:remove
-/// Removes the specified WebApp from the FirebaseProject.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_web_apps_remove_execute()` or `firebase_projects_web_apps_remove`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_web_apps_remove_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_web_apps_remove_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}:remove
-/// Removes the specified WebApp from the FirebaseProject.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_web_apps_remove_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_web_apps_remove_task()`.
-/// For the simplest API, use `firebase_projects_web_apps_remove()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_web_apps_remove_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_web_apps_remove_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_web_apps_remove_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_web_apps_remove`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsWebAppsRemoveArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: RemoveWebAppRequest,
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}:remove
-/// Removes the specified WebApp from the FirebaseProject.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_web_apps_remove_builder()` + `firebase_projects_web_apps_remove_execute()`.
-/// For task-level control, use `firebase_projects_web_apps_remove_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_web_apps_remove(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsWebAppsRemoveArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_web_apps_remove_builder(client, &args.name, &args.body)?;
-    firebase_projects_web_apps_remove_execute(builder)
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}:undelete
-/// Restores the specified WebApp to the FirebaseProject.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `firebase_projects_web_apps_undelete_execute()` to send, or `firebase_projects_web_apps_undelete` for simplest API.
-
-pub fn firebase_projects_web_apps_undelete_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &UndeleteWebAppRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://firebase.googleapis.com/v1beta1/projects/{}/webApps/{}:undelete",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}:undelete
-/// Restores the specified WebApp to the FirebaseProject.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `firebase_projects_web_apps_undelete_execute()` or `firebase_projects_web_apps_undelete`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_web_apps_undelete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_web_apps_undelete_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}:undelete
-/// Restores the specified WebApp to the FirebaseProject.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `firebase_projects_web_apps_undelete_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `firebase_projects_web_apps_undelete_task()`.
-/// For the simplest API, use `firebase_projects_web_apps_undelete()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `firebase_projects_web_apps_undelete_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn firebase_projects_web_apps_undelete_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = firebase_projects_web_apps_undelete_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`firebase_projects_web_apps_undelete`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FirebaseProjectsWebAppsUndeleteArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: UndeleteWebAppRequest,
-}
-
-/// GET v1beta1/projects/{projectsId}/webApps/{webAppsId}:undelete
-/// Restores the specified WebApp to the FirebaseProject.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `firebase_projects_web_apps_undelete_builder()` + `firebase_projects_web_apps_undelete_execute()`.
-/// For task-level control, use `firebase_projects_web_apps_undelete_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn firebase_projects_web_apps_undelete(
-    client: &SimpleHttpClient,
-    args: &FirebaseProjectsWebAppsUndeleteArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = firebase_projects_web_apps_undelete_builder(client, &args.name, &args.body)?;
-    firebase_projects_web_apps_undelete_execute(builder)
 }

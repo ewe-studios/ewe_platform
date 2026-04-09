@@ -939,9 +939,6 @@ pub struct CardGeneratedFromPaymentMethodDetails {
     pub type_: String,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CardMandatePaymentMethodDetails {}
-
 /// A customer''s Cash balance represents real funds. Customers can add funds to their cash balance by sending a bank transfer. These funds can be used for payment and can eventually be paid out to your bank account.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CashBalance {
@@ -1618,29 +1615,29 @@ pub struct ConfirmationTokensResourcePaymentMethodPreview {
     #[serde(default)]
     pub acss_debit: ::core::option::Option<PaymentMethodAcssDebit>,
     #[serde(default)]
-    pub affirm: ::core::option::Option<serde_json::Value>,
+    pub affirm: ::core::option::Option<PaymentMethodAffirm>,
     #[serde(default)]
-    pub afterpay_clearpay: ::core::option::Option<serde_json::Value>,
+    pub afterpay_clearpay: ::core::option::Option<PaymentMethodAfterpayClearpay>,
     #[serde(default)]
-    pub alipay: ::core::option::Option<serde_json::Value>,
+    pub alipay: ::core::option::Option<PaymentFlowsPrivatePaymentMethodsAlipay>,
     /// This field indicates whether this payment method can be shown again to its customer in a checkout flow. Stripe products such as Checkout and Elements use this field to determine whether a payment method can be shown as a saved payment method in a checkout flow. The field defaults to “unspecified”. // TODO: enum values: ["always", "limited", "unspecified"]
     #[serde(default)]
     pub allow_redisplay: ::core::option::Option<String>,
     #[serde(default)]
-    pub alma: ::core::option::Option<serde_json::Value>,
+    pub alma: ::core::option::Option<PaymentMethodAlma>,
     #[serde(default)]
-    pub amazon_pay: ::core::option::Option<serde_json::Value>,
+    pub amazon_pay: ::core::option::Option<PaymentMethodAmazonPay>,
     #[serde(default)]
     pub au_becs_debit: ::core::option::Option<PaymentMethodAuBecsDebit>,
     #[serde(default)]
     pub bacs_debit: ::core::option::Option<PaymentMethodBacsDebit>,
     #[serde(default)]
-    pub bancontact: ::core::option::Option<serde_json::Value>,
+    pub bancontact: ::core::option::Option<PaymentMethodBancontact>,
     #[serde(default)]
-    pub billie: ::core::option::Option<serde_json::Value>,
+    pub billie: ::core::option::Option<PaymentMethodBillie>,
     pub billing_details: BillingDetails,
     #[serde(default)]
-    pub blik: ::core::option::Option<serde_json::Value>,
+    pub blik: ::core::option::Option<PaymentMethodBlik>,
     #[serde(default)]
     pub boleto: ::core::option::Option<PaymentMethodBoleto>,
     #[serde(default)]
@@ -1650,78 +1647,78 @@ pub struct ConfirmationTokensResourcePaymentMethodPreview {
     #[serde(default)]
     pub cashapp: ::core::option::Option<PaymentMethodCashapp>,
     #[serde(default)]
-    pub crypto: ::core::option::Option<serde_json::Value>,
+    pub crypto: ::core::option::Option<PaymentMethodCrypto>,
     /// The ID of the Customer to which this PaymentMethod is saved. This will not be set when the PaymentMethod has not been saved to a Customer.
     #[serde(default)]
     pub customer: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
     pub customer_account: ::core::option::Option<String>,
     #[serde(default)]
-    pub customer_balance: ::core::option::Option<serde_json::Value>,
+    pub customer_balance: ::core::option::Option<PaymentMethodCustomerBalance>,
     #[serde(default)]
     pub eps: ::core::option::Option<PaymentMethodEps>,
     #[serde(default)]
     pub fpx: ::core::option::Option<PaymentMethodFpx>,
     #[serde(default)]
-    pub giropay: ::core::option::Option<serde_json::Value>,
+    pub giropay: ::core::option::Option<PaymentMethodGiropay>,
     #[serde(default)]
-    pub grabpay: ::core::option::Option<serde_json::Value>,
+    pub grabpay: ::core::option::Option<PaymentMethodGrabpay>,
     #[serde(default)]
     pub ideal: ::core::option::Option<PaymentMethodIdeal>,
     #[serde(default)]
     pub interac_present: ::core::option::Option<PaymentMethodInteracPresent>,
     #[serde(default)]
-    pub kakao_pay: ::core::option::Option<serde_json::Value>,
+    pub kakao_pay: ::core::option::Option<PaymentMethodKakaoPay>,
     #[serde(default)]
     pub klarna: ::core::option::Option<PaymentMethodKlarna>,
     #[serde(default)]
-    pub konbini: ::core::option::Option<serde_json::Value>,
+    pub konbini: ::core::option::Option<PaymentMethodKonbini>,
     #[serde(default)]
     pub kr_card: ::core::option::Option<PaymentMethodKrCard>,
     #[serde(default)]
     pub link: ::core::option::Option<PaymentMethodLink>,
     #[serde(default)]
-    pub mb_way: ::core::option::Option<serde_json::Value>,
+    pub mb_way: ::core::option::Option<PaymentMethodMbWay>,
     #[serde(default)]
-    pub mobilepay: ::core::option::Option<serde_json::Value>,
+    pub mobilepay: ::core::option::Option<PaymentMethodMobilepay>,
     #[serde(default)]
-    pub multibanco: ::core::option::Option<serde_json::Value>,
+    pub multibanco: ::core::option::Option<PaymentMethodMultibanco>,
     #[serde(default)]
     pub naver_pay: ::core::option::Option<PaymentMethodNaverPay>,
     #[serde(default)]
     pub nz_bank_account: ::core::option::Option<PaymentMethodNzBankAccount>,
     #[serde(default)]
-    pub oxxo: ::core::option::Option<serde_json::Value>,
+    pub oxxo: ::core::option::Option<PaymentMethodOxxo>,
     #[serde(default)]
     pub p24: ::core::option::Option<PaymentMethodP24>,
     #[serde(default)]
-    pub pay_by_bank: ::core::option::Option<serde_json::Value>,
+    pub pay_by_bank: ::core::option::Option<PaymentMethodPayByBank>,
     #[serde(default)]
-    pub payco: ::core::option::Option<serde_json::Value>,
+    pub payco: ::core::option::Option<PaymentMethodPayco>,
     #[serde(default)]
-    pub paynow: ::core::option::Option<serde_json::Value>,
+    pub paynow: ::core::option::Option<PaymentMethodPaynow>,
     #[serde(default)]
     pub paypal: ::core::option::Option<PaymentMethodPaypal>,
     #[serde(default)]
     pub payto: ::core::option::Option<PaymentMethodPayto>,
     #[serde(default)]
-    pub pix: ::core::option::Option<serde_json::Value>,
+    pub pix: ::core::option::Option<PaymentMethodPix>,
     #[serde(default)]
-    pub promptpay: ::core::option::Option<serde_json::Value>,
+    pub promptpay: ::core::option::Option<PaymentMethodPromptpay>,
     #[serde(default)]
-    pub revolut_pay: ::core::option::Option<serde_json::Value>,
+    pub revolut_pay: ::core::option::Option<PaymentMethodRevolutPay>,
     #[serde(default)]
-    pub samsung_pay: ::core::option::Option<serde_json::Value>,
+    pub samsung_pay: ::core::option::Option<PaymentMethodSamsungPay>,
     #[serde(default)]
-    pub satispay: ::core::option::Option<serde_json::Value>,
+    pub satispay: ::core::option::Option<PaymentMethodSatispay>,
     #[serde(default)]
     pub sepa_debit: ::core::option::Option<PaymentMethodSepaDebit>,
     #[serde(default)]
     pub sofort: ::core::option::Option<PaymentMethodSofort>,
     #[serde(default)]
-    pub swish: ::core::option::Option<serde_json::Value>,
+    pub swish: ::core::option::Option<PaymentMethodSwish>,
     #[serde(default)]
-    pub twint: ::core::option::Option<serde_json::Value>,
+    pub twint: ::core::option::Option<PaymentMethodTwint>,
     /// The type of the PaymentMethod. An additional hash is included on the PaymentMethod with a name matching this value. It contains additional information specific to the PaymentMethod type. // TODO: enum values: ["acss_debit", "affirm", "afterpay_clearpay", "alipay", "alma", "amazon_pay", "au_becs_debit", "bacs_debit", "bancontact", "billie", "blik", "boleto", "card", "card_present", "cashapp", "crypto", "custom", "customer_balance", "eps", "fpx", "giropay", "grabpay", "ideal", "interac_present", "kakao_pay", "klarna", "konbini", "kr_card", "link", "mb_way", "mobilepay", "multibanco", "naver_pay", "nz_bank_account", "oxxo", "p24", "pay_by_bank", "payco", "paynow", "paypal", "payto", "pix", "promptpay", "revolut_pay", "samsung_pay", "satispay", "sepa_debit", "sofort", "swish", "twint", "upi", "us_bank_account", "wechat_pay", "zip"]
     #[serde(rename = "type")]
     pub type_: String,
@@ -1730,9 +1727,9 @@ pub struct ConfirmationTokensResourcePaymentMethodPreview {
     #[serde(default)]
     pub us_bank_account: ::core::option::Option<PaymentMethodUsBankAccount>,
     #[serde(default)]
-    pub wechat_pay: ::core::option::Option<serde_json::Value>,
+    pub wechat_pay: ::core::option::Option<PaymentMethodWechatPay>,
     #[serde(default)]
-    pub zip: ::core::option::Option<serde_json::Value>,
+    pub zip: ::core::option::Option<PaymentMethodZip>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1760,9 +1757,6 @@ pub struct ConnectCollectionTransfer {
     /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["connect_collection_transfer"]
     pub object: String,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectEmbeddedBaseFeatures {}
 
 /// Stripe needs to collect certain pieces of information about each account
 /// created. These requirements can differ depending on the account''s country. The
@@ -2425,6 +2419,12 @@ pub struct DeletedDiscount {
     pub subscription_item: ::core::option::Option<String>,
 }
 
+/// DeletedExternalAccount resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeletedExternalAccount {
+    pub value: serde_json::Value,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedInvoice {
     /// Always true for a deleted object // TODO: enum values: [true]
@@ -2443,6 +2443,12 @@ pub struct DeletedInvoiceitem {
     pub id: String,
     /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["invoiceitem"]
     pub object: String,
+}
+
+/// DeletedPaymentSource resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeletedPaymentSource {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2588,9 +2594,6 @@ pub struct DeletedWebhookEndpoint {
     /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["webhook_endpoint"]
     pub object: String,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DestinationDetailsUnimplemented {}
 
 /// A dispute occurs when a customer questions your charge with their card issuer.
 /// When this happens, you have the opportunity to respond to the dispute with
@@ -2806,6 +2809,12 @@ pub struct ExchangeRate {
     pub object: String,
     /// Hash where the keys are supported currencies and the values are the exchange rate at which the base id currency converts to the key currency.
     pub rates: serde_json::Value,
+}
+
+/// ExternalAccount resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ExternalAccount {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -3286,9 +3295,6 @@ pub struct GelatoProvidedDetails {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GelatoReportIdNumberOptions {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoSelfieReportError {
     /// A short machine-readable string giving the reason for the verification failure. // TODO: enum values: ["selfie_document_missing_photo", "selfie_face_mismatch", "selfie_manipulated", "selfie_unverified_other"]
     #[serde(default)]
@@ -3297,9 +3303,6 @@ pub struct GelatoSelfieReportError {
     #[serde(default)]
     pub reason: ::core::option::Option<String>,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GelatoSessionIdNumberOptions {}
 
 /// Shows last VerificationSession error
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -3319,7 +3322,7 @@ pub struct GelatoVerificationSessionOptions {
     #[serde(default)]
     pub email: ::core::option::Option<GelatoSessionEmailOptions>,
     #[serde(default)]
-    pub id_number: ::core::option::Option<serde_json::Value>,
+    pub id_number: ::core::option::Option<GelatoSessionIdNumberOptions>,
     #[serde(default)]
     pub matching: ::core::option::Option<GelatoSessionMatchingOptions>,
     #[serde(default)]
@@ -3887,7 +3890,9 @@ pub struct InvoicePaymentMethodOptionsCustomerBalance {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InvoicePaymentMethodOptionsKonbini {}
+pub struct InvoicePaymentMethodOptionsKonbini {
+    pub value: serde_json::Value,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsPayto {
@@ -3896,7 +3901,9 @@ pub struct InvoicePaymentMethodOptionsPayto {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InvoicePaymentMethodOptionsSepaDebit {}
+pub struct InvoicePaymentMethodOptionsSepaDebit {
+    pub value: serde_json::Value,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvoicePaymentMethodOptionsUsBankAccount {
@@ -4997,7 +5004,7 @@ pub struct Mandate {
     /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
     pub livemode: bool,
     #[serde(default)]
-    pub multi_use: ::core::option::Option<serde_json::Value>,
+    pub multi_use: ::core::option::Option<MandateMultiUse>,
     /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["mandate"]
     pub object: String,
     /// The account (if any) that the mandate is intended for.
@@ -5014,36 +5021,6 @@ pub struct Mandate {
     #[serde(rename = "type")]
     pub type_: String,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MandateAmazonPay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MandateCashapp {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MandateKakaoPay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MandateKlarna {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MandateKrCard {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MandateLink {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MandateMultiUse {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MandateNaverPay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MandateNzBankAccount {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MandateRevolutPay {}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Networks {
@@ -5063,9 +5040,6 @@ pub struct NotificationEventRequest {
     #[serde(default)]
     pub idempotency_key: ::core::option::Option<String>,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OfflineAcceptance {}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutboundPaymentsPaymentMethodDetails {
@@ -5201,9 +5175,6 @@ pub struct PaymentFlowsAutomaticPaymentMethodsSetupIntent {
     #[serde(default)]
     pub enabled: ::core::option::Option<bool>,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentFlowsPrivatePaymentMethodsAlipay {}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentFlowsPrivatePaymentMethodsKakaoPayPaymentMethodOptions {
@@ -5919,27 +5890,6 @@ pub struct PaymentLinksResourceTransferData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodAffirm {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodAfterpayClearpay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodAlma {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodAmazonPay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodBancontact {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodBillie {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodBlik {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardChecks {
     /// If a address line1 was provided, results of the check, one of pass, fail, unavailable, or unchecked.
     #[serde(default)]
@@ -5977,41 +5927,26 @@ pub struct PaymentMethodCardPresentNetworks {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardWallet {
     #[serde(default)]
-    pub amex_express_checkout: ::core::option::Option<serde_json::Value>,
+    pub amex_express_checkout: ::core::option::Option<PaymentMethodCardWalletAmexExpressCheckout>,
     #[serde(default)]
-    pub apple_pay: ::core::option::Option<serde_json::Value>,
+    pub apple_pay: ::core::option::Option<PaymentMethodCardWalletApplePay>,
     /// (For tokenized numbers only.) The last four digits of the device account number.
     #[serde(default)]
     pub dynamic_last4: ::core::option::Option<String>,
     #[serde(default)]
-    pub google_pay: ::core::option::Option<serde_json::Value>,
+    pub google_pay: ::core::option::Option<PaymentMethodCardWalletGooglePay>,
     #[serde(default)]
-    pub link: ::core::option::Option<serde_json::Value>,
+    pub link: ::core::option::Option<PaymentMethodCardWalletLink>,
     #[serde(default)]
     pub masterpass: ::core::option::Option<PaymentMethodCardWalletMasterpass>,
     #[serde(default)]
-    pub samsung_pay: ::core::option::Option<serde_json::Value>,
+    pub samsung_pay: ::core::option::Option<PaymentMethodCardWalletSamsungPay>,
     /// The type of the card wallet, one of amex_express_checkout, apple_pay, google_pay, masterpass, samsung_pay, visa_checkout, or link. An additional hash is included on the Wallet subhash with a name matching this value. It contains additional information specific to the card wallet type. // TODO: enum values: ["amex_express_checkout", "apple_pay", "google_pay", "link", "masterpass", "samsung_pay", "visa_checkout"]
     #[serde(rename = "type")]
     pub type_: String,
     #[serde(default)]
     pub visa_checkout: ::core::option::Option<PaymentMethodCardWalletVisaCheckout>,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodCardWalletAmexExpressCheckout {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodCardWalletApplePay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodCardWalletGooglePay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodCardWalletLink {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodCardWalletSamsungPay {}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodConfigBizPaymentMethodConfigurationDetails {
@@ -6172,12 +6107,6 @@ pub struct PaymentMethodConfiguration {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodCrypto {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodCustomerBalance {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetails {
     #[serde(default)]
     pub ach_credit_transfer: ::core::option::Option<PaymentMethodDetailsAchCreditTransfer>,
@@ -6216,7 +6145,7 @@ pub struct PaymentMethodDetails {
     #[serde(default)]
     pub crypto: ::core::option::Option<PaymentMethodDetailsCrypto>,
     #[serde(default)]
-    pub customer_balance: ::core::option::Option<serde_json::Value>,
+    pub customer_balance: ::core::option::Option<PaymentMethodDetailsCustomerBalance>,
     #[serde(default)]
     pub eps: ::core::option::Option<PaymentMethodDetailsEps>,
     #[serde(default)]
@@ -6240,7 +6169,7 @@ pub struct PaymentMethodDetails {
     #[serde(default)]
     pub link: ::core::option::Option<PaymentMethodDetailsLink>,
     #[serde(default)]
-    pub mb_way: ::core::option::Option<serde_json::Value>,
+    pub mb_way: ::core::option::Option<PaymentMethodDetailsMbWay>,
     #[serde(default)]
     pub mobilepay: ::core::option::Option<PaymentMethodDetailsMobilepay>,
     #[serde(default)]
@@ -6254,7 +6183,7 @@ pub struct PaymentMethodDetails {
     #[serde(default)]
     pub p24: ::core::option::Option<PaymentMethodDetailsP24>,
     #[serde(default)]
-    pub pay_by_bank: ::core::option::Option<serde_json::Value>,
+    pub pay_by_bank: ::core::option::Option<PaymentMethodDetailsPayByBank>,
     #[serde(default)]
     pub payco: ::core::option::Option<PaymentMethodDetailsPayco>,
     #[serde(default)]
@@ -6278,11 +6207,11 @@ pub struct PaymentMethodDetails {
     #[serde(default)]
     pub sofort: ::core::option::Option<PaymentMethodDetailsSofort>,
     #[serde(default)]
-    pub stripe_account: ::core::option::Option<serde_json::Value>,
+    pub stripe_account: ::core::option::Option<PaymentMethodDetailsStripeAccount>,
     #[serde(default)]
     pub swish: ::core::option::Option<PaymentMethodDetailsSwish>,
     #[serde(default)]
-    pub twint: ::core::option::Option<serde_json::Value>,
+    pub twint: ::core::option::Option<PaymentMethodDetailsTwint>,
     /// The type of transaction-specific details of the payment method used in the payment. See [PaymentMethod.type](https://docs.stripe.com/api/payment_methods/object#payment_method_object-type) for the full list of possible types.
     #[serde(rename = "type")]
     pub type_: String,
@@ -6291,11 +6220,11 @@ pub struct PaymentMethodDetails {
     #[serde(default)]
     pub us_bank_account: ::core::option::Option<PaymentMethodDetailsUsBankAccount>,
     #[serde(default)]
-    pub wechat: ::core::option::Option<serde_json::Value>,
+    pub wechat: ::core::option::Option<PaymentMethodDetailsWechat>,
     #[serde(default)]
     pub wechat_pay: ::core::option::Option<PaymentMethodDetailsWechatPay>,
     #[serde(default)]
-    pub zip: ::core::option::Option<serde_json::Value>,
+    pub zip: ::core::option::Option<PaymentMethodDetailsZip>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -6368,44 +6297,27 @@ pub struct PaymentMethodDetailsCardPresentReceipt {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardWallet {
     #[serde(default)]
-    pub amex_express_checkout: ::core::option::Option<serde_json::Value>,
+    pub amex_express_checkout:
+        ::core::option::Option<PaymentMethodDetailsCardWalletAmexExpressCheckout>,
     #[serde(default)]
-    pub apple_pay: ::core::option::Option<serde_json::Value>,
+    pub apple_pay: ::core::option::Option<PaymentMethodDetailsCardWalletApplePay>,
     /// (For tokenized numbers only.) The last four digits of the device account number.
     #[serde(default)]
     pub dynamic_last4: ::core::option::Option<String>,
     #[serde(default)]
-    pub google_pay: ::core::option::Option<serde_json::Value>,
+    pub google_pay: ::core::option::Option<PaymentMethodDetailsCardWalletGooglePay>,
     #[serde(default)]
-    pub link: ::core::option::Option<serde_json::Value>,
+    pub link: ::core::option::Option<PaymentMethodDetailsCardWalletLink>,
     #[serde(default)]
     pub masterpass: ::core::option::Option<PaymentMethodDetailsCardWalletMasterpass>,
     #[serde(default)]
-    pub samsung_pay: ::core::option::Option<serde_json::Value>,
+    pub samsung_pay: ::core::option::Option<PaymentMethodDetailsCardWalletSamsungPay>,
     /// The type of the card wallet, one of amex_express_checkout, apple_pay, google_pay, masterpass, samsung_pay, visa_checkout, or link. An additional hash is included on the Wallet subhash with a name matching this value. It contains additional information specific to the card wallet type. // TODO: enum values: ["amex_express_checkout", "apple_pay", "google_pay", "link", "masterpass", "samsung_pay", "visa_checkout"]
     #[serde(rename = "type")]
     pub type_: String,
     #[serde(default)]
     pub visa_checkout: ::core::option::Option<PaymentMethodDetailsCardWalletVisaCheckout>,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsCardWalletAmexExpressCheckout {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsCardWalletApplePay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsCardWalletGooglePay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsCardWalletLink {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsCardWalletSamsungPay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsCustomerBalance {}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsInteracPresentReceipt {
@@ -6445,33 +6357,6 @@ pub struct PaymentMethodDetailsKonbiniStore {
     pub chain: ::core::option::Option<String>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsMbWay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsPayByBank {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsPaymentRecordMbWay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsPaymentRecordTwint {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsPaymentRecordZip {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsStripeAccount {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsTwint {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsWechat {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodDetailsZip {}
-
 /// A payment method domain represents a web domain that you have registered with Stripe.
 /// Stripe Elements use registered payment method domains to control where certain payment methods are shown.
 ///
@@ -6497,27 +6382,6 @@ pub struct PaymentMethodDomain {
     pub object: String,
     pub paypal: PaymentMethodDomainResourcePaymentMethodStatus,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodGiropay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodGrabpay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodKakaoPay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodKonbini {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodMbWay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodMobilepay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodMultibanco {}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsAffirm {
@@ -6706,7 +6570,9 @@ pub struct PaymentMethodOptionsIdeal {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodOptionsInteracPresent {}
+pub struct PaymentMethodOptionsInteracPresent {
+    pub value: serde_json::Value,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsKlarna {
@@ -6781,7 +6647,9 @@ pub struct PaymentMethodOptionsP24 {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodOptionsPayByBank {}
+pub struct PaymentMethodOptionsPayByBank {
+    pub value: serde_json::Value,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodOptionsPaynow {
@@ -6891,49 +6759,10 @@ pub struct PaymentMethodOptionsZip {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodOxxo {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodPayByBank {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodPayco {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodPaynow {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodPix {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodPromptpay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodRevolutPay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodSamsungPay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodSatispay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodSwish {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodTwint {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodUsBankAccountStatusDetails {
     #[serde(default)]
     pub blocked: ::core::option::Option<PaymentMethodUsBankAccountBlocked>,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodWechatPay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentMethodZip {}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentPagesCheckoutSessionAdaptivePricing {
@@ -7206,6 +7035,12 @@ pub struct PaymentRecord {
     pub shipping_details: ::core::option::Option<serde_json::Value>,
 }
 
+/// PaymentSource resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentSource {
+    pub value: serde_json::Value,
+}
+
 /// Billing details used by the customer for this payment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentsPrimitivesPaymentRecordsResourceBillingDetails {
@@ -7313,15 +7148,11 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResou
     #[serde(default)]
     pub dynamic_last4: ::core::option::Option<String>,
     #[serde(default)]
-    pub google_pay: ::core::option::Option<serde_json::Value>,
+    pub google_pay: ::core::option::Option<PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResourceWalletResourceGooglePay>,
     /// The type of the card wallet, one of apple_pay or google_pay. An additional hash is included on the Wallet subhash with a name matching this value. It contains additional information specific to the card wallet type.
     #[serde(rename = "type")]
     pub type_: String,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResourceWalletResourceGooglePay
-{}
 
 /// Details about the Payment Method used in this payment attempt.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -7371,7 +7202,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodDetails {
     pub custom:
         ::core::option::Option<PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCustomDetails>,
     #[serde(default)]
-    pub customer_balance: ::core::option::Option<serde_json::Value>,
+    pub customer_balance: ::core::option::Option<PaymentMethodDetailsCustomerBalance>,
     #[serde(default)]
     pub eps: ::core::option::Option<PaymentMethodDetailsEps>,
     #[serde(default)]
@@ -7395,7 +7226,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodDetails {
     #[serde(default)]
     pub link: ::core::option::Option<PaymentMethodDetailsLink>,
     #[serde(default)]
-    pub mb_way: ::core::option::Option<serde_json::Value>,
+    pub mb_way: ::core::option::Option<PaymentMethodDetailsPaymentRecordMbWay>,
     #[serde(default)]
     pub mobilepay: ::core::option::Option<PaymentMethodDetailsPaymentRecordMobilepay>,
     #[serde(default)]
@@ -7409,7 +7240,7 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodDetails {
     #[serde(default)]
     pub p24: ::core::option::Option<PaymentMethodDetailsP24>,
     #[serde(default)]
-    pub pay_by_bank: ::core::option::Option<serde_json::Value>,
+    pub pay_by_bank: ::core::option::Option<PaymentMethodDetailsPayByBank>,
     #[serde(default)]
     pub payco: ::core::option::Option<PaymentMethodDetailsPaymentRecordPayco>,
     /// ID of the Stripe PaymentMethod used to make this payment.
@@ -7436,11 +7267,11 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodDetails {
     #[serde(default)]
     pub sofort: ::core::option::Option<PaymentMethodDetailsPaymentRecordSofort>,
     #[serde(default)]
-    pub stripe_account: ::core::option::Option<serde_json::Value>,
+    pub stripe_account: ::core::option::Option<PaymentMethodDetailsStripeAccount>,
     #[serde(default)]
     pub swish: ::core::option::Option<PaymentMethodDetailsPaymentRecordSwish>,
     #[serde(default)]
-    pub twint: ::core::option::Option<serde_json::Value>,
+    pub twint: ::core::option::Option<PaymentMethodDetailsPaymentRecordTwint>,
     /// The type of transaction-specific details of the payment method used in the payment. See [PaymentMethod.type](https://docs.stripe.com/api/payment_methods/object#payment_method_object-type) for the full list of possible types.
     #[serde(rename = "type")]
     pub type_: String,
@@ -7449,11 +7280,11 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodDetails {
     #[serde(default)]
     pub us_bank_account: ::core::option::Option<PaymentMethodDetailsPaymentRecordUsBankAccount>,
     #[serde(default)]
-    pub wechat: ::core::option::Option<serde_json::Value>,
+    pub wechat: ::core::option::Option<PaymentMethodDetailsWechat>,
     #[serde(default)]
     pub wechat_pay: ::core::option::Option<PaymentMethodDetailsPaymentRecordWechatPay>,
     #[serde(default)]
-    pub zip: ::core::option::Option<serde_json::Value>,
+    pub zip: ::core::option::Option<PaymentMethodDetailsPaymentRecordZip>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -8418,21 +8249,6 @@ pub struct SetupAttempt {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsAcssDebit {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsAmazonPay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsAuBecsDebit {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsBacsDebit {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsBoleto {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsCardChecks {
     /// If a address line1 was provided, results of the check, one of pass, fail, unavailable, or unchecked.
     #[serde(default)]
@@ -8448,49 +8264,13 @@ pub struct SetupAttemptPaymentMethodDetailsCardChecks {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsCardWallet {
     #[serde(default)]
-    pub apple_pay: ::core::option::Option<serde_json::Value>,
+    pub apple_pay: ::core::option::Option<PaymentMethodDetailsCardWalletApplePay>,
     #[serde(default)]
-    pub google_pay: ::core::option::Option<serde_json::Value>,
+    pub google_pay: ::core::option::Option<PaymentMethodDetailsCardWalletGooglePay>,
     /// The type of the card wallet, one of apple_pay, google_pay, or link. An additional hash is included on the Wallet subhash with a name matching this value. It contains additional information specific to the card wallet type. // TODO: enum values: ["apple_pay", "google_pay", "link"]
     #[serde(rename = "type")]
     pub type_: String,
 }
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsCashapp {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsKakaoPay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsKlarna {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsKrCard {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsLink {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsNzBankAccount {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsPaypal {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsPayto {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsRevolutPay {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsSepaDebit {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsUpi {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupAttemptPaymentMethodDetailsUsBankAccount {}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentNextAction {
@@ -8555,7 +8335,9 @@ pub struct SetupIntentPaymentMethodOptionsAcssDebit {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupIntentPaymentMethodOptionsAmazonPay {}
+pub struct SetupIntentPaymentMethodOptionsAmazonPay {
+    pub value: serde_json::Value,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsBacsDebit {
@@ -8606,7 +8388,9 @@ pub struct SetupIntentPaymentMethodOptionsCardMandateOptions {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupIntentPaymentMethodOptionsCardPresent {}
+pub struct SetupIntentPaymentMethodOptionsCardPresent {
+    pub value: serde_json::Value,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsKlarna {
@@ -8619,7 +8403,9 @@ pub struct SetupIntentPaymentMethodOptionsKlarna {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SetupIntentPaymentMethodOptionsLink {}
+pub struct SetupIntentPaymentMethodOptionsLink {
+    pub value: serde_json::Value,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupIntentPaymentMethodOptionsPaypal {
@@ -9528,9 +9314,6 @@ pub struct TaxProductResourceTaxSettingsHeadOffice {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TaxProductResourceTaxSettingsStatusDetailsResourceActive {}
-
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxTransactionLineItemResourceReversal {
     /// The id of the line item to reverse in the original transaction.
     pub original_line_item: String,
@@ -9715,7 +9498,9 @@ pub struct TerminalReader {
 
 /// A Refund object returned by the Terminal refunds API.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TerminalRefund {}
+pub struct TerminalRefund {
+    pub value: serde_json::Value,
+}
 
 /// Options associated with the Apple Terms and Conditions link type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -12139,6 +11924,11 @@ pub struct GelatoSessionEmailOptions {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GelatoSessionIdNumberOptions {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GelatoSessionMatchingOptions {
     /// Strictness of the DOB matching policy to apply. // TODO: enum values: ["none", "similar"]
     #[serde(default)]
@@ -12247,7 +12037,7 @@ pub struct GelatoVerificationReportOptions {
     #[serde(default)]
     pub document: ::core::option::Option<GelatoReportDocumentOptions>,
     #[serde(default)]
-    pub id_number: ::core::option::Option<serde_json::Value>,
+    pub id_number: ::core::option::Option<GelatoReportIdNumberOptions>,
 }
 
 /// Result from a phone check
@@ -12712,7 +12502,7 @@ pub struct CustomerAcceptance {
     #[serde(default)]
     pub accepted_at: ::core::option::Option<i64>,
     #[serde(default)]
-    pub offline: ::core::option::Option<serde_json::Value>,
+    pub offline: ::core::option::Option<OfflineAcceptance>,
     #[serde(default)]
     pub online: ::core::option::Option<OnlineAcceptance>,
     /// The mandate includes the type of customer acceptance information, such as: online or offline. // TODO: enum values: ["offline", "online"]
@@ -12721,37 +12511,42 @@ pub struct CustomerAcceptance {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MandateMultiUse {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MandatePaymentMethodDetails {
     #[serde(default)]
     pub acss_debit: ::core::option::Option<MandateAcssDebit>,
     #[serde(default)]
-    pub amazon_pay: ::core::option::Option<serde_json::Value>,
+    pub amazon_pay: ::core::option::Option<MandateAmazonPay>,
     #[serde(default)]
     pub au_becs_debit: ::core::option::Option<MandateAuBecsDebit>,
     #[serde(default)]
     pub bacs_debit: ::core::option::Option<MandateBacsDebit>,
     #[serde(default)]
-    pub card: ::core::option::Option<serde_json::Value>,
+    pub card: ::core::option::Option<CardMandatePaymentMethodDetails>,
     #[serde(default)]
-    pub cashapp: ::core::option::Option<serde_json::Value>,
+    pub cashapp: ::core::option::Option<MandateCashapp>,
     #[serde(default)]
-    pub kakao_pay: ::core::option::Option<serde_json::Value>,
+    pub kakao_pay: ::core::option::Option<MandateKakaoPay>,
     #[serde(default)]
-    pub klarna: ::core::option::Option<serde_json::Value>,
+    pub klarna: ::core::option::Option<MandateKlarna>,
     #[serde(default)]
-    pub kr_card: ::core::option::Option<serde_json::Value>,
+    pub kr_card: ::core::option::Option<MandateKrCard>,
     #[serde(default)]
-    pub link: ::core::option::Option<serde_json::Value>,
+    pub link: ::core::option::Option<MandateLink>,
     #[serde(default)]
-    pub naver_pay: ::core::option::Option<serde_json::Value>,
+    pub naver_pay: ::core::option::Option<MandateNaverPay>,
     #[serde(default)]
-    pub nz_bank_account: ::core::option::Option<serde_json::Value>,
+    pub nz_bank_account: ::core::option::Option<MandateNzBankAccount>,
     #[serde(default)]
     pub paypal: ::core::option::Option<MandatePaypal>,
     #[serde(default)]
     pub payto: ::core::option::Option<MandatePayto>,
     #[serde(default)]
-    pub revolut_pay: ::core::option::Option<serde_json::Value>,
+    pub revolut_pay: ::core::option::Option<MandateRevolutPay>,
     #[serde(default)]
     pub sepa_debit: ::core::option::Option<MandateSepaDebit>,
     /// This mandate corresponds with a specific payment method type. The payment_method_details includes an additional hash with the same name and contains mandate information that''s specific to that payment method.
@@ -13268,6 +13063,26 @@ pub struct PaymentLinksResourceSubscriptionDataInvoiceSettings {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodCardWalletAmexExpressCheckout {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodCardWalletApplePay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodCardWalletGooglePay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodCardWalletLink {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCardWalletMasterpass {
     /// Owner''s verified billing address. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
@@ -13281,6 +13096,11 @@ pub struct PaymentMethodCardWalletMasterpass {
     /// Owner''s verified shipping address. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
     pub shipping_address: ::core::option::Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodCardWalletSamsungPay {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -13502,6 +13322,11 @@ pub struct PaymentMethodDetailsKonbini {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsMbWay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsMobilepay {
     /// Internal card details
     #[serde(default)]
@@ -13652,6 +13477,11 @@ pub struct PaymentMethodDetailsSwish {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsTwint {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsUsBankAccount {
     /// Account holder type: individual or company. // TODO: enum values: ["company", "individual"]
     #[serde(default)]
@@ -13699,6 +13529,21 @@ pub struct PaymentMethodDetailsWechatPay {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsZip {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsCardWalletAmexExpressCheckout {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsCardWalletLink {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsCardWalletMasterpass {
     /// Owner''s verified billing address. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
@@ -13712,6 +13557,11 @@ pub struct PaymentMethodDetailsCardWalletMasterpass {
     /// Owner''s verified shipping address. Values are verified or provided by the wallet directly (if supported) at the time of authorization or settlement. They cannot be set or mutated.
     #[serde(default)]
     pub shipping_address: ::core::option::Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsCardWalletSamsungPay {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -13839,6 +13689,12 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResou
     /// Type of the apple_pay transaction, one of apple_pay or apple_pay_later.
     #[serde(rename = "type")]
     pub type_: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCardDetailsResourceWalletResourceGooglePay
+{
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -14235,6 +14091,11 @@ pub struct PaymentsPrimitivesPaymentRecordsResourcePaymentMethodCustomDetails {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsCustomerBalance {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsEps {
     /// The customer''s bank. Should be one of arzte_und_apotheker_bank, austrian_anadi_bank_ag, bank_austria, bankhaus_carl_spangler, bankhaus_schelhammer_und_schattera_ag, bawag_psk_ag, bks_bank_ag, brull_kallmus_bank_ag, btv_vier_lander_bank, capital_bank_grawe_gruppe_ag, deutsche_bank_ag, dolomitenbank, easybank_ag, erste_bank_und_sparkassen, hypo_alpeadriabank_international_ag, hypo_noe_lb_fur_niederosterreich_u_wien, hypo_oberosterreich_salzburg_steiermark, hypo_tirol_bank_ag, hypo_vorarlberg_bank_ag, hypo_bank_burgenland_aktiengesellschaft, marchfelder_bank, oberbank_ag, raiffeisen_bankengruppe_osterreich, schoellerbank_ag, sparda_bank_wien, volksbank_gruppe, volkskreditbank_ag, or vr_bank_braunau. // TODO: enum values: ["arzte_und_apotheker_bank", "austrian_anadi_bank_ag", "bank_austria", "bankhaus_carl_spangler", "bankhaus_schelhammer_und_schattera_ag", "bawag_psk_ag", "bks_bank_ag", "brull_kallmus_bank_ag", "btv_vier_lander_bank", "capital_bank_grawe_gruppe_ag", "deutsche_bank_ag", "dolomitenbank", "easybank_ag", "erste_bank_und_sparkassen", "hypo_alpeadriabank_international_ag", "hypo_bank_burgenland_aktiengesellschaft", "hypo_noe_lb_fur_niederosterreich_u_wien", "hypo_oberosterreich_salzburg_steiermark", "hypo_tirol_bank_ag", "hypo_vorarlberg_bank_ag", "marchfelder_bank", "oberbank_ag", "raiffeisen_bankengruppe_osterreich", "schoellerbank_ag", "sparda_bank_wien", "volksbank_gruppe", "volkskreditbank_ag", "vr_bank_braunau"]
     #[serde(default)]
@@ -14414,6 +14275,11 @@ pub struct PaymentMethodDetailsLink {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsPaymentRecordMbWay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordMobilepay {
     /// Internal card details
     #[serde(default)]
@@ -14479,6 +14345,11 @@ pub struct PaymentMethodDetailsP24 {
     /// Owner''s verified full name. Values are verified or provided by Przelewy24 directly
     #[serde(default)]
     pub verified_name: ::core::option::Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsPayByBank {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -14639,6 +14510,11 @@ pub struct PaymentMethodDetailsPaymentRecordSofort {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsStripeAccount {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordSwish {
     /// Uniquely identifies the payer''s Swish account. You can use this attribute to check whether two Swish transactions were paid for by the same payer
     #[serde(default)]
@@ -14649,6 +14525,11 @@ pub struct PaymentMethodDetailsPaymentRecordSwish {
     /// The last four digits of the Swish account phone number
     #[serde(default)]
     pub verified_phone_last4: ::core::option::Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsPaymentRecordTwint {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -14690,6 +14571,11 @@ pub struct PaymentMethodDetailsPaymentRecordUsBankAccount {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsWechat {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodDetailsPaymentRecordWechatPay {
     /// Uniquely identifies this particular WeChat Pay account. You can use this attribute to check whether two WeChat accounts are the same.
     #[serde(default)]
@@ -14703,6 +14589,11 @@ pub struct PaymentMethodDetailsPaymentRecordWechatPay {
     /// Transaction ID of this particular WeChat Pay transaction.
     #[serde(default)]
     pub transaction_id: ::core::option::Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsPaymentRecordZip {
+    pub value: serde_json::Value,
 }
 
 /// A representation of a physical address.
@@ -14979,17 +14870,17 @@ pub struct InsightsResourcesPaymentEvaluationSignals {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetails {
     #[serde(default)]
-    pub affirm: ::core::option::Option<serde_json::Value>,
+    pub affirm: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
-    pub afterpay_clearpay: ::core::option::Option<serde_json::Value>,
+    pub afterpay_clearpay: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
-    pub alipay: ::core::option::Option<serde_json::Value>,
+    pub alipay: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
-    pub alma: ::core::option::Option<serde_json::Value>,
+    pub alma: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
-    pub amazon_pay: ::core::option::Option<serde_json::Value>,
+    pub amazon_pay: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
-    pub au_bank_transfer: ::core::option::Option<serde_json::Value>,
+    pub au_bank_transfer: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
     pub blik: ::core::option::Option<RefundDestinationDetailsBlik>,
     #[serde(default)]
@@ -14997,25 +14888,25 @@ pub struct RefundDestinationDetails {
     #[serde(default)]
     pub card: ::core::option::Option<RefundDestinationDetailsCard>,
     #[serde(default)]
-    pub cashapp: ::core::option::Option<serde_json::Value>,
+    pub cashapp: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
     pub crypto: ::core::option::Option<RefundDestinationDetailsCrypto>,
     #[serde(default)]
-    pub customer_cash_balance: ::core::option::Option<serde_json::Value>,
+    pub customer_cash_balance: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
-    pub eps: ::core::option::Option<serde_json::Value>,
+    pub eps: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
     pub eu_bank_transfer: ::core::option::Option<RefundDestinationDetailsEuBankTransfer>,
     #[serde(default)]
     pub gb_bank_transfer: ::core::option::Option<RefundDestinationDetailsGbBankTransfer>,
     #[serde(default)]
-    pub giropay: ::core::option::Option<serde_json::Value>,
+    pub giropay: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
-    pub grabpay: ::core::option::Option<serde_json::Value>,
+    pub grabpay: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
     pub jp_bank_transfer: ::core::option::Option<RefundDestinationDetailsJpBankTransfer>,
     #[serde(default)]
-    pub klarna: ::core::option::Option<serde_json::Value>,
+    pub klarna: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
     pub mb_way: ::core::option::Option<RefundDestinationDetailsMbWay>,
     #[serde(default)]
@@ -15023,34 +14914,34 @@ pub struct RefundDestinationDetails {
     #[serde(default)]
     pub mx_bank_transfer: ::core::option::Option<RefundDestinationDetailsMxBankTransfer>,
     #[serde(default)]
-    pub nz_bank_transfer: ::core::option::Option<serde_json::Value>,
+    pub nz_bank_transfer: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
     pub p24: ::core::option::Option<RefundDestinationDetailsP24>,
     #[serde(default)]
-    pub paynow: ::core::option::Option<serde_json::Value>,
+    pub paynow: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
     pub paypal: ::core::option::Option<RefundDestinationDetailsPaypal>,
     #[serde(default)]
-    pub pix: ::core::option::Option<serde_json::Value>,
+    pub pix: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
-    pub revolut: ::core::option::Option<serde_json::Value>,
+    pub revolut: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
-    pub sofort: ::core::option::Option<serde_json::Value>,
+    pub sofort: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
     pub swish: ::core::option::Option<RefundDestinationDetailsSwish>,
     #[serde(default)]
     pub th_bank_transfer: ::core::option::Option<RefundDestinationDetailsThBankTransfer>,
     #[serde(default)]
-    pub twint: ::core::option::Option<serde_json::Value>,
+    pub twint: ::core::option::Option<DestinationDetailsUnimplemented>,
     /// The type of transaction-specific details of the payment method used in the refund (e.g., card). An additional hash is included on destination_details with a name matching this value. It contains information specific to the refund transaction.
     #[serde(rename = "type")]
     pub type_: String,
     #[serde(default)]
     pub us_bank_transfer: ::core::option::Option<RefundDestinationDetailsUsBankTransfer>,
     #[serde(default)]
-    pub wechat_pay: ::core::option::Option<serde_json::Value>,
+    pub wechat_pay: ::core::option::Option<DestinationDetailsUnimplemented>,
     #[serde(default)]
-    pub zip: ::core::option::Option<serde_json::Value>,
+    pub zip: ::core::option::Option<DestinationDetailsUnimplemented>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -15099,54 +14990,64 @@ pub struct SigmaScheduledQueryRunError {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetails {
     #[serde(default)]
-    pub acss_debit: ::core::option::Option<serde_json::Value>,
+    pub acss_debit: ::core::option::Option<SetupAttemptPaymentMethodDetailsAcssDebit>,
     #[serde(default)]
-    pub amazon_pay: ::core::option::Option<serde_json::Value>,
+    pub amazon_pay: ::core::option::Option<SetupAttemptPaymentMethodDetailsAmazonPay>,
     #[serde(default)]
-    pub au_becs_debit: ::core::option::Option<serde_json::Value>,
+    pub au_becs_debit: ::core::option::Option<SetupAttemptPaymentMethodDetailsAuBecsDebit>,
     #[serde(default)]
-    pub bacs_debit: ::core::option::Option<serde_json::Value>,
+    pub bacs_debit: ::core::option::Option<SetupAttemptPaymentMethodDetailsBacsDebit>,
     #[serde(default)]
     pub bancontact: ::core::option::Option<SetupAttemptPaymentMethodDetailsBancontact>,
     #[serde(default)]
-    pub boleto: ::core::option::Option<serde_json::Value>,
+    pub boleto: ::core::option::Option<SetupAttemptPaymentMethodDetailsBoleto>,
     #[serde(default)]
     pub card: ::core::option::Option<SetupAttemptPaymentMethodDetailsCard>,
     #[serde(default)]
     pub card_present: ::core::option::Option<SetupAttemptPaymentMethodDetailsCardPresent>,
     #[serde(default)]
-    pub cashapp: ::core::option::Option<serde_json::Value>,
+    pub cashapp: ::core::option::Option<SetupAttemptPaymentMethodDetailsCashapp>,
     #[serde(default)]
     pub ideal: ::core::option::Option<SetupAttemptPaymentMethodDetailsIdeal>,
     #[serde(default)]
-    pub kakao_pay: ::core::option::Option<serde_json::Value>,
+    pub kakao_pay: ::core::option::Option<SetupAttemptPaymentMethodDetailsKakaoPay>,
     #[serde(default)]
-    pub klarna: ::core::option::Option<serde_json::Value>,
+    pub klarna: ::core::option::Option<SetupAttemptPaymentMethodDetailsKlarna>,
     #[serde(default)]
-    pub kr_card: ::core::option::Option<serde_json::Value>,
+    pub kr_card: ::core::option::Option<SetupAttemptPaymentMethodDetailsKrCard>,
     #[serde(default)]
-    pub link: ::core::option::Option<serde_json::Value>,
+    pub link: ::core::option::Option<SetupAttemptPaymentMethodDetailsLink>,
     #[serde(default)]
     pub naver_pay: ::core::option::Option<SetupAttemptPaymentMethodDetailsNaverPay>,
     #[serde(default)]
-    pub nz_bank_account: ::core::option::Option<serde_json::Value>,
+    pub nz_bank_account: ::core::option::Option<SetupAttemptPaymentMethodDetailsNzBankAccount>,
     #[serde(default)]
-    pub paypal: ::core::option::Option<serde_json::Value>,
+    pub paypal: ::core::option::Option<SetupAttemptPaymentMethodDetailsPaypal>,
     #[serde(default)]
-    pub payto: ::core::option::Option<serde_json::Value>,
+    pub payto: ::core::option::Option<SetupAttemptPaymentMethodDetailsPayto>,
     #[serde(default)]
-    pub revolut_pay: ::core::option::Option<serde_json::Value>,
+    pub revolut_pay: ::core::option::Option<SetupAttemptPaymentMethodDetailsRevolutPay>,
     #[serde(default)]
-    pub sepa_debit: ::core::option::Option<serde_json::Value>,
+    pub sepa_debit: ::core::option::Option<SetupAttemptPaymentMethodDetailsSepaDebit>,
     #[serde(default)]
     pub sofort: ::core::option::Option<SetupAttemptPaymentMethodDetailsSofort>,
     /// The type of the payment method used in the SetupIntent (e.g., card). An additional hash is included on payment_method_details with a name matching this value. It contains confirmation-specific information for the payment method.
     #[serde(rename = "type")]
     pub type_: String,
     #[serde(default)]
-    pub upi: ::core::option::Option<serde_json::Value>,
+    pub upi: ::core::option::Option<SetupAttemptPaymentMethodDetailsUpi>,
     #[serde(default)]
-    pub us_bank_account: ::core::option::Option<serde_json::Value>,
+    pub us_bank_account: ::core::option::Option<SetupAttemptPaymentMethodDetailsUsBankAccount>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsCardWalletApplePay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodDetailsCardWalletGooglePay {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -15931,7 +15832,7 @@ pub struct TaxProductResourceTaxSettingsDefaults {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxSettingsStatusDetails {
     #[serde(default)]
-    pub active: ::core::option::Option<serde_json::Value>,
+    pub active: ::core::option::Option<TaxProductResourceTaxSettingsStatusDetailsResourceActive>,
     #[serde(default)]
     pub pending: ::core::option::Option<TaxProductResourceTaxSettingsStatusDetailsResourcePending>,
 }
@@ -17130,7 +17031,7 @@ pub struct ConnectEmbeddedDisputesListConfig {
 pub struct ConnectEmbeddedBaseConfigClaim {
     /// Whether the embedded component is enabled.
     pub enabled: bool,
-    pub features: serde_json::Value,
+    pub features: ConnectEmbeddedBaseFeatures,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -17938,6 +17839,11 @@ pub struct GelatoReportDocumentOptions {
     pub require_matching_selfie: ::core::option::Option<bool>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GelatoReportIdNumberOptions {
+    pub value: serde_json::Value,
+}
+
 /// Details of an rejected card outcome attached to this payment evaluation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightsResourcesPaymentEvaluationRejectedCard {
@@ -18227,6 +18133,11 @@ pub struct IssuingNetworkTokenWalletProvider {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OfflineAcceptance {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OnlineAcceptance {
     /// The customer accepts the mandate from this IP address.
     #[serde(default)]
@@ -18248,6 +18159,11 @@ pub struct MandateAcssDebit {
     pub payment_schedule: String,
     /// Transaction type of the mandate. // TODO: enum values: ["business", "personal"]
     pub transaction_type: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MandateAmazonPay {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -18273,6 +18189,46 @@ pub struct MandateBacsDebit {
     pub service_user_number: ::core::option::Option<String>,
     /// The URL that will contain the mandate that the customer has signed.
     pub url: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CardMandatePaymentMethodDetails {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MandateCashapp {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MandateKakaoPay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MandateKlarna {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MandateKrCard {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MandateLink {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MandateNaverPay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MandateNzBankAccount {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -18306,6 +18262,11 @@ pub struct MandatePayto {
     /// Date, in YYYY-MM-DD format, from which payments will be collected. Defaults to confirmation time.
     #[serde(default)]
     pub start_date: ::core::option::Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MandateRevolutPay {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -18660,6 +18621,11 @@ pub struct InsightsResourcesPaymentEvaluationSignalV2 {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DestinationDetailsUnimplemented {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RefundDestinationDetailsBlik {
     /// For refunds declined by the network, a decline code provided by the network which indicates the reason the refund failed.
     #[serde(default)]
@@ -18823,6 +18789,26 @@ pub struct RefundNextActionDisplayDetails {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsAcssDebit {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsAmazonPay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsAuBecsDebit {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsBacsDebit {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsBancontact {
     /// Bank code of bank associated with the bank account.
     #[serde(default)]
@@ -18848,6 +18834,11 @@ pub struct SetupAttemptPaymentMethodDetailsBancontact {
     /// Owner''s verified full name. Values are verified or provided by Bancontact directly
     #[serde(default)]
     pub verified_name: ::core::option::Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsBoleto {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -18898,6 +18889,11 @@ pub struct SetupAttemptPaymentMethodDetailsCardPresent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsCashapp {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsIdeal {
     /// The customer''s bank. Can be one of abn_amro, adyen, asn_bank, bunq, buut, finom, handelsbanken, ing, knab, mollie, moneyou, n26, nn, rabobank, regiobank, revolut, sns_bank, triodos_bank, van_lanschot, or yoursafe. // TODO: enum values: ["abn_amro", "adyen", "asn_bank", "bunq", "buut", "finom", "handelsbanken", "ing", "knab", "mollie", "moneyou", "n26", "nn", "rabobank", "regiobank", "revolut", "sns_bank", "triodos_bank", "van_lanschot", "yoursafe"]
     #[serde(default)]
@@ -18920,10 +18916,55 @@ pub struct SetupAttemptPaymentMethodDetailsIdeal {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsKakaoPay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsKlarna {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsKrCard {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsLink {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupAttemptPaymentMethodDetailsNaverPay {
     /// Uniquely identifies this particular Naver Pay account. You can use this attribute to check whether two Naver Pay accounts are the same.
     #[serde(default)]
     pub buyer_id: ::core::option::Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsNzBankAccount {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsPaypal {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsPayto {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsRevolutPay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsSepaDebit {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -18952,6 +18993,16 @@ pub struct SetupAttemptPaymentMethodDetailsSofort {
     /// Owner''s verified full name. Values are verified or provided by Sofort directly
     #[serde(default)]
     pub verified_name: ::core::option::Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsUpi {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SetupAttemptPaymentMethodDetailsUsBankAccount {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -19680,6 +19731,11 @@ pub struct TaxProductRegistrationsResourceCountryOptionsUnitedStates {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TaxProductResourceTaxSettingsStatusDetailsResourceActive {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaxProductResourceTaxSettingsStatusDetailsResourcePending {
     /// The list of missing fields that are required to perform calculations. It includes the entry head_office when the status is pending. It is recommended to set the optional values even if they aren''t listed as required for calculating taxes. Calculations can fail if missing fields aren''t explicitly provided on every call.
     #[serde(default)]
@@ -19813,29 +19869,29 @@ pub struct PaymentMethod {
     #[serde(default)]
     pub acss_debit: ::core::option::Option<PaymentMethodAcssDebit>,
     #[serde(default)]
-    pub affirm: ::core::option::Option<serde_json::Value>,
+    pub affirm: ::core::option::Option<PaymentMethodAffirm>,
     #[serde(default)]
-    pub afterpay_clearpay: ::core::option::Option<serde_json::Value>,
+    pub afterpay_clearpay: ::core::option::Option<PaymentMethodAfterpayClearpay>,
     #[serde(default)]
-    pub alipay: ::core::option::Option<serde_json::Value>,
+    pub alipay: ::core::option::Option<PaymentFlowsPrivatePaymentMethodsAlipay>,
     /// This field indicates whether this payment method can be shown again to its customer in a checkout flow. Stripe products such as Checkout and Elements use this field to determine whether a payment method can be shown as a saved payment method in a checkout flow. The field defaults to “unspecified”. // TODO: enum values: ["always", "limited", "unspecified"]
     #[serde(default)]
     pub allow_redisplay: ::core::option::Option<String>,
     #[serde(default)]
-    pub alma: ::core::option::Option<serde_json::Value>,
+    pub alma: ::core::option::Option<PaymentMethodAlma>,
     #[serde(default)]
-    pub amazon_pay: ::core::option::Option<serde_json::Value>,
+    pub amazon_pay: ::core::option::Option<PaymentMethodAmazonPay>,
     #[serde(default)]
     pub au_becs_debit: ::core::option::Option<PaymentMethodAuBecsDebit>,
     #[serde(default)]
     pub bacs_debit: ::core::option::Option<PaymentMethodBacsDebit>,
     #[serde(default)]
-    pub bancontact: ::core::option::Option<serde_json::Value>,
+    pub bancontact: ::core::option::Option<PaymentMethodBancontact>,
     #[serde(default)]
-    pub billie: ::core::option::Option<serde_json::Value>,
+    pub billie: ::core::option::Option<PaymentMethodBillie>,
     pub billing_details: BillingDetails,
     #[serde(default)]
-    pub blik: ::core::option::Option<serde_json::Value>,
+    pub blik: ::core::option::Option<PaymentMethodBlik>,
     #[serde(default)]
     pub boleto: ::core::option::Option<PaymentMethodBoleto>,
     #[serde(default)]
@@ -19847,7 +19903,7 @@ pub struct PaymentMethod {
     /// Time at which the object was created. Measured in seconds since the Unix epoch.
     pub created: i64,
     #[serde(default)]
-    pub crypto: ::core::option::Option<serde_json::Value>,
+    pub crypto: ::core::option::Option<PaymentMethodCrypto>,
     #[serde(default)]
     pub custom: ::core::option::Option<PaymentMethodCustom>,
     /// The ID of the Customer to which this PaymentMethod is saved. This will not be set when the PaymentMethod has not been saved to a Customer.
@@ -19856,15 +19912,15 @@ pub struct PaymentMethod {
     #[serde(default)]
     pub customer_account: ::core::option::Option<String>,
     #[serde(default)]
-    pub customer_balance: ::core::option::Option<serde_json::Value>,
+    pub customer_balance: ::core::option::Option<PaymentMethodCustomerBalance>,
     #[serde(default)]
     pub eps: ::core::option::Option<PaymentMethodEps>,
     #[serde(default)]
     pub fpx: ::core::option::Option<PaymentMethodFpx>,
     #[serde(default)]
-    pub giropay: ::core::option::Option<serde_json::Value>,
+    pub giropay: ::core::option::Option<PaymentMethodGiropay>,
     #[serde(default)]
-    pub grabpay: ::core::option::Option<serde_json::Value>,
+    pub grabpay: ::core::option::Option<PaymentMethodGrabpay>,
     /// Unique identifier for the object.
     pub id: String,
     #[serde(default)]
@@ -19872,11 +19928,11 @@ pub struct PaymentMethod {
     #[serde(default)]
     pub interac_present: ::core::option::Option<PaymentMethodInteracPresent>,
     #[serde(default)]
-    pub kakao_pay: ::core::option::Option<serde_json::Value>,
+    pub kakao_pay: ::core::option::Option<PaymentMethodKakaoPay>,
     #[serde(default)]
     pub klarna: ::core::option::Option<PaymentMethodKlarna>,
     #[serde(default)]
-    pub konbini: ::core::option::Option<serde_json::Value>,
+    pub konbini: ::core::option::Option<PaymentMethodKonbini>,
     #[serde(default)]
     pub kr_card: ::core::option::Option<PaymentMethodKrCard>,
     #[serde(default)]
@@ -19884,14 +19940,14 @@ pub struct PaymentMethod {
     /// If the object exists in live mode, the value is true. If the object exists in test mode, the value is false.
     pub livemode: bool,
     #[serde(default)]
-    pub mb_way: ::core::option::Option<serde_json::Value>,
+    pub mb_way: ::core::option::Option<PaymentMethodMbWay>,
     /// Set of [key-value pairs](https://docs.stripe.com/api/metadata) that you can attach to an object. This can be useful for storing additional information about the object in a structured format.
     #[serde(default)]
     pub metadata: ::core::option::Option<serde_json::Value>,
     #[serde(default)]
-    pub mobilepay: ::core::option::Option<serde_json::Value>,
+    pub mobilepay: ::core::option::Option<PaymentMethodMobilepay>,
     #[serde(default)]
-    pub multibanco: ::core::option::Option<serde_json::Value>,
+    pub multibanco: ::core::option::Option<PaymentMethodMultibanco>,
     #[serde(default)]
     pub naver_pay: ::core::option::Option<PaymentMethodNaverPay>,
     #[serde(default)]
@@ -19899,39 +19955,39 @@ pub struct PaymentMethod {
     /// String representing the object''s type. Objects of the same type share the same value. // TODO: enum values: ["payment_method"]
     pub object: String,
     #[serde(default)]
-    pub oxxo: ::core::option::Option<serde_json::Value>,
+    pub oxxo: ::core::option::Option<PaymentMethodOxxo>,
     #[serde(default)]
     pub p24: ::core::option::Option<PaymentMethodP24>,
     #[serde(default)]
-    pub pay_by_bank: ::core::option::Option<serde_json::Value>,
+    pub pay_by_bank: ::core::option::Option<PaymentMethodPayByBank>,
     #[serde(default)]
-    pub payco: ::core::option::Option<serde_json::Value>,
+    pub payco: ::core::option::Option<PaymentMethodPayco>,
     #[serde(default)]
-    pub paynow: ::core::option::Option<serde_json::Value>,
+    pub paynow: ::core::option::Option<PaymentMethodPaynow>,
     #[serde(default)]
     pub paypal: ::core::option::Option<PaymentMethodPaypal>,
     #[serde(default)]
     pub payto: ::core::option::Option<PaymentMethodPayto>,
     #[serde(default)]
-    pub pix: ::core::option::Option<serde_json::Value>,
+    pub pix: ::core::option::Option<PaymentMethodPix>,
     #[serde(default)]
-    pub promptpay: ::core::option::Option<serde_json::Value>,
+    pub promptpay: ::core::option::Option<PaymentMethodPromptpay>,
     #[serde(default)]
     pub radar_options: ::core::option::Option<RadarRadarOptions>,
     #[serde(default)]
-    pub revolut_pay: ::core::option::Option<serde_json::Value>,
+    pub revolut_pay: ::core::option::Option<PaymentMethodRevolutPay>,
     #[serde(default)]
-    pub samsung_pay: ::core::option::Option<serde_json::Value>,
+    pub samsung_pay: ::core::option::Option<PaymentMethodSamsungPay>,
     #[serde(default)]
-    pub satispay: ::core::option::Option<serde_json::Value>,
+    pub satispay: ::core::option::Option<PaymentMethodSatispay>,
     #[serde(default)]
     pub sepa_debit: ::core::option::Option<PaymentMethodSepaDebit>,
     #[serde(default)]
     pub sofort: ::core::option::Option<PaymentMethodSofort>,
     #[serde(default)]
-    pub swish: ::core::option::Option<serde_json::Value>,
+    pub swish: ::core::option::Option<PaymentMethodSwish>,
     #[serde(default)]
-    pub twint: ::core::option::Option<serde_json::Value>,
+    pub twint: ::core::option::Option<PaymentMethodTwint>,
     /// The type of the PaymentMethod. An additional hash is included on the PaymentMethod with a name matching this value. It contains additional information specific to the PaymentMethod type. // TODO: enum values: ["acss_debit", "affirm", "afterpay_clearpay", "alipay", "alma", "amazon_pay", "au_becs_debit", "bacs_debit", "bancontact", "billie", "blik", "boleto", "card", "card_present", "cashapp", "crypto", "custom", "customer_balance", "eps", "fpx", "giropay", "grabpay", "ideal", "interac_present", "kakao_pay", "klarna", "konbini", "kr_card", "link", "mb_way", "mobilepay", "multibanco", "naver_pay", "nz_bank_account", "oxxo", "p24", "pay_by_bank", "payco", "paynow", "paypal", "payto", "pix", "promptpay", "revolut_pay", "samsung_pay", "satispay", "sepa_debit", "sofort", "swish", "twint", "upi", "us_bank_account", "wechat_pay", "zip"]
     #[serde(rename = "type")]
     pub type_: String,
@@ -19940,9 +19996,9 @@ pub struct PaymentMethod {
     #[serde(default)]
     pub us_bank_account: ::core::option::Option<PaymentMethodUsBankAccount>,
     #[serde(default)]
-    pub wechat_pay: ::core::option::Option<serde_json::Value>,
+    pub wechat_pay: ::core::option::Option<PaymentMethodWechatPay>,
     #[serde(default)]
-    pub zip: ::core::option::Option<serde_json::Value>,
+    pub zip: ::core::option::Option<PaymentMethodZip>,
 }
 
 /// Represents a per-transaction override of a reader configuration
@@ -20479,6 +20535,11 @@ pub struct ConnectEmbeddedDisputesListFeatures {
     pub dispute_management: bool,
     /// Whether sending refunds is enabled. This is true by default.
     pub refund_management: bool,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectEmbeddedBaseFeatures {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -21155,6 +21216,31 @@ pub struct PaymentMethodAcssDebit {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodAffirm {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodAfterpayClearpay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentFlowsPrivatePaymentMethodsAlipay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodAlma {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodAmazonPay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodAuBecsDebit {
     /// Six-digit number identifying bank and branch associated with this bank account.
     #[serde(default)]
@@ -21181,6 +21267,16 @@ pub struct PaymentMethodBacsDebit {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodBancontact {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodBillie {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BillingDetails {
     /// Billing address.
     #[serde(default)]
@@ -21197,6 +21293,11 @@ pub struct BillingDetails {
     /// Taxpayer identification number. Used only for transactions between LATAM buyers and non-LATAM sellers.
     #[serde(default)]
     pub tax_id: ::core::option::Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodBlik {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -21306,6 +21407,11 @@ pub struct PaymentMethodCashapp {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodCrypto {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodCustom {
     /// Display name of the Dashboard-only CustomPaymentMethodType.
     #[serde(default)]
@@ -21319,6 +21425,11 @@ pub struct PaymentMethodCustom {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodCustomerBalance {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodEps {
     /// The customer''s bank. Should be one of arzte_und_apotheker_bank, austrian_anadi_bank_ag, bank_austria, bankhaus_carl_spangler, bankhaus_schelhammer_und_schattera_ag, bawag_psk_ag, bks_bank_ag, brull_kallmus_bank_ag, btv_vier_lander_bank, capital_bank_grawe_gruppe_ag, deutsche_bank_ag, dolomitenbank, easybank_ag, erste_bank_und_sparkassen, hypo_alpeadriabank_international_ag, hypo_noe_lb_fur_niederosterreich_u_wien, hypo_oberosterreich_salzburg_steiermark, hypo_tirol_bank_ag, hypo_vorarlberg_bank_ag, hypo_bank_burgenland_aktiengesellschaft, marchfelder_bank, oberbank_ag, raiffeisen_bankengruppe_osterreich, schoellerbank_ag, sparda_bank_wien, volksbank_gruppe, volkskreditbank_ag, or vr_bank_braunau. // TODO: enum values: ["arzte_und_apotheker_bank", "austrian_anadi_bank_ag", "bank_austria", "bankhaus_carl_spangler", "bankhaus_schelhammer_und_schattera_ag", "bawag_psk_ag", "bks_bank_ag", "brull_kallmus_bank_ag", "btv_vier_lander_bank", "capital_bank_grawe_gruppe_ag", "deutsche_bank_ag", "dolomitenbank", "easybank_ag", "erste_bank_und_sparkassen", "hypo_alpeadriabank_international_ag", "hypo_bank_burgenland_aktiengesellschaft", "hypo_noe_lb_fur_niederosterreich_u_wien", "hypo_oberosterreich_salzburg_steiermark", "hypo_tirol_bank_ag", "hypo_vorarlberg_bank_ag", "marchfelder_bank", "oberbank_ag", "raiffeisen_bankengruppe_osterreich", "schoellerbank_ag", "sparda_bank_wien", "volksbank_gruppe", "volkskreditbank_ag", "vr_bank_braunau"]
     #[serde(default)]
@@ -21329,6 +21440,16 @@ pub struct PaymentMethodEps {
 pub struct PaymentMethodFpx {
     /// The customer''s bank, if provided. Can be one of affin_bank, agrobank, alliance_bank, ambank, bank_islam, bank_muamalat, bank_rakyat, bsn, cimb, hong_leong_bank, hsbc, kfh, maybank2u, ocbc, public_bank, rhb, standard_chartered, uob, deutsche_bank, maybank2e, pb_enterprise, or bank_of_china. // TODO: enum values: ["affin_bank", "agrobank", "alliance_bank", "ambank", "bank_islam", "bank_muamalat", "bank_of_china", "bank_rakyat", "bsn", "cimb", "deutsche_bank", "hong_leong_bank", "hsbc", "kfh", "maybank2e", "maybank2u", "ocbc", "pb_enterprise", "public_bank", "rhb", "standard_chartered", "uob"]
     pub bank: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodGiropay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodGrabpay {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -21383,10 +21504,20 @@ pub struct PaymentMethodInteracPresent {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodKakaoPay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodKlarna {
     /// The customer''s date of birth, if provided.
     #[serde(default)]
     pub dob: ::core::option::Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodKonbini {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -21404,6 +21535,21 @@ pub struct PaymentMethodLink {
     /// Account owner''s email address.
     #[serde(default)]
     pub email: ::core::option::Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodMbWay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodMobilepay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodMultibanco {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -21434,10 +21580,30 @@ pub struct PaymentMethodNzBankAccount {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodOxxo {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PaymentMethodP24 {
     /// The customer''s bank, if provided. // TODO: enum values: ["alior_bank", "bank_millennium", "bank_nowy_bfg_sa", "bank_pekao_sa", "banki_spbdzielcze", "blik", "bnp_paribas", "boz", "citi_handlowy", "credit_agricole", "envelobank", "etransfer_pocztowy24", "getin_bank", "ideabank", "ing", "inteligo", "mbank_mtransfer", "nest_przelew", "noble_pay", "pbac_z_ipko", "plus_bank", "santander_przelew24", "tmobile_usbugi_bankowe", "toyota_bank", "velobank", "volkswagen_bank"]
     #[serde(default)]
     pub bank: ::core::option::Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodPayByBank {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodPayco {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodPaynow {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -21466,12 +21632,37 @@ pub struct PaymentMethodPayto {
     pub pay_id: ::core::option::Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodPix {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodPromptpay {
+    pub value: serde_json::Value,
+}
+
 /// Options to configure Radar. See [Radar Session](https://docs.stripe.com/radar/radar-session) for more information.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RadarRadarOptions {
     /// A [Radar Session](https://docs.stripe.com/radar/radar-session) is a snapshot of the browser metadata and device details that help Radar make more accurate predictions on your payments.
     #[serde(default)]
     pub session: ::core::option::Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodRevolutPay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodSamsungPay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodSatispay {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -21501,6 +21692,16 @@ pub struct PaymentMethodSofort {
     /// Two-letter ISO code representing the country the bank account is located in.
     #[serde(default)]
     pub country: ::core::option::Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodSwish {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodTwint {
+    pub value: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -21539,6 +21740,16 @@ pub struct PaymentMethodUsBankAccount {
     /// Contains information about the future reusability of this PaymentMethod.
     #[serde(default)]
     pub status_details: ::core::option::Option<serde_json::Value>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodWechatPay {
+    pub value: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaymentMethodZip {
+    pub value: serde_json::Value,
 }
 
 /// Represents a per-transaction tipping configuration

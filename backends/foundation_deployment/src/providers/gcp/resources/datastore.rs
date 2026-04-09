@@ -85,7 +85,9 @@ pub struct CommitResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for Datastore to Firestore migration operations. The DatastoreFirestoreMigration operation is not started by the end-user via an explicit "creation" method. This is an intentional deviation from the LRO design pattern. This singleton resource can be accessed at: "projects/{project_id}/operations/datastore-firestore-migration"
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -334,7 +336,9 @@ pub struct ReserveIdsRequest {
 
 /// The response for Datastore.ReserveIds.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ReserveIdsResponse {}
+pub struct ReserveIdsResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request for Datastore.Rollback.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -349,7 +353,9 @@ pub struct RollbackRequest {
 
 /// The response for Datastore.Rollback. (an empty message).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RollbackResponse {}
+pub struct RollbackResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request for Datastore.RunAggregationQuery.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

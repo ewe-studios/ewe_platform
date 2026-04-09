@@ -13,11 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
-
-/// When set in OperationStep, indicates that cluster health check should be performed.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CheckClusterHealth {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// A resource defining how virtual machines and accelerators should be provisioned for the cluster.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -27,33 +25,11 @@ pub struct ComputeResource {
     pub config: ::core::option::Option<ComputeResourceConfig>,
 }
 
-/// When set in OperationStep, indicates that a login node should be created.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateLoginNode {}
-
-/// When set in OperationStep, indicates that an orchestrator should be created.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreateOrchestrator {}
-
-/// When set in OperationStep, indicates that a new private service access should be created.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CreatePrivateServiceAccess {}
-
-/// When set in OperationStep, indicates that a login node should be deleted.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteLoginNode {}
-
-/// When set in OperationStep, indicates that an orchestrator should be deleted.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeleteOrchestrator {}
-
-/// When set in OperationStep, indicates private service access deletion step.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletePrivateServiceAccess {}
-
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Response message for ListClusters.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -147,14 +123,6 @@ pub struct StorageResource {
     #[serde(default)]
     pub lustre: ::core::option::Option<LustreReference>,
 }
-
-/// When set in OperationStep, indicates that a login node should be updated.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateLoginNode {}
-
-/// When set in OperationStep, indicates that an orchestrator should be updated.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UpdateOrchestrator {}
 
 /// Describes how a compute resource should be created at runtime.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -421,13 +389,13 @@ pub struct NewNetworkConfig {
 pub struct OperationStep {
     /// Output only. If set, indicates that cluster health check is part of the operation.
     #[serde(default, rename = "checkClusterHealth")]
-    pub check_cluster_health: ::core::option::Option<serde_json::Value>,
+    pub check_cluster_health: ::core::option::Option<CheckClusterHealth>,
     /// Output only. If set, indicates that new Filestore instance creation is part of the operation.
     #[serde(default, rename = "createFilestoreInstance")]
     pub create_filestore_instance: ::core::option::Option<CreateFilestoreInstance>,
     /// Output only. If set, indicates that new login node creation is part of the operation.
     #[serde(default, rename = "createLoginNode")]
-    pub create_login_node: ::core::option::Option<serde_json::Value>,
+    pub create_login_node: ::core::option::Option<CreateLoginNode>,
     /// Output only. If set, indicates that new Lustre instance creation is part of the operation.
     #[serde(default, rename = "createLustreInstance")]
     pub create_lustre_instance: ::core::option::Option<CreateLustreInstance>,
@@ -439,13 +407,13 @@ pub struct OperationStep {
     pub create_nodeset: ::core::option::Option<CreateNodeset>,
     /// Output only. If set, indicates that orchestrator creation is part of the operation.
     #[serde(default, rename = "createOrchestrator")]
-    pub create_orchestrator: ::core::option::Option<serde_json::Value>,
+    pub create_orchestrator: ::core::option::Option<CreateOrchestrator>,
     /// Output only. If set, indicates that new partition creation is part of the operation.
     #[serde(default, rename = "createPartition")]
     pub create_partition: ::core::option::Option<CreatePartition>,
     /// Output only. If set, indicates that new private service access creation is part of the operation.
     #[serde(default, rename = "createPrivateServiceAccess")]
-    pub create_private_service_access: ::core::option::Option<serde_json::Value>,
+    pub create_private_service_access: ::core::option::Option<CreatePrivateServiceAccess>,
     /// Output only. If set, indicates that new Cloud Storage bucket creation is part of the operation.
     #[serde(default, rename = "createStorageBucket")]
     pub create_storage_bucket: ::core::option::Option<CreateStorageBucket>,
@@ -454,7 +422,7 @@ pub struct OperationStep {
     pub delete_filestore_instance: ::core::option::Option<DeleteFilestoreInstance>,
     /// Output only. If set, indicates that login node deletion is part of the operation.
     #[serde(default, rename = "deleteLoginNode")]
-    pub delete_login_node: ::core::option::Option<serde_json::Value>,
+    pub delete_login_node: ::core::option::Option<DeleteLoginNode>,
     /// Output only. If set, indicates that Lustre instance deletion is part of the operation.
     #[serde(default, rename = "deleteLustreInstance")]
     pub delete_lustre_instance: ::core::option::Option<DeleteLustreInstance>,
@@ -466,13 +434,13 @@ pub struct OperationStep {
     pub delete_nodeset: ::core::option::Option<DeleteNodeset>,
     /// Output only. If set, indicates that orchestrator deletion is part of the operation.
     #[serde(default, rename = "deleteOrchestrator")]
-    pub delete_orchestrator: ::core::option::Option<serde_json::Value>,
+    pub delete_orchestrator: ::core::option::Option<DeleteOrchestrator>,
     /// Output only. If set, indicates that partition deletion is part of the operation.
     #[serde(default, rename = "deletePartition")]
     pub delete_partition: ::core::option::Option<DeletePartition>,
     /// Output only. If set, indicates that private service access deletion is part of the operation.
     #[serde(default, rename = "deletePrivateServiceAccess")]
-    pub delete_private_service_access: ::core::option::Option<serde_json::Value>,
+    pub delete_private_service_access: ::core::option::Option<DeletePrivateServiceAccess>,
     /// Output only. If set, indicates that Cloud Storage bucket deletion is part of the operation.
     #[serde(default, rename = "deleteStorageBucket")]
     pub delete_storage_bucket: ::core::option::Option<DeleteStorageBucket>,
@@ -481,13 +449,13 @@ pub struct OperationStep {
     pub state: ::core::option::Option<String>,
     /// Output only. If set, indicates that login node update is part of the operation.
     #[serde(default, rename = "updateLoginNode")]
-    pub update_login_node: ::core::option::Option<serde_json::Value>,
+    pub update_login_node: ::core::option::Option<UpdateLoginNode>,
     /// Output only. If set, indicates that nodeset update is part of the operation.
     #[serde(default, rename = "updateNodeset")]
     pub update_nodeset: ::core::option::Option<UpdateNodeset>,
     /// Output only. If set, indicates that an orchestrator update is part of the operation.
     #[serde(default, rename = "updateOrchestrator")]
-    pub update_orchestrator: ::core::option::Option<serde_json::Value>,
+    pub update_orchestrator: ::core::option::Option<UpdateOrchestrator>,
     /// Output only. If set, indicates that partition update is part of the operation.
     #[serde(default, rename = "updatePartition")]
     pub update_partition: ::core::option::Option<UpdatePartition>,
@@ -594,12 +562,24 @@ pub struct SlurmOrchestrator {
     pub prolog_bash_scripts: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// When set in OperationStep, indicates that cluster health check should be performed.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CheckClusterHealth {
+    pub value: serde_json::Value,
+}
+
 /// When set in OperationStep, indicates that a new filestore instance should be created.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateFilestoreInstance {
     /// Output only. Name of the Filestore instance, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
     pub filestore: ::core::option::Option<String>,
+}
+
+/// When set in OperationStep, indicates that a login node should be created.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateLoginNode {
+    pub value: serde_json::Value,
 }
 
 /// When set in OperationStep, indicates that a new lustre instance should be created.
@@ -626,12 +606,24 @@ pub struct CreateNodeset {
     pub nodesets: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// When set in OperationStep, indicates that an orchestrator should be created.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreateOrchestrator {
+    pub value: serde_json::Value,
+}
+
 /// When set in OperationStep, indicates that a partition should be created.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreatePartition {
     /// Output only. Name of the partition to create
     #[serde(default)]
     pub partitions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// When set in OperationStep, indicates that a new private service access should be created.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CreatePrivateServiceAccess {
+    pub value: serde_json::Value,
 }
 
 /// When set in OperationStep, indicates that a new storage bucket should be created.
@@ -648,6 +640,12 @@ pub struct DeleteFilestoreInstance {
     /// Output only. Name of the Filestore instance, in the format projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]
     pub filestore: ::core::option::Option<String>,
+}
+
+/// When set in OperationStep, indicates that a login node should be deleted.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteLoginNode {
+    pub value: serde_json::Value,
 }
 
 /// When set in OperationStep, indicates that a Lustre instance should be deleted.
@@ -674,12 +672,24 @@ pub struct DeleteNodeset {
     pub nodesets: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// When set in OperationStep, indicates that an orchestrator should be deleted.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeleteOrchestrator {
+    pub value: serde_json::Value,
+}
+
 /// When set in OperationStep, indicates that a partition should be deleted.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletePartition {
     /// Output only. Name of the partition to delete
     #[serde(default)]
     pub partitions: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// When set in OperationStep, indicates private service access deletion step.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeletePrivateServiceAccess {
+    pub value: serde_json::Value,
 }
 
 /// When set in OperationStep, indicates that Cloud Storage bucket should be deleted.
@@ -690,12 +700,24 @@ pub struct DeleteStorageBucket {
     pub bucket: ::core::option::Option<String>,
 }
 
+/// When set in OperationStep, indicates that a login node should be updated.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateLoginNode {
+    pub value: serde_json::Value,
+}
+
 /// When set in OperationStep, indicates that a nodeset should be updated.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateNodeset {
     /// Output only. Name of the nodeset to update
     #[serde(default)]
     pub nodesets: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// When set in OperationStep, indicates that an orchestrator should be updated.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UpdateOrchestrator {
+    pub value: serde_json::Value,
 }
 
 /// When set in OperationStep, indicates that a partition should be updated.

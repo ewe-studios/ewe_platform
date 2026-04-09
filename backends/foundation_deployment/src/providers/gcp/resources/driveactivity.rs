@@ -11,46 +11,6 @@ use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// Empty message representing an administrator.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Administrator {}
-
-/// Empty message representing an anonymous user or indicating the authenticated user should be anonymized.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AnonymousUser {}
-
-/// Represents any user (including a logged out user).
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Anyone {}
-
-/// A user whose account has since been deleted.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DeletedUser {}
-
-/// A Drive item which is a file.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DriveFile {}
-
-/// An empty message indicating an object was edited.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Edit {}
-
-/// This item is deprecated; please see DriveFile instead.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct File {}
-
-/// A strategy that consolidates activities using the grouping rules from the legacy V1 Activity API. Similar actions occurring within a window of time can be grouped across multiple targets (such as moving a set of files at once) or multiple actors (such as several users editing the same item). Grouping rules for this strategy are specific to each type of action.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Legacy {}
-
-/// An object was created from scratch.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct New {}
-
-/// A strategy that does no consolidation of individual activities.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NoConsolidation {}
-
 /// The request message for querying Drive activity.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryDriveActivityRequest {
@@ -85,23 +45,15 @@ pub struct QueryDriveActivityResponse {
     pub next_page_token: ::core::option::Option<String>,
 }
 
-/// A user about whom nothing is currently known.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct UnknownUser {}
-
-/// An object was uploaded into Drive.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Upload {}
-
 /// How the individual activities are consolidated. If a set of activities is related they can be consolidated into one combined activity, such as one actor performing the same action on multiple targets, or multiple actors performing the same action on a single target. The strategy defines the rules for which activities are related.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsolidationStrategy {
     /// The individual activities are consolidated using the legacy strategy.
     #[serde(default)]
-    pub legacy: ::core::option::Option<serde_json::Value>,
+    pub legacy: ::core::option::Option<Legacy>,
     /// The individual activities are not consolidated.
     #[serde(default)]
-    pub none: ::core::option::Option<serde_json::Value>,
+    pub none: ::core::option::Option<NoConsolidation>,
 }
 
 /// A single Drive activity comprising one or more Actions by one or more Actors on one or more Targets. Some Action groupings occur spontaneously, such as moving an item into a shared folder triggering a permission change. Other groupings of related Actions, such as multiple Actors editing one item or moving multiple files into a new folder, are controlled by the selection of a ConsolidationStrategy in the QueryDriveActivityRequest.
@@ -125,6 +77,18 @@ pub struct DriveActivity {
     /// The activity occurred at this specific time.
     #[serde(default)]
     pub timestamp: ::core::option::Option<String>,
+}
+
+/// A strategy that consolidates activities using the grouping rules from the legacy V1 Activity API. Similar actions occurring within a window of time can be grouped across multiple targets (such as moving a set of files at once) or multiple actors (such as several users editing the same item). Grouping rules for this strategy are specific to each type of action.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Legacy {
+    pub value: serde_json::Value,
+}
+
+/// A strategy that does no consolidation of individual activities.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NoConsolidation {
+    pub value: serde_json::Value,
 }
 
 /// Information about the action.
@@ -152,10 +116,10 @@ pub struct Action {
 pub struct Actor {
     /// An administrator.
     #[serde(default)]
-    pub administrator: ::core::option::Option<serde_json::Value>,
+    pub administrator: ::core::option::Option<Administrator>,
     /// An anonymous user.
     #[serde(default)]
-    pub anonymous: ::core::option::Option<serde_json::Value>,
+    pub anonymous: ::core::option::Option<AnonymousUser>,
     /// An account acting on behalf of another.
     #[serde(default)]
     pub impersonation: ::core::option::Option<Impersonation>,
@@ -187,7 +151,7 @@ pub struct ActionDetail {
     pub dlp_change: ::core::option::Option<DataLeakPreventionChange>,
     /// An object was edited.
     #[serde(default)]
-    pub edit: ::core::option::Option<serde_json::Value>,
+    pub edit: ::core::option::Option<Edit>,
     /// An object was moved.
     #[serde(default, rename = "move")]
     pub move_: ::core::option::Option<Move>,
@@ -234,6 +198,18 @@ pub struct TimeRange {
     /// The start of the time range.
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<String>,
+}
+
+/// Empty message representing an administrator.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Administrator {
+    pub value: serde_json::Value,
+}
+
+/// Empty message representing an anonymous user or indicating the authenticated user should be anonymized.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AnonymousUser {
+    pub value: serde_json::Value,
 }
 
 /// Information about an impersonation, where an admin acts on behalf of an end user. Information about the acting admin is not currently available.
@@ -285,10 +261,10 @@ pub struct Create {
     pub copy: ::core::option::Option<Copy>,
     /// If present, indicates the object was newly created (e.g. as a blank document), not derived from a Drive object or external object.
     #[serde(default)]
-    pub new: ::core::option::Option<serde_json::Value>,
+    pub new: ::core::option::Option<New>,
     /// If present, indicates the object originated externally and was uploaded to Drive.
     #[serde(default)]
-    pub upload: ::core::option::Option<serde_json::Value>,
+    pub upload: ::core::option::Option<Upload>,
 }
 
 /// An object was deleted.
@@ -305,6 +281,12 @@ pub struct DataLeakPreventionChange {
     /// The type of Data Leak Prevention (DLP) change. // TODO: enum values: ["TYPE_UNSPECIFIED", "FLAGGED", "CLEARED"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+/// An empty message indicating an object was edited.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Edit {
+    pub value: serde_json::Value,
 }
 
 /// An object was moved.
@@ -461,6 +443,18 @@ pub struct Copy {
     pub original_object: ::core::option::Option<TargetReference>,
 }
 
+/// An object was created from scratch.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct New {
+    pub value: serde_json::Value,
+}
+
+/// An object was uploaded into Drive.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Upload {
+    pub value: serde_json::Value,
+}
+
 /// The permission setting of an object.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Permission {
@@ -469,7 +463,7 @@ pub struct Permission {
     pub allow_discovery: ::core::option::Option<bool>,
     /// If set, this permission applies to anyone, even logged out users.
     #[serde(default)]
-    pub anyone: ::core::option::Option<serde_json::Value>,
+    pub anyone: ::core::option::Option<Anyone>,
     /// The domain to whom this permission applies.
     #[serde(default)]
     pub domain: ::core::option::Option<Domain>,
@@ -500,13 +494,13 @@ pub struct RestrictionChange {
 pub struct DriveItem {
     /// The Drive item is a file.
     #[serde(default, rename = "driveFile")]
-    pub drive_file: ::core::option::Option<serde_json::Value>,
+    pub drive_file: ::core::option::Option<DriveFile>,
     /// The Drive item is a folder. Includes information about the type of folder.
     #[serde(default, rename = "driveFolder")]
     pub drive_folder: ::core::option::Option<DriveFolder>,
     /// This field is deprecated; please use the driveFile field instead.
     #[serde(default)]
-    pub file: ::core::option::Option<serde_json::Value>,
+    pub file: ::core::option::Option<File>,
     /// This field is deprecated; please use the driveFolder field instead.
     #[serde(default)]
     pub folder: ::core::option::Option<Folder>,
@@ -553,6 +547,12 @@ pub struct TargetReference {
     /// This field is deprecated; please use the drive field instead.
     #[serde(default, rename = "teamDrive")]
     pub team_drive: ::core::option::Option<TeamDriveReference>,
+}
+
+/// Represents any user (including a logged out user).
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Anyone {
+    pub value: serde_json::Value,
 }
 
 /// Information about a group.
@@ -617,13 +617,13 @@ pub struct FieldValue {
 pub struct DriveItemReference {
     /// The Drive item is a file.
     #[serde(default, rename = "driveFile")]
-    pub drive_file: ::core::option::Option<serde_json::Value>,
+    pub drive_file: ::core::option::Option<DriveFile>,
     /// The Drive item is a folder. Includes information about the type of folder.
     #[serde(default, rename = "driveFolder")]
     pub drive_folder: ::core::option::Option<DriveFolder>,
     /// This field is deprecated; please use the driveFile field instead.
     #[serde(default)]
-    pub file: ::core::option::Option<serde_json::Value>,
+    pub file: ::core::option::Option<File>,
     /// This field is deprecated; please use the driveFolder field instead.
     #[serde(default)]
     pub folder: ::core::option::Option<Folder>,
@@ -673,13 +673,13 @@ pub struct TeamDriveReference {
 pub struct User {
     /// A user whose account has since been deleted.
     #[serde(default, rename = "deletedUser")]
-    pub deleted_user: ::core::option::Option<serde_json::Value>,
+    pub deleted_user: ::core::option::Option<DeletedUser>,
     /// A known user.
     #[serde(default, rename = "knownUser")]
     pub known_user: ::core::option::Option<KnownUser>,
     /// A user about whom nothing is currently known.
     #[serde(default, rename = "unknownUser")]
-    pub unknown_user: ::core::option::Option<serde_json::Value>,
+    pub unknown_user: ::core::option::Option<UnknownUser>,
 }
 
 /// Wrapper for Date Field value.
@@ -722,6 +722,12 @@ pub struct UserList {
     pub values: ::core::option::Option<::std::vec::Vec<SingleUser>>,
 }
 
+/// A Drive item which is a file.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DriveFile {
+    pub value: serde_json::Value,
+}
+
 /// A Drive item which is a folder.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveFolder {
@@ -730,12 +736,24 @@ pub struct DriveFolder {
     pub type_: ::core::option::Option<String>,
 }
 
+/// This item is deprecated; please see DriveFile instead.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct File {
+    pub value: serde_json::Value,
+}
+
 /// This item is deprecated; please see DriveFolder instead.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Folder {
     /// This field is deprecated; please see DriveFolder.type instead. // TODO: enum values: ["TYPE_UNSPECIFIED", "MY_DRIVE_ROOT", "TEAM_DRIVE_ROOT", "STANDARD_FOLDER"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+/// A user whose account has since been deleted.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeletedUser {
+    pub value: serde_json::Value,
 }
 
 /// A known user.
@@ -747,6 +765,12 @@ pub struct KnownUser {
     /// The identifier for this user that can be used with the People API to get more information. The format is people/ACCOUNT_ID. See https://developers.google.com/people/.
     #[serde(default, rename = "personName")]
     pub person_name: ::core::option::Option<String>,
+}
+
+/// A user about whom nothing is currently known.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct UnknownUser {
+    pub value: serde_json::Value,
 }
 
 /// Wrapper for Selection Field value as combined value/display_name pair for selected choice.

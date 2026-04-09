@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,18 @@ use serde::Serialize;
 
 pub fn forms_forms_batch_update_builder(
     client: &SimpleHttpClient,
-    formId: &str,
+    formId: String,
     body: &BatchUpdateFormRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}:batchUpdate",
-        formId,
+        formId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -71,8 +72,11 @@ pub fn forms_forms_batch_update_builder(
 pub fn forms_forms_batch_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<BatchUpdateFormResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<BatchUpdateFormResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -179,7 +183,7 @@ pub fn forms_forms_batch_update(
         + 'static,
     ApiError,
 > {
-    let builder = forms_forms_batch_update_builder(client, &args.formId, &args.body)?;
+    let builder = forms_forms_batch_update_builder(client, args.formId.clone(), &args.body)?;
     forms_forms_batch_update_execute(builder)
 }
 
@@ -195,7 +199,7 @@ pub fn forms_forms_create_builder(
     body: &Form,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://forms.googleapis.com/v1/forms",);
+    let endpoint_url = format!("https://forms.googleapis.com/v1/forms",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -204,9 +208,9 @@ pub fn forms_forms_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -242,7 +246,12 @@ pub fn forms_forms_create_builder(
 pub fn forms_forms_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Form>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Form>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -344,7 +353,7 @@ pub fn forms_forms_create(
     impl StreamIterator<D = Result<ApiResponse<Form>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_create_builder(client, args.unpublished, &args.body)?;
+    let builder = forms_forms_create_builder(client, args.unpublished.clone(), &args.body)?;
     forms_forms_create_execute(builder)
 }
 
@@ -356,14 +365,14 @@ pub fn forms_forms_create(
 
 pub fn forms_forms_get_builder(
     client: &SimpleHttpClient,
-    formId: &str,
+    formId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://forms.googleapis.com/v1/forms/{}", formId,);
+    let endpoint_url = format!("https://forms.googleapis.com/v1/forms/{}", formId.as_str(),);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -393,7 +402,12 @@ pub fn forms_forms_get_builder(
 pub fn forms_forms_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Form>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Form>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -493,7 +507,7 @@ pub fn forms_forms_get(
     impl StreamIterator<D = Result<ApiResponse<Form>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_get_builder(client, &args.formId)?;
+    let builder = forms_forms_get_builder(client, args.formId.clone())?;
     forms_forms_get_execute(builder)
 }
 
@@ -505,18 +519,18 @@ pub fn forms_forms_get(
 
 pub fn forms_forms_set_publish_settings_builder(
     client: &SimpleHttpClient,
-    formId: &str,
+    formId: String,
     body: &SetPublishSettingsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}:setPublishSettings",
-        formId,
+        formId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -548,8 +562,11 @@ pub fn forms_forms_set_publish_settings_builder(
 pub fn forms_forms_set_publish_settings_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SetPublishSettingsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<SetPublishSettingsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -660,7 +677,8 @@ pub fn forms_forms_set_publish_settings(
         + 'static,
     ApiError,
 > {
-    let builder = forms_forms_set_publish_settings_builder(client, &args.formId, &args.body)?;
+    let builder =
+        forms_forms_set_publish_settings_builder(client, args.formId.clone(), &args.body)?;
     forms_forms_set_publish_settings_execute(builder)
 }
 
@@ -672,18 +690,19 @@ pub fn forms_forms_set_publish_settings(
 
 pub fn forms_forms_responses_get_builder(
     client: &SimpleHttpClient,
-    formId: &str,
-    responseId: &str,
+    formId: String,
+    responseId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}/responses/{}",
-        formId, responseId,
+        formId.as_str(),
+        responseId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -713,7 +732,12 @@ pub fn forms_forms_responses_get_builder(
 pub fn forms_forms_responses_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FormResponse>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FormResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -819,7 +843,8 @@ pub fn forms_forms_responses_get(
         + 'static,
     ApiError,
 > {
-    let builder = forms_forms_responses_get_builder(client, &args.formId, &args.responseId)?;
+    let builder =
+        forms_forms_responses_get_builder(client, args.formId.clone(), args.responseId.clone())?;
     forms_forms_responses_get_execute(builder)
 }
 
@@ -831,13 +856,16 @@ pub fn forms_forms_responses_get(
 
 pub fn forms_forms_responses_list_builder(
     client: &SimpleHttpClient,
-    formId: &str,
-    filter: Option<&str>,
+    formId: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://forms.googleapis.com/v1/forms/{}/responses", formId,);
+    let endpoint_url = format!(
+        "https://forms.googleapis.com/v1/forms/{}/responses",
+        formId.as_str(),
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -852,9 +880,9 @@ pub fn forms_forms_responses_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -888,8 +916,11 @@ pub fn forms_forms_responses_list_builder(
 pub fn forms_forms_responses_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListFormResponsesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListFormResponsesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1002,10 +1033,10 @@ pub fn forms_forms_responses_list(
 > {
     let builder = forms_forms_responses_list_builder(
         client,
-        &args.formId,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.formId.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     forms_forms_responses_list_execute(builder)
 }
@@ -1018,15 +1049,18 @@ pub fn forms_forms_responses_list(
 
 pub fn forms_forms_watches_create_builder(
     client: &SimpleHttpClient,
-    formId: &str,
+    formId: String,
     body: &CreateWatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://forms.googleapis.com/v1/forms/{}/watches", formId,);
+    let endpoint_url = format!(
+        "https://forms.googleapis.com/v1/forms/{}/watches",
+        formId.as_str(),
+    );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1058,7 +1092,12 @@ pub fn forms_forms_watches_create_builder(
 pub fn forms_forms_watches_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Watch>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Watch>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1160,7 +1199,7 @@ pub fn forms_forms_watches_create(
     impl StreamIterator<D = Result<ApiResponse<Watch>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_watches_create_builder(client, &args.formId, &args.body)?;
+    let builder = forms_forms_watches_create_builder(client, args.formId.clone(), &args.body)?;
     forms_forms_watches_create_execute(builder)
 }
 
@@ -1172,18 +1211,19 @@ pub fn forms_forms_watches_create(
 
 pub fn forms_forms_watches_delete_builder(
     client: &SimpleHttpClient,
-    formId: &str,
-    watchId: &str,
+    formId: String,
+    watchId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}/watches/{}",
-        formId, watchId,
+        formId.as_str(),
+        watchId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1213,7 +1253,12 @@ pub fn forms_forms_watches_delete_builder(
 pub fn forms_forms_watches_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1315,163 +1360,9 @@ pub fn forms_forms_watches_delete(
     impl StreamIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = forms_forms_watches_delete_builder(client, &args.formId, &args.watchId)?;
+    let builder =
+        forms_forms_watches_delete_builder(client, args.formId.clone(), args.watchId.clone())?;
     forms_forms_watches_delete_execute(builder)
-}
-
-/// GET v1/forms/{formId}/watches
-/// Return a list of the watches owned by the invoking project. The maximum number of watches is two: For each invoker, the limit is one for each event type per form.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `forms_forms_watches_list_execute()` to send, or `forms_forms_watches_list` for simplest API.
-
-pub fn forms_forms_watches_list_builder(
-    client: &SimpleHttpClient,
-    formId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://forms.googleapis.com/v1/forms/{}/watches", formId,);
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/forms/{formId}/watches
-/// Return a list of the watches owned by the invoking project. The maximum number of watches is two: For each invoker, the limit is one for each event type per form.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `forms_forms_watches_list_execute()` or `forms_forms_watches_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `forms_forms_watches_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn forms_forms_watches_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListWatchesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListWatchesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/forms/{formId}/watches
-/// Return a list of the watches owned by the invoking project. The maximum number of watches is two: For each invoker, the limit is one for each event type per form.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `forms_forms_watches_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `forms_forms_watches_list_task()`.
-/// For the simplest API, use `forms_forms_watches_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `forms_forms_watches_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn forms_forms_watches_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListWatchesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = forms_forms_watches_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`forms_forms_watches_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct FormsFormsWatchesListArgs {
-    /// Path parameter: formId
-    pub formId: String,
-}
-
-/// GET v1/forms/{formId}/watches
-/// Return a list of the watches owned by the invoking project. The maximum number of watches is two: For each invoker, the limit is one for each event type per form.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `forms_forms_watches_list_builder()` + `forms_forms_watches_list_execute()`.
-/// For task-level control, use `forms_forms_watches_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn forms_forms_watches_list(
-    client: &SimpleHttpClient,
-    args: &FormsFormsWatchesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListWatchesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = forms_forms_watches_list_builder(client, &args.formId)?;
-    forms_forms_watches_list_execute(builder)
 }
 
 /// GET v1/forms/{formId}/watches/{watchId}:renew
@@ -1482,19 +1373,20 @@ pub fn forms_forms_watches_list(
 
 pub fn forms_forms_watches_renew_builder(
     client: &SimpleHttpClient,
-    formId: &str,
-    watchId: &str,
+    formId: String,
+    watchId: String,
     body: &RenewWatchRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://forms.googleapis.com/v1/forms/{}/watches/{}:renew",
-        formId, watchId,
+        formId.as_str(),
+        watchId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -1526,7 +1418,12 @@ pub fn forms_forms_watches_renew_builder(
 pub fn forms_forms_watches_renew_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Watch>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Watch>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1630,7 +1527,11 @@ pub fn forms_forms_watches_renew(
     impl StreamIterator<D = Result<ApiResponse<Watch>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        forms_forms_watches_renew_builder(client, &args.formId, &args.watchId, &args.body)?;
+    let builder = forms_forms_watches_renew_builder(
+        client,
+        args.formId.clone(),
+        args.watchId.clone(),
+        &args.body,
+    )?;
     forms_forms_watches_renew_execute(builder)
 }

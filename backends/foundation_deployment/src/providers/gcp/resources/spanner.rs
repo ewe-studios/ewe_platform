@@ -60,7 +60,9 @@ pub struct AddSplitPointsRequest {
 
 /// The response for AddSplitPoints.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AddSplitPointsResponse {}
+pub struct AddSplitPointsResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request for BatchCreateSessions.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -388,13 +390,11 @@ pub struct CreateSessionRequest {
     pub session: ::core::option::Option<Session>,
 }
 
-/// Message type for a dual-region quorum. Currently this type has no options.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DualRegionQuorum {}
-
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// The request for ExecuteBatchDml.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -474,10 +474,6 @@ pub struct ExecuteSqlRequest {
     pub transaction: ::core::option::Option<TransactionSelector>,
 }
 
-/// The specification for full backups. A full backup stores the entire contents of the database at a given version time.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct FullBackupSpec {}
-
 /// The response for GetDatabaseDdl.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetDatabaseDdlResponse {
@@ -496,10 +492,6 @@ pub struct GetIamPolicyRequest {
     #[serde(default)]
     pub options: ::core::option::Option<GetPolicyOptions>,
 }
-
-/// The specification for incremental backup chains. An incremental backup stores the delta of changes between a previous backup and the database contents at a given version time. An incremental backup chain consists of a full backup and zero or more successive incremental backups. The first backup created for an incremental backup chain is always a full backup.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IncrementalBackupSpec {}
 
 /// A message representing a (sparse) collection of hot keys for specific key buckets.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -809,10 +801,6 @@ pub struct PartitionResponse {
     #[serde(default)]
     pub transaction: ::core::option::Option<Transaction>,
 }
-
-/// Message type to initiate a Partitioned DML transaction.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PartitionedDml {}
 
 /// The request for Read and StreamingRead.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1316,10 +1304,10 @@ pub struct BackupSchedule {
     pub encryption_config: ::core::option::Option<CreateBackupEncryptionConfig>,
     /// The schedule creates only full backups.
     #[serde(default, rename = "fullBackupSpec")]
-    pub full_backup_spec: ::core::option::Option<serde_json::Value>,
+    pub full_backup_spec: ::core::option::Option<FullBackupSpec>,
     /// The schedule creates incremental backup chains.
     #[serde(default, rename = "incrementalBackupSpec")]
-    pub incremental_backup_spec: ::core::option::Option<serde_json::Value>,
+    pub incremental_backup_spec: ::core::option::Option<IncrementalBackupSpec>,
     /// Identifier. Output only for the CreateBackupSchedule operation. Required for the UpdateBackupSchedule operation. A globally unique identifier for the backup schedule which cannot be changed. Values are of the form projects//instances//databases//backupSchedules/a-z*[a-z0-9] The final segment of the name must be between 2 and 60 characters in length.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -1907,6 +1895,18 @@ pub struct CreateBackupEncryptionConfig {
     pub kms_key_names: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
+/// The specification for full backups. A full backup stores the entire contents of the database at a given version time.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FullBackupSpec {
+    pub value: serde_json::Value,
+}
+
+/// The specification for incremental backup chains. An incremental backup stores the delta of changes between a previous backup and the database contents at a given version time. An incremental backup chain consists of a full backup and zero or more successive incremental backups. The first backup created for an incremental backup chain is always a full backup.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IncrementalBackupSpec {
+    pub value: serde_json::Value,
+}
+
 /// Defines specifications of the backup schedule.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupScheduleSpec {
@@ -1986,7 +1986,7 @@ pub struct TransactionOptions {
     pub isolation_level: ::core::option::Option<String>,
     /// Partitioned DML transaction. Authorization to begin a Partitioned DML transaction requires spanner.databases.beginPartitionedDmlTransaction permission on the session resource.
     #[serde(default, rename = "partitionedDml")]
-    pub partitioned_dml: ::core::option::Option<serde_json::Value>,
+    pub partitioned_dml: ::core::option::Option<PartitionedDml>,
     /// Transaction does not write. Authorization to begin a read-only transaction requires spanner.databases.beginReadOnlyTransaction permission on the session resource.
     #[serde(default, rename = "readOnly")]
     pub read_only: ::core::option::Option<ReadOnly>,
@@ -2260,6 +2260,12 @@ pub struct ReplicaSelection {
     /// The type of replica. // TODO: enum values: ["TYPE_UNSPECIFIED", "READ_WRITE", "READ_ONLY"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+/// Message type to initiate a Partitioned DML transaction.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PartitionedDml {
+    pub value: serde_json::Value,
 }
 
 /// Message type to initiate a read-only transaction.
@@ -2550,7 +2556,7 @@ pub struct Status {
 pub struct QuorumType {
     /// Dual-region quorum type.
     #[serde(default, rename = "dualRegion")]
-    pub dual_region: ::core::option::Option<serde_json::Value>,
+    pub dual_region: ::core::option::Option<DualRegionQuorum>,
     /// Single-region quorum type.
     #[serde(default, rename = "singleRegion")]
     pub single_region: ::core::option::Option<SingleRegionQuorum>,
@@ -2671,6 +2677,12 @@ pub struct MetricMatrix {
     /// The rows of the matrix.
     #[serde(default)]
     pub rows: ::core::option::Option<::std::vec::Vec<MetricMatrixRow>>,
+}
+
+/// Message type for a dual-region quorum. Currently this type has no options.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DualRegionQuorum {
+    pub value: serde_json::Value,
 }
 
 /// Message type for a single-region quorum.

@@ -196,14 +196,6 @@ pub struct XPSColumnSpec {
         ::core::option::Option<::std::vec::Vec<XPSColumnSpecCorrelatedColumn>>,
 }
 
-/// A model format used for iOS mobile devices.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct XPSCoreMlFormat {}
-
-/// A model format used for [Edge TPU](https://cloud.google.com/edge-tpu/) devices.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct XPSEdgeTpuTfLiteFormat {}
-
 /// XPSPreprocessResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSPreprocessResponse {
@@ -261,22 +253,6 @@ pub struct XPSStringStatsUnigramStats {
     pub value: ::core::option::Option<String>,
 }
 
-/// TextToSpeech train response
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct XPSTextToSpeechTrainResponse {}
-
-/// A [TensorFlow.js](https://www.tensorflow.org/js) model that can be used in the browser and in Node.js using JavaScript.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct XPSTfJsFormat {}
-
-/// LINT.IfChange A model format used for mobile and IoT devices. See https://www.tensorflow.org/lite.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct XPSTfLiteFormat {}
-
-/// A tensorflow model format in SavedModel format.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct XPSTfSavedModelFormat {}
-
 /// Stats split by a defined in context granularity.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTimestampStatsGranularStats {
@@ -319,7 +295,7 @@ pub struct XPSTrainResponse {
     #[serde(default, rename = "tablesTrainResp")]
     pub tables_train_resp: ::core::option::Option<XPSTablesTrainResponse>,
     #[serde(default, rename = "textToSpeechTrainResp")]
-    pub text_to_speech_train_resp: ::core::option::Option<serde_json::Value>,
+    pub text_to_speech_train_resp: ::core::option::Option<XPSTextToSpeechTrainResponse>,
     /// Will only be needed for uCAIP from Beta.
     #[serde(default, rename = "textTrainResp")]
     pub text_train_resp: ::core::option::Option<XPSTextTrainResponse>,
@@ -691,6 +667,12 @@ pub struct XPSTablesTrainResponse {
     /// The actual training cost of the model, expressed in milli node hours, i.e. 1,000 value in this field means 1 node hour. Guaranteed to not exceed the train budget.
     #[serde(default, rename = "trainCostMilliNodeHours")]
     pub train_cost_milli_node_hours: ::core::option::Option<String>,
+}
+
+/// TextToSpeech train response
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct XPSTextToSpeechTrainResponse {
+    pub value: serde_json::Value,
 }
 
 /// XPSTextTrainResponse resource type.
@@ -1536,11 +1518,11 @@ pub struct XPSImageModelServingSpecModelThroughputEstimation {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSExportModelOutputConfig {
     #[serde(default, rename = "coreMlFormat")]
-    pub core_ml_format: ::core::option::Option<serde_json::Value>,
+    pub core_ml_format: ::core::option::Option<XPSCoreMlFormat>,
     #[serde(default, rename = "dockerFormat")]
     pub docker_format: ::core::option::Option<XPSDockerFormat>,
     #[serde(default, rename = "edgeTpuTfLiteFormat")]
-    pub edge_tpu_tf_lite_format: ::core::option::Option<serde_json::Value>,
+    pub edge_tpu_tf_lite_format: ::core::option::Option<XPSEdgeTpuTfLiteFormat>,
     /// For any model and format: If true, will additionally export FirebaseExportedModelInfo in a firebase.txt file.
     #[serde(default, rename = "exportFirebaseAuxiliaryInfo")]
     pub export_firebase_auxiliary_info: ::core::option::Option<bool>,
@@ -1551,11 +1533,11 @@ pub struct XPSExportModelOutputConfig {
     #[serde(default, rename = "outputGcsUri")]
     pub output_gcs_uri: ::core::option::Option<String>,
     #[serde(default, rename = "tfJsFormat")]
-    pub tf_js_format: ::core::option::Option<serde_json::Value>,
+    pub tf_js_format: ::core::option::Option<XPSTfJsFormat>,
     #[serde(default, rename = "tfLiteFormat")]
-    pub tf_lite_format: ::core::option::Option<serde_json::Value>,
+    pub tf_lite_format: ::core::option::Option<XPSTfLiteFormat>,
     #[serde(default, rename = "tfSavedModelFormat")]
-    pub tf_saved_model_format: ::core::option::Option<serde_json::Value>,
+    pub tf_saved_model_format: ::core::option::Option<XPSTfSavedModelFormat>,
 }
 
 /// A single model artifact item.
@@ -1833,6 +1815,12 @@ pub struct XPSTrackMetricsEntry {
     pub mean_tracking_average_precision: ::core::option::Option<f32>,
 }
 
+/// A model format used for iOS mobile devices.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct XPSCoreMlFormat {
+    pub value: serde_json::Value,
+}
+
 /// A model format used for Docker containers. Use the params field to customize the container. The container is verified to work correctly on ubuntu 16.04 operating system.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSDockerFormat {
@@ -1842,6 +1830,30 @@ pub struct XPSDockerFormat {
     /// Optional. Additional gpu information describing the requirements for the to be exported model files. // TODO: enum values: ["GPU_ARCHITECTURE_UNSPECIFIED", "GPU_ARCHITECTURE_NVIDIA"]
     #[serde(default, rename = "gpuArchitecture")]
     pub gpu_architecture: ::core::option::Option<String>,
+}
+
+/// A model format used for [Edge TPU](https://cloud.google.com/edge-tpu/) devices.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct XPSEdgeTpuTfLiteFormat {
+    pub value: serde_json::Value,
+}
+
+/// A [TensorFlow.js](https://www.tensorflow.org/js) model that can be used in the browser and in Node.js using JavaScript.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct XPSTfJsFormat {
+    pub value: serde_json::Value,
+}
+
+/// LINT.IfChange A model format used for mobile and IoT devices. See https://www.tensorflow.org/lite.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct XPSTfLiteFormat {
+    pub value: serde_json::Value,
+}
+
+/// A tensorflow model format in SavedModel format.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct XPSTfSavedModelFormat {
+    pub value: serde_json::Value,
 }
 
 /// Model hyper-parameters for a model.

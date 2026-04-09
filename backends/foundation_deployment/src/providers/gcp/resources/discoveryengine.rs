@@ -72,7 +72,9 @@ pub struct A2aV1AgentCard {
 
 /// A2aV1CancelTaskRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct A2aV1CancelTaskRequest {}
+pub struct A2aV1CancelTaskRequest {
+    pub value: serde_json::Value,
+}
 
 /// A2aV1ListTaskPushNotificationConfigResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -429,7 +431,9 @@ pub struct GoogleCloudDiscoveryengineV1BatchUpdateUserLicensesResponse {
 
 /// Request message for SiteSearchEngineService.BatchVerifyTargetSites method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1BatchVerifyTargetSitesRequest {}
+pub struct GoogleCloudDiscoveryengineV1BatchVerifyTargetSitesRequest {
+    pub value: serde_json::Value,
+}
 
 /// The column family of the Bigtable.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -730,15 +734,14 @@ pub struct GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchMetadata {
 
 /// Request message for SiteSearchEngineService.DisableAdvancedSiteSearch method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchRequest {}
+pub struct GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for SiteSearchEngineService.DisableAdvancedSiteSearch method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchResponse {}
-
-/// The digital parsing configurations for documents.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigDigitalParsingConfig {
+pub struct GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchResponse {
+    pub value: serde_json::Value,
 }
 
 /// Double list.
@@ -762,11 +765,15 @@ pub struct GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchMetadata {
 
 /// Request message for SiteSearchEngineService.EnableAdvancedSiteSearch method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchRequest {}
+pub struct GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for SiteSearchEngineService.EnableAdvancedSiteSearch method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchResponse {}
+pub struct GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchResponse {
+    pub value: serde_json::Value,
+}
 
 /// Response message for SiteSearchEngineService.FetchDomainVerificationStatus method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1312,7 +1319,9 @@ pub struct GoogleCloudDiscoveryengineV1ProjectServiceTerms {
 
 /// Metadata associated with a project provision operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1ProvisionProjectMetadata {}
+pub struct GoogleCloudDiscoveryengineV1ProvisionProjectMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request for ProjectService.ProvisionProject method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1342,7 +1351,9 @@ pub struct GoogleCloudDiscoveryengineV1PurgeCompletionSuggestionsMetadata {
 
 /// Request message for CompletionService.PurgeCompletionSuggestions method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1PurgeCompletionSuggestionsRequest {}
+pub struct GoogleCloudDiscoveryengineV1PurgeCompletionSuggestionsRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for CompletionService.PurgeCompletionSuggestions method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1436,7 +1447,9 @@ pub struct GoogleCloudDiscoveryengineV1PurgeSuggestionDenyListEntriesMetadata {
 
 /// Request message for CompletionService.PurgeSuggestionDenyListEntries method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1PurgeSuggestionDenyListEntriesRequest {}
+pub struct GoogleCloudDiscoveryengineV1PurgeSuggestionDenyListEntriesRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response message for CompletionService.PurgeSuggestionDenyListEntries method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1731,7 +1744,9 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderst
 
 /// Metadata for DataConnectorService.SetUpDataConnector method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1SetUpDataConnectorMetadata {}
+pub struct GoogleCloudDiscoveryengineV1SetUpDataConnectorMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Request for DataConnectorService.SetUpDataConnector method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -1776,18 +1791,6 @@ pub struct GoogleCloudDiscoveryengineV1StreamAssistRequest {
     #[serde(default, rename = "userMetadata")]
     pub user_metadata: ::core::option::Option<GoogleCloudDiscoveryengineV1AssistUserMetadata>,
 }
-
-/// Specification of the image generation tool.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecImageGenerationSpec {}
-
-/// Specification of the video generation tool.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecVideoGenerationSpec {}
-
-/// Specification of the web grounding tool.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecWebGroundingSpec {}
 
 /// Response for the AssistantService.StreamAssist method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2247,7 +2250,9 @@ pub struct GoogleCloudDiscoveryengineV1alphaCreateEngineMetadata {
 
 /// Metadata for EvaluationService.CreateEvaluation method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1alphaCreateEvaluationMetadata {}
+pub struct GoogleCloudDiscoveryengineV1alphaCreateEvaluationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for Create Schema LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2509,12 +2514,9 @@ pub struct GoogleCloudDiscoveryengineV1alphaDisableAdvancedSiteSearchMetadata {
 
 /// Response message for SiteSearchEngineService.DisableAdvancedSiteSearch method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1alphaDisableAdvancedSiteSearchResponse {}
-
-/// The digital parsing configurations for documents.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfigDigitalParsingConfig
-{}
+pub struct GoogleCloudDiscoveryengineV1alphaDisableAdvancedSiteSearchResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the SiteSearchEngineService.EnableAdvancedSiteSearch operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2529,7 +2531,9 @@ pub struct GoogleCloudDiscoveryengineV1alphaEnableAdvancedSiteSearchMetadata {
 
 /// Response message for SiteSearchEngineService.EnableAdvancedSiteSearch method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1alphaEnableAdvancedSiteSearchResponse {}
+pub struct GoogleCloudDiscoveryengineV1alphaEnableAdvancedSiteSearchResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata that describes the training and serving parameters of an Engine.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2614,7 +2618,8 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngine {
         ::core::option::Option<GoogleCloudDiscoveryengineV1alphaEngineSearchEngineConfig>,
     /// Additional config specs for a similar-items engine.
     #[serde(default, rename = "similarDocumentsConfig")]
-    pub similar_documents_config: ::core::option::Option<serde_json::Value>,
+    pub similar_documents_config:
+        ::core::option::Option<GoogleCloudDiscoveryengineV1alphaEngineSimilarDocumentsEngineConfig>,
     /// Required. The solutions of the engine. // TODO: enum values: ["SOLUTION_TYPE_UNSPECIFIED", "SOLUTION_TYPE_RECOMMENDATION", "SOLUTION_TYPE_SEARCH", "SOLUTION_TYPE_CHAT", "SOLUTION_TYPE_GENERATIVE_CHAT", "SOLUTION_TYPE_AI_MODE"]
     #[serde(default, rename = "solutionType")]
     pub solution_type: ::core::option::Option<String>,
@@ -2622,10 +2627,6 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngine {
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
 }
-
-/// Additional config specs for a similar-items engine.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1alphaEngineSimilarDocumentsEngineConfig {}
 
 /// Metadata related to the progress of the EstimateDataSize operation. This is returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -2689,7 +2690,9 @@ pub struct GoogleCloudDiscoveryengineV1alphaExportMetricsMetadata {
 
 /// Response of the ExportMetricsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1alphaExportMetricsResponse {}
+pub struct GoogleCloudDiscoveryengineV1alphaExportMetricsResponse {
+    pub value: serde_json::Value,
+}
 
 /// Request for GetSession method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -3040,7 +3043,9 @@ pub struct GoogleCloudDiscoveryengineV1alphaProjectServiceTerms {
 
 /// Metadata associated with a project provision operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1alphaProvisionProjectMetadata {}
+pub struct GoogleCloudDiscoveryengineV1alphaProvisionProjectMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the PurgeCompletionSuggestions operation. This is returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -3264,7 +3269,9 @@ pub struct GoogleCloudDiscoveryengineV1alphaSetDedicatedCrawlRateResponse {
 
 /// Metadata for DataConnectorService.SetUpDataConnector method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1alphaSetUpDataConnectorMetadata {}
+pub struct GoogleCloudDiscoveryengineV1alphaSetUpDataConnectorMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the SiteSearchEngineService.SetUriPatternDocumentData operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -3279,7 +3286,9 @@ pub struct GoogleCloudDiscoveryengineV1alphaSetUriPatternDocumentDataMetadata {
 
 /// Response message for SiteSearchEngineService.SetUriPatternDocumentData method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1alphaSetUriPatternDocumentDataResponse {}
+pub struct GoogleCloudDiscoveryengineV1alphaSetUriPatternDocumentDataResponse {
+    pub value: serde_json::Value,
+}
 
 /// A sitemap for the SiteSearchEngine.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -3336,7 +3345,9 @@ pub struct GoogleCloudDiscoveryengineV1alphaTuneEngineMetadata {
 
 /// Response associated with a tune operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1alphaTuneEngineResponse {}
+pub struct GoogleCloudDiscoveryengineV1alphaTuneEngineResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the CmekConfigService.UpdateCmekConfig operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -3519,7 +3530,9 @@ pub struct GoogleCloudDiscoveryengineV1betaCreateEngineMetadata {
 
 /// Metadata for EvaluationService.CreateEvaluation method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1betaCreateEvaluationMetadata {}
+pub struct GoogleCloudDiscoveryengineV1betaCreateEvaluationMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for Create Schema LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -3718,12 +3731,9 @@ pub struct GoogleCloudDiscoveryengineV1betaDisableAdvancedSiteSearchMetadata {
 
 /// Response message for SiteSearchEngineService.DisableAdvancedSiteSearch method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1betaDisableAdvancedSiteSearchResponse {}
-
-/// The digital parsing configurations for documents.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigParsingConfigDigitalParsingConfig
-{}
+pub struct GoogleCloudDiscoveryengineV1betaDisableAdvancedSiteSearchResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the SiteSearchEngineService.EnableAdvancedSiteSearch operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -3738,7 +3748,9 @@ pub struct GoogleCloudDiscoveryengineV1betaEnableAdvancedSiteSearchMetadata {
 
 /// Response message for SiteSearchEngineService.EnableAdvancedSiteSearch method.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1betaEnableAdvancedSiteSearchResponse {}
+pub struct GoogleCloudDiscoveryengineV1betaEnableAdvancedSiteSearchResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata that describes the training and serving parameters of an Engine.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -4133,7 +4145,9 @@ pub struct GoogleCloudDiscoveryengineV1betaProjectServiceTerms {
 
 /// Metadata associated with a project provision operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1betaProvisionProjectMetadata {}
+pub struct GoogleCloudDiscoveryengineV1betaProvisionProjectMetadata {
+    pub value: serde_json::Value,
+}
 
 /// Metadata related to the progress of the PurgeDocuments operation. This will be returned by the google.longrunning.Operation.metadata field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -4287,7 +4301,9 @@ pub struct GoogleCloudDiscoveryengineV1betaTuneEngineMetadata {
 
 /// Response associated with a tune operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDiscoveryengineV1betaTuneEngineResponse {}
+pub struct GoogleCloudDiscoveryengineV1betaTuneEngineResponse {
+    pub value: serde_json::Value,
+}
 
 /// Metadata for UpdateSchema LRO.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -4341,7 +4357,9 @@ pub struct GoogleIamV1SetIamPolicyRequest {
 
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleLongrunningCancelOperationRequest {}
+pub struct GoogleLongrunningCancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// The response message for Operations.ListOperations.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -4359,7 +4377,9 @@ pub struct GoogleLongrunningListOperationsResponse {
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// Defines additional transport information for the agent.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -6103,7 +6123,9 @@ pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestGenerationSpec {
 pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpec {
     /// Optional. Specification of the image generation tool.
     #[serde(default, rename = "imageGenerationSpec")]
-    pub image_generation_spec: ::core::option::Option<serde_json::Value>,
+    pub image_generation_spec: ::core::option::Option<
+        GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecImageGenerationSpec,
+    >,
     /// Optional. Specification of the Vertex AI Search tool.
     #[serde(default, rename = "vertexAiSearchSpec")]
     pub vertex_ai_search_spec: ::core::option::Option<
@@ -6111,10 +6133,14 @@ pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpec {
     >,
     /// Optional. Specification of the video generation tool.
     #[serde(default, rename = "videoGenerationSpec")]
-    pub video_generation_spec: ::core::option::Option<serde_json::Value>,
+    pub video_generation_spec: ::core::option::Option<
+        GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecVideoGenerationSpec,
+    >,
     /// Optional. Specification of the web grounding tool. If field is present, enables grounding with web search. Works only if Assistant.web_grounding_type is WEB_GROUNDING_TYPE_GOOGLE_SEARCH or WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH.
     #[serde(default, rename = "webGroundingSpec")]
-    pub web_grounding_spec: ::core::option::Option<serde_json::Value>,
+    pub web_grounding_spec: ::core::option::Option<
+        GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecWebGroundingSpec,
+    >,
 }
 
 /// User metadata of the request.
@@ -6943,6 +6969,12 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngineSearchEngineConfig {
     /// The search feature tier of this engine. Different tiers might have different pricing. To learn more, check the pricing documentation. Defaults to SearchTier.SEARCH_TIER_STANDARD if not specified. // TODO: enum values: ["SEARCH_TIER_UNSPECIFIED", "SEARCH_TIER_STANDARD", "SEARCH_TIER_ENTERPRISE"]
     #[serde(default, rename = "searchTier")]
     pub search_tier: ::core::option::Option<String>,
+}
+
+/// Additional config specs for a similar-items engine.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1alphaEngineSimilarDocumentsEngineConfig {
+    pub value: serde_json::Value,
 }
 
 /// Describes the specification of the evaluation.
@@ -8882,6 +8914,12 @@ pub struct GoogleCloudDiscoveryengineV1DataConnectorRealtimeSyncConfig {
     pub webhook_uri: ::core::option::Option<String>,
 }
 
+/// Specification of the image generation tool.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecImageGenerationSpec {
+    pub value: serde_json::Value,
+}
+
 /// Specification of the Vertex AI Search tool.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecVertexAiSearchSpec {
@@ -8893,6 +8931,18 @@ pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecVertexAiSearc
     /// Optional. The filter syntax consists of an expression language for constructing a predicate from one or more fields of the documents being filtered. Filter expression is case-sensitive. If this field is unrecognizable, an INVALID_ARGUMENT is returned. Filtering in Vertex AI Search is done by mapping the LHS filter key to a key property defined in the Vertex AI Search backend -- this mapping is defined by the customer in their schema. For example a media customer might have a field ''name'' in their schema. In this case the filter would look like this: filter --&gt; name:''ANY("king kong")'' For more information about filtering including syntax and filter operators, see [Filter](https://cloud.google.com/generative-ai-app-builder/docs/filter-search-metadata)
     #[serde(default)]
     pub filter: ::core::option::Option<String>,
+}
+
+/// Specification of the video generation tool.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecVideoGenerationSpec {
+    pub value: serde_json::Value,
+}
+
+/// Specification of the web grounding tool.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecWebGroundingSpec {
+    pub value: serde_json::Value,
 }
 
 /// Read-only data store component that contains data stores fields that may be used for filtering, it''s the child of CollectionComponent.
@@ -9274,7 +9324,9 @@ pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigChunkingConf
 pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfig {
     /// Configurations applied to digital parser.
     #[serde(default, rename = "digitalParsingConfig")]
-    pub digital_parsing_config: ::core::option::Option<serde_json::Value>,
+    pub digital_parsing_config: ::core::option::Option<
+        GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfigDigitalParsingConfig,
+    >,
     /// Configurations applied to layout parser.
     #[serde(default, rename = "layoutParsingConfig")]
     pub layout_parsing_config: ::core::option::Option<
@@ -9764,7 +9816,9 @@ pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigChunkingConfi
 pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigParsingConfig {
     /// Configurations applied to digital parser.
     #[serde(default, rename = "digitalParsingConfig")]
-    pub digital_parsing_config: ::core::option::Option<serde_json::Value>,
+    pub digital_parsing_config: ::core::option::Option<
+        GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigParsingConfigDigitalParsingConfig,
+    >,
     /// Configurations applied to layout parser.
     #[serde(default, rename = "layoutParsingConfig")]
     pub layout_parsing_config: ::core::option::Option<
@@ -10486,7 +10540,9 @@ pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigChunkingConfig {
 pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfig {
     /// Configurations applied to digital parser.
     #[serde(default, rename = "digitalParsingConfig")]
-    pub digital_parsing_config: ::core::option::Option<serde_json::Value>,
+    pub digital_parsing_config: ::core::option::Option<
+        GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigDigitalParsingConfig,
+    >,
     /// Configurations applied to layout parser.
     #[serde(default, rename = "layoutParsingConfig")]
     pub layout_parsing_config: ::core::option::Option<
@@ -11108,6 +11164,13 @@ pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigChunkingConf
     pub include_ancestor_headings: ::core::option::Option<bool>,
 }
 
+/// The digital parsing configurations for documents.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfigDigitalParsingConfig
+{
+    pub value: serde_json::Value,
+}
+
 /// The layout parsing configurations for documents.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfigLayoutParsingConfig
@@ -11583,6 +11646,13 @@ pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigChunkingConfi
     /// Whether to include appending different levels of headings to chunks from the middle of the document to prevent context loss. Default value: False.
     #[serde(default, rename = "includeAncestorHeadings")]
     pub include_ancestor_headings: ::core::option::Option<bool>,
+}
+
+/// The digital parsing configurations for documents.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigParsingConfigDigitalParsingConfig
+{
+    pub value: serde_json::Value,
 }
 
 /// The layout parsing configurations for documents.
@@ -12120,6 +12190,12 @@ pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigChunkingConfigLay
     /// Whether to include appending different levels of headings to chunks from the middle of the document to prevent context loss. Default value: False.
     #[serde(default, rename = "includeAncestorHeadings")]
     pub include_ancestor_headings: ::core::option::Option<bool>,
+}
+
+/// The digital parsing configurations for documents.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigDigitalParsingConfig {
+    pub value: serde_json::Value,
 }
 
 /// The layout parsing configurations for documents.

@@ -13,7 +13,9 @@ use serde::{Deserialize, Serialize};
 
 /// A request to activate a pretargeting configuration. Sets the configuration''s state to ACTIVE.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ActivatePretargetingConfigRequest {}
+pub struct ActivatePretargetingConfigRequest {
+    pub value: serde_json::Value,
+}
 
 /// A request to start targeting the provided app IDs in a specific pretargeting configuration. The pretargeting configuration itself specifies how these apps are targeted. in PretargetingConfig.appTargeting.mobileAppTargeting.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -82,11 +84,15 @@ pub struct BatchRejectPublisherConnectionsResponse {
 
 /// A request to close a specified user list.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CloseUserListRequest {}
+pub struct CloseUserListRequest {
+    pub value: serde_json::Value,
+}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// This has been sunset as of October 2023, and will return an error response if called. For more information, see the release notes: https://developers.google.com/authorized-buyers/apis/relnotes#real-time-bidding-api Response for a request to get remarketing tag.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -175,7 +181,9 @@ pub struct ListUserListsResponse {
 
 /// A request to open a specified user list.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OpenUserListRequest {}
+pub struct OpenUserListRequest {
+    pub value: serde_json::Value,
+}
 
 /// A request to stop targeting the provided apps in a specific pretargeting configuration. The pretargeting configuration itself specifies how these apps are targeted. in PretargetingConfig.appTargeting.mobileAppTargeting.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -214,11 +222,15 @@ pub struct StringTargetingDimension {
 
 /// A request to suspend a pretargeting configuration. Sets the configuration''s state to SUSPENDED.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SuspendPretargetingConfigRequest {}
+pub struct SuspendPretargetingConfigRequest {
+    pub value: serde_json::Value,
+}
 
 /// A request to receive push notifications when any of the creatives belonging to the bidder changes status.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WatchCreativesRequest {}
+pub struct WatchCreativesRequest {
+    pub value: serde_json::Value,
+}
 
 /// A response for the request to receive push notification when a bidder''s creatives change status.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]

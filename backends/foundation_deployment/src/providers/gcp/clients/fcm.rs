@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,15 @@ use serde::Serialize;
 
 pub fn fcm_projects_messages_send_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &SendMessageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://fcm.googleapis.com/v1/projects/{}/messages:send",
-        parent,
-    );
+    let endpoint_url = format!("https://fcm.googleapis.com/v1/projects/{}/messages:send",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -71,7 +69,12 @@ pub fn fcm_projects_messages_send_builder(
 pub fn fcm_projects_messages_send_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Message>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -173,6 +176,6 @@ pub fn fcm_projects_messages_send(
     impl StreamIterator<D = Result<ApiResponse<Message>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = fcm_projects_messages_send_builder(client, &args.parent, &args.body)?;
+    let builder = fcm_projects_messages_send_builder(client, args.parent.clone(), &args.body)?;
     fcm_projects_messages_send_execute(builder)
 }

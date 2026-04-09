@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,17 +29,17 @@ use serde::Serialize;
 
 pub fn toolresults_projects_get_settings_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
+    projectId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/settings",
-        projectId,
+        projectId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -68,8 +69,11 @@ pub fn toolresults_projects_get_settings_builder(
 pub fn toolresults_projects_get_settings_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProjectSettings>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -174,7 +178,7 @@ pub fn toolresults_projects_get_settings(
         + 'static,
     ApiError,
 > {
-    let builder = toolresults_projects_get_settings_builder(client, &args.projectId)?;
+    let builder = toolresults_projects_get_settings_builder(client, args.projectId.clone())?;
     toolresults_projects_get_settings_execute(builder)
 }
 
@@ -186,17 +190,17 @@ pub fn toolresults_projects_get_settings(
 
 pub fn toolresults_projects_initialize_settings_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
+    projectId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}:initializeSettings",
-        projectId,
+        projectId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -226,8 +230,11 @@ pub fn toolresults_projects_initialize_settings_builder(
 pub fn toolresults_projects_initialize_settings_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ProjectSettings>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ProjectSettings>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -332,7 +339,7 @@ pub fn toolresults_projects_initialize_settings(
         + 'static,
     ApiError,
 > {
-    let builder = toolresults_projects_initialize_settings_builder(client, &args.projectId)?;
+    let builder = toolresults_projects_initialize_settings_builder(client, args.projectId.clone())?;
     toolresults_projects_initialize_settings_execute(builder)
 }
 
@@ -344,14 +351,14 @@ pub fn toolresults_projects_initialize_settings(
 
 pub fn toolresults_projects_histories_create_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    requestId: Option<&str>,
+    projectId: String,
+    requestId: Option<String>,
     body: &History,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories",
-        projectId,
+        projectId.as_str(),
     );
 
     // Build request
@@ -361,9 +368,9 @@ pub fn toolresults_projects_histories_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -399,7 +406,12 @@ pub fn toolresults_projects_histories_create_builder(
 pub fn toolresults_projects_histories_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<History>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<History>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -505,8 +517,8 @@ pub fn toolresults_projects_histories_create(
 > {
     let builder = toolresults_projects_histories_create_builder(
         client,
-        &args.projectId,
-        args.requestId.as_deref(),
+        args.projectId.clone(),
+        args.requestId.clone(),
         &args.body,
     )?;
     toolresults_projects_histories_create_execute(builder)
@@ -520,18 +532,19 @@ pub fn toolresults_projects_histories_create(
 
 pub fn toolresults_projects_histories_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
+    projectId: String,
+    historyId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}",
-        projectId, historyId,
+        projectId.as_str(),
+        historyId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -561,7 +574,12 @@ pub fn toolresults_projects_histories_get_builder(
 pub fn toolresults_projects_histories_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<History>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<History>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -663,199 +681,12 @@ pub fn toolresults_projects_histories_get(
     impl StreamIterator<D = Result<ApiResponse<History>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        toolresults_projects_histories_get_builder(client, &args.projectId, &args.historyId)?;
-    toolresults_projects_histories_get_execute(builder)
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories
-/// Lists Histories for a given Project. The histories are sorted by modification time in descending order. The history_id key will be used to order the history with the same modification time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the History does not exist
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `toolresults_projects_histories_list_execute()` to send, or `toolresults_projects_histories_list` for simplest API.
-
-pub fn toolresults_projects_histories_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    filterByName: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories",
-        projectId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filterByName {
-        query_parts.push(format!("filterByName={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories
-/// Lists Histories for a given Project. The histories are sorted by modification time in descending order. The history_id key will be used to order the history with the same modification time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the History does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `toolresults_projects_histories_list_execute()` or `toolresults_projects_histories_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListHistoriesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListHistoriesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories
-/// Lists Histories for a given Project. The histories are sorted by modification time in descending order. The history_id key will be used to order the history with the same modification time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the History does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `toolresults_projects_histories_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `toolresults_projects_histories_list_task()`.
-/// For the simplest API, use `toolresults_projects_histories_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn toolresults_projects_histories_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListHistoriesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = toolresults_projects_histories_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`toolresults_projects_histories_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ToolresultsProjectsHistoriesListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Query parameter: filterByName
-    pub filterByName: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories
-/// Lists Histories for a given Project. The histories are sorted by modification time in descending order. The history_id key will be used to order the history with the same modification time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the History does not exist
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `toolresults_projects_histories_list_builder()` + `toolresults_projects_histories_list_execute()`.
-/// For task-level control, use `toolresults_projects_histories_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_list(
-    client: &SimpleHttpClient,
-    args: &ToolresultsProjectsHistoriesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListHistoriesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = toolresults_projects_histories_list_builder(
+    let builder = toolresults_projects_histories_get_builder(
         client,
-        &args.projectId,
-        args.filterByName.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.projectId.clone(),
+        args.historyId.clone(),
     )?;
-    toolresults_projects_histories_list_execute(builder)
+    toolresults_projects_histories_get_execute(builder)
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
@@ -866,16 +697,16 @@ pub fn toolresults_projects_histories_list(
 
 pub fn toolresults_projects_histories_executions_create_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    requestId: Option<&str>,
+    projectId: String,
+    historyId: String,
+    requestId: Option<String>,
     body: &Execution,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions",
-        projectId,
-        historyId,
+        projectId.as_str(),
+        historyId.as_str(),
     );
 
     // Build request
@@ -885,9 +716,9 @@ pub fn toolresults_projects_histories_executions_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -923,7 +754,12 @@ pub fn toolresults_projects_histories_executions_create_builder(
 pub fn toolresults_projects_histories_executions_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Execution>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1031,9 +867,9 @@ pub fn toolresults_projects_histories_executions_create(
 > {
     let builder = toolresults_projects_histories_executions_create_builder(
         client,
-        &args.projectId,
-        &args.historyId,
-        args.requestId.as_deref(),
+        args.projectId.clone(),
+        args.historyId.clone(),
+        args.requestId.clone(),
         &args.body,
     )?;
     toolresults_projects_histories_executions_create_execute(builder)
@@ -1047,21 +883,21 @@ pub fn toolresults_projects_histories_executions_create(
 
 pub fn toolresults_projects_histories_executions_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}",
-        projectId,
-        historyId,
-        executionId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1091,7 +927,12 @@ pub fn toolresults_projects_histories_executions_get_builder(
 pub fn toolresults_projects_histories_executions_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Execution>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1197,385 +1038,11 @@ pub fn toolresults_projects_histories_executions_get(
 > {
     let builder = toolresults_projects_histories_executions_get_builder(
         client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
+        args.projectId.clone(),
+        args.historyId.clone(),
+        args.executionId.clone(),
     )?;
     toolresults_projects_histories_executions_get_execute(builder)
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
-/// Lists Executions for a given History. The executions are sorted by creation_time in descending order. The execution_id key will be used to order the executions with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing History does not exist
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `toolresults_projects_histories_executions_list_execute()` to send, or `toolresults_projects_histories_executions_list` for simplest API.
-
-pub fn toolresults_projects_histories_executions_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions",
-        projectId,
-        historyId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
-/// Lists Executions for a given History. The executions are sorted by creation_time in descending order. The execution_id key will be used to order the executions with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing History does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `toolresults_projects_histories_executions_list_execute()` or `toolresults_projects_histories_executions_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_executions_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListExecutionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListExecutionsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
-/// Lists Executions for a given History. The executions are sorted by creation_time in descending order. The execution_id key will be used to order the executions with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing History does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `toolresults_projects_histories_executions_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `toolresults_projects_histories_executions_list_task()`.
-/// For the simplest API, use `toolresults_projects_histories_executions_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn toolresults_projects_histories_executions_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListExecutionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = toolresults_projects_histories_executions_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`toolresults_projects_histories_executions_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ToolresultsProjectsHistoriesExecutionsListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: historyId
-    pub historyId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions
-/// Lists Executions for a given History. The executions are sorted by creation_time in descending order. The execution_id key will be used to order the executions with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - NOT_FOUND - if the containing History does not exist
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `toolresults_projects_histories_executions_list_builder()` + `toolresults_projects_histories_executions_list_execute()`.
-/// For task-level control, use `toolresults_projects_histories_executions_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_executions_list(
-    client: &SimpleHttpClient,
-    args: &ToolresultsProjectsHistoriesExecutionsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListExecutionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = toolresults_projects_histories_executions_list_builder(
-        client,
-        &args.projectId,
-        &args.historyId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    toolresults_projects_histories_executions_list_execute(builder)
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}
-/// Updates an existing Execution with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal - NOT_FOUND - if the containing History does not exist
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `toolresults_projects_histories_executions_patch_execute()` to send, or `toolresults_projects_histories_executions_patch` for simplest API.
-
-pub fn toolresults_projects_histories_executions_patch_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    requestId: Option<&str>,
-    body: &Execution,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}",
-        projectId,
-        historyId,
-        executionId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
-        query_parts.push(format!("requestId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}
-/// Updates an existing Execution with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal - NOT_FOUND - if the containing History does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `toolresults_projects_histories_executions_patch_execute()` or `toolresults_projects_histories_executions_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_executions_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Execution = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}
-/// Updates an existing Execution with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal - NOT_FOUND - if the containing History does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `toolresults_projects_histories_executions_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `toolresults_projects_histories_executions_patch_task()`.
-/// For the simplest API, use `toolresults_projects_histories_executions_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn toolresults_projects_histories_executions_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = toolresults_projects_histories_executions_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`toolresults_projects_histories_executions_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ToolresultsProjectsHistoriesExecutionsPatchArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: historyId
-    pub historyId: String,
-    /// Path parameter: executionId
-    pub executionId: String,
-    /// Query parameter: requestId
-    pub requestId: Option<String>,
-    /// Request body.
-    pub body: Execution,
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}
-/// Updates an existing Execution with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write to project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal - NOT_FOUND - if the containing History does not exist
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `toolresults_projects_histories_executions_patch_builder()` + `toolresults_projects_histories_executions_patch_execute()`.
-/// For task-level control, use `toolresults_projects_histories_executions_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_executions_patch(
-    client: &SimpleHttpClient,
-    args: &ToolresultsProjectsHistoriesExecutionsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Execution>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = toolresults_projects_histories_executions_patch_builder(
-        client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        args.requestId.as_deref(),
-        &args.body,
-    )?;
-    toolresults_projects_histories_executions_patch_execute(builder)
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/clusters/{clusterId}
@@ -1586,23 +1053,23 @@ pub fn toolresults_projects_histories_executions_patch(
 
 pub fn toolresults_projects_histories_executions_clusters_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    clusterId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
+    clusterId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/clusters/{}",
-        projectId,
-        historyId,
-        executionId,
-        clusterId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
+        clusterId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1632,8 +1099,11 @@ pub fn toolresults_projects_histories_executions_clusters_get_builder(
 pub fn toolresults_projects_histories_executions_clusters_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ScreenshotCluster>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ScreenshotCluster>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -1746,10 +1216,10 @@ pub fn toolresults_projects_histories_executions_clusters_get(
 > {
     let builder = toolresults_projects_histories_executions_clusters_get_builder(
         client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        &args.clusterId,
+        args.projectId.clone(),
+        args.historyId.clone(),
+        args.executionId.clone(),
+        args.clusterId.clone(),
     )?;
     toolresults_projects_histories_executions_clusters_get_execute(builder)
 }
@@ -1762,21 +1232,21 @@ pub fn toolresults_projects_histories_executions_clusters_get(
 
 pub fn toolresults_projects_histories_executions_clusters_list_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/clusters",
-        projectId,
-        historyId,
-        executionId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1807,8 +1277,9 @@ pub fn toolresults_projects_histories_executions_clusters_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListScreenshotClustersResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListScreenshotClustersResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1924,9 +1395,9 @@ pub fn toolresults_projects_histories_executions_clusters_list(
 > {
     let builder = toolresults_projects_histories_executions_clusters_list_builder(
         client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
+        args.projectId.clone(),
+        args.historyId.clone(),
+        args.executionId.clone(),
     )?;
     toolresults_projects_histories_executions_clusters_list_execute(builder)
 }
@@ -1939,23 +1410,23 @@ pub fn toolresults_projects_histories_executions_clusters_list(
 
 pub fn toolresults_projects_histories_executions_environments_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    environmentId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
+    environmentId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/environments/{}",
-        projectId,
-        historyId,
-        executionId,
-        environmentId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
+        environmentId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1985,7 +1456,12 @@ pub fn toolresults_projects_histories_executions_environments_get_builder(
 pub fn toolresults_projects_histories_executions_environments_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Environment>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Environment>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2093,10 +1569,10 @@ pub fn toolresults_projects_histories_executions_environments_get(
 > {
     let builder = toolresults_projects_histories_executions_environments_get_builder(
         client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        &args.environmentId,
+        args.projectId.clone(),
+        args.historyId.clone(),
+        args.executionId.clone(),
+        args.environmentId.clone(),
     )?;
     toolresults_projects_histories_executions_environments_get_execute(builder)
 }
@@ -2109,18 +1585,18 @@ pub fn toolresults_projects_histories_executions_environments_get(
 
 pub fn toolresults_projects_histories_executions_environments_list_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/environments",
-        projectId,
-        historyId,
-        executionId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
     );
 
     // Build request
@@ -2133,9 +1609,9 @@ pub fn toolresults_projects_histories_executions_environments_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2169,8 +1645,11 @@ pub fn toolresults_projects_histories_executions_environments_list_builder(
 pub fn toolresults_projects_histories_executions_environments_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListEnvironmentsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListEnvironmentsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2285,196 +1764,13 @@ pub fn toolresults_projects_histories_executions_environments_list(
 > {
     let builder = toolresults_projects_histories_executions_environments_list_builder(
         client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.projectId.clone(),
+        args.historyId.clone(),
+        args.executionId.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     toolresults_projects_histories_executions_environments_list_execute(builder)
-}
-
-/// GET toolresults/v1beta3/projects/{projectsId}/histories/{historiesId}/executions/{executionsId}/steps/{stepsId}:accessibilityClusters
-/// Lists accessibility clusters for a given Step May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if the locale format is incorrect - NOT_FOUND - if the containing Step does not exist
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `toolresults_projects_histories_executions_steps_accessibility_clusters_execute()` to send, or `toolresults_projects_histories_executions_steps_accessibility_clusters` for simplest API.
-
-pub fn toolresults_projects_histories_executions_steps_accessibility_clusters_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    locale: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}:accessibilityClusters",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = locale {
-        query_parts.push(format!("locale={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET toolresults/v1beta3/projects/{projectsId}/histories/{historiesId}/executions/{executionsId}/steps/{stepsId}:accessibilityClusters
-/// Lists accessibility clusters for a given Step May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if the locale format is incorrect - NOT_FOUND - if the containing Step does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `toolresults_projects_histories_executions_steps_accessibility_clusters_execute()` or `toolresults_projects_histories_executions_steps_accessibility_clusters`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_accessibility_clusters_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_executions_steps_accessibility_clusters_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListStepAccessibilityClustersResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListStepAccessibilityClustersResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET toolresults/v1beta3/projects/{projectsId}/histories/{historiesId}/executions/{executionsId}/steps/{stepsId}:accessibilityClusters
-/// Lists accessibility clusters for a given Step May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if the locale format is incorrect - NOT_FOUND - if the containing Step does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `toolresults_projects_histories_executions_steps_accessibility_clusters_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `toolresults_projects_histories_executions_steps_accessibility_clusters_task()`.
-/// For the simplest API, use `toolresults_projects_histories_executions_steps_accessibility_clusters()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_accessibility_clusters_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn toolresults_projects_histories_executions_steps_accessibility_clusters_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListStepAccessibilityClustersResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        toolresults_projects_histories_executions_steps_accessibility_clusters_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`toolresults_projects_histories_executions_steps_accessibility_clusters`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ToolresultsProjectsHistoriesExecutionsStepsAccessibilityClustersArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: locale
-    pub locale: Option<String>,
-}
-
-/// GET toolresults/v1beta3/projects/{projectsId}/histories/{historiesId}/executions/{executionsId}/steps/{stepsId}:accessibilityClusters
-/// Lists accessibility clusters for a given Step May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if the locale format is incorrect - NOT_FOUND - if the containing Step does not exist
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `toolresults_projects_histories_executions_steps_accessibility_clusters_builder()` + `toolresults_projects_histories_executions_steps_accessibility_clusters_execute()`.
-/// For task-level control, use `toolresults_projects_histories_executions_steps_accessibility_clusters_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_executions_steps_accessibility_clusters(
-    client: &SimpleHttpClient,
-    args: &ToolresultsProjectsHistoriesExecutionsStepsAccessibilityClustersArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListStepAccessibilityClustersResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = toolresults_projects_histories_executions_steps_accessibility_clusters_builder(
-        client,
-        &args.name,
-        args.locale.as_deref(),
-    )?;
-    toolresults_projects_histories_executions_steps_accessibility_clusters_execute(builder)
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
@@ -2485,18 +1781,18 @@ pub fn toolresults_projects_histories_executions_steps_accessibility_clusters(
 
 pub fn toolresults_projects_histories_executions_steps_create_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    requestId: Option<&str>,
+    projectId: String,
+    historyId: String,
+    executionId: String,
+    requestId: Option<String>,
     body: &Step,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps",
-        projectId,
-        historyId,
-        executionId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
     );
 
     // Build request
@@ -2506,9 +1802,9 @@ pub fn toolresults_projects_histories_executions_steps_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -2544,7 +1840,12 @@ pub fn toolresults_projects_histories_executions_steps_create_builder(
 pub fn toolresults_projects_histories_executions_steps_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Step>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Step>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2654,10 +1955,10 @@ pub fn toolresults_projects_histories_executions_steps_create(
 > {
     let builder = toolresults_projects_histories_executions_steps_create_builder(
         client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        args.requestId.as_deref(),
+        args.projectId.clone(),
+        args.historyId.clone(),
+        args.executionId.clone(),
+        args.requestId.clone(),
         &args.body,
     )?;
     toolresults_projects_histories_executions_steps_create_execute(builder)
@@ -2671,23 +1972,23 @@ pub fn toolresults_projects_histories_executions_steps_create(
 
 pub fn toolresults_projects_histories_executions_steps_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
+    stepId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}",
-        projectId,
-        historyId,
-        executionId,
-        stepId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
+        stepId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2717,7 +2018,12 @@ pub fn toolresults_projects_histories_executions_steps_get_builder(
 pub fn toolresults_projects_histories_executions_steps_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Step>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Step>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2825,10 +2131,10 @@ pub fn toolresults_projects_histories_executions_steps_get(
 > {
     let builder = toolresults_projects_histories_executions_steps_get_builder(
         client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        &args.stepId,
+        args.projectId.clone(),
+        args.historyId.clone(),
+        args.executionId.clone(),
+        args.stepId.clone(),
     )?;
     toolresults_projects_histories_executions_steps_get_execute(builder)
 }
@@ -2841,23 +2147,23 @@ pub fn toolresults_projects_histories_executions_steps_get(
 
 pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
+    stepId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfMetricsSummary",
-        projectId,
-        historyId,
-        executionId,
-        stepId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
+        stepId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2887,8 +2193,11 @@ pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary_
 pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PerfMetricsSummary>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PerfMetricsSummary>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3002,396 +2311,12 @@ pub fn toolresults_projects_histories_executions_steps_get_perf_metrics_summary(
 > {
     let builder = toolresults_projects_histories_executions_steps_get_perf_metrics_summary_builder(
         client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        &args.stepId,
+        args.projectId.clone(),
+        args.historyId.clone(),
+        args.executionId.clone(),
+        args.stepId.clone(),
     )?;
     toolresults_projects_histories_executions_steps_get_perf_metrics_summary_execute(builder)
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
-/// Lists Steps for a given Execution. The steps are sorted by creation_time in descending order. The step_id key will be used to order the steps with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if an attempt is made to list the children of a nonexistent Step - NOT_FOUND - if the containing Execution does not exist
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `toolresults_projects_histories_executions_steps_list_execute()` to send, or `toolresults_projects_histories_executions_steps_list` for simplest API.
-
-pub fn toolresults_projects_histories_executions_steps_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps",
-        projectId,
-        historyId,
-        executionId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
-/// Lists Steps for a given Execution. The steps are sorted by creation_time in descending order. The step_id key will be used to order the steps with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if an attempt is made to list the children of a nonexistent Step - NOT_FOUND - if the containing Execution does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `toolresults_projects_histories_executions_steps_list_execute()` or `toolresults_projects_histories_executions_steps_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_executions_steps_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListStepsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListStepsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
-/// Lists Steps for a given Execution. The steps are sorted by creation_time in descending order. The step_id key will be used to order the steps with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if an attempt is made to list the children of a nonexistent Step - NOT_FOUND - if the containing Execution does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `toolresults_projects_histories_executions_steps_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `toolresults_projects_histories_executions_steps_list_task()`.
-/// For the simplest API, use `toolresults_projects_histories_executions_steps_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn toolresults_projects_histories_executions_steps_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListStepsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = toolresults_projects_histories_executions_steps_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`toolresults_projects_histories_executions_steps_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ToolresultsProjectsHistoriesExecutionsStepsListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: historyId
-    pub historyId: String,
-    /// Path parameter: executionId
-    pub executionId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps
-/// Lists Steps for a given Execution. The steps are sorted by creation_time in descending order. The step_id key will be used to order the steps with the same creation_time. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to read project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if an argument in the request happens to be invalid; e.g. if an attempt is made to list the children of a nonexistent Step - NOT_FOUND - if the containing Execution does not exist
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `toolresults_projects_histories_executions_steps_list_builder()` + `toolresults_projects_histories_executions_steps_list_execute()`.
-/// For task-level control, use `toolresults_projects_histories_executions_steps_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_executions_steps_list(
-    client: &SimpleHttpClient,
-    args: &ToolresultsProjectsHistoriesExecutionsStepsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListStepsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = toolresults_projects_histories_executions_steps_list_builder(
-        client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    toolresults_projects_histories_executions_steps_list_execute(builder)
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}
-/// Updates an existing Step with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal (e.g try to upload a duplicate xml file), if the updated step is too large (more than 10Mib) - NOT_FOUND - if the containing Execution does not exist
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `toolresults_projects_histories_executions_steps_patch_execute()` to send, or `toolresults_projects_histories_executions_steps_patch` for simplest API.
-
-pub fn toolresults_projects_histories_executions_steps_patch_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    requestId: Option<&str>,
-    body: &Step,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}",
-        projectId,
-        historyId,
-        executionId,
-        stepId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = requestId {
-        query_parts.push(format!("requestId={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}
-/// Updates an existing Step with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal (e.g try to upload a duplicate xml file), if the updated step is too large (more than 10Mib) - NOT_FOUND - if the containing Execution does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `toolresults_projects_histories_executions_steps_patch_execute()` or `toolresults_projects_histories_executions_steps_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_executions_steps_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Step>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Step = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}
-/// Updates an existing Step with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal (e.g try to upload a duplicate xml file), if the updated step is too large (more than 10Mib) - NOT_FOUND - if the containing Execution does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `toolresults_projects_histories_executions_steps_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `toolresults_projects_histories_executions_steps_patch_task()`.
-/// For the simplest API, use `toolresults_projects_histories_executions_steps_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn toolresults_projects_histories_executions_steps_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Step>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = toolresults_projects_histories_executions_steps_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`toolresults_projects_histories_executions_steps_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ToolresultsProjectsHistoriesExecutionsStepsPatchArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: historyId
-    pub historyId: String,
-    /// Path parameter: executionId
-    pub executionId: String,
-    /// Path parameter: stepId
-    pub stepId: String,
-    /// Query parameter: requestId
-    pub requestId: Option<String>,
-    /// Request body.
-    pub body: Step,
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}
-/// Updates an existing Step with the supplied partial entity. May return any of the following canonical error codes: - PERMISSION_DENIED - if the user is not authorized to write project - INVALID_ARGUMENT - if the request is malformed - FAILED_PRECONDITION - if the requested state transition is illegal (e.g try to upload a duplicate xml file), if the updated step is too large (more than 10Mib) - NOT_FOUND - if the containing Execution does not exist
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `toolresults_projects_histories_executions_steps_patch_builder()` + `toolresults_projects_histories_executions_steps_patch_execute()`.
-/// For task-level control, use `toolresults_projects_histories_executions_steps_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_executions_steps_patch(
-    client: &SimpleHttpClient,
-    args: &ToolresultsProjectsHistoriesExecutionsStepsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Step>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = toolresults_projects_histories_executions_steps_patch_builder(
-        client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        &args.stepId,
-        args.requestId.as_deref(),
-        &args.body,
-    )?;
-    toolresults_projects_histories_executions_steps_patch_execute(builder)
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}:publishXunitXmlFiles
@@ -3402,24 +2327,24 @@ pub fn toolresults_projects_histories_executions_steps_patch(
 
 pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
+    stepId: String,
     body: &PublishXunitXmlFilesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}:publishXunitXmlFiles",
-        projectId,
-        historyId,
-        executionId,
-        stepId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
+        stepId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3451,7 +2376,12 @@ pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files_b
 pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Step>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Step>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3562,197 +2492,13 @@ pub fn toolresults_projects_histories_executions_steps_publish_xunit_xml_files(
 > {
     let builder = toolresults_projects_histories_executions_steps_publish_xunit_xml_files_builder(
         client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        &args.stepId,
+        args.projectId.clone(),
+        args.historyId.clone(),
+        args.executionId.clone(),
+        args.stepId.clone(),
         &args.body,
     )?;
     toolresults_projects_histories_executions_steps_publish_xunit_xml_files_execute(builder)
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfMetricsSummary
-/// Creates a PerfMetricsSummary resource. Returns the existing one if it has already been created. May return any of the following error code(s): - NOT_FOUND - The containing Step does not exist
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_execute()` to send, or `toolresults_projects_histories_executions_steps_perf_metrics_summary_create` for simplest API.
-
-pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    body: &PerfMetricsSummary,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfMetricsSummary",
-        projectId,
-        historyId,
-        executionId,
-        stepId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfMetricsSummary
-/// Creates a PerfMetricsSummary resource. Returns the existing one if it has already been created. May return any of the following error code(s): - NOT_FOUND - The containing Step does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_execute()` or `toolresults_projects_histories_executions_steps_perf_metrics_summary_create`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_create_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PerfMetricsSummary>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: PerfMetricsSummary = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfMetricsSummary
-/// Creates a PerfMetricsSummary resource. Returns the existing one if it has already been created. May return any of the following error code(s): - NOT_FOUND - The containing Step does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_task()`.
-/// For the simplest API, use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_create_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PerfMetricsSummary>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        toolresults_projects_histories_executions_steps_perf_metrics_summary_create_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`toolresults_projects_histories_executions_steps_perf_metrics_summary_create`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfMetricsSummaryCreateArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: historyId
-    pub historyId: String,
-    /// Path parameter: executionId
-    pub executionId: String,
-    /// Path parameter: stepId
-    pub stepId: String,
-    /// Request body.
-    pub body: PerfMetricsSummary,
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfMetricsSummary
-/// Creates a PerfMetricsSummary resource. Returns the existing one if it has already been created. May return any of the following error code(s): - NOT_FOUND - The containing Step does not exist
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder()` + `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_execute()`.
-/// For task-level control, use `toolresults_projects_histories_executions_steps_perf_metrics_summary_create_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_create(
-    client: &SimpleHttpClient,
-    args: &ToolresultsProjectsHistoriesExecutionsStepsPerfMetricsSummaryCreateArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<PerfMetricsSummary>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        toolresults_projects_histories_executions_steps_perf_metrics_summary_create_builder(
-            client,
-            &args.projectId,
-            &args.historyId,
-            &args.executionId,
-            &args.stepId,
-            &args.body,
-        )?;
-    toolresults_projects_histories_executions_steps_perf_metrics_summary_create_execute(builder)
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
@@ -3763,24 +2509,24 @@ pub fn toolresults_projects_histories_executions_steps_perf_metrics_summary_crea
 
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
+    stepId: String,
     body: &PerfSampleSeries,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries",
-        projectId,
-        historyId,
-        executionId,
-        stepId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
+        stepId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -3812,8 +2558,11 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PerfSampleSeries>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PerfSampleSeries>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -3930,10 +2679,10 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create
     let builder =
         toolresults_projects_histories_executions_steps_perf_sample_series_create_builder(
             client,
-            &args.projectId,
-            &args.historyId,
-            &args.executionId,
-            &args.stepId,
+            args.projectId.clone(),
+            args.historyId.clone(),
+            args.executionId.clone(),
+            args.stepId.clone(),
             &args.body,
         )?;
     toolresults_projects_histories_executions_steps_perf_sample_series_create_execute(builder)
@@ -3947,25 +2696,25 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_create
 
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    sampleSeriesId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
+    stepId: String,
+    sampleSeriesId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries/{}",
-        projectId,
-        historyId,
-        executionId,
-        stepId,
-        sampleSeriesId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
+        stepId.as_str(),
+        sampleSeriesId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3995,8 +2744,11 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get_bu
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<PerfSampleSeries>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<PerfSampleSeries>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4112,211 +2864,13 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_get(
 > {
     let builder = toolresults_projects_histories_executions_steps_perf_sample_series_get_builder(
         client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        &args.stepId,
-        &args.sampleSeriesId,
+        args.projectId.clone(),
+        args.historyId.clone(),
+        args.executionId.clone(),
+        args.stepId.clone(),
+        args.sampleSeriesId.clone(),
     )?;
     toolresults_projects_histories_executions_steps_perf_sample_series_get_execute(builder)
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
-/// Lists PerfSampleSeries for a given Step. The request provides an optional filter which specifies one or more PerfMetricsType to include in the result; if none returns all. The resulting PerfSampleSeries are sorted by ids. May return any of the following canonical error codes: - NOT_FOUND - The containing Step does not exist
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `toolresults_projects_histories_executions_steps_perf_sample_series_list_execute()` to send, or `toolresults_projects_histories_executions_steps_perf_sample_series_list` for simplest API.
-
-pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list_builder(
-    client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    filter: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries",
-        projectId,
-        historyId,
-        executionId,
-        stepId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = filter {
-        query_parts.push(format!("filter={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
-/// Lists PerfSampleSeries for a given Step. The request provides an optional filter which specifies one or more PerfMetricsType to include in the result; if none returns all. The resulting PerfSampleSeries are sorted by ids. May return any of the following canonical error codes: - NOT_FOUND - The containing Step does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `toolresults_projects_histories_executions_steps_perf_sample_series_list_execute()` or `toolresults_projects_histories_executions_steps_perf_sample_series_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_perf_sample_series_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListPerfSampleSeriesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListPerfSampleSeriesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
-/// Lists PerfSampleSeries for a given Step. The request provides an optional filter which specifies one or more PerfMetricsType to include in the result; if none returns all. The resulting PerfSampleSeries are sorted by ids. May return any of the following canonical error codes: - NOT_FOUND - The containing Step does not exist
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `toolresults_projects_histories_executions_steps_perf_sample_series_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `toolresults_projects_histories_executions_steps_perf_sample_series_list_task()`.
-/// For the simplest API, use `toolresults_projects_histories_executions_steps_perf_sample_series_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `toolresults_projects_histories_executions_steps_perf_sample_series_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListPerfSampleSeriesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        toolresults_projects_histories_executions_steps_perf_sample_series_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`toolresults_projects_histories_executions_steps_perf_sample_series_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesListArgs {
-    /// Path parameter: projectId
-    pub projectId: String,
-    /// Path parameter: historyId
-    pub historyId: String,
-    /// Path parameter: executionId
-    pub executionId: String,
-    /// Path parameter: stepId
-    pub stepId: String,
-    /// Query parameter: filter
-    pub filter: Option<String>,
-}
-
-/// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries
-/// Lists PerfSampleSeries for a given Step. The request provides an optional filter which specifies one or more PerfMetricsType to include in the result; if none returns all. The resulting PerfSampleSeries are sorted by ids. May return any of the following canonical error codes: - NOT_FOUND - The containing Step does not exist
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `toolresults_projects_histories_executions_steps_perf_sample_series_list_builder()` + `toolresults_projects_histories_executions_steps_perf_sample_series_list_execute()`.
-/// For task-level control, use `toolresults_projects_histories_executions_steps_perf_sample_series_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list(
-    client: &SimpleHttpClient,
-    args: &ToolresultsProjectsHistoriesExecutionsStepsPerfSampleSeriesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListPerfSampleSeriesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = toolresults_projects_histories_executions_steps_perf_sample_series_list_builder(
-        client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        &args.stepId,
-        args.filter.as_deref(),
-    )?;
-    toolresults_projects_histories_executions_steps_perf_sample_series_list_execute(builder)
 }
 
 /// GET toolresults/v1beta3/projects/{projectId}/histories/{historyId}/executions/{executionId}/steps/{stepId}/perfSampleSeries/{sampleSeriesId}/samples:batchCreate
@@ -4327,26 +2881,26 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_list(
 
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    sampleSeriesId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
+    stepId: String,
+    sampleSeriesId: String,
     body: &BatchCreatePerfSamplesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries/{}/samples:batchCreate",
-        projectId,
-        historyId,
-        executionId,
-        stepId,
-        sampleSeriesId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
+        stepId.as_str(),
+        sampleSeriesId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -4379,8 +2933,9 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchCreatePerfSamplesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchCreatePerfSamplesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -4500,7 +3055,7 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
         + 'static,
     ApiError,
 > {
-    let builder = toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_builder(client, &args.projectId, &args.historyId, &args.executionId, &args.stepId, &args.sampleSeriesId, &args.body)?;
+    let builder = toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_builder(client, args.projectId.clone(), args.historyId.clone(), args.executionId.clone(), args.stepId.clone(), args.sampleSeriesId.clone(), &args.body)?;
     toolresults_projects_histories_executions_steps_perf_sample_series_samples_batch_create_execute(
         builder,
     )
@@ -4514,22 +3069,22 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
 
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_samples_list_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    sampleSeriesId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
+    stepId: String,
+    sampleSeriesId: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/perfSampleSeries/{}/samples",
-        projectId,
-        historyId,
-        executionId,
-        stepId,
-        sampleSeriesId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
+        stepId.as_str(),
+        sampleSeriesId.as_str(),
     );
 
     // Build request
@@ -4542,9 +3097,9 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4578,8 +3133,11 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
 pub fn toolresults_projects_histories_executions_steps_perf_sample_series_samples_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListPerfSamplesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPerfSamplesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4702,13 +3260,13 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
     let builder =
         toolresults_projects_histories_executions_steps_perf_sample_series_samples_list_builder(
             client,
-            &args.projectId,
-            &args.historyId,
-            &args.executionId,
-            &args.stepId,
-            &args.sampleSeriesId,
-            args.pageSize,
-            args.pageToken.as_deref(),
+            args.projectId.clone(),
+            args.historyId.clone(),
+            args.executionId.clone(),
+            args.stepId.clone(),
+            args.sampleSeriesId.clone(),
+            args.pageSize.clone(),
+            args.pageToken.clone(),
         )?;
     toolresults_projects_histories_executions_steps_perf_sample_series_samples_list_execute(builder)
 }
@@ -4721,25 +3279,25 @@ pub fn toolresults_projects_histories_executions_steps_perf_sample_series_sample
 
 pub fn toolresults_projects_histories_executions_steps_test_cases_get_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
-    testCaseId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
+    stepId: String,
+    testCaseId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/testCases/{}",
-        projectId,
-        historyId,
-        executionId,
-        stepId,
-        testCaseId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
+        stepId.as_str(),
+        testCaseId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4769,7 +3327,12 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_get_builder(
 pub fn toolresults_projects_histories_executions_steps_test_cases_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<TestCase>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<TestCase>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4879,11 +3442,11 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_get(
 > {
     let builder = toolresults_projects_histories_executions_steps_test_cases_get_builder(
         client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        &args.stepId,
-        &args.testCaseId,
+        args.projectId.clone(),
+        args.historyId.clone(),
+        args.executionId.clone(),
+        args.stepId.clone(),
+        args.testCaseId.clone(),
     )?;
     toolresults_projects_histories_executions_steps_test_cases_get_execute(builder)
 }
@@ -4896,20 +3459,20 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_get(
 
 pub fn toolresults_projects_histories_executions_steps_test_cases_list_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
+    stepId: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/testCases",
-        projectId,
-        historyId,
-        executionId,
-        stepId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
+        stepId.as_str(),
     );
 
     // Build request
@@ -4922,9 +3485,9 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4958,8 +3521,11 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_list_builder(
 pub fn toolresults_projects_histories_executions_steps_test_cases_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListTestCasesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListTestCasesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5076,12 +3642,12 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_list(
 > {
     let builder = toolresults_projects_histories_executions_steps_test_cases_list_builder(
         client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        &args.stepId,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.projectId.clone(),
+        args.historyId.clone(),
+        args.executionId.clone(),
+        args.stepId.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     toolresults_projects_histories_executions_steps_test_cases_list_execute(builder)
 }
@@ -5094,20 +3660,20 @@ pub fn toolresults_projects_histories_executions_steps_test_cases_list(
 
 pub fn toolresults_projects_histories_executions_steps_thumbnails_list_builder(
     client: &SimpleHttpClient,
-    projectId: &str,
-    historyId: &str,
-    executionId: &str,
-    stepId: &str,
+    projectId: String,
+    historyId: String,
+    executionId: String,
+    stepId: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://toolresults.googleapis.com/toolresults/v1beta3/projects/{}/histories/{}/executions/{}/steps/{}/thumbnails",
-        projectId,
-        historyId,
-        executionId,
-        stepId,
+        projectId.as_str(),
+        historyId.as_str(),
+        executionId.as_str(),
+        stepId.as_str(),
     );
 
     // Build request
@@ -5120,9 +3686,9 @@ pub fn toolresults_projects_histories_executions_steps_thumbnails_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -5156,8 +3722,11 @@ pub fn toolresults_projects_histories_executions_steps_thumbnails_list_builder(
 pub fn toolresults_projects_histories_executions_steps_thumbnails_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListStepThumbnailsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListStepThumbnailsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -5278,12 +3847,12 @@ pub fn toolresults_projects_histories_executions_steps_thumbnails_list(
 > {
     let builder = toolresults_projects_histories_executions_steps_thumbnails_list_builder(
         client,
-        &args.projectId,
-        &args.historyId,
-        &args.executionId,
-        &args.stepId,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.projectId.clone(),
+        args.historyId.clone(),
+        args.executionId.clone(),
+        args.stepId.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     toolresults_projects_histories_executions_steps_thumbnails_list_execute(builder)
 }

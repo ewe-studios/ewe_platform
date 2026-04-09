@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,18 +29,19 @@ use serde::Serialize;
 
 pub fn appsmarket_customer_license_get_builder(
     client: &SimpleHttpClient,
-    applicationId: &str,
-    customerId: &str,
+    applicationId: String,
+    customerId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appsmarket.googleapis.com/appsmarket/v2/customerLicense/{}/{}",
-        applicationId, customerId,
+        applicationId.as_str(),
+        customerId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -69,8 +71,11 @@ pub fn appsmarket_customer_license_get_builder(
 pub fn appsmarket_customer_license_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CustomerLicense>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CustomerLicense>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -177,8 +182,11 @@ pub fn appsmarket_customer_license_get(
         + 'static,
     ApiError,
 > {
-    let builder =
-        appsmarket_customer_license_get_builder(client, &args.applicationId, &args.customerId)?;
+    let builder = appsmarket_customer_license_get_builder(
+        client,
+        args.applicationId.clone(),
+        args.customerId.clone(),
+    )?;
     appsmarket_customer_license_get_execute(builder)
 }
 
@@ -190,18 +198,19 @@ pub fn appsmarket_customer_license_get(
 
 pub fn appsmarket_user_license_get_builder(
     client: &SimpleHttpClient,
-    applicationId: &str,
-    userId: &str,
+    applicationId: String,
+    userId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appsmarket.googleapis.com/appsmarket/v2/userLicense/{}/{}",
-        applicationId, userId,
+        applicationId.as_str(),
+        userId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -231,7 +240,12 @@ pub fn appsmarket_user_license_get_builder(
 pub fn appsmarket_user_license_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<UserLicense>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<UserLicense>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -333,6 +347,10 @@ pub fn appsmarket_user_license_get(
     impl StreamIterator<D = Result<ApiResponse<UserLicense>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appsmarket_user_license_get_builder(client, &args.applicationId, &args.userId)?;
+    let builder = appsmarket_user_license_get_builder(
+        client,
+        args.applicationId.clone(),
+        args.userId.clone(),
+    )?;
     appsmarket_user_license_get_execute(builder)
 }

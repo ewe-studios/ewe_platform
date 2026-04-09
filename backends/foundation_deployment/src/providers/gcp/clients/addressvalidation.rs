@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -31,11 +32,12 @@ pub fn addressvalidation_provide_validation_feedback_builder(
     body: &GoogleMapsAddressvalidationV1ProvideValidationFeedbackRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://addressvalidation.googleapis.com/v1:provideValidationFeedback",);
+    let endpoint_url =
+        format!("https://addressvalidation.googleapis.com/v1:provideValidationFeedback",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -68,11 +70,12 @@ pub fn addressvalidation_provide_validation_feedback_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<
+            Ready = Result<
                 ApiResponse<GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse>,
                 ApiError,
             >,
-            P = ApiPending,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -204,11 +207,11 @@ pub fn addressvalidation_validate_address_builder(
     body: &GoogleMapsAddressvalidationV1ValidateAddressRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://addressvalidation.googleapis.com/v1:validateAddress",);
+    let endpoint_url = format!("https://addressvalidation.googleapis.com/v1:validateAddress",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -241,8 +244,12 @@ pub fn addressvalidation_validate_address_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleMapsAddressvalidationV1ValidateAddressResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<
+                ApiResponse<GoogleMapsAddressvalidationV1ValidateAddressResponse>,
+                ApiError,
+            >,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,

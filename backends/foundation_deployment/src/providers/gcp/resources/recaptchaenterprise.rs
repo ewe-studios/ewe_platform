@@ -21,7 +21,9 @@ pub struct GoogleCloudRecaptchaenterpriseV1AddIpOverrideRequest {
 
 /// Response for AddIpOverride.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse {}
+pub struct GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse {
+    pub value: serde_json::Value,
+}
 
 /// The request message to annotate an Assessment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -49,7 +51,9 @@ pub struct GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentRequest {
 
 /// Empty response for AnnotateAssessment.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse {}
+pub struct GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse {
+    pub value: serde_json::Value,
+}
 
 /// A reCAPTCHA Enterprise assessment resource.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -98,26 +102,6 @@ pub struct GoogleCloudRecaptchaenterpriseV1Assessment {
     #[serde(default, rename = "tokenProperties")]
     pub token_properties: ::core::option::Option<GoogleCloudRecaptchaenterpriseV1TokenProperties>,
 }
-
-/// Settings specific to keys that can be used for reCAPTCHA Express.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1ExpressKeySettings {}
-
-/// An allow action continues processing a request unimpeded.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction {}
-
-/// A block action serves an HTTP error code a prevents the request from hitting the backend.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction {}
-
-/// An include reCAPTCHA script action involves injecting reCAPTCHA JavaScript code into the HTML returned by the site backend. This reCAPTCHA script is tasked with collecting user signals on the requested web page, issuing tokens as a cookie within the site domain, and enabling their utilization in subsequent page requests.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction {}
-
-/// A redirect action returns a 307 (temporary redirect) response, pointing the user to a reCAPTCHA interstitial page to attach a token.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionRedirectAction {}
 
 /// Response to request to list firewall policies belonging to a project.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -217,7 +201,9 @@ pub struct GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideRequest {
 
 /// Response for RemoveIpOverride.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse {}
+pub struct GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse {
+    pub value: serde_json::Value,
+}
 
 /// The reorder firewall policies request message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -229,7 +215,9 @@ pub struct GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesRequest {
 
 /// The reorder firewall policies response message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesResponse {}
+pub struct GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesResponse {
+    pub value: serde_json::Value,
+}
 
 /// Secret key is used only in legacy reCAPTCHA. It must be used in a 3rd party integration with legacy reCAPTCHA.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -271,7 +259,9 @@ pub struct GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsR
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleProtobufEmpty {}
+pub struct GoogleProtobufEmpty {
+    pub value: serde_json::Value,
+}
 
 /// Details on a phone authentication event
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -536,7 +526,8 @@ pub struct GoogleCloudRecaptchaenterpriseV1Key {
     pub display_name: ::core::option::Option<String>,
     /// Settings for keys that can be used by reCAPTCHA Express.
     #[serde(default, rename = "expressSettings")]
-    pub express_settings: ::core::option::Option<serde_json::Value>,
+    pub express_settings:
+        ::core::option::Option<GoogleCloudRecaptchaenterpriseV1ExpressKeySettings>,
     /// Settings for keys that can be used by iOS apps.
     #[serde(default, rename = "iosSettings")]
     pub ios_settings: ::core::option::Option<GoogleCloudRecaptchaenterpriseV1iOSKeySettings>,
@@ -842,6 +833,12 @@ pub struct GoogleCloudRecaptchaenterpriseV1AndroidKeySettings {
     pub support_non_google_app_store_distribution: ::core::option::Option<bool>,
 }
 
+/// Settings specific to keys that can be used for reCAPTCHA Express.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1ExpressKeySettings {
+    pub value: serde_json::Value,
+}
+
 /// Settings specific to keys that can be used by iOS apps.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1iOSKeySettings {
@@ -1026,16 +1023,19 @@ pub struct GoogleCloudRecaptchaenterpriseV1UserId {
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallAction {
     /// The user request did not match any policy and should be allowed access to the requested resource.
     #[serde(default)]
-    pub allow: ::core::option::Option<serde_json::Value>,
+    pub allow: ::core::option::Option<GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction>,
     /// This action denies access to a given page. The user gets an HTTP error code.
     #[serde(default)]
-    pub block: ::core::option::Option<serde_json::Value>,
+    pub block: ::core::option::Option<GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction>,
     /// This action injects reCAPTCHA JavaScript code into the HTML page returned by the site backend.
     #[serde(default, rename = "includeRecaptchaScript")]
-    pub include_recaptcha_script: ::core::option::Option<serde_json::Value>,
+    pub include_recaptcha_script: ::core::option::Option<
+        GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction,
+    >,
     /// This action redirects the request to a reCAPTCHA interstitial to attach a token.
     #[serde(default)]
-    pub redirect: ::core::option::Option<serde_json::Value>,
+    pub redirect:
+        ::core::option::Option<GoogleCloudRecaptchaenterpriseV1FirewallActionRedirectAction>,
     /// This action sets a custom header but allow the request to continue to the customer backend.
     #[serde(default, rename = "setHeader")]
     pub set_header:
@@ -1070,6 +1070,30 @@ pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettingsChallengeSettings {
     #[serde(default, rename = "defaultSettings")]
     pub default_settings:
         ::core::option::Option<GoogleCloudRecaptchaenterpriseV1WebKeySettingsActionSettings>,
+}
+
+/// An allow action continues processing a request unimpeded.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction {
+    pub value: serde_json::Value,
+}
+
+/// A block action serves an HTTP error code a prevents the request from hitting the backend.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction {
+    pub value: serde_json::Value,
+}
+
+/// An include reCAPTCHA script action involves injecting reCAPTCHA JavaScript code into the HTML returned by the site backend. This reCAPTCHA script is tasked with collecting user signals on the requested web page, issuing tokens as a cookie within the site domain, and enabling their utilization in subsequent page requests.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction {
+    pub value: serde_json::Value,
+}
+
+/// A redirect action returns a 307 (temporary redirect) response, pointing the user to a reCAPTCHA interstitial page to attach a token.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionRedirectAction {
+    pub value: serde_json::Value,
 }
 
 /// A set header action sets a header and forwards the request to the backend. This can be used to trigger custom protection implemented on the backend.

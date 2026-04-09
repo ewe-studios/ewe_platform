@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -31,11 +32,11 @@ pub fn appengine_apps_create_builder(
     body: &Application,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://appengine.googleapis.com/v1/apps",);
+    let endpoint_url = format!("https://appengine.googleapis.com/v1/apps",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -67,7 +68,12 @@ pub fn appengine_apps_create_builder(
 pub fn appengine_apps_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -179,11 +185,14 @@ pub fn appengine_apps_create(
 
 pub fn appengine_apps_get_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    includeExtraData: Option<&str>,
+    appsId: String,
+    includeExtraData: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://appengine.googleapis.com/v1/apps/{}", appsId,);
+    let endpoint_url = format!(
+        "https://appengine.googleapis.com/v1/apps/{}",
+        appsId.as_str(),
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -192,9 +201,9 @@ pub fn appengine_apps_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -228,7 +237,12 @@ pub fn appengine_apps_get_builder(
 pub fn appengine_apps_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Application>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Application>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -331,7 +345,7 @@ pub fn appengine_apps_get(
     ApiError,
 > {
     let builder =
-        appengine_apps_get_builder(client, &args.appsId, args.includeExtraData.as_deref())?;
+        appengine_apps_get_builder(client, args.appsId.clone(), args.includeExtraData.clone())?;
     appengine_apps_get_execute(builder)
 }
 
@@ -343,13 +357,13 @@ pub fn appengine_apps_get(
 
 pub fn appengine_apps_list_runtimes_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    environment: Option<&str>,
+    appsId: String,
+    environment: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}:listRuntimes",
-        appsId,
+        appsId.as_str(),
     );
 
     // Build request
@@ -359,9 +373,9 @@ pub fn appengine_apps_list_runtimes_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -395,8 +409,11 @@ pub fn appengine_apps_list_runtimes_builder(
 pub fn appengine_apps_list_runtimes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListRuntimesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListRuntimesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -503,178 +520,12 @@ pub fn appengine_apps_list_runtimes(
         + 'static,
     ApiError,
 > {
-    let builder =
-        appengine_apps_list_runtimes_builder(client, &args.appsId, args.environment.as_deref())?;
+    let builder = appengine_apps_list_runtimes_builder(
+        client,
+        args.appsId.clone(),
+        args.environment.clone(),
+    )?;
     appengine_apps_list_runtimes_execute(builder)
-}
-
-/// GET v1/apps/{appsId}
-/// Updates the specified Application resource. You can update the following fields: auth_domain - Google authentication domain for controlling user access to the application. default_cookie_expiration - Cookie expiration policy for the application. iap - Identity-Aware Proxy properties for the application.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_patch_execute()` to send, or `appengine_apps_patch` for simplest API.
-
-pub fn appengine_apps_patch_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    updateMask: Option<&str>,
-    body: &Application,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!("https://appengine.googleapis.com/v1/apps/{}", appsId,);
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/apps/{appsId}
-/// Updates the specified Application resource. You can update the following fields: auth_domain - Google authentication domain for controlling user access to the application. default_cookie_expiration - Cookie expiration policy for the application. iap - Identity-Aware Proxy properties for the application.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_patch_execute()` or `appengine_apps_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}
-/// Updates the specified Application resource. You can update the following fields: auth_domain - Google authentication domain for controlling user access to the application. default_cookie_expiration - Cookie expiration policy for the application. iap - Identity-Aware Proxy properties for the application.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_patch_task()`.
-/// For the simplest API, use `appengine_apps_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsPatchArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Application,
-}
-
-/// GET v1/apps/{appsId}
-/// Updates the specified Application resource. You can update the following fields: auth_domain - Google authentication domain for controlling user access to the application. default_cookie_expiration - Cookie expiration policy for the application. iap - Identity-Aware Proxy properties for the application.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_patch_builder()` + `appengine_apps_patch_execute()`.
-/// For task-level control, use `appengine_apps_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_patch(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder =
-        appengine_apps_patch_builder(client, &args.appsId, args.updateMask.as_deref(), &args.body)?;
-    appengine_apps_patch_execute(builder)
 }
 
 /// GET v1/apps/{appsId}:repair
@@ -685,15 +536,18 @@ pub fn appengine_apps_patch(
 
 pub fn appengine_apps_repair_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
+    appsId: String,
     body: &RepairApplicationRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://appengine.googleapis.com/v1/apps/{}:repair", appsId,);
+    let endpoint_url = format!(
+        "https://appengine.googleapis.com/v1/apps/{}:repair",
+        appsId.as_str(),
+    );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -725,7 +579,12 @@ pub fn appengine_apps_repair_builder(
 pub fn appengine_apps_repair_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -827,7 +686,7 @@ pub fn appengine_apps_repair(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_repair_builder(client, &args.appsId, &args.body)?;
+    let builder = appengine_apps_repair_builder(client, args.appsId.clone(), &args.body)?;
     appengine_apps_repair_execute(builder)
 }
 
@@ -839,18 +698,18 @@ pub fn appengine_apps_repair(
 
 pub fn appengine_apps_authorized_certificates_create_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
+    appsId: String,
     body: &AuthorizedCertificate,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/authorizedCertificates",
-        appsId,
+        appsId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -882,8 +741,11 @@ pub fn appengine_apps_authorized_certificates_create_builder(
 pub fn appengine_apps_authorized_certificates_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AuthorizedCertificate>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -990,8 +852,11 @@ pub fn appengine_apps_authorized_certificates_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        appengine_apps_authorized_certificates_create_builder(client, &args.appsId, &args.body)?;
+    let builder = appengine_apps_authorized_certificates_create_builder(
+        client,
+        args.appsId.clone(),
+        &args.body,
+    )?;
     appengine_apps_authorized_certificates_create_execute(builder)
 }
 
@@ -1003,18 +868,19 @@ pub fn appengine_apps_authorized_certificates_create(
 
 pub fn appengine_apps_authorized_certificates_delete_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    authorizedCertificatesId: &str,
+    appsId: String,
+    authorizedCertificatesId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/authorizedCertificates/{}",
-        appsId, authorizedCertificatesId,
+        appsId.as_str(),
+        authorizedCertificatesId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -1044,7 +910,12 @@ pub fn appengine_apps_authorized_certificates_delete_builder(
 pub fn appengine_apps_authorized_certificates_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1148,572 +1019,10 @@ pub fn appengine_apps_authorized_certificates_delete(
 > {
     let builder = appengine_apps_authorized_certificates_delete_builder(
         client,
-        &args.appsId,
-        &args.authorizedCertificatesId,
+        args.appsId.clone(),
+        args.authorizedCertificatesId.clone(),
     )?;
     appengine_apps_authorized_certificates_delete_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Gets the specified SSL certificate.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_authorized_certificates_get_execute()` to send, or `appengine_apps_authorized_certificates_get` for simplest API.
-
-pub fn appengine_apps_authorized_certificates_get_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    authorizedCertificatesId: &str,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/authorizedCertificates/{}",
-        appsId, authorizedCertificatesId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/apps/{appsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Gets the specified SSL certificate.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_authorized_certificates_get_execute()` or `appengine_apps_authorized_certificates_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_authorized_certificates_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_authorized_certificates_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AuthorizedCertificate = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Gets the specified SSL certificate.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_authorized_certificates_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_authorized_certificates_get_task()`.
-/// For the simplest API, use `appengine_apps_authorized_certificates_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_authorized_certificates_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_authorized_certificates_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_authorized_certificates_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_authorized_certificates_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsAuthorizedCertificatesGetArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Path parameter: authorizedCertificatesId
-    pub authorizedCertificatesId: String,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v1/apps/{appsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Gets the specified SSL certificate.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_authorized_certificates_get_builder()` + `appengine_apps_authorized_certificates_get_execute()`.
-/// For task-level control, use `appengine_apps_authorized_certificates_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_authorized_certificates_get(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsAuthorizedCertificatesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = appengine_apps_authorized_certificates_get_builder(
-        client,
-        &args.appsId,
-        &args.authorizedCertificatesId,
-        args.view.as_deref(),
-    )?;
-    appengine_apps_authorized_certificates_get_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/authorizedCertificates
-/// Lists all SSL certificates the user is authorized to administer.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_authorized_certificates_list_execute()` to send, or `appengine_apps_authorized_certificates_list` for simplest API.
-
-pub fn appengine_apps_authorized_certificates_list_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/authorizedCertificates",
-        appsId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/apps/{appsId}/authorizedCertificates
-/// Lists all SSL certificates the user is authorized to administer.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_authorized_certificates_list_execute()` or `appengine_apps_authorized_certificates_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_authorized_certificates_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_authorized_certificates_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListAuthorizedCertificatesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListAuthorizedCertificatesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/authorizedCertificates
-/// Lists all SSL certificates the user is authorized to administer.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_authorized_certificates_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_authorized_certificates_list_task()`.
-/// For the simplest API, use `appengine_apps_authorized_certificates_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_authorized_certificates_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_authorized_certificates_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListAuthorizedCertificatesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_authorized_certificates_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_authorized_certificates_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsAuthorizedCertificatesListArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v1/apps/{appsId}/authorizedCertificates
-/// Lists all SSL certificates the user is authorized to administer.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_authorized_certificates_list_builder()` + `appengine_apps_authorized_certificates_list_execute()`.
-/// For task-level control, use `appengine_apps_authorized_certificates_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_authorized_certificates_list(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsAuthorizedCertificatesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListAuthorizedCertificatesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = appengine_apps_authorized_certificates_list_builder(
-        client,
-        &args.appsId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.view.as_deref(),
-    )?;
-    appengine_apps_authorized_certificates_list_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Updates the specified SSL certificate. To renew a certificate and maintain its existing domain mappings, update certificate_data with a new certificate. The new certificate must be applicable to the same domains as the original certificate. The certificate display_name may also be updated.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_authorized_certificates_patch_execute()` to send, or `appengine_apps_authorized_certificates_patch` for simplest API.
-
-pub fn appengine_apps_authorized_certificates_patch_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    authorizedCertificatesId: &str,
-    updateMask: Option<&str>,
-    body: &AuthorizedCertificate,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/authorizedCertificates/{}",
-        appsId, authorizedCertificatesId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/apps/{appsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Updates the specified SSL certificate. To renew a certificate and maintain its existing domain mappings, update certificate_data with a new certificate. The new certificate must be applicable to the same domains as the original certificate. The certificate display_name may also be updated.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_authorized_certificates_patch_execute()` or `appengine_apps_authorized_certificates_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_authorized_certificates_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_authorized_certificates_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AuthorizedCertificate = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Updates the specified SSL certificate. To renew a certificate and maintain its existing domain mappings, update certificate_data with a new certificate. The new certificate must be applicable to the same domains as the original certificate. The certificate display_name may also be updated.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_authorized_certificates_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_authorized_certificates_patch_task()`.
-/// For the simplest API, use `appengine_apps_authorized_certificates_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_authorized_certificates_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_authorized_certificates_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_authorized_certificates_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_authorized_certificates_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsAuthorizedCertificatesPatchArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Path parameter: authorizedCertificatesId
-    pub authorizedCertificatesId: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: AuthorizedCertificate,
-}
-
-/// GET v1/apps/{appsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Updates the specified SSL certificate. To renew a certificate and maintain its existing domain mappings, update certificate_data with a new certificate. The new certificate must be applicable to the same domains as the original certificate. The certificate display_name may also be updated.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_authorized_certificates_patch_builder()` + `appengine_apps_authorized_certificates_patch_execute()`.
-/// For task-level control, use `appengine_apps_authorized_certificates_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_authorized_certificates_patch(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsAuthorizedCertificatesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = appengine_apps_authorized_certificates_patch_builder(
-        client,
-        &args.appsId,
-        &args.authorizedCertificatesId,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    appengine_apps_authorized_certificates_patch_execute(builder)
 }
 
 /// GET v1/apps/{appsId}/authorizedDomains
@@ -1724,14 +1033,14 @@ pub fn appengine_apps_authorized_certificates_patch(
 
 pub fn appengine_apps_authorized_domains_list_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
+    appsId: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/authorizedDomains",
-        appsId,
+        appsId.as_str(),
     );
 
     // Build request
@@ -1744,9 +1053,9 @@ pub fn appengine_apps_authorized_domains_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1781,8 +1090,9 @@ pub fn appengine_apps_authorized_domains_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListAuthorizedDomainsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListAuthorizedDomainsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -1898,9 +1208,9 @@ pub fn appengine_apps_authorized_domains_list(
 > {
     let builder = appengine_apps_authorized_domains_list_builder(
         client,
-        &args.appsId,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.appsId.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     appengine_apps_authorized_domains_list_execute(builder)
 }
@@ -1913,14 +1223,14 @@ pub fn appengine_apps_authorized_domains_list(
 
 pub fn appengine_apps_domain_mappings_create_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    overrideStrategy: Option<&str>,
+    appsId: String,
+    overrideStrategy: Option<String>,
     body: &DomainMapping,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/domainMappings",
-        appsId,
+        appsId.as_str(),
     );
 
     // Build request
@@ -1930,9 +1240,9 @@ pub fn appengine_apps_domain_mappings_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1968,7 +1278,12 @@ pub fn appengine_apps_domain_mappings_create_builder(
 pub fn appengine_apps_domain_mappings_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2074,8 +1389,8 @@ pub fn appengine_apps_domain_mappings_create(
 > {
     let builder = appengine_apps_domain_mappings_create_builder(
         client,
-        &args.appsId,
-        args.overrideStrategy.as_deref(),
+        args.appsId.clone(),
+        args.overrideStrategy.clone(),
         &args.body,
     )?;
     appengine_apps_domain_mappings_create_execute(builder)
@@ -2089,18 +1404,19 @@ pub fn appengine_apps_domain_mappings_create(
 
 pub fn appengine_apps_domain_mappings_delete_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    domainMappingsId: &str,
+    appsId: String,
+    domainMappingsId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/domainMappings/{}",
-        appsId, domainMappingsId,
+        appsId.as_str(),
+        domainMappingsId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -2130,7 +1446,12 @@ pub fn appengine_apps_domain_mappings_delete_builder(
 pub fn appengine_apps_domain_mappings_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -2234,537 +1555,10 @@ pub fn appengine_apps_domain_mappings_delete(
 > {
     let builder = appengine_apps_domain_mappings_delete_builder(
         client,
-        &args.appsId,
-        &args.domainMappingsId,
+        args.appsId.clone(),
+        args.domainMappingsId.clone(),
     )?;
     appengine_apps_domain_mappings_delete_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/domainMappings/{domainMappingsId}
-/// Gets the specified domain mapping.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_domain_mappings_get_execute()` to send, or `appengine_apps_domain_mappings_get` for simplest API.
-
-pub fn appengine_apps_domain_mappings_get_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    domainMappingsId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/domainMappings/{}",
-        appsId, domainMappingsId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/apps/{appsId}/domainMappings/{domainMappingsId}
-/// Gets the specified domain mapping.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_domain_mappings_get_execute()` or `appengine_apps_domain_mappings_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_domain_mappings_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_domain_mappings_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DomainMapping>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: DomainMapping = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/domainMappings/{domainMappingsId}
-/// Gets the specified domain mapping.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_domain_mappings_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_domain_mappings_get_task()`.
-/// For the simplest API, use `appengine_apps_domain_mappings_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_domain_mappings_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_domain_mappings_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DomainMapping>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_domain_mappings_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_domain_mappings_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsDomainMappingsGetArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Path parameter: domainMappingsId
-    pub domainMappingsId: String,
-}
-
-/// GET v1/apps/{appsId}/domainMappings/{domainMappingsId}
-/// Gets the specified domain mapping.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_domain_mappings_get_builder()` + `appengine_apps_domain_mappings_get_execute()`.
-/// For task-level control, use `appengine_apps_domain_mappings_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_domain_mappings_get(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsDomainMappingsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DomainMapping>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        appengine_apps_domain_mappings_get_builder(client, &args.appsId, &args.domainMappingsId)?;
-    appengine_apps_domain_mappings_get_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/domainMappings
-/// Lists the domain mappings on an application.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_domain_mappings_list_execute()` to send, or `appengine_apps_domain_mappings_list` for simplest API.
-
-pub fn appengine_apps_domain_mappings_list_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/domainMappings",
-        appsId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/apps/{appsId}/domainMappings
-/// Lists the domain mappings on an application.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_domain_mappings_list_execute()` or `appengine_apps_domain_mappings_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_domain_mappings_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_domain_mappings_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListDomainMappingsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListDomainMappingsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/domainMappings
-/// Lists the domain mappings on an application.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_domain_mappings_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_domain_mappings_list_task()`.
-/// For the simplest API, use `appengine_apps_domain_mappings_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_domain_mappings_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_domain_mappings_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListDomainMappingsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_domain_mappings_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_domain_mappings_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsDomainMappingsListArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/apps/{appsId}/domainMappings
-/// Lists the domain mappings on an application.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_domain_mappings_list_builder()` + `appengine_apps_domain_mappings_list_execute()`.
-/// For task-level control, use `appengine_apps_domain_mappings_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_domain_mappings_list(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsDomainMappingsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListDomainMappingsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = appengine_apps_domain_mappings_list_builder(
-        client,
-        &args.appsId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    appengine_apps_domain_mappings_list_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/domainMappings/{domainMappingsId}
-/// Updates the specified domain mapping. To map an SSL certificate to a domain mapping, update certificate_id to point to an AuthorizedCertificate resource. A user must be authorized to administer the associated domain in order to update a DomainMapping resource.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_domain_mappings_patch_execute()` to send, or `appengine_apps_domain_mappings_patch` for simplest API.
-
-pub fn appengine_apps_domain_mappings_patch_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    domainMappingsId: &str,
-    updateMask: Option<&str>,
-    body: &DomainMapping,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/domainMappings/{}",
-        appsId, domainMappingsId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/apps/{appsId}/domainMappings/{domainMappingsId}
-/// Updates the specified domain mapping. To map an SSL certificate to a domain mapping, update certificate_id to point to an AuthorizedCertificate resource. A user must be authorized to administer the associated domain in order to update a DomainMapping resource.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_domain_mappings_patch_execute()` or `appengine_apps_domain_mappings_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_domain_mappings_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_domain_mappings_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/domainMappings/{domainMappingsId}
-/// Updates the specified domain mapping. To map an SSL certificate to a domain mapping, update certificate_id to point to an AuthorizedCertificate resource. A user must be authorized to administer the associated domain in order to update a DomainMapping resource.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_domain_mappings_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_domain_mappings_patch_task()`.
-/// For the simplest API, use `appengine_apps_domain_mappings_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_domain_mappings_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_domain_mappings_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_domain_mappings_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_domain_mappings_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsDomainMappingsPatchArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Path parameter: domainMappingsId
-    pub domainMappingsId: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: DomainMapping,
-}
-
-/// GET v1/apps/{appsId}/domainMappings/{domainMappingsId}
-/// Updates the specified domain mapping. To map an SSL certificate to a domain mapping, update certificate_id to point to an AuthorizedCertificate resource. A user must be authorized to administer the associated domain in order to update a DomainMapping resource.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_domain_mappings_patch_builder()` + `appengine_apps_domain_mappings_patch_execute()`.
-/// For task-level control, use `appengine_apps_domain_mappings_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_domain_mappings_patch(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsDomainMappingsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = appengine_apps_domain_mappings_patch_builder(
-        client,
-        &args.appsId,
-        &args.domainMappingsId,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    appengine_apps_domain_mappings_patch_execute(builder)
 }
 
 /// GET v1/apps/{appsId}/firewall/ingressRules:batchUpdate
@@ -2775,18 +1569,18 @@ pub fn appengine_apps_domain_mappings_patch(
 
 pub fn appengine_apps_firewall_ingress_rules_batch_update_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
+    appsId: String,
     body: &BatchUpdateIngressRulesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules:batchUpdate",
-        appsId,
+        appsId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2819,8 +1613,9 @@ pub fn appengine_apps_firewall_ingress_rules_batch_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<BatchUpdateIngressRulesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<BatchUpdateIngressRulesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -2934,7 +1729,7 @@ pub fn appengine_apps_firewall_ingress_rules_batch_update(
 > {
     let builder = appengine_apps_firewall_ingress_rules_batch_update_builder(
         client,
-        &args.appsId,
+        args.appsId.clone(),
         &args.body,
     )?;
     appengine_apps_firewall_ingress_rules_batch_update_execute(builder)
@@ -2948,18 +1743,18 @@ pub fn appengine_apps_firewall_ingress_rules_batch_update(
 
 pub fn appengine_apps_firewall_ingress_rules_create_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
+    appsId: String,
     body: &FirewallRule,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules",
-        appsId,
+        appsId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2991,7 +1786,12 @@ pub fn appengine_apps_firewall_ingress_rules_create_builder(
 pub fn appengine_apps_firewall_ingress_rules_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FirewallRule>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<FirewallRule>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3097,8 +1897,11 @@ pub fn appengine_apps_firewall_ingress_rules_create(
         + 'static,
     ApiError,
 > {
-    let builder =
-        appengine_apps_firewall_ingress_rules_create_builder(client, &args.appsId, &args.body)?;
+    let builder = appengine_apps_firewall_ingress_rules_create_builder(
+        client,
+        args.appsId.clone(),
+        &args.body,
+    )?;
     appengine_apps_firewall_ingress_rules_create_execute(builder)
 }
 
@@ -3110,18 +1913,19 @@ pub fn appengine_apps_firewall_ingress_rules_create(
 
 pub fn appengine_apps_firewall_ingress_rules_delete_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    ingressRulesId: &str,
+    appsId: String,
+    ingressRulesId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules/{}",
-        appsId, ingressRulesId,
+        appsId.as_str(),
+        ingressRulesId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3151,7 +1955,12 @@ pub fn appengine_apps_firewall_ingress_rules_delete_builder(
 pub fn appengine_apps_firewall_ingress_rules_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3255,547 +2064,10 @@ pub fn appengine_apps_firewall_ingress_rules_delete(
 > {
     let builder = appengine_apps_firewall_ingress_rules_delete_builder(
         client,
-        &args.appsId,
-        &args.ingressRulesId,
+        args.appsId.clone(),
+        args.ingressRulesId.clone(),
     )?;
     appengine_apps_firewall_ingress_rules_delete_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/firewall/ingressRules/{ingressRulesId}
-/// Gets the specified firewall rule.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_firewall_ingress_rules_get_execute()` to send, or `appengine_apps_firewall_ingress_rules_get` for simplest API.
-
-pub fn appengine_apps_firewall_ingress_rules_get_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    ingressRulesId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules/{}",
-        appsId, ingressRulesId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/apps/{appsId}/firewall/ingressRules/{ingressRulesId}
-/// Gets the specified firewall rule.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_firewall_ingress_rules_get_execute()` or `appengine_apps_firewall_ingress_rules_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_firewall_ingress_rules_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_firewall_ingress_rules_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FirewallRule>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FirewallRule = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/firewall/ingressRules/{ingressRulesId}
-/// Gets the specified firewall rule.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_firewall_ingress_rules_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_firewall_ingress_rules_get_task()`.
-/// For the simplest API, use `appengine_apps_firewall_ingress_rules_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_firewall_ingress_rules_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_firewall_ingress_rules_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FirewallRule>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_firewall_ingress_rules_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_firewall_ingress_rules_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsFirewallIngressRulesGetArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Path parameter: ingressRulesId
-    pub ingressRulesId: String,
-}
-
-/// GET v1/apps/{appsId}/firewall/ingressRules/{ingressRulesId}
-/// Gets the specified firewall rule.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_firewall_ingress_rules_get_builder()` + `appengine_apps_firewall_ingress_rules_get_execute()`.
-/// For task-level control, use `appengine_apps_firewall_ingress_rules_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_firewall_ingress_rules_get(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsFirewallIngressRulesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FirewallRule>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = appengine_apps_firewall_ingress_rules_get_builder(
-        client,
-        &args.appsId,
-        &args.ingressRulesId,
-    )?;
-    appengine_apps_firewall_ingress_rules_get_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/firewall/ingressRules
-/// Lists the firewall rules of an application.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_firewall_ingress_rules_list_execute()` to send, or `appengine_apps_firewall_ingress_rules_list` for simplest API.
-
-pub fn appengine_apps_firewall_ingress_rules_list_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    matchingAddress: Option<&str>,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules",
-        appsId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = matchingAddress {
-        query_parts.push(format!("matchingAddress={}", val));
-    }
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/apps/{appsId}/firewall/ingressRules
-/// Lists the firewall rules of an application.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_firewall_ingress_rules_list_execute()` or `appengine_apps_firewall_ingress_rules_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_firewall_ingress_rules_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_firewall_ingress_rules_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListIngressRulesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListIngressRulesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/firewall/ingressRules
-/// Lists the firewall rules of an application.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_firewall_ingress_rules_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_firewall_ingress_rules_list_task()`.
-/// For the simplest API, use `appengine_apps_firewall_ingress_rules_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_firewall_ingress_rules_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_firewall_ingress_rules_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListIngressRulesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_firewall_ingress_rules_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_firewall_ingress_rules_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsFirewallIngressRulesListArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Query parameter: matchingAddress
-    pub matchingAddress: Option<String>,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/apps/{appsId}/firewall/ingressRules
-/// Lists the firewall rules of an application.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_firewall_ingress_rules_list_builder()` + `appengine_apps_firewall_ingress_rules_list_execute()`.
-/// For task-level control, use `appengine_apps_firewall_ingress_rules_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_firewall_ingress_rules_list(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsFirewallIngressRulesListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListIngressRulesResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = appengine_apps_firewall_ingress_rules_list_builder(
-        client,
-        &args.appsId,
-        args.matchingAddress.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    appengine_apps_firewall_ingress_rules_list_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/firewall/ingressRules/{ingressRulesId}
-/// Updates the specified firewall rule.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_firewall_ingress_rules_patch_execute()` to send, or `appengine_apps_firewall_ingress_rules_patch` for simplest API.
-
-pub fn appengine_apps_firewall_ingress_rules_patch_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    ingressRulesId: &str,
-    updateMask: Option<&str>,
-    body: &FirewallRule,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/firewall/ingressRules/{}",
-        appsId, ingressRulesId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/apps/{appsId}/firewall/ingressRules/{ingressRulesId}
-/// Updates the specified firewall rule.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_firewall_ingress_rules_patch_execute()` or `appengine_apps_firewall_ingress_rules_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_firewall_ingress_rules_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_firewall_ingress_rules_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<FirewallRule>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: FirewallRule = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/firewall/ingressRules/{ingressRulesId}
-/// Updates the specified firewall rule.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_firewall_ingress_rules_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_firewall_ingress_rules_patch_task()`.
-/// For the simplest API, use `appengine_apps_firewall_ingress_rules_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_firewall_ingress_rules_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_firewall_ingress_rules_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FirewallRule>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_firewall_ingress_rules_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_firewall_ingress_rules_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsFirewallIngressRulesPatchArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Path parameter: ingressRulesId
-    pub ingressRulesId: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: FirewallRule,
-}
-
-/// GET v1/apps/{appsId}/firewall/ingressRules/{ingressRulesId}
-/// Updates the specified firewall rule.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_firewall_ingress_rules_patch_builder()` + `appengine_apps_firewall_ingress_rules_patch_execute()`.
-/// For task-level control, use `appengine_apps_firewall_ingress_rules_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_firewall_ingress_rules_patch(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsFirewallIngressRulesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<FirewallRule>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = appengine_apps_firewall_ingress_rules_patch_builder(
-        client,
-        &args.appsId,
-        &args.ingressRulesId,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    appengine_apps_firewall_ingress_rules_patch_execute(builder)
 }
 
 /// GET v1/apps/{appsId}/locations/{locationsId}
@@ -3806,18 +2078,19 @@ pub fn appengine_apps_firewall_ingress_rules_patch(
 
 pub fn appengine_apps_locations_get_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    locationsId: &str,
+    appsId: String,
+    locationsId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/locations/{}",
-        appsId, locationsId,
+        appsId.as_str(),
+        locationsId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -3847,7 +2120,12 @@ pub fn appengine_apps_locations_get_builder(
 pub fn appengine_apps_locations_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Location>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -3949,7 +2227,11 @@ pub fn appengine_apps_locations_get(
     impl StreamIterator<D = Result<ApiResponse<Location>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_locations_get_builder(client, &args.appsId, &args.locationsId)?;
+    let builder = appengine_apps_locations_get_builder(
+        client,
+        args.appsId.clone(),
+        args.locationsId.clone(),
+    )?;
     appengine_apps_locations_get_execute(builder)
 }
 
@@ -3961,16 +2243,16 @@ pub fn appengine_apps_locations_get(
 
 pub fn appengine_apps_locations_list_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    extraLocationTypes: Option<&str>,
-    filter: Option<&str>,
+    appsId: String,
+    extraLocationTypes: Option<String>,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/locations",
-        appsId,
+        appsId.as_str(),
     );
 
     // Build request
@@ -3989,9 +2271,9 @@ pub fn appengine_apps_locations_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4025,8 +2307,11 @@ pub fn appengine_apps_locations_list_builder(
 pub fn appengine_apps_locations_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListLocationsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListLocationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4141,11 +2426,11 @@ pub fn appengine_apps_locations_list(
 > {
     let builder = appengine_apps_locations_list_builder(
         client,
-        &args.appsId,
-        args.extraLocationTypes.as_deref(),
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.appsId.clone(),
+        args.extraLocationTypes.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     appengine_apps_locations_list_execute(builder)
 }
@@ -4158,18 +2443,19 @@ pub fn appengine_apps_locations_list(
 
 pub fn appengine_apps_operations_get_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    operationsId: &str,
+    appsId: String,
+    operationsId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/operations/{}",
-        appsId, operationsId,
+        appsId.as_str(),
+        operationsId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4199,7 +2485,12 @@ pub fn appengine_apps_operations_get_builder(
 pub fn appengine_apps_operations_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4301,7 +2592,11 @@ pub fn appengine_apps_operations_get(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_operations_get_builder(client, &args.appsId, &args.operationsId)?;
+    let builder = appengine_apps_operations_get_builder(
+        client,
+        args.appsId.clone(),
+        args.operationsId.clone(),
+    )?;
     appengine_apps_operations_get_execute(builder)
 }
 
@@ -4313,16 +2608,16 @@ pub fn appengine_apps_operations_get(
 
 pub fn appengine_apps_operations_list_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    filter: Option<&str>,
+    appsId: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
     returnPartialSuccess: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/operations",
-        appsId,
+        appsId.as_str(),
     );
 
     // Build request
@@ -4341,9 +2636,9 @@ pub fn appengine_apps_operations_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4377,8 +2672,11 @@ pub fn appengine_apps_operations_list_builder(
 pub fn appengine_apps_operations_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListOperationsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListOperationsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4493,11 +2791,11 @@ pub fn appengine_apps_operations_list(
 > {
     let builder = appengine_apps_operations_list_builder(
         client,
-        &args.appsId,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.returnPartialSuccess,
+        args.appsId.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
+        args.returnPartialSuccess.clone(),
     )?;
     appengine_apps_operations_list_execute(builder)
 }
@@ -4510,18 +2808,19 @@ pub fn appengine_apps_operations_list(
 
 pub fn appengine_apps_services_delete_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
+    appsId: String,
+    servicesId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}",
-        appsId, servicesId,
+        appsId.as_str(),
+        servicesId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -4551,7 +2850,12 @@ pub fn appengine_apps_services_delete_builder(
 pub fn appengine_apps_services_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -4653,163 +2957,12 @@ pub fn appengine_apps_services_delete(
     impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = appengine_apps_services_delete_builder(client, &args.appsId, &args.servicesId)?;
+    let builder = appengine_apps_services_delete_builder(
+        client,
+        args.appsId.clone(),
+        args.servicesId.clone(),
+    )?;
     appengine_apps_services_delete_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}
-/// Gets the current configuration of the specified service.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_services_get_execute()` to send, or `appengine_apps_services_get` for simplest API.
-
-pub fn appengine_apps_services_get_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/services/{}",
-        appsId, servicesId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}
-/// Gets the current configuration of the specified service.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_services_get_execute()` or `appengine_apps_services_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_services_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_services_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Service = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}
-/// Gets the current configuration of the specified service.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_services_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_services_get_task()`.
-/// For the simplest API, use `appengine_apps_services_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_services_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_services_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_services_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_services_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsServicesGetArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Path parameter: servicesId
-    pub servicesId: String,
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}
-/// Gets the current configuration of the specified service.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_services_get_builder()` + `appengine_apps_services_get_execute()`.
-/// For task-level control, use `appengine_apps_services_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_services_get(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsServicesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Service>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = appengine_apps_services_get_builder(client, &args.appsId, &args.servicesId)?;
-    appengine_apps_services_get_execute(builder)
 }
 
 /// GET v1/apps/{appsId}/services
@@ -4820,14 +2973,14 @@ pub fn appengine_apps_services_get(
 
 pub fn appengine_apps_services_list_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
+    appsId: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services",
-        appsId,
+        appsId.as_str(),
     );
 
     // Build request
@@ -4840,9 +2993,9 @@ pub fn appengine_apps_services_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -4876,8 +3029,11 @@ pub fn appengine_apps_services_list_builder(
 pub fn appengine_apps_services_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListServicesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListServicesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -4988,198 +3144,11 @@ pub fn appengine_apps_services_list(
 > {
     let builder = appengine_apps_services_list_builder(
         client,
-        &args.appsId,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.appsId.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     appengine_apps_services_list_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}
-/// Updates the configuration of the specified service.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_services_patch_execute()` to send, or `appengine_apps_services_patch` for simplest API.
-
-pub fn appengine_apps_services_patch_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    migrateTraffic: Option<bool>,
-    updateMask: Option<&str>,
-    body: &Service,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/services/{}",
-        appsId, servicesId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = migrateTraffic {
-        query_parts.push(format!("migrateTraffic={}", val));
-    }
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}
-/// Updates the configuration of the specified service.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_services_patch_execute()` or `appengine_apps_services_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_services_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_services_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}
-/// Updates the configuration of the specified service.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_services_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_services_patch_task()`.
-/// For the simplest API, use `appengine_apps_services_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_services_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_services_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_services_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_services_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsServicesPatchArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Path parameter: servicesId
-    pub servicesId: String,
-    /// Query parameter: migrateTraffic
-    pub migrateTraffic: Option<bool>,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Service,
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}
-/// Updates the configuration of the specified service.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_services_patch_builder()` + `appengine_apps_services_patch_execute()`.
-/// For task-level control, use `appengine_apps_services_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_services_patch(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsServicesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = appengine_apps_services_patch_builder(
-        client,
-        &args.appsId,
-        &args.servicesId,
-        args.migrateTraffic,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    appengine_apps_services_patch_execute(builder)
 }
 
 /// GET v1/apps/{appsId}/services/{servicesId}/versions
@@ -5190,19 +3159,20 @@ pub fn appengine_apps_services_patch(
 
 pub fn appengine_apps_services_versions_create_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
+    appsId: String,
+    servicesId: String,
     body: &Version,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions",
-        appsId, servicesId,
+        appsId.as_str(),
+        servicesId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5234,7 +3204,12 @@ pub fn appengine_apps_services_versions_create_builder(
 pub fn appengine_apps_services_versions_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5340,8 +3315,8 @@ pub fn appengine_apps_services_versions_create(
 > {
     let builder = appengine_apps_services_versions_create_builder(
         client,
-        &args.appsId,
-        &args.servicesId,
+        args.appsId.clone(),
+        args.servicesId.clone(),
         &args.body,
     )?;
     appengine_apps_services_versions_create_execute(builder)
@@ -5355,19 +3330,21 @@ pub fn appengine_apps_services_versions_create(
 
 pub fn appengine_apps_services_versions_delete_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
+    appsId: String,
+    servicesId: String,
+    versionsId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}",
-        appsId, servicesId, versionsId,
+        appsId.as_str(),
+        servicesId.as_str(),
+        versionsId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -5397,7 +3374,12 @@ pub fn appengine_apps_services_versions_delete_builder(
 pub fn appengine_apps_services_versions_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5503,9 +3485,9 @@ pub fn appengine_apps_services_versions_delete(
 > {
     let builder = appengine_apps_services_versions_delete_builder(
         client,
-        &args.appsId,
-        &args.servicesId,
-        &args.versionsId,
+        args.appsId.clone(),
+        args.servicesId.clone(),
+        args.versionsId.clone(),
     )?;
     appengine_apps_services_versions_delete_execute(builder)
 }
@@ -5518,20 +3500,22 @@ pub fn appengine_apps_services_versions_delete(
 
 pub fn appengine_apps_services_versions_export_app_image_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
+    appsId: String,
+    servicesId: String,
+    versionsId: String,
     body: &ExportAppImageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}:exportAppImage",
-        appsId, servicesId, versionsId,
+        appsId.as_str(),
+        servicesId.as_str(),
+        versionsId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -5563,7 +3547,12 @@ pub fn appengine_apps_services_versions_export_app_image_builder(
 pub fn appengine_apps_services_versions_export_app_image_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -5671,568 +3660,12 @@ pub fn appengine_apps_services_versions_export_app_image(
 > {
     let builder = appengine_apps_services_versions_export_app_image_builder(
         client,
-        &args.appsId,
-        &args.servicesId,
-        &args.versionsId,
+        args.appsId.clone(),
+        args.servicesId.clone(),
+        args.versionsId.clone(),
         &args.body,
     )?;
     appengine_apps_services_versions_export_app_image_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}
-/// Gets the specified Version resource. By default, only a BASIC_VIEW will be returned. Specify the FULL_VIEW parameter to get the full resource.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_services_versions_get_execute()` to send, or `appengine_apps_services_versions_get` for simplest API.
-
-pub fn appengine_apps_services_versions_get_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}",
-        appsId, servicesId, versionsId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}
-/// Gets the specified Version resource. By default, only a BASIC_VIEW will be returned. Specify the FULL_VIEW parameter to get the full resource.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_services_versions_get_execute()` or `appengine_apps_services_versions_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_services_versions_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_services_versions_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Version = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}
-/// Gets the specified Version resource. By default, only a BASIC_VIEW will be returned. Specify the FULL_VIEW parameter to get the full resource.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_services_versions_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_services_versions_get_task()`.
-/// For the simplest API, use `appengine_apps_services_versions_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_services_versions_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_services_versions_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_services_versions_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_services_versions_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsServicesVersionsGetArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Path parameter: servicesId
-    pub servicesId: String,
-    /// Path parameter: versionsId
-    pub versionsId: String,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}
-/// Gets the specified Version resource. By default, only a BASIC_VIEW will be returned. Specify the FULL_VIEW parameter to get the full resource.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_services_versions_get_builder()` + `appengine_apps_services_versions_get_execute()`.
-/// For task-level control, use `appengine_apps_services_versions_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_services_versions_get(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsServicesVersionsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Version>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = appengine_apps_services_versions_get_builder(
-        client,
-        &args.appsId,
-        &args.servicesId,
-        &args.versionsId,
-        args.view.as_deref(),
-    )?;
-    appengine_apps_services_versions_get_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions
-/// Lists the versions of a service.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_services_versions_list_execute()` to send, or `appengine_apps_services_versions_list` for simplest API.
-
-pub fn appengine_apps_services_versions_list_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions",
-        appsId, servicesId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions
-/// Lists the versions of a service.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_services_versions_list_execute()` or `appengine_apps_services_versions_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_services_versions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_services_versions_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListVersionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListVersionsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions
-/// Lists the versions of a service.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_services_versions_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_services_versions_list_task()`.
-/// For the simplest API, use `appengine_apps_services_versions_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_services_versions_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_services_versions_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListVersionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_services_versions_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_services_versions_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsServicesVersionsListArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Path parameter: servicesId
-    pub servicesId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions
-/// Lists the versions of a service.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_services_versions_list_builder()` + `appengine_apps_services_versions_list_execute()`.
-/// For task-level control, use `appengine_apps_services_versions_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_services_versions_list(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsServicesVersionsListArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListVersionsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = appengine_apps_services_versions_list_builder(
-        client,
-        &args.appsId,
-        &args.servicesId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.view.as_deref(),
-    )?;
-    appengine_apps_services_versions_list_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}
-/// Updates the specified Version resource. You can specify the following fields depending on the App Engine environment and type of scaling that the version resource uses:Standard environment instance_class (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.instance_class>)automatic scaling in the standard environment: automatic_scaling.min_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) `automaticScaling`.standard_scheduler_settings.max_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.min_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_cpu_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_throughput_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>)basic scaling or manual scaling in the standard environment: serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>) manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)Flexible environment serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>)automatic scaling in the flexible environment: automatic_scaling.min_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cool_down_period_sec (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cpu_utilization.target_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>)manual scaling in the flexible environment: manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_services_versions_patch_execute()` to send, or `appengine_apps_services_versions_patch` for simplest API.
-
-pub fn appengine_apps_services_versions_patch_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    updateMask: Option<&str>,
-    body: &Version,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}",
-        appsId, servicesId, versionsId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}
-/// Updates the specified Version resource. You can specify the following fields depending on the App Engine environment and type of scaling that the version resource uses:Standard environment instance_class (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.instance_class>)automatic scaling in the standard environment: automatic_scaling.min_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) `automaticScaling`.standard_scheduler_settings.max_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.min_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_cpu_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_throughput_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>)basic scaling or manual scaling in the standard environment: serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>) manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)Flexible environment serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>)automatic scaling in the flexible environment: automatic_scaling.min_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cool_down_period_sec (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cpu_utilization.target_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>)manual scaling in the flexible environment: manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_services_versions_patch_execute()` or `appengine_apps_services_versions_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_services_versions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_services_versions_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}
-/// Updates the specified Version resource. You can specify the following fields depending on the App Engine environment and type of scaling that the version resource uses:Standard environment instance_class (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.instance_class>)automatic scaling in the standard environment: automatic_scaling.min_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) `automaticScaling`.standard_scheduler_settings.max_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.min_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_cpu_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_throughput_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>)basic scaling or manual scaling in the standard environment: serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>) manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)Flexible environment serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>)automatic scaling in the flexible environment: automatic_scaling.min_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cool_down_period_sec (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cpu_utilization.target_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>)manual scaling in the flexible environment: manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_services_versions_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_services_versions_patch_task()`.
-/// For the simplest API, use `appengine_apps_services_versions_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_services_versions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_services_versions_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_services_versions_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_services_versions_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsServicesVersionsPatchArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Path parameter: servicesId
-    pub servicesId: String,
-    /// Path parameter: versionsId
-    pub versionsId: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Version,
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}
-/// Updates the specified Version resource. You can specify the following fields depending on the App Engine environment and type of scaling that the version resource uses:Standard environment instance_class (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.instance_class>)automatic scaling in the standard environment: automatic_scaling.min_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) `automaticScaling`.standard_scheduler_settings.max_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.min_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_cpu_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_throughput_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>)basic scaling or manual scaling in the standard environment: serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>) manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)Flexible environment serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>)automatic scaling in the flexible environment: automatic_scaling.min_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cool_down_period_sec (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cpu_utilization.target_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>)manual scaling in the flexible environment: manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_services_versions_patch_builder()` + `appengine_apps_services_versions_patch_execute()`.
-/// For task-level control, use `appengine_apps_services_versions_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_services_versions_patch(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsServicesVersionsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = appengine_apps_services_versions_patch_builder(
-        client,
-        &args.appsId,
-        &args.servicesId,
-        &args.versionsId,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    appengine_apps_services_versions_patch_execute(builder)
 }
 
 /// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}/instances/{instancesId}:debug
@@ -6243,21 +3676,24 @@ pub fn appengine_apps_services_versions_patch(
 
 pub fn appengine_apps_services_versions_instances_debug_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    instancesId: &str,
+    appsId: String,
+    servicesId: String,
+    versionsId: String,
+    instancesId: String,
     body: &DebugInstanceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}/instances/{}:debug",
-        appsId, servicesId, versionsId, instancesId,
+        appsId.as_str(),
+        servicesId.as_str(),
+        versionsId.as_str(),
+        instancesId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -6289,7 +3725,12 @@ pub fn appengine_apps_services_versions_instances_debug_builder(
 pub fn appengine_apps_services_versions_instances_debug_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6399,10 +3840,10 @@ pub fn appengine_apps_services_versions_instances_debug(
 > {
     let builder = appengine_apps_services_versions_instances_debug_builder(
         client,
-        &args.appsId,
-        &args.servicesId,
-        &args.versionsId,
-        &args.instancesId,
+        args.appsId.clone(),
+        args.servicesId.clone(),
+        args.versionsId.clone(),
+        args.instancesId.clone(),
         &args.body,
     )?;
     appengine_apps_services_versions_instances_debug_execute(builder)
@@ -6416,20 +3857,23 @@ pub fn appengine_apps_services_versions_instances_debug(
 
 pub fn appengine_apps_services_versions_instances_delete_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    instancesId: &str,
+    appsId: String,
+    servicesId: String,
+    versionsId: String,
+    instancesId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}/instances/{}",
-        appsId, servicesId, versionsId, instancesId,
+        appsId.as_str(),
+        servicesId.as_str(),
+        versionsId.as_str(),
+        instancesId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -6459,7 +3903,12 @@ pub fn appengine_apps_services_versions_instances_delete_builder(
 pub fn appengine_apps_services_versions_instances_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -6567,179 +4016,12 @@ pub fn appengine_apps_services_versions_instances_delete(
 > {
     let builder = appengine_apps_services_versions_instances_delete_builder(
         client,
-        &args.appsId,
-        &args.servicesId,
-        &args.versionsId,
-        &args.instancesId,
+        args.appsId.clone(),
+        args.servicesId.clone(),
+        args.versionsId.clone(),
+        args.instancesId.clone(),
     )?;
     appengine_apps_services_versions_instances_delete_execute(builder)
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}/instances/{instancesId}
-/// Gets instance information.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_apps_services_versions_instances_get_execute()` to send, or `appengine_apps_services_versions_instances_get` for simplest API.
-
-pub fn appengine_apps_services_versions_instances_get_builder(
-    client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    instancesId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}/instances/{}",
-        appsId, servicesId, versionsId, instancesId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}/instances/{instancesId}
-/// Gets instance information.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_apps_services_versions_instances_get_execute()` or `appengine_apps_services_versions_instances_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_services_versions_instances_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_services_versions_instances_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Instance = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}/instances/{instancesId}
-/// Gets instance information.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_apps_services_versions_instances_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_apps_services_versions_instances_get_task()`.
-/// For the simplest API, use `appengine_apps_services_versions_instances_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_apps_services_versions_instances_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_apps_services_versions_instances_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = appengine_apps_services_versions_instances_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_apps_services_versions_instances_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineAppsServicesVersionsInstancesGetArgs {
-    /// Path parameter: appsId
-    pub appsId: String,
-    /// Path parameter: servicesId
-    pub servicesId: String,
-    /// Path parameter: versionsId
-    pub versionsId: String,
-    /// Path parameter: instancesId
-    pub instancesId: String,
-}
-
-/// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}/instances/{instancesId}
-/// Gets instance information.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_apps_services_versions_instances_get_builder()` + `appengine_apps_services_versions_instances_get_execute()`.
-/// For task-level control, use `appengine_apps_services_versions_instances_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_apps_services_versions_instances_get(
-    client: &SimpleHttpClient,
-    args: &AppengineAppsServicesVersionsInstancesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Instance>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = appengine_apps_services_versions_instances_get_builder(
-        client,
-        &args.appsId,
-        &args.servicesId,
-        &args.versionsId,
-        &args.instancesId,
-    )?;
-    appengine_apps_services_versions_instances_get_execute(builder)
 }
 
 /// GET v1/apps/{appsId}/services/{servicesId}/versions/{versionsId}/instances
@@ -6750,16 +4032,18 @@ pub fn appengine_apps_services_versions_instances_get(
 
 pub fn appengine_apps_services_versions_instances_list_builder(
     client: &SimpleHttpClient,
-    appsId: &str,
-    servicesId: &str,
-    versionsId: &str,
+    appsId: String,
+    servicesId: String,
+    versionsId: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/apps/{}/services/{}/versions/{}/instances",
-        appsId, servicesId, versionsId,
+        appsId.as_str(),
+        servicesId.as_str(),
+        versionsId.as_str(),
     );
 
     // Build request
@@ -6772,9 +4056,9 @@ pub fn appengine_apps_services_versions_instances_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6808,8 +4092,11 @@ pub fn appengine_apps_services_versions_instances_list_builder(
 pub fn appengine_apps_services_versions_instances_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListInstancesResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListInstancesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -6924,11 +4211,11 @@ pub fn appengine_apps_services_versions_instances_list(
 > {
     let builder = appengine_apps_services_versions_instances_list_builder(
         client,
-        &args.appsId,
-        &args.servicesId,
-        &args.versionsId,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.appsId.clone(),
+        args.servicesId.clone(),
+        args.versionsId.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     appengine_apps_services_versions_instances_list_execute(builder)
 }
@@ -6941,16 +4228,18 @@ pub fn appengine_apps_services_versions_instances_list(
 
 pub fn appengine_projects_locations_applications_patch_builder(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    updateMask: Option<&str>,
+    projectsId: String,
+    locationsId: String,
+    applicationsId: String,
+    updateMask: Option<String>,
     body: &Application,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}",
-        projectsId, locationsId, applicationsId,
+        projectsId.as_str(),
+        locationsId.as_str(),
+        applicationsId.as_str(),
     );
 
     // Build request
@@ -6960,9 +4249,9 @@ pub fn appengine_projects_locations_applications_patch_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -6998,7 +4287,12 @@ pub fn appengine_projects_locations_applications_patch_builder(
 pub fn appengine_projects_locations_applications_patch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7108,10 +4402,10 @@ pub fn appengine_projects_locations_applications_patch(
 > {
     let builder = appengine_projects_locations_applications_patch_builder(
         client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        args.updateMask.as_deref(),
+        args.projectsId.clone(),
+        args.locationsId.clone(),
+        args.applicationsId.clone(),
+        args.updateMask.clone(),
         &args.body,
     )?;
     appengine_projects_locations_applications_patch_execute(builder)
@@ -7125,22 +4419,22 @@ pub fn appengine_projects_locations_applications_patch(
 
 pub fn appengine_projects_locations_applications_authorized_certificates_create_builder(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
+    projectsId: String,
+    locationsId: String,
+    applicationsId: String,
     body: &AuthorizedCertificate,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedCertificates",
-        projectsId,
-        locationsId,
-        applicationsId,
+        projectsId.as_str(),
+        locationsId.as_str(),
+        applicationsId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -7172,8 +4466,11 @@ pub fn appengine_projects_locations_applications_authorized_certificates_create_
 pub fn appengine_projects_locations_applications_authorized_certificates_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<AuthorizedCertificate>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -7287,9 +4584,9 @@ pub fn appengine_projects_locations_applications_authorized_certificates_create(
 > {
     let builder = appengine_projects_locations_applications_authorized_certificates_create_builder(
         client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
+        args.projectsId.clone(),
+        args.locationsId.clone(),
+        args.applicationsId.clone(),
         &args.body,
     )?;
     appengine_projects_locations_applications_authorized_certificates_create_execute(builder)
@@ -7303,23 +4600,23 @@ pub fn appengine_projects_locations_applications_authorized_certificates_create(
 
 pub fn appengine_projects_locations_applications_authorized_certificates_delete_builder(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    authorizedCertificatesId: &str,
+    projectsId: String,
+    locationsId: String,
+    applicationsId: String,
+    authorizedCertificatesId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedCertificates/{}",
-        projectsId,
-        locationsId,
-        applicationsId,
-        authorizedCertificatesId,
+        projectsId.as_str(),
+        locationsId.as_str(),
+        applicationsId.as_str(),
+        authorizedCertificatesId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -7349,7 +4646,12 @@ pub fn appengine_projects_locations_applications_authorized_certificates_delete_
 pub fn appengine_projects_locations_applications_authorized_certificates_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Empty>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Empty>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -7458,608 +4760,12 @@ pub fn appengine_projects_locations_applications_authorized_certificates_delete(
 > {
     let builder = appengine_projects_locations_applications_authorized_certificates_delete_builder(
         client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        &args.authorizedCertificatesId,
+        args.projectsId.clone(),
+        args.locationsId.clone(),
+        args.applicationsId.clone(),
+        args.authorizedCertificatesId.clone(),
     )?;
     appengine_projects_locations_applications_authorized_certificates_delete_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Gets the specified SSL certificate.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_projects_locations_applications_authorized_certificates_get_execute()` to send, or `appengine_projects_locations_applications_authorized_certificates_get` for simplest API.
-
-pub fn appengine_projects_locations_applications_authorized_certificates_get_builder(
-    client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    authorizedCertificatesId: &str,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedCertificates/{}",
-        projectsId,
-        locationsId,
-        applicationsId,
-        authorizedCertificatesId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Gets the specified SSL certificate.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_projects_locations_applications_authorized_certificates_get_execute()` or `appengine_projects_locations_applications_authorized_certificates_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_authorized_certificates_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_authorized_certificates_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AuthorizedCertificate = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Gets the specified SSL certificate.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_projects_locations_applications_authorized_certificates_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_projects_locations_applications_authorized_certificates_get_task()`.
-/// For the simplest API, use `appengine_projects_locations_applications_authorized_certificates_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_authorized_certificates_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_projects_locations_applications_authorized_certificates_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = appengine_projects_locations_applications_authorized_certificates_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_projects_locations_applications_authorized_certificates_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineProjectsLocationsApplicationsAuthorizedCertificatesGetArgs {
-    /// Path parameter: projectsId
-    pub projectsId: String,
-    /// Path parameter: locationsId
-    pub locationsId: String,
-    /// Path parameter: applicationsId
-    pub applicationsId: String,
-    /// Path parameter: authorizedCertificatesId
-    pub authorizedCertificatesId: String,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Gets the specified SSL certificate.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_projects_locations_applications_authorized_certificates_get_builder()` + `appengine_projects_locations_applications_authorized_certificates_get_execute()`.
-/// For task-level control, use `appengine_projects_locations_applications_authorized_certificates_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_authorized_certificates_get(
-    client: &SimpleHttpClient,
-    args: &AppengineProjectsLocationsApplicationsAuthorizedCertificatesGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = appengine_projects_locations_applications_authorized_certificates_get_builder(
-        client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        &args.authorizedCertificatesId,
-        args.view.as_deref(),
-    )?;
-    appengine_projects_locations_applications_authorized_certificates_get_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates
-/// Lists all SSL certificates the user is authorized to administer.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_projects_locations_applications_authorized_certificates_list_execute()` to send, or `appengine_projects_locations_applications_authorized_certificates_list` for simplest API.
-
-pub fn appengine_projects_locations_applications_authorized_certificates_list_builder(
-    client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-    view: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedCertificates",
-        projectsId,
-        locationsId,
-        applicationsId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-    if let Some(val) = view {
-        query_parts.push(format!("view={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates
-/// Lists all SSL certificates the user is authorized to administer.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_projects_locations_applications_authorized_certificates_list_execute()` or `appengine_projects_locations_applications_authorized_certificates_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_authorized_certificates_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_authorized_certificates_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<ListAuthorizedCertificatesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListAuthorizedCertificatesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates
-/// Lists all SSL certificates the user is authorized to administer.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_projects_locations_applications_authorized_certificates_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_projects_locations_applications_authorized_certificates_list_task()`.
-/// For the simplest API, use `appengine_projects_locations_applications_authorized_certificates_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_authorized_certificates_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_projects_locations_applications_authorized_certificates_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListAuthorizedCertificatesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        appengine_projects_locations_applications_authorized_certificates_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_projects_locations_applications_authorized_certificates_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineProjectsLocationsApplicationsAuthorizedCertificatesListArgs {
-    /// Path parameter: projectsId
-    pub projectsId: String,
-    /// Path parameter: locationsId
-    pub locationsId: String,
-    /// Path parameter: applicationsId
-    pub applicationsId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-    /// Query parameter: view
-    pub view: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates
-/// Lists all SSL certificates the user is authorized to administer.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_projects_locations_applications_authorized_certificates_list_builder()` + `appengine_projects_locations_applications_authorized_certificates_list_execute()`.
-/// For task-level control, use `appengine_projects_locations_applications_authorized_certificates_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_authorized_certificates_list(
-    client: &SimpleHttpClient,
-    args: &AppengineProjectsLocationsApplicationsAuthorizedCertificatesListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListAuthorizedCertificatesResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = appengine_projects_locations_applications_authorized_certificates_list_builder(
-        client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-        args.view.as_deref(),
-    )?;
-    appengine_projects_locations_applications_authorized_certificates_list_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Updates the specified SSL certificate. To renew a certificate and maintain its existing domain mappings, update certificate_data with a new certificate. The new certificate must be applicable to the same domains as the original certificate. The certificate display_name may also be updated.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_projects_locations_applications_authorized_certificates_patch_execute()` to send, or `appengine_projects_locations_applications_authorized_certificates_patch` for simplest API.
-
-pub fn appengine_projects_locations_applications_authorized_certificates_patch_builder(
-    client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    authorizedCertificatesId: &str,
-    updateMask: Option<&str>,
-    body: &AuthorizedCertificate,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedCertificates/{}",
-        projectsId,
-        locationsId,
-        applicationsId,
-        authorizedCertificatesId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Updates the specified SSL certificate. To renew a certificate and maintain its existing domain mappings, update certificate_data with a new certificate. The new certificate must be applicable to the same domains as the original certificate. The certificate display_name may also be updated.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_projects_locations_applications_authorized_certificates_patch_execute()` or `appengine_projects_locations_applications_authorized_certificates_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_authorized_certificates_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_authorized_certificates_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: AuthorizedCertificate = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Updates the specified SSL certificate. To renew a certificate and maintain its existing domain mappings, update certificate_data with a new certificate. The new certificate must be applicable to the same domains as the original certificate. The certificate display_name may also be updated.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_projects_locations_applications_authorized_certificates_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_projects_locations_applications_authorized_certificates_patch_task()`.
-/// For the simplest API, use `appengine_projects_locations_applications_authorized_certificates_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_authorized_certificates_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_projects_locations_applications_authorized_certificates_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task =
-        appengine_projects_locations_applications_authorized_certificates_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_projects_locations_applications_authorized_certificates_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineProjectsLocationsApplicationsAuthorizedCertificatesPatchArgs {
-    /// Path parameter: projectsId
-    pub projectsId: String,
-    /// Path parameter: locationsId
-    pub locationsId: String,
-    /// Path parameter: applicationsId
-    pub applicationsId: String,
-    /// Path parameter: authorizedCertificatesId
-    pub authorizedCertificatesId: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: AuthorizedCertificate,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedCertificates/{authorizedCertificatesId}
-/// Updates the specified SSL certificate. To renew a certificate and maintain its existing domain mappings, update certificate_data with a new certificate. The new certificate must be applicable to the same domains as the original certificate. The certificate display_name may also be updated.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_projects_locations_applications_authorized_certificates_patch_builder()` + `appengine_projects_locations_applications_authorized_certificates_patch_execute()`.
-/// For task-level control, use `appengine_projects_locations_applications_authorized_certificates_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_authorized_certificates_patch(
-    client: &SimpleHttpClient,
-    args: &AppengineProjectsLocationsApplicationsAuthorizedCertificatesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AuthorizedCertificate>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = appengine_projects_locations_applications_authorized_certificates_patch_builder(
-        client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        &args.authorizedCertificatesId,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    appengine_projects_locations_applications_authorized_certificates_patch_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/authorizedDomains
@@ -8070,18 +4776,18 @@ pub fn appengine_projects_locations_applications_authorized_certificates_patch(
 
 pub fn appengine_projects_locations_applications_authorized_domains_list_builder(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
+    projectsId: String,
+    locationsId: String,
+    applicationsId: String,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/authorizedDomains",
-        projectsId,
-        locationsId,
-        applicationsId,
+        projectsId.as_str(),
+        locationsId.as_str(),
+        applicationsId.as_str(),
     );
 
     // Build request
@@ -8094,9 +4800,9 @@ pub fn appengine_projects_locations_applications_authorized_domains_list_builder
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -8131,8 +4837,9 @@ pub fn appengine_projects_locations_applications_authorized_domains_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<ListAuthorizedDomainsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<ListAuthorizedDomainsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -8252,11 +4959,11 @@ pub fn appengine_projects_locations_applications_authorized_domains_list(
 > {
     let builder = appengine_projects_locations_applications_authorized_domains_list_builder(
         client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.projectsId.clone(),
+        args.locationsId.clone(),
+        args.applicationsId.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     appengine_projects_locations_applications_authorized_domains_list_execute(builder)
 }
@@ -8269,18 +4976,18 @@ pub fn appengine_projects_locations_applications_authorized_domains_list(
 
 pub fn appengine_projects_locations_applications_domain_mappings_create_builder(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    overrideStrategy: Option<&str>,
+    projectsId: String,
+    locationsId: String,
+    applicationsId: String,
+    overrideStrategy: Option<String>,
     body: &DomainMapping,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/domainMappings",
-        projectsId,
-        locationsId,
-        applicationsId,
+        projectsId.as_str(),
+        locationsId.as_str(),
+        applicationsId.as_str(),
     );
 
     // Build request
@@ -8290,9 +4997,9 @@ pub fn appengine_projects_locations_applications_domain_mappings_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -8328,7 +5035,12 @@ pub fn appengine_projects_locations_applications_domain_mappings_create_builder(
 pub fn appengine_projects_locations_applications_domain_mappings_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8438,10 +5150,10 @@ pub fn appengine_projects_locations_applications_domain_mappings_create(
 > {
     let builder = appengine_projects_locations_applications_domain_mappings_create_builder(
         client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        args.overrideStrategy.as_deref(),
+        args.projectsId.clone(),
+        args.locationsId.clone(),
+        args.applicationsId.clone(),
+        args.overrideStrategy.clone(),
         &args.body,
     )?;
     appengine_projects_locations_applications_domain_mappings_create_execute(builder)
@@ -8455,23 +5167,23 @@ pub fn appengine_projects_locations_applications_domain_mappings_create(
 
 pub fn appengine_projects_locations_applications_domain_mappings_delete_builder(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    domainMappingsId: &str,
+    projectsId: String,
+    locationsId: String,
+    applicationsId: String,
+    domainMappingsId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/domainMappings/{}",
-        projectsId,
-        locationsId,
-        applicationsId,
-        domainMappingsId,
+        projectsId.as_str(),
+        locationsId.as_str(),
+        applicationsId.as_str(),
+        domainMappingsId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -8501,7 +5213,12 @@ pub fn appengine_projects_locations_applications_domain_mappings_delete_builder(
 pub fn appengine_projects_locations_applications_domain_mappings_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -8609,574 +5326,12 @@ pub fn appengine_projects_locations_applications_domain_mappings_delete(
 > {
     let builder = appengine_projects_locations_applications_domain_mappings_delete_builder(
         client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        &args.domainMappingsId,
+        args.projectsId.clone(),
+        args.locationsId.clone(),
+        args.applicationsId.clone(),
+        args.domainMappingsId.clone(),
     )?;
     appengine_projects_locations_applications_domain_mappings_delete_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings/{domainMappingsId}
-/// Gets the specified domain mapping.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_projects_locations_applications_domain_mappings_get_execute()` to send, or `appengine_projects_locations_applications_domain_mappings_get` for simplest API.
-
-pub fn appengine_projects_locations_applications_domain_mappings_get_builder(
-    client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    domainMappingsId: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/domainMappings/{}",
-        projectsId,
-        locationsId,
-        applicationsId,
-        domainMappingsId,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings/{domainMappingsId}
-/// Gets the specified domain mapping.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_projects_locations_applications_domain_mappings_get_execute()` or `appengine_projects_locations_applications_domain_mappings_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_domain_mappings_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_domain_mappings_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<DomainMapping>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: DomainMapping = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings/{domainMappingsId}
-/// Gets the specified domain mapping.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_projects_locations_applications_domain_mappings_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_projects_locations_applications_domain_mappings_get_task()`.
-/// For the simplest API, use `appengine_projects_locations_applications_domain_mappings_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_domain_mappings_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_projects_locations_applications_domain_mappings_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DomainMapping>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = appengine_projects_locations_applications_domain_mappings_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_projects_locations_applications_domain_mappings_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineProjectsLocationsApplicationsDomainMappingsGetArgs {
-    /// Path parameter: projectsId
-    pub projectsId: String,
-    /// Path parameter: locationsId
-    pub locationsId: String,
-    /// Path parameter: applicationsId
-    pub applicationsId: String,
-    /// Path parameter: domainMappingsId
-    pub domainMappingsId: String,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings/{domainMappingsId}
-/// Gets the specified domain mapping.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_projects_locations_applications_domain_mappings_get_builder()` + `appengine_projects_locations_applications_domain_mappings_get_execute()`.
-/// For task-level control, use `appengine_projects_locations_applications_domain_mappings_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_domain_mappings_get(
-    client: &SimpleHttpClient,
-    args: &AppengineProjectsLocationsApplicationsDomainMappingsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DomainMapping>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = appengine_projects_locations_applications_domain_mappings_get_builder(
-        client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        &args.domainMappingsId,
-    )?;
-    appengine_projects_locations_applications_domain_mappings_get_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings
-/// Lists the domain mappings on an application.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_projects_locations_applications_domain_mappings_list_execute()` to send, or `appengine_projects_locations_applications_domain_mappings_list` for simplest API.
-
-pub fn appengine_projects_locations_applications_domain_mappings_list_builder(
-    client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    pageSize: Option<i32>,
-    pageToken: Option<&str>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/domainMappings",
-        projectsId,
-        locationsId,
-        applicationsId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = pageSize {
-        query_parts.push(format!("pageSize={}", val));
-    }
-    if let Some(val) = pageToken {
-        query_parts.push(format!("pageToken={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings
-/// Lists the domain mappings on an application.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_projects_locations_applications_domain_mappings_list_execute()` or `appengine_projects_locations_applications_domain_mappings_list`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_domain_mappings_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_domain_mappings_list_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListDomainMappingsResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ListDomainMappingsResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings
-/// Lists the domain mappings on an application.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_projects_locations_applications_domain_mappings_list_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_projects_locations_applications_domain_mappings_list_task()`.
-/// For the simplest API, use `appengine_projects_locations_applications_domain_mappings_list()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_domain_mappings_list_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_projects_locations_applications_domain_mappings_list_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListDomainMappingsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = appengine_projects_locations_applications_domain_mappings_list_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_projects_locations_applications_domain_mappings_list`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineProjectsLocationsApplicationsDomainMappingsListArgs {
-    /// Path parameter: projectsId
-    pub projectsId: String,
-    /// Path parameter: locationsId
-    pub locationsId: String,
-    /// Path parameter: applicationsId
-    pub applicationsId: String,
-    /// Query parameter: pageSize
-    pub pageSize: Option<i32>,
-    /// Query parameter: pageToken
-    pub pageToken: Option<String>,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings
-/// Lists the domain mappings on an application.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_projects_locations_applications_domain_mappings_list_builder()` + `appengine_projects_locations_applications_domain_mappings_list_execute()`.
-/// For task-level control, use `appengine_projects_locations_applications_domain_mappings_list_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_domain_mappings_list(
-    client: &SimpleHttpClient,
-    args: &AppengineProjectsLocationsApplicationsDomainMappingsListArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ListDomainMappingsResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = appengine_projects_locations_applications_domain_mappings_list_builder(
-        client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        args.pageSize,
-        args.pageToken.as_deref(),
-    )?;
-    appengine_projects_locations_applications_domain_mappings_list_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings/{domainMappingsId}
-/// Updates the specified domain mapping. To map an SSL certificate to a domain mapping, update certificate_id to point to an AuthorizedCertificate resource. A user must be authorized to administer the associated domain in order to update a DomainMapping resource.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_projects_locations_applications_domain_mappings_patch_execute()` to send, or `appengine_projects_locations_applications_domain_mappings_patch` for simplest API.
-
-pub fn appengine_projects_locations_applications_domain_mappings_patch_builder(
-    client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    domainMappingsId: &str,
-    updateMask: Option<&str>,
-    body: &DomainMapping,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/domainMappings/{}",
-        projectsId,
-        locationsId,
-        applicationsId,
-        domainMappingsId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings/{domainMappingsId}
-/// Updates the specified domain mapping. To map an SSL certificate to a domain mapping, update certificate_id to point to an AuthorizedCertificate resource. A user must be authorized to administer the associated domain in order to update a DomainMapping resource.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_projects_locations_applications_domain_mappings_patch_execute()` or `appengine_projects_locations_applications_domain_mappings_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_domain_mappings_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_domain_mappings_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings/{domainMappingsId}
-/// Updates the specified domain mapping. To map an SSL certificate to a domain mapping, update certificate_id to point to an AuthorizedCertificate resource. A user must be authorized to administer the associated domain in order to update a DomainMapping resource.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_projects_locations_applications_domain_mappings_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_projects_locations_applications_domain_mappings_patch_task()`.
-/// For the simplest API, use `appengine_projects_locations_applications_domain_mappings_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_domain_mappings_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_projects_locations_applications_domain_mappings_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = appengine_projects_locations_applications_domain_mappings_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_projects_locations_applications_domain_mappings_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineProjectsLocationsApplicationsDomainMappingsPatchArgs {
-    /// Path parameter: projectsId
-    pub projectsId: String,
-    /// Path parameter: locationsId
-    pub locationsId: String,
-    /// Path parameter: applicationsId
-    pub applicationsId: String,
-    /// Path parameter: domainMappingsId
-    pub domainMappingsId: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: DomainMapping,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/domainMappings/{domainMappingsId}
-/// Updates the specified domain mapping. To map an SSL certificate to a domain mapping, update certificate_id to point to an AuthorizedCertificate resource. A user must be authorized to administer the associated domain in order to update a DomainMapping resource.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_projects_locations_applications_domain_mappings_patch_builder()` + `appengine_projects_locations_applications_domain_mappings_patch_execute()`.
-/// For task-level control, use `appengine_projects_locations_applications_domain_mappings_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_domain_mappings_patch(
-    client: &SimpleHttpClient,
-    args: &AppengineProjectsLocationsApplicationsDomainMappingsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = appengine_projects_locations_applications_domain_mappings_patch_builder(
-        client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        &args.domainMappingsId,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    appengine_projects_locations_applications_domain_mappings_patch_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}
@@ -9187,20 +5342,23 @@ pub fn appengine_projects_locations_applications_domain_mappings_patch(
 
 pub fn appengine_projects_locations_applications_services_delete_builder(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    servicesId: &str,
+    projectsId: String,
+    locationsId: String,
+    applicationsId: String,
+    servicesId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}",
-        projectsId, locationsId, applicationsId, servicesId,
+        projectsId.as_str(),
+        locationsId.as_str(),
+        applicationsId.as_str(),
+        servicesId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -9230,7 +5388,12 @@ pub fn appengine_projects_locations_applications_services_delete_builder(
 pub fn appengine_projects_locations_applications_services_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9338,207 +5501,12 @@ pub fn appengine_projects_locations_applications_services_delete(
 > {
     let builder = appengine_projects_locations_applications_services_delete_builder(
         client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        &args.servicesId,
+        args.projectsId.clone(),
+        args.locationsId.clone(),
+        args.applicationsId.clone(),
+        args.servicesId.clone(),
     )?;
     appengine_projects_locations_applications_services_delete_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}
-/// Updates the configuration of the specified service.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_projects_locations_applications_services_patch_execute()` to send, or `appengine_projects_locations_applications_services_patch` for simplest API.
-
-pub fn appengine_projects_locations_applications_services_patch_builder(
-    client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    servicesId: &str,
-    migrateTraffic: Option<bool>,
-    updateMask: Option<&str>,
-    body: &Service,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}",
-        projectsId, locationsId, applicationsId, servicesId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = migrateTraffic {
-        query_parts.push(format!("migrateTraffic={}", val));
-    }
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}
-/// Updates the configuration of the specified service.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_projects_locations_applications_services_patch_execute()` or `appengine_projects_locations_applications_services_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_services_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_services_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}
-/// Updates the configuration of the specified service.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_projects_locations_applications_services_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_projects_locations_applications_services_patch_task()`.
-/// For the simplest API, use `appengine_projects_locations_applications_services_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_services_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_projects_locations_applications_services_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = appengine_projects_locations_applications_services_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_projects_locations_applications_services_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineProjectsLocationsApplicationsServicesPatchArgs {
-    /// Path parameter: projectsId
-    pub projectsId: String,
-    /// Path parameter: locationsId
-    pub locationsId: String,
-    /// Path parameter: applicationsId
-    pub applicationsId: String,
-    /// Path parameter: servicesId
-    pub servicesId: String,
-    /// Query parameter: migrateTraffic
-    pub migrateTraffic: Option<bool>,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Service,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}
-/// Updates the configuration of the specified service.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_projects_locations_applications_services_patch_builder()` + `appengine_projects_locations_applications_services_patch_execute()`.
-/// For task-level control, use `appengine_projects_locations_applications_services_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_services_patch(
-    client: &SimpleHttpClient,
-    args: &AppengineProjectsLocationsApplicationsServicesPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = appengine_projects_locations_applications_services_patch_builder(
-        client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        &args.servicesId,
-        args.migrateTraffic,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    appengine_projects_locations_applications_services_patch_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}/versions/{versionsId}
@@ -9549,25 +5517,25 @@ pub fn appengine_projects_locations_applications_services_patch(
 
 pub fn appengine_projects_locations_applications_services_versions_delete_builder(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    servicesId: &str,
-    versionsId: &str,
+    projectsId: String,
+    locationsId: String,
+    applicationsId: String,
+    servicesId: String,
+    versionsId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}/versions/{}",
-        projectsId,
-        locationsId,
-        applicationsId,
-        servicesId,
-        versionsId,
+        projectsId.as_str(),
+        locationsId.as_str(),
+        applicationsId.as_str(),
+        servicesId.as_str(),
+        versionsId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -9597,7 +5565,12 @@ pub fn appengine_projects_locations_applications_services_versions_delete_builde
 pub fn appengine_projects_locations_applications_services_versions_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9707,11 +5680,11 @@ pub fn appengine_projects_locations_applications_services_versions_delete(
 > {
     let builder = appengine_projects_locations_applications_services_versions_delete_builder(
         client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        &args.servicesId,
-        &args.versionsId,
+        args.projectsId.clone(),
+        args.locationsId.clone(),
+        args.applicationsId.clone(),
+        args.servicesId.clone(),
+        args.versionsId.clone(),
     )?;
     appengine_projects_locations_applications_services_versions_delete_execute(builder)
 }
@@ -9724,26 +5697,26 @@ pub fn appengine_projects_locations_applications_services_versions_delete(
 
 pub fn appengine_projects_locations_applications_services_versions_export_app_image_builder(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    servicesId: &str,
-    versionsId: &str,
+    projectsId: String,
+    locationsId: String,
+    applicationsId: String,
+    servicesId: String,
+    versionsId: String,
     body: &ExportAppImageRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}/versions/{}:exportAppImage",
-        projectsId,
-        locationsId,
-        applicationsId,
-        servicesId,
-        versionsId,
+        projectsId.as_str(),
+        locationsId.as_str(),
+        applicationsId.as_str(),
+        servicesId.as_str(),
+        versionsId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -9775,7 +5748,12 @@ pub fn appengine_projects_locations_applications_services_versions_export_app_im
 pub fn appengine_projects_locations_applications_services_versions_export_app_image_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -9889,210 +5867,14 @@ pub fn appengine_projects_locations_applications_services_versions_export_app_im
     let builder =
         appengine_projects_locations_applications_services_versions_export_app_image_builder(
             client,
-            &args.projectsId,
-            &args.locationsId,
-            &args.applicationsId,
-            &args.servicesId,
-            &args.versionsId,
+            args.projectsId.clone(),
+            args.locationsId.clone(),
+            args.applicationsId.clone(),
+            args.servicesId.clone(),
+            args.versionsId.clone(),
             &args.body,
         )?;
     appengine_projects_locations_applications_services_versions_export_app_image_execute(builder)
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}/versions/{versionsId}
-/// Updates the specified Version resource. You can specify the following fields depending on the App Engine environment and type of scaling that the version resource uses:Standard environment instance_class (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.instance_class>)automatic scaling in the standard environment: automatic_scaling.min_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) `automaticScaling`.standard_scheduler_settings.max_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.min_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_cpu_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_throughput_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>)basic scaling or manual scaling in the standard environment: serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>) manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)Flexible environment serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>)automatic scaling in the flexible environment: automatic_scaling.min_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cool_down_period_sec (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cpu_utilization.target_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>)manual scaling in the flexible environment: manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `appengine_projects_locations_applications_services_versions_patch_execute()` to send, or `appengine_projects_locations_applications_services_versions_patch` for simplest API.
-
-pub fn appengine_projects_locations_applications_services_versions_patch_builder(
-    client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    updateMask: Option<&str>,
-    body: &Version,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}/versions/{}",
-        projectsId,
-        locationsId,
-        applicationsId,
-        servicesId,
-        versionsId,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}/versions/{versionsId}
-/// Updates the specified Version resource. You can specify the following fields depending on the App Engine environment and type of scaling that the version resource uses:Standard environment instance_class (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.instance_class>)automatic scaling in the standard environment: automatic_scaling.min_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) `automaticScaling`.standard_scheduler_settings.max_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.min_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_cpu_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_throughput_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>)basic scaling or manual scaling in the standard environment: serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>) manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)Flexible environment serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>)automatic scaling in the flexible environment: automatic_scaling.min_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cool_down_period_sec (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cpu_utilization.target_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>)manual scaling in the flexible environment: manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `appengine_projects_locations_applications_services_versions_patch_execute()` or `appengine_projects_locations_applications_services_versions_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_services_versions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_services_versions_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Operation = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}/versions/{versionsId}
-/// Updates the specified Version resource. You can specify the following fields depending on the App Engine environment and type of scaling that the version resource uses:Standard environment instance_class (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.instance_class>)automatic scaling in the standard environment: automatic_scaling.min_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) `automaticScaling`.standard_scheduler_settings.max_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.min_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_cpu_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_throughput_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>)basic scaling or manual scaling in the standard environment: serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>) manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)Flexible environment serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>)automatic scaling in the flexible environment: automatic_scaling.min_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cool_down_period_sec (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cpu_utilization.target_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>)manual scaling in the flexible environment: manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `appengine_projects_locations_applications_services_versions_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `appengine_projects_locations_applications_services_versions_patch_task()`.
-/// For the simplest API, use `appengine_projects_locations_applications_services_versions_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `appengine_projects_locations_applications_services_versions_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn appengine_projects_locations_applications_services_versions_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let task = appengine_projects_locations_applications_services_versions_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`appengine_projects_locations_applications_services_versions_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct AppengineProjectsLocationsApplicationsServicesVersionsPatchArgs {
-    /// Path parameter: projectsId
-    pub projectsId: String,
-    /// Path parameter: locationsId
-    pub locationsId: String,
-    /// Path parameter: applicationsId
-    pub applicationsId: String,
-    /// Path parameter: servicesId
-    pub servicesId: String,
-    /// Path parameter: versionsId
-    pub versionsId: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: Version,
-}
-
-/// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}/versions/{versionsId}
-/// Updates the specified Version resource. You can specify the following fields depending on the App Engine environment and type of scaling that the version resource uses:Standard environment instance_class (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.instance_class>)automatic scaling in the standard environment: automatic_scaling.min_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_idle_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) `automaticScaling`.standard_scheduler_settings.max_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.min_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_cpu_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>) `automaticScaling`.standard_scheduler_settings.target_throughput_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#StandardSchedulerSettings>)basic scaling or manual scaling in the standard environment: serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>) manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)Flexible environment serving_status (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.serving_status>)automatic scaling in the flexible environment: automatic_scaling.min_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.max_total_instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cool_down_period_sec (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>) automatic_scaling.cpu_utilization.target_utilization (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#Version.FIELDS.automatic_scaling>)manual scaling in the flexible environment: manual_scaling.instances (<https://cloud.google.`com/appengine/docs/admin-api/reference/rest/v1/apps`.services.versions#manualscaling>)
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `appengine_projects_locations_applications_services_versions_patch_builder()` + `appengine_projects_locations_applications_services_versions_patch_execute()`.
-/// For task-level control, use `appengine_projects_locations_applications_services_versions_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn appengine_projects_locations_applications_services_versions_patch(
-    client: &SimpleHttpClient,
-    args: &AppengineProjectsLocationsApplicationsServicesVersionsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    let builder = appengine_projects_locations_applications_services_versions_patch_builder(
-        client,
-        &args.projectsId,
-        &args.locationsId,
-        &args.applicationsId,
-        &args.servicesId,
-        &args.versionsId,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    appengine_projects_locations_applications_services_versions_patch_execute(builder)
 }
 
 /// GET v1/projects/{projectsId}/locations/{locationsId}/applications/{applicationsId}/services/{servicesId}/versions/{versionsId}/instances/{instancesId}:debug
@@ -10103,28 +5885,28 @@ pub fn appengine_projects_locations_applications_services_versions_patch(
 
 pub fn appengine_projects_locations_applications_services_versions_instances_debug_builder(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    instancesId: &str,
+    projectsId: String,
+    locationsId: String,
+    applicationsId: String,
+    servicesId: String,
+    versionsId: String,
+    instancesId: String,
     body: &DebugInstanceRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}/versions/{}/instances/{}:debug",
-        projectsId,
-        locationsId,
-        applicationsId,
-        servicesId,
-        versionsId,
-        instancesId,
+        projectsId.as_str(),
+        locationsId.as_str(),
+        applicationsId.as_str(),
+        servicesId.as_str(),
+        versionsId.as_str(),
+        instancesId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -10156,7 +5938,12 @@ pub fn appengine_projects_locations_applications_services_versions_instances_deb
 pub fn appengine_projects_locations_applications_services_versions_instances_debug_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -10272,12 +6059,12 @@ pub fn appengine_projects_locations_applications_services_versions_instances_deb
     let builder =
         appengine_projects_locations_applications_services_versions_instances_debug_builder(
             client,
-            &args.projectsId,
-            &args.locationsId,
-            &args.applicationsId,
-            &args.servicesId,
-            &args.versionsId,
-            &args.instancesId,
+            args.projectsId.clone(),
+            args.locationsId.clone(),
+            args.applicationsId.clone(),
+            args.servicesId.clone(),
+            args.versionsId.clone(),
+            args.instancesId.clone(),
             &args.body,
         )?;
     appengine_projects_locations_applications_services_versions_instances_debug_execute(builder)
@@ -10291,27 +6078,27 @@ pub fn appengine_projects_locations_applications_services_versions_instances_deb
 
 pub fn appengine_projects_locations_applications_services_versions_instances_delete_builder(
     client: &SimpleHttpClient,
-    projectsId: &str,
-    locationsId: &str,
-    applicationsId: &str,
-    servicesId: &str,
-    versionsId: &str,
-    instancesId: &str,
+    projectsId: String,
+    locationsId: String,
+    applicationsId: String,
+    servicesId: String,
+    versionsId: String,
+    instancesId: String,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://appengine.googleapis.com/v1/projects/{}/locations/{}/applications/{}/services/{}/versions/{}/instances/{}",
-        projectsId,
-        locationsId,
-        applicationsId,
-        servicesId,
-        versionsId,
-        instancesId,
+        projectsId.as_str(),
+        locationsId.as_str(),
+        applicationsId.as_str(),
+        servicesId.as_str(),
+        versionsId.as_str(),
+        instancesId.as_str(),
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     Ok(builder)
@@ -10341,7 +6128,12 @@ pub fn appengine_projects_locations_applications_services_versions_instances_del
 pub fn appengine_projects_locations_applications_services_versions_instances_delete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Operation>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Operation>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -10455,12 +6247,12 @@ pub fn appengine_projects_locations_applications_services_versions_instances_del
     let builder =
         appengine_projects_locations_applications_services_versions_instances_delete_builder(
             client,
-            &args.projectsId,
-            &args.locationsId,
-            &args.applicationsId,
-            &args.servicesId,
-            &args.versionsId,
-            &args.instancesId,
+            args.projectsId.clone(),
+            args.locationsId.clone(),
+            args.applicationsId.clone(),
+            args.servicesId.clone(),
+            args.versionsId.clone(),
+            args.instancesId.clone(),
         )?;
     appengine_projects_locations_applications_services_versions_instances_delete_execute(builder)
 }

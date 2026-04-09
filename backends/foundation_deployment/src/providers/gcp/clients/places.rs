@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -31,11 +32,11 @@ pub fn places_places_autocomplete_builder(
     body: &GoogleMapsPlacesV1AutocompletePlacesRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://places.googleapis.com/v1/places:autocomplete",);
+    let endpoint_url = format!("https://places.googleapis.com/v1/places:autocomplete",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -68,8 +69,9 @@ pub fn places_places_autocomplete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleMapsPlacesV1AutocompletePlacesResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleMapsPlacesV1AutocompletePlacesResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -192,13 +194,13 @@ pub fn places_places_autocomplete(
 
 pub fn places_places_get_builder(
     client: &SimpleHttpClient,
-    name: &str,
-    languageCode: Option<&str>,
-    regionCode: Option<&str>,
-    sessionToken: Option<&str>,
+    name: String,
+    languageCode: Option<String>,
+    regionCode: Option<String>,
+    sessionToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://places.googleapis.com/v1/places/{}", name,);
+    let endpoint_url = format!("https://places.googleapis.com/v1/places/{}",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -213,9 +215,9 @@ pub fn places_places_get_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -249,8 +251,11 @@ pub fn places_places_get_builder(
 pub fn places_places_get_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GoogleMapsPlacesV1Place>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GoogleMapsPlacesV1Place>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -363,10 +368,10 @@ pub fn places_places_get(
 > {
     let builder = places_places_get_builder(
         client,
-        &args.name,
-        args.languageCode.as_deref(),
-        args.regionCode.as_deref(),
-        args.sessionToken.as_deref(),
+        args.name.clone(),
+        args.languageCode.clone(),
+        args.regionCode.clone(),
+        args.sessionToken.clone(),
     )?;
     places_places_get_execute(builder)
 }
@@ -382,11 +387,11 @@ pub fn places_places_search_nearby_builder(
     body: &GoogleMapsPlacesV1SearchNearbyRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://places.googleapis.com/v1/places:searchNearby",);
+    let endpoint_url = format!("https://places.googleapis.com/v1/places:searchNearby",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -419,8 +424,9 @@ pub fn places_places_search_nearby_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleMapsPlacesV1SearchNearbyResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleMapsPlacesV1SearchNearbyResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -545,11 +551,11 @@ pub fn places_places_search_text_builder(
     body: &GoogleMapsPlacesV1SearchTextRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://places.googleapis.com/v1/places:searchText",);
+    let endpoint_url = format!("https://places.googleapis.com/v1/places:searchText",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -582,8 +588,9 @@ pub fn places_places_search_text_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<GoogleMapsPlacesV1SearchTextResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<GoogleMapsPlacesV1SearchTextResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -695,200 +702,4 @@ pub fn places_places_search_text(
 > {
     let builder = places_places_search_text_builder(client, &args.body)?;
     places_places_search_text_execute(builder)
-}
-
-/// GET v1/places/{placesId}/photos/{photosId}/media
-/// Get a photo media with a photo reference string.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `places_places_photos_get_media_execute()` to send, or `places_places_photos_get_media` for simplest API.
-
-pub fn places_places_photos_get_media_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    maxHeightPx: Option<i32>,
-    maxWidthPx: Option<i32>,
-    skipHttpRedirect: Option<bool>,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://places.googleapis.com/v1/places/{}/photos/{}/media",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = maxHeightPx {
-        query_parts.push(format!("maxHeightPx={}", val));
-    }
-    if let Some(val) = maxWidthPx {
-        query_parts.push(format!("maxWidthPx={}", val));
-    }
-    if let Some(val) = skipHttpRedirect {
-        query_parts.push(format!("skipHttpRedirect={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/places/{placesId}/photos/{photosId}/media
-/// Get a photo media with a photo reference string.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `places_places_photos_get_media_execute()` or `places_places_photos_get_media`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `places_places_photos_get_media_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn places_places_photos_get_media_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<GoogleMapsPlacesV1PhotoMedia>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: GoogleMapsPlacesV1PhotoMedia = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/places/{placesId}/photos/{photosId}/media
-/// Get a photo media with a photo reference string.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `places_places_photos_get_media_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `places_places_photos_get_media_task()`.
-/// For the simplest API, use `places_places_photos_get_media()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `places_places_photos_get_media_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn places_places_photos_get_media_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleMapsPlacesV1PhotoMedia>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = places_places_photos_get_media_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`places_places_photos_get_media`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PlacesPlacesPhotosGetMediaArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: maxHeightPx
-    pub maxHeightPx: Option<i32>,
-    /// Query parameter: maxWidthPx
-    pub maxWidthPx: Option<i32>,
-    /// Query parameter: skipHttpRedirect
-    pub skipHttpRedirect: Option<bool>,
-}
-
-/// GET v1/places/{placesId}/photos/{photosId}/media
-/// Get a photo media with a photo reference string.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `places_places_photos_get_media_builder()` + `places_places_photos_get_media_execute()`.
-/// For task-level control, use `places_places_photos_get_media_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn places_places_photos_get_media(
-    client: &SimpleHttpClient,
-    args: &PlacesPlacesPhotosGetMediaArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<GoogleMapsPlacesV1PhotoMedia>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = places_places_photos_get_media_builder(
-        client,
-        &args.name,
-        args.maxHeightPx,
-        args.maxWidthPx,
-        args.skipHttpRedirect,
-    )?;
-    places_places_photos_get_media_execute(builder)
 }

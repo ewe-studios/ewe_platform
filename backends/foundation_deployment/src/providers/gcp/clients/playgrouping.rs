@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,19 +29,17 @@ use serde::Serialize;
 
 pub fn playgrouping_apps_tokens_verify_builder(
     client: &SimpleHttpClient,
-    appPackage: &str,
-    token: &str,
+    appPackage: String,
+    token: String,
     body: &VerifyTokenRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://playgrouping.googleapis.com/v1alpha1/apps/{}/tokens/{}:verify",
-        appPackage, token,
-    );
+    let endpoint_url =
+        format!("https://playgrouping.googleapis.com/v1alpha1/apps/{}/tokens/{}:verify",);
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -72,8 +71,11 @@ pub fn playgrouping_apps_tokens_verify_builder(
 pub fn playgrouping_apps_tokens_verify_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<VerifyTokenResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<VerifyTokenResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -182,8 +184,12 @@ pub fn playgrouping_apps_tokens_verify(
         + 'static,
     ApiError,
 > {
-    let builder =
-        playgrouping_apps_tokens_verify_builder(client, &args.appPackage, &args.token, &args.body)?;
+    let builder = playgrouping_apps_tokens_verify_builder(
+        client,
+        args.appPackage.clone(),
+        args.token.clone(),
+        &args.body,
+    )?;
     playgrouping_apps_tokens_verify_execute(builder)
 }
 
@@ -195,19 +201,18 @@ pub fn playgrouping_apps_tokens_verify(
 
 pub fn playgrouping_apps_tokens_tags_create_or_update_builder(
     client: &SimpleHttpClient,
-    appPackage: &str,
-    token: &str,
+    appPackage: String,
+    token: String,
     body: &CreateOrUpdateTagsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://playgrouping.googleapis.com/v1alpha1/apps/{}/tokens/{}/tags:createOrUpdate",
-        appPackage, token,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -239,8 +244,11 @@ pub fn playgrouping_apps_tokens_tags_create_or_update_builder(
 pub fn playgrouping_apps_tokens_tags_create_or_update_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CreateOrUpdateTagsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<CreateOrUpdateTagsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -355,8 +363,8 @@ pub fn playgrouping_apps_tokens_tags_create_or_update(
 > {
     let builder = playgrouping_apps_tokens_tags_create_or_update_builder(
         client,
-        &args.appPackage,
-        &args.token,
+        args.appPackage.clone(),
+        args.token.clone(),
         &args.body,
     )?;
     playgrouping_apps_tokens_tags_create_or_update_execute(builder)

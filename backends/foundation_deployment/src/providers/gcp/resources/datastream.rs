@@ -11,18 +11,6 @@ use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
-/// AppendOnly mode defines that all changes to a table will be written to the destination table.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AppendOnly {}
-
-/// AVRO file format configuration.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AvroFileFormat {}
-
-/// Backfill strategy to disable automatic backfill for the Stream''s objects.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BackfillNoneStrategy {}
-
 /// Describes violations in a client request. This error type focuses on the syntactic aspects of the request.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BadRequest {
@@ -31,21 +19,11 @@ pub struct BadRequest {
     pub field_violations: ::core::option::Option<::std::vec::Vec<FieldViolation>>,
 }
 
-/// Message to represent the option where Datastream will enforce encryption without authenticating server identity. Server certificates will be trusted by default.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BasicEncryption {}
-
-/// Profile for connecting to a BigQuery destination.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BigQueryProfile {}
-
-/// Use Binary log position based replication.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct BinaryLogPosition {}
-
 /// The request message for Operations.CancelOperation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct CancelOperationRequest {}
+pub struct CancelOperationRequest {
+    pub value: serde_json::Value,
+}
 
 /// Describes additional debugging info.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -122,17 +100,11 @@ pub struct DiscoverConnectionProfileResponse {
     pub sql_server_rdbms: ::core::option::Option<SqlServerRdbms>,
 }
 
-/// Configuration to drop large object values.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DropLargeObjects {}
-
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Empty {}
-
-/// Message to represent the option where encryption is not enforced. An empty message right now to allow future extensibility.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EncryptionNotEnforced {}
+pub struct Empty {
+    pub value: serde_json::Value,
+}
 
 /// Describes the cause of the error with structured details. Example of an error when contacting the "pubsub.googleapis.com" API when it is not enabled: { "reason": "API_DISABLED" "domain": "googleapis.com" "metadata": { "resource": "projects/123", "service": "pubsub.googleapis.com" } } This response indicates that the pubsub.googleapis.com API is not enabled. Example of an error that is returned when attempting to create a Spanner instance in a region that is out of stock: { "reason": "STOCKOUT" "domain": "spanner.googleapis.com", "metadata": { "availableRegions": "us-central1,us-east2" } }
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -158,10 +130,6 @@ pub struct FetchStaticIpsResponse {
     #[serde(default, rename = "staticIps")]
     pub static_ips: ::core::option::Option<::std::vec::Vec<String>>,
 }
-
-/// Use GTID based replication.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Gtid {}
 
 /// Provides links to documentation or for performing an out of band action. For example, if a quota check failed with an error indicating the calling project hasn''t enabled the accessed service, this can contain a URL pointing directly to the right place in the developer console to flip the bit.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -263,10 +231,6 @@ pub struct ListStreamsResponse {
     pub unreachable: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
-/// Configuration to use LogMiner CDC method.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct LogMiner {}
-
 /// Request for looking up a specific stream object by its source object identifier.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LookupStreamObjectRequest {
@@ -274,18 +238,6 @@ pub struct LookupStreamObjectRequest {
     #[serde(default, rename = "sourceObjectIdentifier")]
     pub source_object_identifier: ::core::option::Option<SourceObjectIdentifier>,
 }
-
-/// Merge mode defines that all changes to a table will be merged at the destination table.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Merge {}
-
-/// CDC strategy to start replicating from the most recent position in the source.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct MostRecentStartPosition {}
-
-/// CDC strategy to resume replication from the next available position in the source.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct NextAvailableStartPosition {}
 
 /// Represents the metadata of the long-running operation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -315,10 +267,6 @@ pub struct OperationMetadata {
     #[serde(default)]
     pub verb: ::core::option::Option<String>,
 }
-
-/// Configuration to use Oracle ASM to access the log files.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct OracleAsmLogFileAccess {}
 
 /// Describes what preconditions have failed. For example, if an RPC failed because it required the Terms of Service to be acknowledged, it could list the terms of service violation in the PreconditionFailure message.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -383,18 +331,6 @@ pub struct RunStreamRequest {
     pub force: ::core::option::Option<bool>,
 }
 
-/// Configuration to use Change Tables CDC read method.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerChangeTables {}
-
-/// Configuration to use Transaction Logs CDC read method.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SqlServerTransactionLogs {}
-
-/// Srv connection format.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SrvConnectionFormat {}
-
 /// Request for manually initiating a backfill job for a specific stream object.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartBackfillJobRequest {
@@ -411,13 +347,11 @@ pub struct StartBackfillJobResponse {
     pub object: ::core::option::Option<StreamObject>,
 }
 
-/// Static IP address connectivity. Used when the source database is configured to allow incoming connections from the Datastream public IP addresses for the region specified in the connection profile.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StaticServiceIpConnectivity {}
-
 /// Request for manually stopping a running backfill job for a specific stream object.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StopBackfillJobRequest {}
+pub struct StopBackfillJobRequest {
+    pub value: serde_json::Value,
+}
 
 /// Response for manually stop a backfill job for a specific stream object.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -426,10 +360,6 @@ pub struct StopBackfillJobResponse {
     #[serde(default)]
     pub object: ::core::option::Option<StreamObject>,
 }
-
-/// Configuration to stream large object values.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct StreamLargeObjects {}
 
 /// A message type used to describe a single bad request field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -464,7 +394,7 @@ pub struct Link {
 pub struct ConnectionProfile {
     /// Profile for connecting to a BigQuery destination.
     #[serde(default, rename = "bigqueryProfile")]
-    pub bigquery_profile: ::core::option::Option<serde_json::Value>,
+    pub bigquery_profile: ::core::option::Option<BigQueryProfile>,
     /// Output only. The create time of the resource.
     #[serde(default, rename = "createTime")]
     pub create_time: ::core::option::Option<String>,
@@ -515,7 +445,7 @@ pub struct ConnectionProfile {
     pub sql_server_profile: ::core::option::Option<SqlServerProfile>,
     /// Static Service IP connectivity.
     #[serde(default, rename = "staticServiceIpConnectivity")]
-    pub static_service_ip_connectivity: ::core::option::Option<serde_json::Value>,
+    pub static_service_ip_connectivity: ::core::option::Option<StaticServiceIpConnectivity>,
     /// Output only. The update time of the resource.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
@@ -633,7 +563,7 @@ pub struct Stream {
     pub backfill_all: ::core::option::Option<BackfillAllStrategy>,
     /// Do not automatically backfill any objects.
     #[serde(default, rename = "backfillNone")]
-    pub backfill_none: ::core::option::Option<serde_json::Value>,
+    pub backfill_none: ::core::option::Option<BackfillNoneStrategy>,
     /// Output only. The creation time of the stream.
     #[serde(default, rename = "createTime")]
     pub create_time: ::core::option::Option<String>,
@@ -734,10 +664,10 @@ pub struct QuotaFailureViolation {
 pub struct CdcStrategy {
     /// Optional. Start replicating from the most recent position in the source.
     #[serde(default, rename = "mostRecentStartPosition")]
-    pub most_recent_start_position: ::core::option::Option<serde_json::Value>,
+    pub most_recent_start_position: ::core::option::Option<MostRecentStartPosition>,
     /// Optional. Resume replication from the next available position in the source.
     #[serde(default, rename = "nextAvailableStartPosition")]
-    pub next_available_start_position: ::core::option::Option<serde_json::Value>,
+    pub next_available_start_position: ::core::option::Option<NextAvailableStartPosition>,
     /// Optional. Start replicating from a specific position in the source.
     #[serde(default, rename = "specificStartPosition")]
     pub specific_start_position: ::core::option::Option<SpecificStartPosition>,
@@ -791,6 +721,12 @@ pub struct LocalizedMessage {
     pub message: ::core::option::Option<String>,
 }
 
+/// Profile for connecting to a BigQuery destination.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BigQueryProfile {
+    pub value: serde_json::Value,
+}
+
 /// Forward SSH Tunnel connectivity.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardSshTunnelConnectivity {
@@ -842,7 +778,7 @@ pub struct MongodbProfile {
     pub secret_manager_stored_password: ::core::option::Option<String>,
     /// Srv connection format.
     #[serde(default, rename = "srvConnectionFormat")]
-    pub srv_connection_format: ::core::option::Option<serde_json::Value>,
+    pub srv_connection_format: ::core::option::Option<SrvConnectionFormat>,
     /// Optional. SSL configuration for the MongoDB connection.
     #[serde(default, rename = "sslConfig")]
     pub ssl_config: ::core::option::Option<MongodbSslConfig>,
@@ -994,6 +930,12 @@ pub struct SqlServerProfile {
     pub username: ::core::option::Option<String>,
 }
 
+/// Static IP address connectivity. Used when the source database is configured to allow incoming connections from the Datastream public IP addresses for the region specified in the connection profile.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StaticServiceIpConnectivity {
+    pub value: serde_json::Value,
+}
+
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
@@ -1051,6 +993,12 @@ pub struct BackfillAllStrategy {
     /// SQLServer data source objects to avoid backfilling
     #[serde(default, rename = "sqlServerExcludedObjects")]
     pub sql_server_excluded_objects: ::core::option::Option<SqlServerRdbms>,
+}
+
+/// Backfill strategy to disable automatic backfill for the Stream''s objects.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackfillNoneStrategy {
+    pub value: serde_json::Value,
 }
 
 /// The configuration of the stream destination.
@@ -1124,6 +1072,18 @@ pub struct Validation {
     pub state: ::core::option::Option<String>,
 }
 
+/// CDC strategy to start replicating from the most recent position in the source.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct MostRecentStartPosition {
+    pub value: serde_json::Value,
+}
+
+/// CDC strategy to resume replication from the next available position in the source.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct NextAvailableStartPosition {
+    pub value: serde_json::Value,
+}
+
 /// CDC strategy to start replicating from a specific position in the source.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpecificStartPosition {
@@ -1173,6 +1133,12 @@ pub struct HostAddress {
     /// Optional. Port for the connection.
     #[serde(default)]
     pub port: ::core::option::Option<i32>,
+}
+
+/// Srv connection format.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SrvConnectionFormat {
+    pub value: serde_json::Value,
 }
 
 /// MongoDB SSL configuration information.
@@ -1311,13 +1277,13 @@ pub struct UserCredentials {
 pub struct SqlServerSslConfig {
     /// If set, Datastream will enforce encryption without authenticating server identity. Server certificates will be trusted by default.
     #[serde(default, rename = "basicEncryption")]
-    pub basic_encryption: ::core::option::Option<serde_json::Value>,
+    pub basic_encryption: ::core::option::Option<BasicEncryption>,
     /// If set, Datastream will enforce encryption and authenticate server identity.
     #[serde(default, rename = "encryptionAndServerValidation")]
     pub encryption_and_server_validation: ::core::option::Option<EncryptionAndServerValidation>,
     /// If set, Datastream will not enforce encryption. If the DB server mandates encryption, then connection will be encrypted but server identity will not be authenticated.
     #[serde(default, rename = "encryptionNotEnforced")]
-    pub encryption_not_enforced: ::core::option::Option<serde_json::Value>,
+    pub encryption_not_enforced: ::core::option::Option<EncryptionNotEnforced>,
 }
 
 /// BigQuery destination configuration
@@ -1325,7 +1291,7 @@ pub struct SqlServerSslConfig {
 pub struct BigQueryDestinationConfig {
     /// Append only mode
     #[serde(default, rename = "appendOnly")]
-    pub append_only: ::core::option::Option<serde_json::Value>,
+    pub append_only: ::core::option::Option<AppendOnly>,
     /// Optional. Big Lake Managed Tables (BLMT) configuration.
     #[serde(default, rename = "blmtConfig")]
     pub blmt_config: ::core::option::Option<BlmtConfig>,
@@ -1334,7 +1300,7 @@ pub struct BigQueryDestinationConfig {
     pub data_freshness: ::core::option::Option<String>,
     /// The standard mode
     #[serde(default)]
-    pub merge: ::core::option::Option<serde_json::Value>,
+    pub merge: ::core::option::Option<Merge>,
     /// Single destination dataset.
     #[serde(default, rename = "singleTargetDataset")]
     pub single_target_dataset: ::core::option::Option<SingleTargetDataset>,
@@ -1348,7 +1314,7 @@ pub struct BigQueryDestinationConfig {
 pub struct GcsDestinationConfig {
     /// AVRO file format configuration.
     #[serde(default, rename = "avroFileFormat")]
-    pub avro_file_format: ::core::option::Option<serde_json::Value>,
+    pub avro_file_format: ::core::option::Option<AvroFileFormat>,
     /// The maximum duration for which new events are added before a file is closed and a new file is created. Values within the range of 15-60 seconds are allowed.
     #[serde(default, rename = "fileRotationInterval")]
     pub file_rotation_interval: ::core::option::Option<String>,
@@ -1404,13 +1370,13 @@ pub struct MongodbSourceConfig {
 pub struct MysqlSourceConfig {
     /// Use Binary log position based replication.
     #[serde(default, rename = "binaryLogPosition")]
-    pub binary_log_position: ::core::option::Option<serde_json::Value>,
+    pub binary_log_position: ::core::option::Option<BinaryLogPosition>,
     /// The MySQL objects to exclude from the stream.
     #[serde(default, rename = "excludeObjects")]
     pub exclude_objects: ::core::option::Option<MysqlRdbms>,
     /// Use GTID based replication.
     #[serde(default)]
-    pub gtid: ::core::option::Option<serde_json::Value>,
+    pub gtid: ::core::option::Option<Gtid>,
     /// The MySQL objects to retrieve from the source.
     #[serde(default, rename = "includeObjects")]
     pub include_objects: ::core::option::Option<MysqlRdbms>,
@@ -1430,7 +1396,7 @@ pub struct OracleSourceConfig {
     pub binary_log_parser: ::core::option::Option<BinaryLogParser>,
     /// Drop large object values.
     #[serde(default, rename = "dropLargeObjects")]
-    pub drop_large_objects: ::core::option::Option<serde_json::Value>,
+    pub drop_large_objects: ::core::option::Option<DropLargeObjects>,
     /// The Oracle objects to exclude from the stream.
     #[serde(default, rename = "excludeObjects")]
     pub exclude_objects: ::core::option::Option<OracleRdbms>,
@@ -1439,7 +1405,7 @@ pub struct OracleSourceConfig {
     pub include_objects: ::core::option::Option<OracleRdbms>,
     /// Use LogMiner.
     #[serde(default, rename = "logMiner")]
-    pub log_miner: ::core::option::Option<serde_json::Value>,
+    pub log_miner: ::core::option::Option<LogMiner>,
     /// Maximum number of concurrent backfill tasks. The number should be non-negative. If not set (or set to 0), the system''s default value is used.
     #[serde(default, rename = "maxConcurrentBackfillTasks")]
     pub max_concurrent_backfill_tasks: ::core::option::Option<i32>,
@@ -1448,7 +1414,7 @@ pub struct OracleSourceConfig {
     pub max_concurrent_cdc_tasks: ::core::option::Option<i32>,
     /// Stream large object values.
     #[serde(default, rename = "streamLargeObjects")]
-    pub stream_large_objects: ::core::option::Option<serde_json::Value>,
+    pub stream_large_objects: ::core::option::Option<StreamLargeObjects>,
 }
 
 /// Configuration for syncing data from a PostgreSQL source.
@@ -1519,7 +1485,7 @@ pub struct SpannerSourceConfig {
 pub struct SqlServerSourceConfig {
     /// CDC reader reads from change tables.
     #[serde(default, rename = "changeTables")]
-    pub change_tables: ::core::option::Option<serde_json::Value>,
+    pub change_tables: ::core::option::Option<SqlServerChangeTables>,
     /// The SQLServer objects to exclude from the stream.
     #[serde(default, rename = "excludeObjects")]
     pub exclude_objects: ::core::option::Option<SqlServerRdbms>,
@@ -1534,7 +1500,7 @@ pub struct SqlServerSourceConfig {
     pub max_concurrent_cdc_tasks: ::core::option::Option<i32>,
     /// CDC reader reads from transaction logs.
     #[serde(default, rename = "transactionLogs")]
-    pub transaction_logs: ::core::option::Option<serde_json::Value>,
+    pub transaction_logs: ::core::option::Option<SqlServerTransactionLogs>,
 }
 
 /// Represent user-facing validation result message.
@@ -1659,6 +1625,12 @@ pub struct ServerVerification {
     pub server_certificate_hostname: ::core::option::Option<String>,
 }
 
+/// Message to represent the option where Datastream will enforce encryption without authenticating server identity. Server certificates will be trusted by default.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BasicEncryption {
+    pub value: serde_json::Value,
+}
+
 /// Message to represent the option where Datastream will enforce encryption and authenticate server identity. ca_certificate must be set if user selects this option.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionAndServerValidation {
@@ -1668,6 +1640,18 @@ pub struct EncryptionAndServerValidation {
     /// Optional. The hostname mentioned in the Subject or SAN extension of the server certificate. This field is used for bypassing the hostname validation while verifying server certificate. This is required for scenarios where the host name that datastream connects to is different from the certificate''s subject. This specifically happens for private connectivity. It could also happen when the customer provides a public IP in connection profile but the same is not present in the server certificate.
     #[serde(default, rename = "serverCertificateHostname")]
     pub server_certificate_hostname: ::core::option::Option<String>,
+}
+
+/// Message to represent the option where encryption is not enforced. An empty message right now to allow future extensibility.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EncryptionNotEnforced {
+    pub value: serde_json::Value,
+}
+
+/// AppendOnly mode defines that all changes to a table will be written to the destination table.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AppendOnly {
+    pub value: serde_json::Value,
 }
 
 /// The configuration for BLMT.
@@ -1690,6 +1674,12 @@ pub struct BlmtConfig {
     pub table_format: ::core::option::Option<String>,
 }
 
+/// Merge mode defines that all changes to a table will be merged at the destination table.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Merge {
+    pub value: serde_json::Value,
+}
+
 /// A single target dataset to which all data will be streamed.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SingleTargetDataset {
@@ -1707,6 +1697,12 @@ pub struct SourceHierarchyDatasets {
     /// Optional. The project id of the BigQuery dataset. If not specified, the project will be inferred from the stream resource.
     #[serde(default, rename = "projectId")]
     pub project_id: ::core::option::Option<String>,
+}
+
+/// AVRO file format configuration.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AvroFileFormat {
+    pub value: serde_json::Value,
 }
 
 /// JSON file format configuration.
@@ -1779,12 +1775,24 @@ pub struct MongodbCluster {
     pub databases: ::core::option::Option<::std::vec::Vec<MongodbDatabase>>,
 }
 
+/// Use Binary log position based replication.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BinaryLogPosition {
+    pub value: serde_json::Value,
+}
+
 /// MySQL database structure
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MysqlRdbms {
     /// Mysql databases on the server
     #[serde(default, rename = "mysqlDatabases")]
     pub mysql_databases: ::core::option::Option<::std::vec::Vec<MysqlDatabase>>,
+}
+
+/// Use GTID based replication.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Gtid {
+    pub value: serde_json::Value,
 }
 
 /// Configuration to use Binary Log Parser CDC technique.
@@ -1795,7 +1803,13 @@ pub struct BinaryLogParser {
     pub log_file_directories: ::core::option::Option<LogFileDirectories>,
     /// Use Oracle ASM.
     #[serde(default, rename = "oracleAsmLogFileAccess")]
-    pub oracle_asm_log_file_access: ::core::option::Option<serde_json::Value>,
+    pub oracle_asm_log_file_access: ::core::option::Option<OracleAsmLogFileAccess>,
+}
+
+/// Configuration to drop large object values.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DropLargeObjects {
+    pub value: serde_json::Value,
 }
 
 /// Oracle database structure.
@@ -1804,6 +1818,18 @@ pub struct OracleRdbms {
     /// Oracle schemas/databases in the database server.
     #[serde(default, rename = "oracleSchemas")]
     pub oracle_schemas: ::core::option::Option<::std::vec::Vec<OracleSchema>>,
+}
+
+/// Configuration to use LogMiner CDC method.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct LogMiner {
+    pub value: serde_json::Value,
+}
+
+/// Configuration to stream large object values.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct StreamLargeObjects {
+    pub value: serde_json::Value,
 }
 
 /// PostgreSQL database structure.
@@ -1830,12 +1856,24 @@ pub struct SpannerDatabase {
     pub schemas: ::core::option::Option<::std::vec::Vec<SpannerSchema>>,
 }
 
+/// Configuration to use Change Tables CDC read method.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerChangeTables {
+    pub value: serde_json::Value,
+}
+
 /// SQLServer database structure.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlServerRdbms {
     /// SQLServer schemas in the database server.
     #[serde(default)]
     pub schemas: ::core::option::Option<::std::vec::Vec<SqlServerSchema>>,
+}
+
+/// Configuration to use Transaction Logs CDC read method.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SqlServerTransactionLogs {
+    pub value: serde_json::Value,
 }
 
 /// Dataset template used for dynamic dataset creation.
@@ -1993,6 +2031,12 @@ pub struct LogFileDirectories {
     /// Required. Oracle directory for online logs.
     #[serde(default, rename = "onlineLogDirectory")]
     pub online_log_directory: ::core::option::Option<String>,
+}
+
+/// Configuration to use Oracle ASM to access the log files.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OracleAsmLogFileAccess {
+    pub value: serde_json::Value,
 }
 
 /// Oracle schema.

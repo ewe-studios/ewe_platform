@@ -12,7 +12,8 @@ pub mod types;
 use crate::providers::gcp::clients::types::*;
 use crate::providers::gcp::resources::*;
 use foundation_core::valtron::{
-    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+    execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
+    TaskIteratorExt,
 };
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
@@ -28,16 +29,14 @@ use serde::Serialize;
 
 pub fn paymentsresellersubscription_partners_products_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/products",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://paymentsresellersubscription.googleapis.com/v1/partners/{}/products",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -52,9 +51,9 @@ pub fn paymentsresellersubscription_partners_products_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -88,8 +87,11 @@ pub fn paymentsresellersubscription_partners_products_list_builder(
 pub fn paymentsresellersubscription_partners_products_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListProductsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListProductsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -202,10 +204,10 @@ pub fn paymentsresellersubscription_partners_products_list(
 > {
     let builder = paymentsresellersubscription_partners_products_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     paymentsresellersubscription_partners_products_list_execute(builder)
 }
@@ -218,18 +220,17 @@ pub fn paymentsresellersubscription_partners_products_list(
 
 pub fn paymentsresellersubscription_partners_promotions_find_eligible_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &FindEligiblePromotionsRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/promotions:findEligible",
-        parent,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -262,8 +263,9 @@ pub fn paymentsresellersubscription_partners_promotions_find_eligible_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
     impl TaskIterator<
-            D = Result<ApiResponse<FindEligiblePromotionsResponse>, ApiError>,
-            P = ApiPending,
+            Ready = Result<ApiResponse<FindEligiblePromotionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
         > + Send
         + 'static,
     ApiError,
@@ -377,7 +379,7 @@ pub fn paymentsresellersubscription_partners_promotions_find_eligible(
 > {
     let builder = paymentsresellersubscription_partners_promotions_find_eligible_builder(
         client,
-        &args.parent,
+        args.parent.clone(),
         &args.body,
     )?;
     paymentsresellersubscription_partners_promotions_find_eligible_execute(builder)
@@ -391,16 +393,14 @@ pub fn paymentsresellersubscription_partners_promotions_find_eligible(
 
 pub fn paymentsresellersubscription_partners_promotions_list_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    filter: Option<&str>,
+    parent: String,
+    filter: Option<String>,
     pageSize: Option<i32>,
-    pageToken: Option<&str>,
+    pageToken: Option<String>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
-        "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/promotions",
-        parent,
-    );
+    let endpoint_url =
+        format!("https://paymentsresellersubscription.googleapis.com/v1/partners/{}/promotions",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -415,9 +415,9 @@ pub fn paymentsresellersubscription_partners_promotions_list_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -451,8 +451,11 @@ pub fn paymentsresellersubscription_partners_promotions_list_builder(
 pub fn paymentsresellersubscription_partners_promotions_list_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ListPromotionsResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<ListPromotionsResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -565,181 +568,12 @@ pub fn paymentsresellersubscription_partners_promotions_list(
 > {
     let builder = paymentsresellersubscription_partners_promotions_list_builder(
         client,
-        &args.parent,
-        args.filter.as_deref(),
-        args.pageSize,
-        args.pageToken.as_deref(),
+        args.parent.clone(),
+        args.filter.clone(),
+        args.pageSize.clone(),
+        args.pageToken.clone(),
     )?;
     paymentsresellersubscription_partners_promotions_list_execute(builder)
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:cancel
-/// Cancels a subscription service either immediately or by the end of the current billing cycle for their customers. It should be called directly by the partner using service accounts.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `paymentsresellersubscription_partners_subscriptions_cancel_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_cancel` for simplest API.
-
-pub fn paymentsresellersubscription_partners_subscriptions_cancel_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &CancelSubscriptionRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{}:cancel",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:cancel
-/// Cancels a subscription service either immediately or by the end of the current billing cycle for their customers. It should be called directly by the partner using service accounts.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `paymentsresellersubscription_partners_subscriptions_cancel_execute()` or `paymentsresellersubscription_partners_subscriptions_cancel`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_cancel_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_cancel_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<CancelSubscriptionResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: CancelSubscriptionResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:cancel
-/// Cancels a subscription service either immediately or by the end of the current billing cycle for their customers. It should be called directly by the partner using service accounts.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `paymentsresellersubscription_partners_subscriptions_cancel_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_cancel_task()`.
-/// For the simplest API, use `paymentsresellersubscription_partners_subscriptions_cancel()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_cancel_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn paymentsresellersubscription_partners_subscriptions_cancel_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<CancelSubscriptionResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = paymentsresellersubscription_partners_subscriptions_cancel_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`paymentsresellersubscription_partners_subscriptions_cancel`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PaymentsresellersubscriptionPartnersSubscriptionsCancelArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: CancelSubscriptionRequest,
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:cancel
-/// Cancels a subscription service either immediately or by the end of the current billing cycle for their customers. It should be called directly by the partner using service accounts.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `paymentsresellersubscription_partners_subscriptions_cancel_builder()` + `paymentsresellersubscription_partners_subscriptions_cancel_execute()`.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_cancel_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_cancel(
-    client: &SimpleHttpClient,
-    args: &PaymentsresellersubscriptionPartnersSubscriptionsCancelArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<CancelSubscriptionResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = paymentsresellersubscription_partners_subscriptions_cancel_builder(
-        client, &args.name, &args.body,
-    )?;
-    paymentsresellersubscription_partners_subscriptions_cancel_execute(builder)
 }
 
 /// GET v1/partners/{partnersId}/subscriptions
@@ -750,14 +584,13 @@ pub fn paymentsresellersubscription_partners_subscriptions_cancel(
 
 pub fn paymentsresellersubscription_partners_subscriptions_create_builder(
     client: &SimpleHttpClient,
-    parent: &str,
-    subscriptionId: Option<&str>,
+    parent: String,
+    subscriptionId: Option<String>,
     body: &Subscription,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions",
-        parent,
     );
 
     // Build request
@@ -767,9 +600,9 @@ pub fn paymentsresellersubscription_partners_subscriptions_create_builder(
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -805,7 +638,12 @@ pub fn paymentsresellersubscription_partners_subscriptions_create_builder(
 pub fn paymentsresellersubscription_partners_subscriptions_create_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -915,506 +753,11 @@ pub fn paymentsresellersubscription_partners_subscriptions_create(
 > {
     let builder = paymentsresellersubscription_partners_subscriptions_create_builder(
         client,
-        &args.parent,
-        args.subscriptionId.as_deref(),
+        args.parent.clone(),
+        args.subscriptionId.clone(),
         &args.body,
     )?;
     paymentsresellersubscription_partners_subscriptions_create_execute(builder)
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:entitle
-/// Entitles a previously provisioned subscription to the current end user. The end user identity is inferred from the authorized credential of the request. This API must be authorized by the end user using OAuth.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `paymentsresellersubscription_partners_subscriptions_entitle_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_entitle` for simplest API.
-
-pub fn paymentsresellersubscription_partners_subscriptions_entitle_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &EntitleSubscriptionRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{}:entitle",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:entitle
-/// Entitles a previously provisioned subscription to the current end user. The end user identity is inferred from the authorized credential of the request. This API must be authorized by the end user using OAuth.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `paymentsresellersubscription_partners_subscriptions_entitle_execute()` or `paymentsresellersubscription_partners_subscriptions_entitle`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_entitle_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_entitle_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<EntitleSubscriptionResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: EntitleSubscriptionResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:entitle
-/// Entitles a previously provisioned subscription to the current end user. The end user identity is inferred from the authorized credential of the request. This API must be authorized by the end user using OAuth.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `paymentsresellersubscription_partners_subscriptions_entitle_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_entitle_task()`.
-/// For the simplest API, use `paymentsresellersubscription_partners_subscriptions_entitle()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_entitle_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn paymentsresellersubscription_partners_subscriptions_entitle_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<EntitleSubscriptionResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = paymentsresellersubscription_partners_subscriptions_entitle_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`paymentsresellersubscription_partners_subscriptions_entitle`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PaymentsresellersubscriptionPartnersSubscriptionsEntitleArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: EntitleSubscriptionRequest,
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:entitle
-/// Entitles a previously provisioned subscription to the current end user. The end user identity is inferred from the authorized credential of the request. This API must be authorized by the end user using OAuth.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `paymentsresellersubscription_partners_subscriptions_entitle_builder()` + `paymentsresellersubscription_partners_subscriptions_entitle_execute()`.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_entitle_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_entitle(
-    client: &SimpleHttpClient,
-    args: &PaymentsresellersubscriptionPartnersSubscriptionsEntitleArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<EntitleSubscriptionResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = paymentsresellersubscription_partners_subscriptions_entitle_builder(
-        client, &args.name, &args.body,
-    )?;
-    paymentsresellersubscription_partners_subscriptions_entitle_execute(builder)
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:extend
-/// [Opt-in only] Most partners should be on auto-extend by default. Extends a subscription service for their customers on an ongoing basis for the subscription to remain active and renewable. It should be called directly by the partner using service accounts.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `paymentsresellersubscription_partners_subscriptions_extend_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_extend` for simplest API.
-
-pub fn paymentsresellersubscription_partners_subscriptions_extend_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &ExtendSubscriptionRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{}:extend",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:extend
-/// [Opt-in only] Most partners should be on auto-extend by default. Extends a subscription service for their customers on an ongoing basis for the subscription to remain active and renewable. It should be called directly by the partner using service accounts.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `paymentsresellersubscription_partners_subscriptions_extend_execute()` or `paymentsresellersubscription_partners_subscriptions_extend`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_extend_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_extend_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ExtendSubscriptionResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ExtendSubscriptionResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:extend
-/// [Opt-in only] Most partners should be on auto-extend by default. Extends a subscription service for their customers on an ongoing basis for the subscription to remain active and renewable. It should be called directly by the partner using service accounts.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `paymentsresellersubscription_partners_subscriptions_extend_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_extend_task()`.
-/// For the simplest API, use `paymentsresellersubscription_partners_subscriptions_extend()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_extend_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn paymentsresellersubscription_partners_subscriptions_extend_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ExtendSubscriptionResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = paymentsresellersubscription_partners_subscriptions_extend_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`paymentsresellersubscription_partners_subscriptions_extend`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PaymentsresellersubscriptionPartnersSubscriptionsExtendArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: ExtendSubscriptionRequest,
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:extend
-/// [Opt-in only] Most partners should be on auto-extend by default. Extends a subscription service for their customers on an ongoing basis for the subscription to remain active and renewable. It should be called directly by the partner using service accounts.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `paymentsresellersubscription_partners_subscriptions_extend_builder()` + `paymentsresellersubscription_partners_subscriptions_extend_execute()`.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_extend_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_extend(
-    client: &SimpleHttpClient,
-    args: &PaymentsresellersubscriptionPartnersSubscriptionsExtendArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ExtendSubscriptionResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = paymentsresellersubscription_partners_subscriptions_extend_builder(
-        client, &args.name, &args.body,
-    )?;
-    paymentsresellersubscription_partners_subscriptions_extend_execute(builder)
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}
-/// Gets a subscription by id. It should be called directly by the partner using service accounts.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `paymentsresellersubscription_partners_subscriptions_get_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_get` for simplest API.
-
-pub fn paymentsresellersubscription_partners_subscriptions_get_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{}",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    Ok(builder)
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}
-/// Gets a subscription by id. It should be called directly by the partner using service accounts.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `paymentsresellersubscription_partners_subscriptions_get_execute()` or `paymentsresellersubscription_partners_subscriptions_get`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_get_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: Subscription = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}
-/// Gets a subscription by id. It should be called directly by the partner using service accounts.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `paymentsresellersubscription_partners_subscriptions_get_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_get_task()`.
-/// For the simplest API, use `paymentsresellersubscription_partners_subscriptions_get()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_get_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn paymentsresellersubscription_partners_subscriptions_get_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = paymentsresellersubscription_partners_subscriptions_get_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`paymentsresellersubscription_partners_subscriptions_get`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PaymentsresellersubscriptionPartnersSubscriptionsGetArgs {
-    /// Path parameter: name
-    pub name: String,
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}
-/// Gets a subscription by id. It should be called directly by the partner using service accounts.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `paymentsresellersubscription_partners_subscriptions_get_builder()` + `paymentsresellersubscription_partners_subscriptions_get_execute()`.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_get_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_get(
-    client: &SimpleHttpClient,
-    args: &PaymentsresellersubscriptionPartnersSubscriptionsGetArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder =
-        paymentsresellersubscription_partners_subscriptions_get_builder(client, &args.name)?;
-    paymentsresellersubscription_partners_subscriptions_get_execute(builder)
 }
 
 /// GET v1/partners/{partnersId}/subscriptions:provision
@@ -1425,34 +768,33 @@ pub fn paymentsresellersubscription_partners_subscriptions_get(
 
 pub fn paymentsresellersubscription_partners_subscriptions_provision_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     cycleOptions_initialCycleDuration_count: Option<i32>,
-    cycleOptions_initialCycleDuration_unit: Option<&str>,
-    subscriptionId: Option<&str>,
+    cycleOptions_initialCycleDuration_unit: Option<String>,
+    subscriptionId: Option<String>,
     body: &Subscription,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions:provision",
-        parent,
     );
 
     // Build request
     let mut query_parts = Vec::new();
     if let Some(val) = cycleOptions_initialCycleDuration_count {
-        query_parts.push(format!("cycleOptions_initialCycleDuration_count={}", val));
+        query_parts.push(format!("cycleOptions.initialCycleDuration.count={}", val));
     }
     if let Some(val) = cycleOptions_initialCycleDuration_unit {
-        query_parts.push(format!("cycleOptions_initialCycleDuration_unit={}", val));
+        query_parts.push(format!("cycleOptions.initialCycleDuration.unit={}", val));
     }
     if let Some(val) = subscriptionId {
         query_parts.push(format!("subscriptionId={}", val));
     }
 
     let url_with_query = if query_parts.is_empty() {
-        url
+        endpoint_url
     } else {
-        format!("{}?{}", url, query_parts.join("&"))
+        format!("{}?{}", endpoint_url, query_parts.join("&"))
     };
 
     let builder = client
@@ -1488,7 +830,12 @@ pub fn paymentsresellersubscription_partners_subscriptions_provision_builder(
 pub fn paymentsresellersubscription_partners_subscriptions_provision_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<Subscription>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<
+            Ready = Result<ApiResponse<Subscription>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
+        + 'static,
     ApiError,
 > {
     Ok(builder
@@ -1602,704 +949,13 @@ pub fn paymentsresellersubscription_partners_subscriptions_provision(
 > {
     let builder = paymentsresellersubscription_partners_subscriptions_provision_builder(
         client,
-        &args.parent,
-        args.cycleOptions_initialCycleDuration_count,
-        args.cycleOptions_initialCycleDuration_unit.as_deref(),
-        args.subscriptionId.as_deref(),
+        args.parent.clone(),
+        args.cycleOptions_initialCycleDuration_count.clone(),
+        args.cycleOptions_initialCycleDuration_unit.clone(),
+        args.subscriptionId.clone(),
         &args.body,
     )?;
     paymentsresellersubscription_partners_subscriptions_provision_execute(builder)
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:resume
-/// Resumes a suspended subscription. The new billing cycle will start at the time of the request. It should be called directly by the partner using service accounts.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `paymentsresellersubscription_partners_subscriptions_resume_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_resume` for simplest API.
-
-pub fn paymentsresellersubscription_partners_subscriptions_resume_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &ResumeSubscriptionRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{}:resume",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:resume
-/// Resumes a suspended subscription. The new billing cycle will start at the time of the request. It should be called directly by the partner using service accounts.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `paymentsresellersubscription_partners_subscriptions_resume_execute()` or `paymentsresellersubscription_partners_subscriptions_resume`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_resume_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_resume_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<ResumeSubscriptionResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: ResumeSubscriptionResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:resume
-/// Resumes a suspended subscription. The new billing cycle will start at the time of the request. It should be called directly by the partner using service accounts.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `paymentsresellersubscription_partners_subscriptions_resume_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_resume_task()`.
-/// For the simplest API, use `paymentsresellersubscription_partners_subscriptions_resume()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_resume_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn paymentsresellersubscription_partners_subscriptions_resume_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ResumeSubscriptionResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = paymentsresellersubscription_partners_subscriptions_resume_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`paymentsresellersubscription_partners_subscriptions_resume`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PaymentsresellersubscriptionPartnersSubscriptionsResumeArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: ResumeSubscriptionRequest,
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:resume
-/// Resumes a suspended subscription. The new billing cycle will start at the time of the request. It should be called directly by the partner using service accounts.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `paymentsresellersubscription_partners_subscriptions_resume_builder()` + `paymentsresellersubscription_partners_subscriptions_resume_execute()`.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_resume_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_resume(
-    client: &SimpleHttpClient,
-    args: &PaymentsresellersubscriptionPartnersSubscriptionsResumeArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ResumeSubscriptionResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = paymentsresellersubscription_partners_subscriptions_resume_builder(
-        client, &args.name, &args.body,
-    )?;
-    paymentsresellersubscription_partners_subscriptions_resume_execute(builder)
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:suspend
-/// Suspends a subscription. Contract terms may dictate if a prorated refund will be issued upon suspension. It should be called directly by the partner using service accounts.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `paymentsresellersubscription_partners_subscriptions_suspend_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_suspend` for simplest API.
-
-pub fn paymentsresellersubscription_partners_subscriptions_suspend_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &SuspendSubscriptionRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{}:suspend",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:suspend
-/// Suspends a subscription. Contract terms may dictate if a prorated refund will be issued upon suspension. It should be called directly by the partner using service accounts.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `paymentsresellersubscription_partners_subscriptions_suspend_execute()` or `paymentsresellersubscription_partners_subscriptions_suspend`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_suspend_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_suspend_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SuspendSubscriptionResponse>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: SuspendSubscriptionResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:suspend
-/// Suspends a subscription. Contract terms may dictate if a prorated refund will be issued upon suspension. It should be called directly by the partner using service accounts.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `paymentsresellersubscription_partners_subscriptions_suspend_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_suspend_task()`.
-/// For the simplest API, use `paymentsresellersubscription_partners_subscriptions_suspend()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_suspend_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn paymentsresellersubscription_partners_subscriptions_suspend_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<SuspendSubscriptionResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = paymentsresellersubscription_partners_subscriptions_suspend_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`paymentsresellersubscription_partners_subscriptions_suspend`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PaymentsresellersubscriptionPartnersSubscriptionsSuspendArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: SuspendSubscriptionRequest,
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:suspend
-/// Suspends a subscription. Contract terms may dictate if a prorated refund will be issued upon suspension. It should be called directly by the partner using service accounts.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `paymentsresellersubscription_partners_subscriptions_suspend_builder()` + `paymentsresellersubscription_partners_subscriptions_suspend_execute()`.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_suspend_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_suspend(
-    client: &SimpleHttpClient,
-    args: &PaymentsresellersubscriptionPartnersSubscriptionsSuspendArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<SuspendSubscriptionResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = paymentsresellersubscription_partners_subscriptions_suspend_builder(
-        client, &args.name, &args.body,
-    )?;
-    paymentsresellersubscription_partners_subscriptions_suspend_execute(builder)
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:undoCancel
-/// Currently, it is used by **Google One, Play Pass** partners. Revokes the pending cancellation of a subscription, which is currently in STATE_CANCEL_AT_END_OF_CYCLE state. If the subscription is already cancelled, the request will fail. It should be called directly by the partner using service accounts.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `paymentsresellersubscription_partners_subscriptions_undo_cancel_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_undo_cancel` for simplest API.
-
-pub fn paymentsresellersubscription_partners_subscriptions_undo_cancel_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    body: &UndoCancelSubscriptionRequest,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{}:undoCancel",
-        name,
-    );
-
-    // Build request
-    let builder = client
-        .get(&url)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:undoCancel
-/// Currently, it is used by **Google One, Play Pass** partners. Revokes the pending cancellation of a subscription, which is currently in STATE_CANCEL_AT_END_OF_CYCLE state. If the subscription is already cancelled, the request will fail. It should be called directly by the partner using service accounts.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `paymentsresellersubscription_partners_subscriptions_undo_cancel_execute()` or `paymentsresellersubscription_partners_subscriptions_undo_cancel`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_undo_cancel_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_undo_cancel_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<
-            D = Result<ApiResponse<UndoCancelSubscriptionResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: UndoCancelSubscriptionResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:undoCancel
-/// Currently, it is used by **Google One, Play Pass** partners. Revokes the pending cancellation of a subscription, which is currently in STATE_CANCEL_AT_END_OF_CYCLE state. If the subscription is already cancelled, the request will fail. It should be called directly by the partner using service accounts.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `paymentsresellersubscription_partners_subscriptions_undo_cancel_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_undo_cancel_task()`.
-/// For the simplest API, use `paymentsresellersubscription_partners_subscriptions_undo_cancel()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_undo_cancel_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn paymentsresellersubscription_partners_subscriptions_undo_cancel_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<UndoCancelSubscriptionResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let task = paymentsresellersubscription_partners_subscriptions_undo_cancel_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`paymentsresellersubscription_partners_subscriptions_undo_cancel`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PaymentsresellersubscriptionPartnersSubscriptionsUndoCancelArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Request body.
-    pub body: UndoCancelSubscriptionRequest,
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}:undoCancel
-/// Currently, it is used by **Google One, Play Pass** partners. Revokes the pending cancellation of a subscription, which is currently in STATE_CANCEL_AT_END_OF_CYCLE state. If the subscription is already cancelled, the request will fail. It should be called directly by the partner using service accounts.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `paymentsresellersubscription_partners_subscriptions_undo_cancel_builder()` + `paymentsresellersubscription_partners_subscriptions_undo_cancel_execute()`.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_undo_cancel_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_undo_cancel(
-    client: &SimpleHttpClient,
-    args: &PaymentsresellersubscriptionPartnersSubscriptionsUndoCancelArgs,
-) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<UndoCancelSubscriptionResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = paymentsresellersubscription_partners_subscriptions_undo_cancel_builder(
-        client, &args.name, &args.body,
-    )?;
-    paymentsresellersubscription_partners_subscriptions_undo_cancel_execute(builder)
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}/lineItems/{lineItemsId}
-/// Updates a line item of a subscription. It should be authenticated with a service account.
-///
-/// Returns `ClientRequestBuilder` for customization.
-/// Use `paymentsresellersubscription_partners_subscriptions_line_items_patch_execute()` to send, or `paymentsresellersubscription_partners_subscriptions_line_items_patch` for simplest API.
-
-pub fn paymentsresellersubscription_partners_subscriptions_line_items_patch_builder(
-    client: &SimpleHttpClient,
-    name: &str,
-    updateMask: Option<&str>,
-    body: &SubscriptionLineItem,
-) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
-    // Build URL
-    let url = format!(
-        "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/subscriptions/{}/lineItems/{}",
-        name,
-    );
-
-    // Build request
-    let mut query_parts = Vec::new();
-    if let Some(val) = updateMask {
-        query_parts.push(format!("updateMask={}", val));
-    }
-
-    let url_with_query = if query_parts.is_empty() {
-        url
-    } else {
-        format!("{}?{}", url, query_parts.join("&"))
-    };
-
-    let builder = client
-        .get(&url_with_query)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
-
-    builder
-        .body_json(body)
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}/lineItems/{lineItemsId}
-/// Updates a line item of a subscription. It should be authenticated with a service account.
-///
-/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
-/// and returns a `TaskIterator` for customization before execution.
-///
-/// Use this function when you need to:
-/// - Wrap the task with custom valtron combinators
-/// - Compose multiple tasks before execution
-/// - Intercept task execution for logging or testing
-///
-/// For direct execution, use `paymentsresellersubscription_partners_subscriptions_line_items_patch_execute()` or `paymentsresellersubscription_partners_subscriptions_line_items_patch`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_line_items_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_line_items_patch_task(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<SubscriptionLineItem>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    Ok(builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success {
-                stream,
-                intro,
-                headers,
-                ..
-            } => {
-                let status_code: usize = intro.0.into();
-
-                if status_code < 200 || status_code >= 300 {
-                    // Capture body for error parsing
-                    let body = body_reader::collect_string(stream);
-                    // Try to parse as structured API error
-                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
-                        return Err(ApiError::ApiError(error_body.error));
-                    }
-                    // Fall back to raw HTTP status error
-                    return Err(ApiError::HttpStatus {
-                        code: status_code as u16,
-                        headers: headers.clone(),
-                        body: Some(body),
-                    });
-                }
-
-                let body = body_reader::collect_string(stream);
-                let parsed: SubscriptionLineItem = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-
-                Ok(ApiResponse {
-                    status: status_code as u16,
-                    headers: headers.clone(),
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending))
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}/lineItems/{lineItemsId}
-/// Updates a line item of a subscription. It should be authenticated with a service account.
-///
-/// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response via a `StreamIterator`.
-///
-/// For full customization, use `paymentsresellersubscription_partners_subscriptions_line_items_patch_builder()` to create the builder,
-/// modify it, then call this function with your customized builder.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_line_items_patch_task()`.
-/// For the simplest API, use `paymentsresellersubscription_partners_subscriptions_line_items_patch()`.
-///
-/// # Arguments
-///
-/// * `builder` - A `ClientRequestBuilder`, typically from `paymentsresellersubscription_partners_subscriptions_line_items_patch_builder()`
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-/// HTTP errors during execution are returned via the StreamIterator.
-
-pub fn paymentsresellersubscription_partners_subscriptions_line_items_patch_execute(
-    builder: ClientRequestBuilder<SystemDnsResolver>,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SubscriptionLineItem>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let task = paymentsresellersubscription_partners_subscriptions_line_items_patch_task(builder)?;
-    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
-}
-
-/// Arguments for [`paymentsresellersubscription_partners_subscriptions_line_items_patch`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
-pub struct PaymentsresellersubscriptionPartnersSubscriptionsLineItemsPatchArgs {
-    /// Path parameter: name
-    pub name: String,
-    /// Query parameter: updateMask
-    pub updateMask: Option<String>,
-    /// Request body.
-    pub body: SubscriptionLineItem,
-}
-
-/// GET v1/partners/{partnersId}/subscriptions/{subscriptionsId}/lineItems/{lineItemsId}
-/// Updates a line item of a subscription. It should be authenticated with a service account.
-///
-/// Simplest API - builds and executes the request in one call.
-/// For customization, use `paymentsresellersubscription_partners_subscriptions_line_items_patch_builder()` + `paymentsresellersubscription_partners_subscriptions_line_items_patch_execute()`.
-/// For task-level control, use `paymentsresellersubscription_partners_subscriptions_line_items_patch_task()`.
-///
-/// # Errors
-///
-/// Returns an error if the request cannot be built.
-
-pub fn paymentsresellersubscription_partners_subscriptions_line_items_patch(
-    client: &SimpleHttpClient,
-    args: &PaymentsresellersubscriptionPartnersSubscriptionsLineItemsPatchArgs,
-) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SubscriptionLineItem>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
-    ApiError,
-> {
-    let builder = paymentsresellersubscription_partners_subscriptions_line_items_patch_builder(
-        client,
-        &args.name,
-        args.updateMask.as_deref(),
-        &args.body,
-    )?;
-    paymentsresellersubscription_partners_subscriptions_line_items_patch_execute(builder)
 }
 
 /// GET v1/partners/{partnersId}/userSessions:generate
@@ -2310,18 +966,17 @@ pub fn paymentsresellersubscription_partners_subscriptions_line_items_patch(
 
 pub fn paymentsresellersubscription_partners_user_sessions_generate_builder(
     client: &SimpleHttpClient,
-    parent: &str,
+    parent: String,
     body: &GenerateUserSessionRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!(
+    let endpoint_url = format!(
         "https://paymentsresellersubscription.googleapis.com/v1/partners/{}/userSessions:generate",
-        parent,
     );
 
     // Build request
     let builder = client
-        .get(&url)
+        .get(&endpoint_url)
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?;
 
     builder
@@ -2353,8 +1008,11 @@ pub fn paymentsresellersubscription_partners_user_sessions_generate_builder(
 pub fn paymentsresellersubscription_partners_user_sessions_generate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl TaskIterator<D = Result<ApiResponse<GenerateUserSessionResponse>, ApiError>, P = ApiPending>
-        + Send
+    impl TaskIterator<
+            Ready = Result<ApiResponse<GenerateUserSessionResponse>, ApiError>,
+            Pending = ApiPending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send
         + 'static,
     ApiError,
 > {
@@ -2467,7 +1125,7 @@ pub fn paymentsresellersubscription_partners_user_sessions_generate(
 > {
     let builder = paymentsresellersubscription_partners_user_sessions_generate_builder(
         client,
-        &args.parent,
+        args.parent.clone(),
         &args.body,
     )?;
     paymentsresellersubscription_partners_user_sessions_generate_execute(builder)
