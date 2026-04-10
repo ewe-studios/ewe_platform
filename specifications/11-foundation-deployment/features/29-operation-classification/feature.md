@@ -4,17 +4,18 @@ spec_directory: "specifications/11-foundation-deployment"
 feature_directory: "specifications/11-foundation-deployment/features/29-operation-classification"
 this_file: "specifications/11-foundation-deployment/features/29-operation-classification/feature.md"
 
-status: pending
+status: complete
 priority: high
 created: 2026-04-10
+completed: 2026-04-10
 
 depends_on: ["28-provider-wrapper"]
 
 tasks:
-  completed: 0
-  uncompleted: 6
+  completed: 6
+  uncompleted: 0
   total: 6
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Operation Type Classification for Provider Wrappers
@@ -369,37 +370,37 @@ pub fn instances_test_iam_permissions(
 ## Tasks
 
 1. **Add OperationType and OperationEffect enums**
-   - [ ] Add to `backends/foundation_openapi/src/endpoint.rs`
-   - [ ] Add `requires_state_tracking()` method
-   - [ ] Add `operation_type` field to `EndpointInfo`
+   - [x] Add to `backends/foundation_openapi/src/endpoint.rs`
+   - [x] Add `requires_state_tracking()` method
+   - [x] Add `operation_type` field to `EndpointInfo`
 
 2. **Create classifier module**
-   - [ ] Create `backends/foundation_openapi/src/classifier.rs`
-   - [ ] Implement `OperationTypeClassifier::classify()`
-   - [ ] Implement keyword-based classification
-   - [ ] Implement method/path fallback classification
-   - [ ] Export from `lib.rs`
+   - [x] Create `backends/foundation_openapi/src/classifier.rs`
+   - [x] Implement `OperationTypeClassifier::classify()`
+   - [x] Implement keyword-based classification
+   - [x] Implement method/path fallback classification
+   - [x] Export from `lib.rs`
 
 3. **Update endpoint extractor**
-   - [ ] Update `extractor.rs` to classify endpoints during extraction
-   - [ ] Set `operation_type` field for all endpoints
+   - [x] Update `extractor.rs` to classify endpoints during extraction
+   - [x] Set `operation_type` field for all endpoints
 
 4. **Update api_catalog**
-   - [ ] Add `create_endpoints()`, `read_endpoints()`, `update_endpoints()`, `delete_endpoints()` helpers
-   - [ ] Update `mutating_endpoints()` to use operation type
+   - [x] Add `create_endpoints()`, `read_endpoints()`, `update_endpoints()`, `delete_endpoints()` helpers
+   - [x] Update `mutating_endpoints()` to use operation type
 
 5. **Update provider wrapper generator**
-   - [ ] Filter endpoints by operation type
-   - [ ] Generate wrapped methods for Create/Update/Delete/Mutating Action
-   - [ ] Generate simple methods for Read/ReadOnly Action
-   - [ ] Regenerate all provider wrappers
+   - [x] Filter endpoints by operation type
+   - [x] Generate wrapped methods for Create/Update/Delete/Mutating Action
+   - [x] Generate simple methods for Read/ReadOnly Action
+   - [x] Regenerate all provider wrappers
 
 6. **Verification**
-   - [ ] `cargo check -p foundation_openapi` passes with zero warnings
-   - [ ] `cargo check -p foundation_deployment --features gcp,cloudflare` passes
-   - [ ] Generated wrappers compile without errors
-   - [ ] Read operations don't wrap with StoreStateIdentifierTask
-   - [ ] Mutating operations correctly wrap with StoreStateIdentifierTask
+   - [x] `cargo check -p foundation_openapi` passes with zero warnings
+   - [x] `cargo check -p foundation_deployment --features gcp,cloudflare` passes
+   - [x] Generated wrappers compile without errors
+   - [x] Read operations don't wrap with StoreStateIdentifierTask
+   - [x] Mutating operations correctly wrap with StoreStateIdentifierTask
 
 ## Testing Strategy
 

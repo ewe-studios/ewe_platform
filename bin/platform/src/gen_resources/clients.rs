@@ -1074,7 +1074,8 @@ impl ClientGenerator {
                 .replace('[', "_")
                 .replace(']', "_")
                 .replace('(', "_")
-                .replace(')', "_");
+                .replace(')', "_")
+                .replace('\'', "_"); // Replace apostrophes
             return self.to_snake_case(&clean_id);
         }
 
@@ -1094,7 +1095,8 @@ impl ClientGenerator {
             .replace('[', "_") // Replace [ in path
             .replace(']', "_") // Replace ] in path
             .replace('(', "") // Remove ( from path
-            .replace(')', ""); // Remove ) from path
+            .replace(')', "") // Remove ) from path
+            .replace('\'', ""); // Remove apostrophes from path
         format!("{}_{}", endpoint.method.to_lowercase(), path_part)
     }
 
@@ -1110,7 +1112,8 @@ impl ClientGenerator {
             .replace('[', "_")
             .replace(']', "_")
             .replace('(', "_")
-            .replace(')', "_");
+            .replace(')', "_")
+            .replace('\'', "_"); // Replace apostrophes
 
         let mut result = String::new();
         let mut prev_was_upper = false;
@@ -1162,7 +1165,8 @@ impl ClientGenerator {
             .replace('[', "_")
             .replace(']', "_")
             .replace('(', "_")
-            .replace(')', "_");
+            .replace(')', "_")
+            .replace('\'', "_"); // Replace apostrophes
 
         normalized.split('_')
             .filter(|part| !part.is_empty())

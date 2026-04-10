@@ -1330,11 +1330,11 @@ impl ResourceGenerator {
         };
 
         // Build import path for Args types from clients module
-        // For single-spec providers like cloudflare: crate::providers::cloudflare::clients::types::*
+        // For single-spec providers like cloudflare: import from clients module directly (where Args types are defined)
         // For multi-API providers like gcp: crate::providers::gcp::clients::{api}::*
         let (clients_import, resource_identifier_import) = if api_name.is_empty() {
             (
-                format!("use crate::providers::{provider}::clients::types::*;"),
+                format!("use crate::providers::{provider}::clients::*;"),
                 "use foundation_db::state::resource_identifier::ResourceIdentifier;".to_string()
             )
         } else {
