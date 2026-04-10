@@ -871,3 +871,348 @@ pub struct LoadBalancerTarget {
     #[serde(default)]
     pub region: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &DomainsProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &DomainsProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &DomainsProjectsLocationsOperationsGetArgs) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &DomainsProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Registration.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsGetArgs> for Registration {
+    fn generate_resource_id(&self, input: &DomainsProjectsLocationsRegistrationsGetArgs) -> String {
+        format!("gcp::Registration/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Registration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRegistrationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsListArgs>
+    for ListRegistrationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsListArgs,
+    ) -> String {
+        format!("gcp::ListRegistrationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRegistrationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AuthorizationCode.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsResetAuthorizationCodeArgs>
+    for AuthorizationCode
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsResetAuthorizationCodeArgs,
+    ) -> String {
+        format!("gcp::AuthorizationCode/{}", input.registration)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AuthorizationCode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RetrieveGoogleDomainsDnsRecordsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsDnsRecordsArgs>
+    for RetrieveGoogleDomainsDnsRecordsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsDnsRecordsArgs,
+    ) -> String {
+        format!(
+            "gcp::RetrieveGoogleDomainsDnsRecordsResponse/{}",
+            input.registration
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetrieveGoogleDomainsDnsRecordsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RetrieveGoogleDomainsForwardingConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsForwardingConfigArgs,
+    > for RetrieveGoogleDomainsForwardingConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsRetrieveGoogleDomainsForwardingConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::RetrieveGoogleDomainsForwardingConfigResponse/{}",
+            input.registration
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetrieveGoogleDomainsForwardingConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RetrieveImportableDomainsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsRetrieveImportableDomainsArgs>
+    for RetrieveImportableDomainsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsRetrieveImportableDomainsArgs,
+    ) -> String {
+        format!("gcp::RetrieveImportableDomainsResponse/{}", input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetrieveImportableDomainsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RetrieveRegisterParametersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsRetrieveRegisterParametersArgs>
+    for RetrieveRegisterParametersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsRetrieveRegisterParametersArgs,
+    ) -> String {
+        format!("gcp::RetrieveRegisterParametersResponse/{}", input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetrieveRegisterParametersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RetrieveTransferParametersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsRetrieveTransferParametersArgs>
+    for RetrieveTransferParametersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsRetrieveTransferParametersArgs,
+    ) -> String {
+        format!("gcp::RetrieveTransferParametersResponse/{}", input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetrieveTransferParametersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchDomainsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsSearchDomainsArgs>
+    for SearchDomainsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsSearchDomainsArgs,
+    ) -> String {
+        format!("gcp::SearchDomainsResponse/{}", input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchDomainsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainsProjectsLocationsRegistrationsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainsProjectsLocationsRegistrationsTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

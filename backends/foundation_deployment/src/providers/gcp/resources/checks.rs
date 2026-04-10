@@ -826,3 +826,212 @@ pub struct GoogleChecksReportV1alphaEndpoint {
     #[serde(default)]
     pub domain: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChecksAccountV1alphaApp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChecksAccountsAppsGetArgs> for GoogleChecksAccountV1alphaApp {
+    fn generate_resource_id(&self, input: &ChecksAccountsAppsGetArgs) -> String {
+        format!("gcp::GoogleChecksAccountV1alphaApp/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChecksAccountV1alphaApp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChecksAccountV1alphaListAppsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChecksAccountsAppsListArgs> for GoogleChecksAccountV1alphaListAppsResponse {
+    fn generate_resource_id(&self, input: &ChecksAccountsAppsListArgs) -> String {
+        format!(
+            "gcp::GoogleChecksAccountV1alphaListAppsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChecksAccountV1alphaListAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChecksAccountsAppsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &ChecksAccountsAppsOperationsCancelArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChecksAccountsAppsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &ChecksAccountsAppsOperationsGetArgs) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChecksAccountsAppsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &ChecksAccountsAppsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChecksReportV1alphaReport.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChecksAccountsAppsReportsGetArgs> for GoogleChecksReportV1alphaReport {
+    fn generate_resource_id(&self, input: &ChecksAccountsAppsReportsGetArgs) -> String {
+        format!("gcp::GoogleChecksReportV1alphaReport/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChecksReportV1alphaReport"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChecksReportV1alphaListReportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChecksAccountsAppsReportsListArgs>
+    for GoogleChecksReportV1alphaListReportsResponse
+{
+    fn generate_resource_id(&self, input: &ChecksAccountsAppsReportsListArgs) -> String {
+        format!(
+            "gcp::GoogleChecksReportV1alphaListReportsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChecksReportV1alphaListReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChecksRepoScanV1alphaRepoScan.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChecksAccountsReposScansGetArgs> for GoogleChecksRepoScanV1alphaRepoScan {
+    fn generate_resource_id(&self, input: &ChecksAccountsReposScansGetArgs) -> String {
+        format!("gcp::GoogleChecksRepoScanV1alphaRepoScan/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChecksRepoScanV1alphaRepoScan"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChecksRepoScanV1alphaListRepoScansResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChecksAccountsReposScansListArgs>
+    for GoogleChecksRepoScanV1alphaListRepoScansResponse
+{
+    fn generate_resource_id(&self, input: &ChecksAccountsReposScansListArgs) -> String {
+        format!(
+            "gcp::GoogleChecksRepoScanV1alphaListRepoScansResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChecksRepoScanV1alphaListRepoScansResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChecksAisafetyV1alphaClassifyContentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChecksAisafetyClassifyContentArgs>
+    for GoogleChecksAisafetyV1alphaClassifyContentResponse
+{
+    fn generate_resource_id(&self, input: &ChecksAisafetyClassifyContentArgs) -> String {
+        "gcp::GoogleChecksAisafetyV1alphaClassifyContentResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChecksAisafetyV1alphaClassifyContentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -472,3 +472,91 @@ pub struct CivicinfoSchemaV2ElectionOfficial {
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for CivicinfoApiprotosV2DivisionByAddressResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CivicinfoDivisionsQueryDivisionByAddressArgs>
+    for CivicinfoApiprotosV2DivisionByAddressResponse
+{
+    fn generate_resource_id(&self, input: &CivicinfoDivisionsQueryDivisionByAddressArgs) -> String {
+        "gcp::CivicinfoApiprotosV2DivisionByAddressResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CivicinfoApiprotosV2DivisionByAddressResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CivicinfoApiprotosV2DivisionSearchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CivicinfoDivisionsSearchArgs>
+    for CivicinfoApiprotosV2DivisionSearchResponse
+{
+    fn generate_resource_id(&self, input: &CivicinfoDivisionsSearchArgs) -> String {
+        "gcp::CivicinfoApiprotosV2DivisionSearchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CivicinfoApiprotosV2DivisionSearchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CivicinfoApiprotosV2ElectionsQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CivicinfoElectionsElectionQueryArgs>
+    for CivicinfoApiprotosV2ElectionsQueryResponse
+{
+    fn generate_resource_id(&self, input: &CivicinfoElectionsElectionQueryArgs) -> String {
+        "gcp::CivicinfoApiprotosV2ElectionsQueryResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CivicinfoApiprotosV2ElectionsQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CivicinfoApiprotosV2VoterInfoResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CivicinfoElectionsVoterInfoQueryArgs>
+    for CivicinfoApiprotosV2VoterInfoResponse
+{
+    fn generate_resource_id(&self, input: &CivicinfoElectionsVoterInfoQueryArgs) -> String {
+        "gcp::CivicinfoApiprotosV2VoterInfoResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CivicinfoApiprotosV2VoterInfoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

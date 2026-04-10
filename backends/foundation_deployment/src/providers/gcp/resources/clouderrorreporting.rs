@@ -234,3 +234,105 @@ pub struct SourceReference {
     #[serde(default, rename = "revisionId")]
     pub revision_id: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeleteEventsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsDeleteEventsArgs> for DeleteEventsResponse {
+    fn generate_resource_id(&self, input: &ClouderrorreportingProjectsDeleteEventsArgs) -> String {
+        format!("gcp::DeleteEventsResponse/{}", input.project_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DeleteEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListEventsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsEventsListArgs> for ListEventsResponse {
+    fn generate_resource_id(&self, input: &ClouderrorreportingProjectsEventsListArgs) -> String {
+        format!("gcp::ListEventsResponse/{}", input.project_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReportErrorEventResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsEventsReportArgs> for ReportErrorEventResponse {
+    fn generate_resource_id(&self, input: &ClouderrorreportingProjectsEventsReportArgs) -> String {
+        format!("gcp::ReportErrorEventResponse/{}", input.project_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReportErrorEventResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListGroupStatsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsGroupStatsListArgs> for ListGroupStatsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ClouderrorreportingProjectsGroupStatsListArgs,
+    ) -> String {
+        format!("gcp::ListGroupStatsResponse/{}", input.project_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListGroupStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ErrorGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClouderrorreportingProjectsGroupsGetArgs> for ErrorGroup {
+    fn generate_resource_id(&self, input: &ClouderrorreportingProjectsGroupsGetArgs) -> String {
+        format!("gcp::ErrorGroup/{}", input.group_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ErrorGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

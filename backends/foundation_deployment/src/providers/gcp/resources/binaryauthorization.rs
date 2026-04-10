@@ -657,3 +657,232 @@ pub struct PkixPublicKey {
     #[serde(default, rename = "signatureAlgorithm")]
     pub signature_algorithm: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsGetPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &BinaryauthorizationProjectsGetPolicyArgs) -> String {
+        format!("gcp::Policy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Attestor.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsCreateArgs> for Attestor {
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsAttestorsCreateArgs,
+    ) -> String {
+        format!("gcp::Attestor/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Attestor"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsAttestorsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IamPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsGetIamPolicyArgs> for IamPolicy {
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsAttestorsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::IamPolicy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IamPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAttestorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsListArgs> for ListAttestorsResponse {
+    fn generate_resource_id(&self, input: &BinaryauthorizationProjectsAttestorsListArgs) -> String {
+        format!("gcp::ListAttestorsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAttestorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsAttestorsTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ValidateAttestationOccurrenceResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsAttestorsValidateAttestationOccurrenceArgs>
+    for ValidateAttestationOccurrenceResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsAttestorsValidateAttestationOccurrenceArgs,
+    ) -> String {
+        format!(
+            "gcp::ValidateAttestationOccurrenceResponse/{}",
+            input.attestor
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ValidateAttestationOccurrenceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EvaluateGkePolicyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsPlatformsGkePoliciesEvaluateArgs>
+    for EvaluateGkePolicyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsPlatformsGkePoliciesEvaluateArgs,
+    ) -> String {
+        format!("gcp::EvaluateGkePolicyResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EvaluateGkePolicyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlatformPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsPlatformsPoliciesCreateArgs> for PlatformPolicy {
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsPlatformsPoliciesCreateArgs,
+    ) -> String {
+        format!("gcp::PlatformPolicy/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlatformPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPlatformPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BinaryauthorizationProjectsPlatformsPoliciesListArgs>
+    for ListPlatformPoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BinaryauthorizationProjectsPlatformsPoliciesListArgs,
+    ) -> String {
+        format!("gcp::ListPlatformPoliciesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPlatformPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

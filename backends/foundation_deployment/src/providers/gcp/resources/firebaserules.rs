@@ -332,3 +332,145 @@ pub struct ApiResult {
 pub struct Empty {
     pub value: serde_json::Value,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for TestRulesetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsTestArgs> for TestRulesetResponse {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsTestArgs) -> String {
+        format!("gcp::TestRulesetResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestRulesetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Release.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsReleasesCreateArgs> for Release {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsReleasesCreateArgs) -> String {
+        format!("gcp::Release/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Release"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsReleasesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsReleasesDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetReleaseExecutableResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsReleasesGetExecutableArgs>
+    for GetReleaseExecutableResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebaserulesProjectsReleasesGetExecutableArgs,
+    ) -> String {
+        format!("gcp::GetReleaseExecutableResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetReleaseExecutableResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListReleasesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsReleasesListArgs> for ListReleasesResponse {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsReleasesListArgs) -> String {
+        format!("gcp::ListReleasesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListReleasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Ruleset.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsRulesetsCreateArgs> for Ruleset {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsRulesetsCreateArgs) -> String {
+        format!("gcp::Ruleset/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Ruleset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRulesetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebaserulesProjectsRulesetsListArgs> for ListRulesetsResponse {
+    fn generate_resource_id(&self, input: &FirebaserulesProjectsRulesetsListArgs) -> String {
+        format!("gcp::ListRulesetsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRulesetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

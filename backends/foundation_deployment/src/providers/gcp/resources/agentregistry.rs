@@ -23,6 +23,17 @@ pub struct Empty {
     pub value: serde_json::Value,
 }
 
+/// Message for response to fetching available Bindings.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FetchAvailableBindingsResponse {
+    /// The list of Bindings.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
+    /// A token identifying a page of results the server should return.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
 /// Message for response to listing Agents
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAgentsResponse {
@@ -30,6 +41,17 @@ pub struct ListAgentsResponse {
     #[serde(default)]
     pub agents: ::core::option::Option<::std::vec::Vec<Agent>>,
     /// A token identifying a page of results the server should return.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Message for response to listing Bindings
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListBindingsResponse {
+    /// The list of Binding resources matching the parent and filter criteria in the request. Each Binding resource follows the format: projects/{project}/locations/{location}/bindings/{binding}.
+    #[serde(default)]
+    pub bindings: ::core::option::Option<::std::vec::Vec<Binding>>,
+    /// A token identifying a page of results the server should return. Used in page_token.
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
 }
@@ -118,48 +140,83 @@ pub struct OperationMetadata {
     pub verb: ::core::option::Option<String>,
 }
 
-/// Represents an Agent. "A2A" below refers to the Agent-to-Agent protocol.
+/// Message for searching Agents
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Agent {
-    /// Output only. A stable, globally unique identifier for agents.
-    #[serde(default, rename = "agentId")]
-    pub agent_id: ::core::option::Option<String>,
-    /// Output only. Attributes of the Agent. Valid values: * agentregistry.googleapis.com/system/Framework: {"framework": "google-adk"} - the agent framework used to develop the Agent. Example values: "google-adk", "langchain", "custom". * agentregistry.googleapis.com/system/RuntimeIdentity: {"principal": "principal://..."} - the runtime identity associated with the Agent. * agentregistry.googleapis.com/system/RuntimeReference: {"uri": "//..."} - the URI of the underlying resource hosting the Agent, for example, the Reasoning Engine URI.
+pub struct SearchAgentsRequest {
+    /// Optional. The maximum number of search results to return per page. The page size is capped at 100, even if a larger value is specified. A negative value will result in an INVALID_ARGUMENT error. If unspecified or set to 0, a default value of 20 will be used. The server may return fewer results than requested.
+    #[serde(default, rename = "pageSize")]
+    pub page_size: ::core::option::Option<i32>,
+    /// Optional. If present, retrieve the next batch of results from the preceding call to this method. page_token must be the value of next_page_token from the previous response. The values of all other method parameters, must be identical to those in the previous call.
+    #[serde(default, rename = "pageToken")]
+    pub page_token: ::core::option::Option<String>,
+    /// Optional. Search criteria used to select the Agents to return. If no search criteria is specified then all accessible Agents will be returned. Search expressions can be used to restrict results based upon searchable fields, where the operators can be used along with the suffix wildcard symbol *. See [instructions](https://docs.cloud.google.com/agent-registry/search-agents-and-tools) for more details. Allowed operators: =, :, NOT, AND, OR, and (). Searchable fields: | Field | = | : | * | Keyword Search | |--------------------|-----|-----|-----|----------------| | agentId | Yes | Yes | Yes | Included | | name | No | Yes | Yes | Included | | displayName | No | Yes | Yes | Included | | description | No | Yes | No | Included | | skills | No | Yes | No | Included | | skills.id | No | Yes | No | Included | | skills.name | No | Yes | No | Included | | skills.description | No | Yes | No | Included | | skills.tags | No | Yes | No | Included | | skills.examples | No | Yes | No | Included | Examples: * agentId=urn:agent:projects-123:projects:123:locations:us-central1:reasoningEngines:1234 to find the agent with the specified agent ID. * name:important to find agents whose name contains important as a word. * displayName:works* to find agents whose display name contains words that start with works. * skills.tags:test to find agents whose skills tags contain test. * planner OR booking to find agents whose metadata contains the words planner or booking.
+    #[serde(default, rename = "searchString")]
+    pub search_string: ::core::option::Option<String>,
+}
+
+/// Message for response to searching Agents
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchAgentsResponse {
+    /// A list of Agents that match the search_string.
     #[serde(default)]
-    pub attributes: ::core::option::Option<serde_json::Value>,
-    /// Output only. Full Agent Card payload, when available.
-    #[serde(default)]
-    pub card: ::core::option::Option<Card>,
-    /// Output only. Create time.
+    pub agents: ::core::option::Option<::std::vec::Vec<Agent>>,
+    /// If there are more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Message for searching MCP Servers
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchMcpServersRequest {
+    /// Optional. The maximum number of search results to return per page. The page size is capped at 100, even if a larger value is specified. A negative value will result in an INVALID_ARGUMENT error. If unspecified or set to 0, a default value of 20 will be used. The server may return fewer results than requested.
+    #[serde(default, rename = "pageSize")]
+    pub page_size: ::core::option::Option<i32>,
+    /// Optional. If present, retrieve the next batch of results from the preceding call to this method. page_token must be the value of next_page_token from the previous response. The values of all other method parameters, must be identical to those in the previous call.
+    #[serde(default, rename = "pageToken")]
+    pub page_token: ::core::option::Option<String>,
+    /// Optional. Search criteria used to select the MCP Servers to return. If no search criteria is specified then all accessible MCP Servers will be returned. Search expressions can be used to restrict results based upon searchable fields, where the operators can be used along with the suffix wildcard symbol *. See [instructions](https://docs.cloud.google.com/agent-registry/search-agents-and-tools) for more details. Allowed operators: =, :, NOT, AND, OR, and (). Searchable fields: | Field | = | : | * | Keyword Search | |--------------------|-----|-----|-----|----------------| | mcpServerId | Yes | Yes | Yes | Included | | name | No | Yes | Yes | Included | | displayName | No | Yes | Yes | Included | Examples: * mcpServerId=urn:mcp:projects-123:projects:123:locations:us-central1:agentregistry:services:service-id to find the MCP Server with the specified MCP Server ID. * name:important to find MCP Servers whose name contains important as a word. * displayName:works* to find MCP Servers whose display name contains words that start with works. * planner OR booking to find MCP Servers whose metadata contains the words planner or booking. * mcpServerId:service-id AND (displayName:planner OR displayName:booking) to find MCP Servers whose MCP Server ID contains service-id and whose display name contains planner or booking.
+    #[serde(default, rename = "searchString")]
+    pub search_string: ::core::option::Option<String>,
+}
+
+/// Message for response to searching MCP Servers
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SearchMcpServersResponse {
+    /// A list of McpServers that match the search_string.
+    #[serde(default, rename = "mcpServers")]
+    pub mcp_servers: ::core::option::Option<::std::vec::Vec<McpServer>>,
+    /// If there are more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Represents a user-defined Binding.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Binding {
+    /// The binding for AuthProvider.
+    #[serde(default, rename = "authProviderBinding")]
+    pub auth_provider_binding: ::core::option::Option<AuthProviderBinding>,
+    /// Output only. Timestamp when this binding was created.
     #[serde(default, rename = "createTime")]
     pub create_time: ::core::option::Option<String>,
-    /// Output only. The description of the Agent, often obtained from the A2A Agent Card. Empty if Agent Card has no description.
+    /// Optional. User-defined description of a Binding. Can have a maximum length of 2048 characters.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
-    /// Output only. The display name of the agent, often obtained from the A2A Agent Card.
+    /// Optional. User-defined display name for the Binding. Can have a maximum length of 63 characters.
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
-    /// Output only. The location where agent is hosted. The value is defined by the hosting environment (i.e. cloud provider).
-    #[serde(default)]
-    pub location: ::core::option::Option<String>,
-    /// Identifier. The resource name of an Agent. Format: projects/{project}/locations/{location}/agents/{agent}.
+    /// Required. Identifier. The resource name of the Binding. Format: projects/{project}/locations/{location}/bindings/{binding}.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// Output only. The connection details for the Agent.
+    /// Required. The target Agent of the Binding.
     #[serde(default)]
-    pub protocols: ::core::option::Option<::std::vec::Vec<Protocol>>,
-    /// Output only. Skills the agent possesses, often obtained from the A2A Agent Card.
+    pub source: ::core::option::Option<Source>,
+    /// Required. The target Agent Registry Resource of the Binding.
     #[serde(default)]
-    pub skills: ::core::option::Option<::std::vec::Vec<Skill>>,
-    /// Output only. A universally unique identifier for the Agent.
-    #[serde(default)]
-    pub uid: ::core::option::Option<String>,
-    /// Output only. Update time.
+    pub target: ::core::option::Option<Target>,
+    /// Output only. Timestamp when this binding was last updated.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
-    /// Output only. The version of the Agent, often obtained from the A2A Agent Card. Empty if Agent Card has no version or agent is not an A2A Agent.
-    #[serde(default)]
-    pub version: ::core::option::Option<String>,
 }
 
 /// Represents an Endpoint.
@@ -209,38 +266,6 @@ pub struct Location {
     /// Resource name for the location, which may vary between implementations. For example: "projects/example-project/locations/us-east1"
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-}
-
-/// Represents an MCP (Model Context Protocol) Server.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct McpServer {
-    /// Output only. Attributes of the MCP Server. Valid values: * agentregistry.googleapis.com/system/RuntimeIdentity: {"principal": "principal://..."} - the runtime identity associated with the MCP Server. * agentregistry.googleapis.com/system/RuntimeReference: {"uri": "//..."} - the URI of the underlying resource hosting the MCP Server, for example, the GKE Deployment.
-    #[serde(default)]
-    pub attributes: ::core::option::Option<serde_json::Value>,
-    /// Output only. Create time.
-    #[serde(default, rename = "createTime")]
-    pub create_time: ::core::option::Option<String>,
-    /// Output only. The description of the MCP Server.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. The display name of the MCP Server.
-    #[serde(default, rename = "displayName")]
-    pub display_name: ::core::option::Option<String>,
-    /// Output only. The connection details for the MCP Server.
-    #[serde(default)]
-    pub interfaces: ::core::option::Option<::std::vec::Vec<Interface>>,
-    /// Output only. A stable, globally unique identifier for MCP Servers.
-    #[serde(default, rename = "mcpServerId")]
-    pub mcp_server_id: ::core::option::Option<String>,
-    /// Identifier. The resource name of the MCP Server. Format: projects/{project}/locations/{location}/mcpServers/{mcp_server}.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Tools provided by the MCP Server.
-    #[serde(default)]
-    pub tools: ::core::option::Option<::std::vec::Vec<Tool>>,
-    /// Output only. Update time.
-    #[serde(default, rename = "updateTime")]
-    pub update_time: ::core::option::Option<String>,
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
@@ -296,6 +321,159 @@ pub struct Service {
     /// Output only. Update time.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
+}
+
+/// Represents an Agent. "A2A" below refers to the Agent-to-Agent protocol.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Agent {
+    /// Output only. A stable, globally unique identifier for agents.
+    #[serde(default, rename = "agentId")]
+    pub agent_id: ::core::option::Option<String>,
+    /// Output only. Attributes of the Agent. Valid values: * agentregistry.googleapis.com/system/Framework: {"framework": "google-adk"} - the agent framework used to develop the Agent. Example values: "google-adk", "langchain", "custom". * agentregistry.googleapis.com/system/RuntimeIdentity: {"principal": "principal://..."} - the runtime identity associated with the Agent. * agentregistry.googleapis.com/system/RuntimeReference: {"uri": "//..."} - the URI of the underlying resource hosting the Agent, for example, the Reasoning Engine URI.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<serde_json::Value>,
+    /// Output only. Full Agent Card payload, when available.
+    #[serde(default)]
+    pub card: ::core::option::Option<Card>,
+    /// Output only. Create time.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The description of the Agent, often obtained from the A2A Agent Card. Empty if Agent Card has no description.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. The display name of the agent, often obtained from the A2A Agent Card.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The location where agent is hosted. The value is defined by the hosting environment (i.e. cloud provider).
+    #[serde(default)]
+    pub location: ::core::option::Option<String>,
+    /// Identifier. The resource name of an Agent. Format: projects/{project}/locations/{location}/agents/{agent}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The connection details for the Agent.
+    #[serde(default)]
+    pub protocols: ::core::option::Option<::std::vec::Vec<Protocol>>,
+    /// Output only. Skills the agent possesses, often obtained from the A2A Agent Card.
+    #[serde(default)]
+    pub skills: ::core::option::Option<::std::vec::Vec<Skill>>,
+    /// Output only. A universally unique identifier for the Agent.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
+    /// Output only. Update time.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+    /// Output only. The version of the Agent, often obtained from the A2A Agent Card. Empty if Agent Card has no version or agent is not an A2A Agent.
+    #[serde(default)]
+    pub version: ::core::option::Option<String>,
+}
+
+/// Represents an MCP (Model Context Protocol) Server.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct McpServer {
+    /// Output only. Attributes of the MCP Server. Valid values: * agentregistry.googleapis.com/system/RuntimeIdentity: {"principal": "principal://..."} - the runtime identity associated with the MCP Server. * agentregistry.googleapis.com/system/RuntimeReference: {"uri": "//..."} - the URI of the underlying resource hosting the MCP Server, for example, the GKE Deployment.
+    #[serde(default)]
+    pub attributes: ::core::option::Option<serde_json::Value>,
+    /// Output only. Create time.
+    #[serde(default, rename = "createTime")]
+    pub create_time: ::core::option::Option<String>,
+    /// Output only. The description of the MCP Server.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. The display name of the MCP Server.
+    #[serde(default, rename = "displayName")]
+    pub display_name: ::core::option::Option<String>,
+    /// Output only. The connection details for the MCP Server.
+    #[serde(default)]
+    pub interfaces: ::core::option::Option<::std::vec::Vec<Interface>>,
+    /// Output only. A stable, globally unique identifier for MCP Servers.
+    #[serde(default, rename = "mcpServerId")]
+    pub mcp_server_id: ::core::option::Option<String>,
+    /// Identifier. The resource name of the MCP Server. Format: projects/{project}/locations/{location}/mcpServers/{mcp_server}.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Tools provided by the MCP Server.
+    #[serde(default)]
+    pub tools: ::core::option::Option<::std::vec::Vec<Tool>>,
+    /// Output only. Update time.
+    #[serde(default, rename = "updateTime")]
+    pub update_time: ::core::option::Option<String>,
+}
+
+/// The AuthProvider of the Binding.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AuthProviderBinding {
+    /// Required. The resource name of the target AuthProvider. Format: * projects/{project}/locations/{location}/authProviders/{auth_provider}
+    #[serde(default, rename = "authProvider")]
+    pub auth_provider: ::core::option::Option<String>,
+    /// Optional. The continue URI of the AuthProvider. The URI is used to reauthenticate the user and finalize the managed OAuth flow.
+    #[serde(default, rename = "continueUri")]
+    pub continue_uri: ::core::option::Option<String>,
+    /// Optional. The list of OAuth2 scopes of the AuthProvider.
+    #[serde(default)]
+    pub scopes: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// The source of the Binding.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Source {
+    /// The identifier of the source Agent. Format: * urn:agent:{publisher}:{namespace}:{name}
+    #[serde(default)]
+    pub identifier: ::core::option::Option<String>,
+}
+
+/// The target of the Binding.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Target {
+    /// The identifier of the target Agent, MCP Server, or Endpoint. Format: * urn:agent:{publisher}:{namespace}:{name} * urn:mcp:{publisher}:{namespace}:{name} * urn:endpoint:{publisher}:{namespace}:{name}
+    #[serde(default)]
+    pub identifier: ::core::option::Option<String>,
+}
+
+/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Status {
+    /// The status code, which should be an enum value of google.rpc.Code.
+    #[serde(default)]
+    pub code: ::core::option::Option<i32>,
+    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
+    #[serde(default)]
+    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
+    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
+    #[serde(default)]
+    pub message: ::core::option::Option<String>,
+}
+
+/// The spec of the agent.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct AgentSpec {
+    /// Optional. The content of the Agent spec in the JSON format. This payload is validated against the schema for the specified type. The content size is limited to 10KB.
+    #[serde(default)]
+    pub content: ::core::option::Option<serde_json::Value>,
+    /// Required. The type of the agent spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC", "A2A_AGENT_CARD"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The spec of the endpoint.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct EndpointSpec {
+    /// Optional. The content of the endpoint spec. Reserved for future use.
+    #[serde(default)]
+    pub content: ::core::option::Option<serde_json::Value>,
+    /// Required. The type of the endpoint spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// The spec of the MCP Server.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct McpServerSpec {
+    /// Optional. The content of the MCP Server spec. This payload is validated against the schema for the specified type. The content size is limited to 10KB.
+    #[serde(default)]
+    pub content: ::core::option::Option<serde_json::Value>,
+    /// Required. The type of the MCP Server spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC", "TOOL_SPEC"]
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
 }
 
 /// Full Agent Card payload, often obtained from the A2A Agent Card.
@@ -357,53 +535,6 @@ pub struct Tool {
     pub name: ::core::option::Option<String>,
 }
 
-/// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Status {
-    /// The status code, which should be an enum value of google.rpc.Code.
-    #[serde(default)]
-    pub code: ::core::option::Option<i32>,
-    /// A list of messages that carry the error details. There is a common set of message types for APIs to use.
-    #[serde(default)]
-    pub details: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
-    /// A developer-facing error message, which should be in English. Any user-facing error message should be localized and sent in the google.rpc.Status.details field, or localized by the client.
-    #[serde(default)]
-    pub message: ::core::option::Option<String>,
-}
-
-/// The spec of the agent.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AgentSpec {
-    /// Optional. The content of the Agent spec in the JSON format. This payload is validated against the schema for the specified type. The content size is limited to 10KB.
-    #[serde(default)]
-    pub content: ::core::option::Option<serde_json::Value>,
-    /// Required. The type of the agent spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC", "A2A_AGENT_CARD"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The spec of the endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct EndpointSpec {
-    /// Optional. The content of the endpoint spec. Reserved for future use.
-    #[serde(default)]
-    pub content: ::core::option::Option<serde_json::Value>,
-    /// Required. The type of the endpoint spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
-/// The spec of the MCP Server.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct McpServerSpec {
-    /// Optional. The content of the MCP Server spec. This payload is validated against the schema for the specified type. The content size is limited to 10KB.
-    #[serde(default)]
-    pub content: ::core::option::Option<serde_json::Value>,
-    /// Required. The type of the MCP Server spec content. // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_SPEC", "TOOL_SPEC"]
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
 /// Represents the connection details for an Agent or MCP Server.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Interface {
@@ -421,7 +552,7 @@ pub struct Annotations {
     /// Output only. If true, the tool may perform destructive updates to its environment. If false, the tool performs only additive updates. NOTE: This property is meaningful only when read_only_hint == false Default: true
     #[serde(default, rename = "destructiveHint")]
     pub destructive_hint: ::core::option::Option<bool>,
-    /// Output only. If true, calling the tool repeatedly with the same arguments will have no additional effect on its environment. NOTE: This property is meaningful only when read_only_hint == false. Default: false
+    /// Output only. If true, calling the tool repeatedly with the same arguments will have no additional effect on its environment. NOTE: This property is meaningful only when read_only_hint == false Default: false
     #[serde(default, rename = "idempotentHint")]
     pub idempotent_hint: ::core::option::Option<bool>,
     /// Output only. If true, this tool may interact with an "open world" of external entities. If false, the tool''s domain of interaction is closed. For example, the world of a web search tool is open, whereas that of a memory tool is not. Default: true
@@ -433,4 +564,400 @@ pub struct Annotations {
     /// Output only. A human-readable title for the tool.
     #[serde(default)]
     pub title: ::core::option::Option<String>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &AgentregistryProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &AgentregistryProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Agent.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsAgentsGetArgs> for Agent {
+    fn generate_resource_id(&self, input: &AgentregistryProjectsLocationsAgentsGetArgs) -> String {
+        format!("gcp::Agent/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Agent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAgentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsAgentsListArgs> for ListAgentsResponse {
+    fn generate_resource_id(&self, input: &AgentregistryProjectsLocationsAgentsListArgs) -> String {
+        format!("gcp::ListAgentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAgentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchAgentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsAgentsSearchArgs> for SearchAgentsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &AgentregistryProjectsLocationsAgentsSearchArgs,
+    ) -> String {
+        format!("gcp::SearchAgentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchAgentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsBindingsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &AgentregistryProjectsLocationsBindingsCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchAvailableBindingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsBindingsFetchAvailableArgs>
+    for FetchAvailableBindingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AgentregistryProjectsLocationsBindingsFetchAvailableArgs,
+    ) -> String {
+        format!("gcp::FetchAvailableBindingsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchAvailableBindingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Binding.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsBindingsGetArgs> for Binding {
+    fn generate_resource_id(
+        &self,
+        input: &AgentregistryProjectsLocationsBindingsGetArgs,
+    ) -> String {
+        format!("gcp::Binding/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Binding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBindingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsBindingsListArgs> for ListBindingsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &AgentregistryProjectsLocationsBindingsListArgs,
+    ) -> String {
+        format!("gcp::ListBindingsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBindingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Endpoint.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsEndpointsGetArgs> for Endpoint {
+    fn generate_resource_id(
+        &self,
+        input: &AgentregistryProjectsLocationsEndpointsGetArgs,
+    ) -> String {
+        format!("gcp::Endpoint/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Endpoint"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListEndpointsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsEndpointsListArgs> for ListEndpointsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &AgentregistryProjectsLocationsEndpointsListArgs,
+    ) -> String {
+        format!("gcp::ListEndpointsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListEndpointsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for McpServer.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsMcpServersGetArgs> for McpServer {
+    fn generate_resource_id(
+        &self,
+        input: &AgentregistryProjectsLocationsMcpServersGetArgs,
+    ) -> String {
+        format!("gcp::McpServer/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::McpServer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMcpServersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsMcpServersListArgs>
+    for ListMcpServersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AgentregistryProjectsLocationsMcpServersListArgs,
+    ) -> String {
+        format!("gcp::ListMcpServersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMcpServersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchMcpServersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsMcpServersSearchArgs>
+    for SearchMcpServersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AgentregistryProjectsLocationsMcpServersSearchArgs,
+    ) -> String {
+        format!("gcp::SearchMcpServersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchMcpServersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &AgentregistryProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AgentregistryProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Service.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsServicesGetArgs> for Service {
+    fn generate_resource_id(
+        &self,
+        input: &AgentregistryProjectsLocationsServicesGetArgs,
+    ) -> String {
+        format!("gcp::Service/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Service"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListServicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AgentregistryProjectsLocationsServicesListArgs> for ListServicesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &AgentregistryProjectsLocationsServicesListArgs,
+    ) -> String {
+        format!("gcp::ListServicesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

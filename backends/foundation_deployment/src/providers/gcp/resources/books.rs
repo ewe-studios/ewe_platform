@@ -784,3 +784,570 @@ pub struct Geolayerdata {
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Bookshelf.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksBookshelvesGetArgs> for Bookshelf {
+    fn generate_resource_id(&self, input: &BooksBookshelvesGetArgs) -> String {
+        format!("gcp::Bookshelf/{}/{}", input.user_id, input.shelf)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Bookshelf"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Bookshelves.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksBookshelvesListArgs> for Bookshelves {
+    fn generate_resource_id(&self, input: &BooksBookshelvesListArgs) -> String {
+        format!("gcp::Bookshelves/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Bookshelves"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Volumes.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksBookshelvesVolumesListArgs> for Volumes {
+    fn generate_resource_id(&self, input: &BooksBookshelvesVolumesListArgs) -> String {
+        format!("gcp::Volumes/{}/{}", input.user_id, input.shelf)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Volumes"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BooksCloudloadingResource.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksCloudloadingAddBookArgs> for BooksCloudloadingResource {
+    fn generate_resource_id(&self, input: &BooksCloudloadingAddBookArgs) -> String {
+        "gcp::BooksCloudloadingResource".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BooksCloudloadingResource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksCloudloadingDeleteBookArgs> for Empty {
+    fn generate_resource_id(&self, input: &BooksCloudloadingDeleteBookArgs) -> String {
+        "gcp::Empty".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Metadata.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksDictionaryListOfflineMetadataArgs> for Metadata {
+    fn generate_resource_id(&self, input: &BooksDictionaryListOfflineMetadataArgs) -> String {
+        "gcp::Metadata".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Metadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FamilyInfo.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksFamilysharingGetFamilyInfoArgs> for FamilyInfo {
+    fn generate_resource_id(&self, input: &BooksFamilysharingGetFamilyInfoArgs) -> String {
+        "gcp::FamilyInfo".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FamilyInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Layersummary.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksLayersGetArgs> for Layersummary {
+    fn generate_resource_id(&self, input: &BooksLayersGetArgs) -> String {
+        format!("gcp::Layersummary/{}/{}", input.volume_id, input.summary_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Layersummary"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Layersummaries.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksLayersListArgs> for Layersummaries {
+    fn generate_resource_id(&self, input: &BooksLayersListArgs) -> String {
+        format!("gcp::Layersummaries/{}", input.volume_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Layersummaries"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DictionaryAnnotationdata.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksLayersAnnotationDataGetArgs> for DictionaryAnnotationdata {
+    fn generate_resource_id(&self, input: &BooksLayersAnnotationDataGetArgs) -> String {
+        format!(
+            "gcp::DictionaryAnnotationdata/{}/{}/{}",
+            input.volume_id, input.layer_id, input.annotation_data_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DictionaryAnnotationdata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Annotationsdata.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksLayersAnnotationDataListArgs> for Annotationsdata {
+    fn generate_resource_id(&self, input: &BooksLayersAnnotationDataListArgs) -> String {
+        format!(
+            "gcp::Annotationsdata/{}/{}",
+            input.volume_id, input.layer_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Annotationsdata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Volumeannotation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksLayersVolumeAnnotationsGetArgs> for Volumeannotation {
+    fn generate_resource_id(&self, input: &BooksLayersVolumeAnnotationsGetArgs) -> String {
+        format!(
+            "gcp::Volumeannotation/{}/{}/{}",
+            input.volume_id, input.layer_id, input.annotation_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Volumeannotation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Volumeannotations.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksLayersVolumeAnnotationsListArgs> for Volumeannotations {
+    fn generate_resource_id(&self, input: &BooksLayersVolumeAnnotationsListArgs) -> String {
+        format!(
+            "gcp::Volumeannotations/{}/{}",
+            input.volume_id, input.layer_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Volumeannotations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Usersettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksMyconfigGetUserSettingsArgs> for Usersettings {
+    fn generate_resource_id(&self, input: &BooksMyconfigGetUserSettingsArgs) -> String {
+        "gcp::Usersettings".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Usersettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DownloadAccesses.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksMyconfigReleaseDownloadAccessArgs> for DownloadAccesses {
+    fn generate_resource_id(&self, input: &BooksMyconfigReleaseDownloadAccessArgs) -> String {
+        "gcp::DownloadAccesses".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DownloadAccesses"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RequestAccessData.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksMyconfigRequestAccessArgs> for RequestAccessData {
+    fn generate_resource_id(&self, input: &BooksMyconfigRequestAccessArgs) -> String {
+        "gcp::RequestAccessData".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RequestAccessData"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Annotation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksMylibraryAnnotationsInsertArgs> for Annotation {
+    fn generate_resource_id(&self, input: &BooksMylibraryAnnotationsInsertArgs) -> String {
+        "gcp::Annotation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Annotation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Annotations.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksMylibraryAnnotationsListArgs> for Annotations {
+    fn generate_resource_id(&self, input: &BooksMylibraryAnnotationsListArgs) -> String {
+        "gcp::Annotations".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Annotations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AnnotationsSummary.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksMylibraryAnnotationsSummaryArgs> for AnnotationsSummary {
+    fn generate_resource_id(&self, input: &BooksMylibraryAnnotationsSummaryArgs) -> String {
+        "gcp::AnnotationsSummary".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AnnotationsSummary"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReadingPosition.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksMylibraryReadingpositionsGetArgs> for ReadingPosition {
+    fn generate_resource_id(&self, input: &BooksMylibraryReadingpositionsGetArgs) -> String {
+        format!("gcp::ReadingPosition/{}", input.volume_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReadingPosition"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Notification.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksNotificationGetArgs> for Notification {
+    fn generate_resource_id(&self, input: &BooksNotificationGetArgs) -> String {
+        "gcp::Notification".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Notification"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Category.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksOnboardingListCategoriesArgs> for Category {
+    fn generate_resource_id(&self, input: &BooksOnboardingListCategoriesArgs) -> String {
+        "gcp::Category".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Category"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Volume2.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksOnboardingListCategoryVolumesArgs> for Volume2 {
+    fn generate_resource_id(&self, input: &BooksOnboardingListCategoryVolumesArgs) -> String {
+        "gcp::Volume2".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Volume2"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Discoveryclusters.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksPersonalizedstreamGetArgs> for Discoveryclusters {
+    fn generate_resource_id(&self, input: &BooksPersonalizedstreamGetArgs) -> String {
+        "gcp::Discoveryclusters".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Discoveryclusters"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Offers.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksPromoofferGetArgs> for Offers {
+    fn generate_resource_id(&self, input: &BooksPromoofferGetArgs) -> String {
+        "gcp::Offers".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Offers"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Series.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksSeriesGetArgs> for Series {
+    fn generate_resource_id(&self, input: &BooksSeriesGetArgs) -> String {
+        "gcp::Series".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Series"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Seriesmembership.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksSeriesMembershipGetArgs> for Seriesmembership {
+    fn generate_resource_id(&self, input: &BooksSeriesMembershipGetArgs) -> String {
+        "gcp::Seriesmembership".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Seriesmembership"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Volume.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksVolumesGetArgs> for Volume {
+    fn generate_resource_id(&self, input: &BooksVolumesGetArgs) -> String {
+        format!("gcp::Volume/{}", input.volume_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Volume"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BooksVolumesRecommendedRateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BooksVolumesRecommendedRateArgs> for BooksVolumesRecommendedRateResponse {
+    fn generate_resource_id(&self, input: &BooksVolumesRecommendedRateArgs) -> String {
+        "gcp::BooksVolumesRecommendedRateResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BooksVolumesRecommendedRateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

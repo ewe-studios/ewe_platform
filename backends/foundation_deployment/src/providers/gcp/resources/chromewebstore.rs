@@ -146,3 +146,112 @@ pub struct DistributionChannel {
     #[serde(default, rename = "deployPercentage")]
     pub deploy_percentage: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for UploadItemPackageResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromewebstoreMediaUploadArgs> for UploadItemPackageResponse {
+    fn generate_resource_id(&self, input: &ChromewebstoreMediaUploadArgs) -> String {
+        format!("gcp::UploadItemPackageResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UploadItemPackageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CancelSubmissionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromewebstorePublishersItemsCancelSubmissionArgs>
+    for CancelSubmissionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromewebstorePublishersItemsCancelSubmissionArgs,
+    ) -> String {
+        format!("gcp::CancelSubmissionResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CancelSubmissionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchItemStatusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromewebstorePublishersItemsFetchStatusArgs> for FetchItemStatusResponse {
+    fn generate_resource_id(&self, input: &ChromewebstorePublishersItemsFetchStatusArgs) -> String {
+        format!("gcp::FetchItemStatusResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchItemStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PublishItemResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromewebstorePublishersItemsPublishArgs> for PublishItemResponse {
+    fn generate_resource_id(&self, input: &ChromewebstorePublishersItemsPublishArgs) -> String {
+        format!("gcp::PublishItemResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PublishItemResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SetPublishedDeployPercentageResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromewebstorePublishersItemsSetPublishedDeployPercentageArgs>
+    for SetPublishedDeployPercentageResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromewebstorePublishersItemsSetPublishedDeployPercentageArgs,
+    ) -> String {
+        format!("gcp::SetPublishedDeployPercentageResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SetPublishedDeployPercentageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -247,3 +247,45 @@ pub struct Date {
     #[serde(default)]
     pub year: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for QueryHistoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromeuxreportRecordsQueryHistoryRecordArgs> for QueryHistoryResponse {
+    fn generate_resource_id(&self, input: &ChromeuxreportRecordsQueryHistoryRecordArgs) -> String {
+        "gcp::QueryHistoryResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryHistoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromeuxreportRecordsQueryRecordArgs> for QueryResponse {
+    fn generate_resource_id(&self, input: &ChromeuxreportRecordsQueryRecordArgs) -> String {
+        "gcp::QueryResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

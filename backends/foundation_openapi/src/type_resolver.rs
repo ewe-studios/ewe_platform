@@ -79,37 +79,51 @@ impl TypeResolver {
     ///
     /// Returns false for composition types (oneOf/anyOf) and empty objects.
     pub fn is_generatable(&self, schema: &Schema) -> bool {
-        // Has explicit properties - always generatable
-        if schema.properties.is_some() {
+        Self::check_schema_generatable(schema, self.schemas.as_ref())
+    }
+
+    /// Check if a schema is generatable (can be converted to a Rust struct).
+    ///
+    /// Handles allOf by merging properties from all members.
+    fn check_schema_generatable(schema: &Schema, schemas: &BTreeMap<String, Schema>) -> bool {
+        // Has explicit properties at top level - generatable
+        if schema.properties.as_ref().map_or(false, |p| !p.is_empty()) {
             return true;
         }
 
-        // Check composition types
+        // Handle allOf - merge properties from all members
         if let Some(all_of) = &schema.all_of {
-            // allOf with single $ref is a wrapper - generatable
-            if all_of.len() == 1 && all_of[0].ref_path.is_some() {
+            // Check if any member has properties
+            for member in all_of {
+                if member.properties.as_ref().map_or(false, |p| !p.is_empty()) {
+                    return true;
+                }
+                // Recursively check nested allOf
+                if member.all_of.is_some() && Self::check_schema_generatable(member, schemas) {
+                    return true;
+                }
+            }
+            // allOf with only $refs (no properties) - still generatable as it extends a base type
+            if all_of.iter().all(|m| m.ref_path.is_some() && m.properties.is_none()) {
                 return true;
             }
-            // allOf with multiple members - not generatable (use JsonValue)
             return false;
         }
 
-        // Union types are not generatable
+        // oneOf/anyOf are not generatable (union types)
         if schema.one_of.is_some() || schema.any_of.is_some() {
             return false;
         }
 
-        // Plain object with no properties - not generatable (use JsonValue)
-        if schema.schema_type.as_deref() == Some("object") {
-            return false;
-        }
-
-        // Has a $ref - check if target is generatable
+        // Simple $ref is generatable if the referenced type exists
         if let Some(ref_path) = &schema.ref_path {
-            return self.resolve_ref(ref_path).is_some();
+            let type_name = ref_path
+                .trim_start_matches("#/components/schemas/")
+                .trim_start_matches("#/schemas/");
+            return schemas.contains_key(type_name);
         }
 
-        // Unknown/inline schema - not generatable
+        // Unknown/inline schema without properties - not generatable
         false
     }
 
@@ -122,39 +136,26 @@ impl TypeResolver {
         let schema = media_type.schema.as_ref()?;
 
         // Check if this is a generatable type
-        let schema_to_check = if schema.ref_path.is_some()
-            && schema.properties.is_none()
-            && schema.any_of.is_none()
-            && schema.one_of.is_none()
-        {
-            // It's a $ref, look up the actual schema
-            schema.ref_path.as_ref()
-                .and_then(|ref_path| {
-                    let type_name = ref_path.trim_start_matches("#/components/schemas/");
-                    let type_name = type_name.trim_start_matches("#/schemas/");
-                    self.schemas.get(type_name)
-                })
-                .unwrap_or(schema)
-        } else {
-            schema
-        };
-
-        // Check if the type is generatable
-        let is_generatable = schema_to_check.properties.is_some()
-            || (schema_to_check.all_of.is_none()
-                && schema_to_check.any_of.is_none()
-                && schema_to_check.one_of.is_none());
+        // For allOf types, we need to check if any member has properties or if it's a simple ref wrapper
+        let is_generatable = Self::check_schema_generatable(schema, self.schemas.as_ref());
 
         if is_generatable {
-            // Extract type name from $ref
+            // Extract type name from $ref or use the schema directly
             if let Some(ref_path) = &schema.ref_path {
                 let type_name = ref_path
                     .trim_start_matches("#/components/schemas/")
                     .trim_start_matches("#/schemas/");
                 let normalized = Self::to_pascal_case(type_name);
                 Some(ResponseType::Generated(Self::rename_if_keyword(normalized)))
+            } else if schema.all_of.is_some() && schema.ref_path.is_none() {
+                // allOf type without top-level $ref - use the schema name from context
+                // This case shouldn't happen here as we need a name, return None
+                None
+            } else if schema.properties.is_some() {
+                // Inline schema with properties - needs a name (not available here)
+                None
             } else {
-                // Inline schema with properties - needs a name
+                // Simple type without ref - shouldn't happen in well-formed specs
                 None
             }
         } else {
@@ -251,6 +252,8 @@ impl TypeResolver {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::spec::{Response, MediaType};
+    use std::collections::BTreeMap;
 
     fn make_schema(properties: Option<BTreeMap<String, Schema>>) -> Schema {
         Schema {
@@ -339,5 +342,134 @@ mod tests {
         };
 
         assert!(!resolver.is_generatable(&schema));
+    }
+
+    #[test]
+    fn is_generatable_with_allof_multiple_refs() {
+        // allOf with multiple refs (extending base type) should be generatable
+        let mut schemas = BTreeMap::new();
+        schemas.insert("BaseResponse".to_string(), Schema {
+            schema_type: Some("object".to_string()),
+            ..Default::default()
+        });
+        let schemas = Arc::new(schemas);
+        let resolver = TypeResolver::new(schemas);
+
+        let schema = Schema {
+            all_of: Some(vec![
+                Schema { ref_path: Some("#/components/schemas/BaseResponse".to_string()), ..Default::default() },
+                Schema {
+                    properties: Some(BTreeMap::from([(
+                        "result".to_string(),
+                        Schema { schema_type: Some("object".to_string()), ..Default::default() }
+                    )])),
+                    ..Default::default()
+                },
+            ]),
+            ..Default::default()
+        };
+
+        assert!(resolver.is_generatable(&schema));
+    }
+
+    #[test]
+    fn get_response_type_with_allof_schema() {
+        // Test that get_response_type correctly handles allOf response schemas
+        let mut schemas = BTreeMap::new();
+        schemas.insert("IamApiResponseCollection".to_string(), Schema {
+            schema_type: Some("object".to_string()),
+            ..Default::default()
+        });
+        schemas.insert("IamAccount".to_string(), Schema {
+            schema_type: Some("object".to_string()),
+            ..Default::default()
+        });
+        let schemas = Arc::new(schemas);
+        let resolver = TypeResolver::new(schemas);
+
+        // Create an allOf schema like iam_response_collection_accounts
+        let response_schema = Schema {
+            all_of: Some(vec![
+                Schema { ref_path: Some("#/components/schemas/IamApiResponseCollection".to_string()), ..Default::default() },
+                Schema {
+                    properties: Some(BTreeMap::from([(
+                        "result".to_string(),
+                        Schema {
+                            schema_type: Some("array".to_string()),
+                            items: Some(Box::new(Schema {
+                                ref_path: Some("#/components/schemas/IamAccount".to_string()),
+                                ..Default::default()
+                            })),
+                            ..Default::default()
+                        }
+                    )])),
+                    ..Default::default()
+                },
+            ]),
+            ..Default::default()
+        };
+
+        // Create a response with the allOf schema
+        let response = Response {
+            description: Some("Success".to_string()),
+            content: Some(BTreeMap::from([(
+                "application/json".to_string(),
+                MediaType { schema: Some(response_schema) }
+            )])),
+        };
+
+        // For inline allOf schemas (no $ref), get_response_type returns None
+        // because there's no type name to use. The name comes from the endpoint's
+        // response $ref, not from the inline schema itself.
+        let result = resolver.get_response_type(&response);
+        assert!(result.is_none()); // Inline allOf without $ref returns None
+    }
+
+    #[test]
+    fn get_response_type_with_ref_to_allof_schema() {
+        // Test that get_response_type correctly resolves $ref to allOf schema
+        let mut schemas = BTreeMap::new();
+
+        // Base response type
+        schemas.insert("IamApiResponseCollection".to_string(), Schema {
+            schema_type: Some("object".to_string()),
+            ..Default::default()
+        });
+
+        // allOf type that extends base (like iam_response_collection_accounts)
+        schemas.insert("IamResponseCollectionAccounts".to_string(), Schema {
+            all_of: Some(vec![
+                Schema { ref_path: Some("#/components/schemas/IamApiResponseCollection".to_string()), ..Default::default() },
+                Schema {
+                    properties: Some(BTreeMap::from([(
+                        "result".to_string(),
+                        Schema { schema_type: Some("array".to_string()), ..Default::default() }
+                    )])),
+                    ..Default::default()
+                },
+            ]),
+            ..Default::default()
+        });
+
+        let schemas = Arc::new(schemas);
+        let resolver = TypeResolver::new(schemas);
+
+        // Create a response that $refs to the allOf type
+        let response = Response {
+            description: Some("Success".to_string()),
+            content: Some(BTreeMap::from([(
+                "application/json".to_string(),
+                MediaType {
+                    schema: Some(Schema {
+                        ref_path: Some("#/components/schemas/IamResponseCollectionAccounts".to_string()),
+                        ..Default::default()
+                    })
+                }
+            )])),
+        };
+
+        let result = resolver.get_response_type(&response);
+        assert!(result.is_some());
+        assert_eq!(result.unwrap(), ResponseType::Generated("IamResponseCollectionAccounts".to_string()));
     }
 }

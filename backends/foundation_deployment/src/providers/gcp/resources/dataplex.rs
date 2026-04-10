@@ -17,7 +17,7 @@ pub struct Empty {
     pub value: serde_json::Value,
 }
 
-/// An aspect is a single piece of metadata describing an entry.
+/// Represents a single piece of metadata describing an entry or entry link.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1Aspect {
     /// Optional. Information related to the source system of the aspect.
@@ -673,7 +673,7 @@ pub struct GoogleCloudDataplexV1ListZonesResponse {
 /// Lookup Context using permissions in the source system.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1LookupContextRequest {
-    /// Optional. Allows to configure the context.
+    /// Optional. Allows to configure the context.Supported options: format - The format of the context (one of yaml, xml, json, default is yaml). context_budget - If provided, the output will be intelligently truncated on a best-effort basis to contain approximately the desired amount of characters. There is no guarantee to achieve the specific amount.
     #[serde(default)]
     pub options: ::core::option::Option<serde_json::Value>,
     /// Required. The entry names to look up the context for. The maximum number of resources for a request is limited to 10.Examples:projects/{project}/locations/{location}/entryGroups/{entry_group}/entries/{entry}
@@ -684,7 +684,7 @@ pub struct GoogleCloudDataplexV1LookupContextRequest {
 /// Lookup Context response.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1LookupContextResponse {
-    /// LLM generated context for the resources.
+    /// Pre-formatted block of text containing the context for the requested resources.
     #[serde(default)]
     pub context: ::core::option::Option<String>,
 }
@@ -698,6 +698,23 @@ pub struct GoogleCloudDataplexV1LookupEntryLinksResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
+}
+
+/// Modify Entry request using permissions in the source system.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ModifyEntryRequest {
+    /// Optional. The aspect keys which the service should modify. It supports the following syntaxes: - matches an aspect of the given type and empty path. @path - matches an aspect of the given type and specified path. For example, to attach an aspect to a field that is specified by the schema aspect, the path should have the format Schema.. @* - matches aspects of the given type for all paths. *@path - matches aspects of all types on the given path.The service will not remove existing aspects matching the syntax unless delete_missing_aspects is set to true.If this field is left empty, the service treats it as specifying exactly those Aspects present in the request.
+    #[serde(default, rename = "aspectKeys")]
+    pub aspect_keys: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Optional. If set to true, any aspects not specified in the request will be deleted. The default is false.
+    #[serde(default, rename = "deleteMissingAspects")]
+    pub delete_missing_aspects: ::core::option::Option<bool>,
+    /// Required. The entry to modify.
+    #[serde(default)]
+    pub entry: ::core::option::Option<GoogleCloudDataplexV1Entry>,
+    /// Optional. Mask of fields to update. To update Aspects, the update_mask must contain the value "aspects".If the update_mask is empty, the service will update all modifiable fields present in the request.
+    #[serde(default, rename = "updateMask")]
+    pub update_mask: ::core::option::Option<String>,
 }
 
 /// Represents the metadata of a long-running operation.
@@ -1354,6 +1371,9 @@ pub struct GoogleCloudDataplexV1DataScan {
     /// Optional. User friendly display name. Must be between 1-256 characters.
     #[serde(default, rename = "displayName")]
     pub display_name: ::core::option::Option<String>,
+    /// Optional. Immutable. The identity to run the datascan. If not specified, defaults to the Dataplex Service Agent.
+    #[serde(default, rename = "executionIdentity")]
+    pub execution_identity: ::core::option::Option<GoogleCloudDataplexV1ExecutionIdentity>,
     /// Optional. DataScan execution settings.If not specified, the fields in it will use their default values.
     #[serde(default, rename = "executionSpec")]
     pub execution_spec: ::core::option::Option<GoogleCloudDataplexV1DataScanExecutionSpec>,
@@ -1948,10 +1968,13 @@ pub struct GoogleCloudDataplexV1DataScanJob {
     /// Output only. Identifier. The relative resource name of the DataScanJob, of the form: projects/{project}/locations/{location_id}/dataScans/{datascan_id}/jobs/{job_id}, where project refers to a project_id or project_number and location_id refers to a Google Cloud region.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+    /// Output only. A message indicating partial failure details.
+    #[serde(default, rename = "partialFailureMessage")]
+    pub partial_failure_message: ::core::option::Option<String>,
     /// Output only. The time when the DataScanJob was started.
     #[serde(default, rename = "startTime")]
     pub start_time: ::core::option::Option<String>,
-    /// Output only. Execution state for the DataScanJob. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "CANCELING", "CANCELLED", "SUCCEEDED", "FAILED", "PENDING"]
+    /// Output only. Execution state for the DataScanJob. // TODO: enum values: ["STATE_UNSPECIFIED", "RUNNING", "CANCELING", "CANCELLED", "SUCCEEDED", "FAILED", "PENDING", "SUCCEEDED_WITH_ERRORS"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
     /// Output only. The type of the parent DataScan. // TODO: enum values: ["DATA_SCAN_TYPE_UNSPECIFIED", "DATA_QUALITY", "DATA_PROFILE", "DATA_DISCOVERY", "DATA_DOCUMENTATION"]
@@ -2326,6 +2349,23 @@ pub struct GoogleCloudDataplexV1DataSource {
     /// Immutable. The service-qualified full resource name of the cloud resource for a DataScan job to scan against. The field could either be: Cloud Storage bucket for DataDiscoveryScan Format: //storage.googleapis.com/projects/PROJECT_ID/buckets/BUCKET_ID or BigQuery table of type "TABLE" for DataProfileScan/DataQualityScan/DataDocumentationScan Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID or BigQuery dataset for DataDocumentationScan only Format: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID
     #[serde(default)]
     pub resource: ::core::option::Option<String>,
+}
+
+/// The identity to run the datascan.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ExecutionIdentity {
+    /// Optional. The Dataplex service agent associated with the user''s project.
+    #[serde(default, rename = "dataplexServiceAgent")]
+    pub dataplex_service_agent:
+        ::core::option::Option<GoogleCloudDataplexV1ExecutionIdentityDataplexServiceAgent>,
+    /// Optional. The provided service account.
+    #[serde(default, rename = "serviceAccount")]
+    pub service_account:
+        ::core::option::Option<GoogleCloudDataplexV1ExecutionIdentityServiceAccount>,
+    /// Optional. The credential of the calling user. Supports only ONE_TIME trigger type.
+    #[serde(default, rename = "userCredential")]
+    pub user_credential:
+        ::core::option::Option<GoogleCloudDataplexV1ExecutionIdentityUserCredential>,
 }
 
 /// DataScan execution settings.
@@ -2808,6 +2848,9 @@ pub struct GoogleCloudDataplexV1DataProfileSpec {
     /// Optional. The fields to include in data profile.If not specified, all fields at the time of profile scan job execution are included, except for ones listed in exclude_fields.
     #[serde(default, rename = "includeFields")]
     pub include_fields: ::core::option::Option<GoogleCloudDataplexV1DataProfileSpecSelectedFields>,
+    /// Optional. The execution mode for the profile scan. // TODO: enum values: ["MODE_UNSPECIFIED", "STANDARD", "LIGHTWEIGHT"]
+    #[serde(default)]
+    pub mode: ::core::option::Option<String>,
     /// Optional. Actions to take upon job completion..
     #[serde(default, rename = "postScanActions")]
     pub post_scan_actions:
@@ -3017,6 +3060,26 @@ pub struct GoogleCloudDataplexV1AssetDiscoveryStatusStats {
     /// The count of table entities within the referenced resource.
     #[serde(default)]
     pub tables: ::core::option::Option<String>,
+}
+
+/// The Dataplex service agent associated with the user''s project.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ExecutionIdentityDataplexServiceAgent {
+    pub value: serde_json::Value,
+}
+
+/// The service account
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ExecutionIdentityServiceAccount {
+    /// Required. Service account email. The datascan will execute with this service account''s credentials. The user calling this API must have permissions to act as this service account. Dataplex service agent must be granted iam.serviceAccounts.getAccessToken permission on this service account, for example, through the iam.serviceAccountTokenCreator role .
+    #[serde(default)]
+    pub email: ::core::option::Option<String>,
+}
+
+/// The credential of the calling user.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1ExecutionIdentityUserCredential {
+    pub value: serde_json::Value,
 }
 
 /// DataScan scheduling and trigger settings.
@@ -3313,6 +3376,11 @@ pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfig {
     #[serde(default, rename = "jsonOptions")]
     pub json_options:
         ::core::option::Option<GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions>,
+    /// Optional. Specifies configuration for unstructured data discovery.
+    #[serde(default, rename = "unstructuredDataOptions")]
+    pub unstructured_data_options: ::core::option::Option<
+        GoogleCloudDataplexV1DataDiscoverySpecStorageConfigUnstructuredDataOptions,
+    >,
 }
 
 /// Insights for a dataset resource.
@@ -3330,11 +3398,24 @@ pub struct GoogleCloudDataplexV1DataDocumentationResultDatasetResult {
     pub schema_relationships: ::core::option::Option<
         ::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship>,
     >,
-    /// Output only. Generated table and column descriptions for each table in the dataset.
-    #[serde(default, rename = "tableResults")]
-    pub table_results: ::core::option::Option<
-        ::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultTableResult>,
-    >,
+}
+
+/// Insights for a table resource.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDocumentationResultTableResult {
+    /// Output only. The service-qualified full resource name of the cloud resource. Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. Generated description of the table.
+    #[serde(default)]
+    pub overview: ::core::option::Option<String>,
+    /// Output only. Sample SQL queries for the table.
+    #[serde(default)]
+    pub queries:
+        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultQuery>>,
+    /// Output only. Schema of the table with generated metadata of the columns in the schema.
+    #[serde(default)]
+    pub schema: ::core::option::Option<GoogleCloudDataplexV1DataDocumentationResultSchema>,
 }
 
 /// The result of post scan actions of DataProfileScan job.
@@ -3654,6 +3735,17 @@ pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigJsonOptions {
     pub type_inference_disabled: ::core::option::Option<bool>,
 }
 
+/// Describes options for unstructured data discovery.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDiscoverySpecStorageConfigUnstructuredDataOptions {
+    /// Optional. Deprecated: Use semantic_inference_enabled instead. Specifies whether deeper entity inference over the objects'' contents using GenAI is enabled.
+    #[serde(default, rename = "entityInferenceEnabled")]
+    pub entity_inference_enabled: ::core::option::Option<bool>,
+    /// Optional. Specifies whether deeper semantic inference over the objects'' contents using GenAI is enabled.
+    #[serde(default, rename = "semanticInferenceEnabled")]
+    pub semantic_inference_enabled: ::core::option::Option<bool>,
+}
+
 /// Details of the relationship between the schema of two resources.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship {
@@ -3675,22 +3767,24 @@ pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationship {
     pub type_: ::core::option::Option<String>,
 }
 
-/// Insights for a table resource.
+/// A sample SQL query in data documentation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultTableResult {
-    /// Output only. The service-qualified full resource name of the cloud resource. Ex: //bigquery.googleapis.com/projects/PROJECT_ID/datasets/DATASET_ID/tables/TABLE_ID
+pub struct GoogleCloudDataplexV1DataDocumentationResultQuery {
+    /// Output only. The description for the query.
     #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Output only. Generated description of the table.
+    pub description: ::core::option::Option<String>,
+    /// Output only. The SQL query string which can be executed.
     #[serde(default)]
-    pub overview: ::core::option::Option<String>,
-    /// Output only. Sample SQL queries for the table.
+    pub sql: ::core::option::Option<String>,
+}
+
+/// Schema of the table with generated metadata of columns.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GoogleCloudDataplexV1DataDocumentationResultSchema {
+    /// Output only. The list of columns.
     #[serde(default)]
-    pub queries:
-        ::core::option::Option<::std::vec::Vec<GoogleCloudDataplexV1DataDocumentationResultQuery>>,
-    /// Output only. Schema of the table with generated metadata of the columns in the schema.
-    #[serde(default)]
-    pub schema: ::core::option::Option<GoogleCloudDataplexV1DataDocumentationResultSchema>,
+    pub fields:
+        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDataplexV1DataDocumentationResultField>>,
 }
 
 /// The result of BigQuery export post scan action.
@@ -3921,24 +4015,19 @@ pub struct GoogleCloudDataplexV1DataDocumentationResultSchemaRelationshipSchemaP
     pub table_fqn: ::core::option::Option<String>,
 }
 
-/// A sample SQL query in data documentation.
+/// Column of a table with generated metadata and nested fields.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultQuery {
-    /// Output only. The description for the query.
+pub struct GoogleCloudDataplexV1DataDocumentationResultField {
+    /// Output only. Generated description for columns and fields.
     #[serde(default)]
     pub description: ::core::option::Option<String>,
-    /// Output only. The SQL query string which can be executed.
-    #[serde(default)]
-    pub sql: ::core::option::Option<String>,
-}
-
-/// Schema of the table with generated metadata of columns.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultSchema {
-    /// Output only. The list of columns.
+    /// Output only. Nested fields.
     #[serde(default)]
     pub fields:
         ::std::vec::Vec<::std::boxed::Box<GoogleCloudDataplexV1DataDocumentationResultField>>,
+    /// Output only. The name of the column.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
 }
 
 /// The profile information for each field type.
@@ -4133,21 +4222,6 @@ pub struct GoogleCloudDataplexV1EntrySourceAncestor {
     pub type_: ::core::option::Option<String>,
 }
 
-/// Column of a table with generated metadata and nested fields.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct GoogleCloudDataplexV1DataDocumentationResultField {
-    /// Output only. Generated description for columns and fields.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. Nested fields.
-    #[serde(default)]
-    pub fields:
-        ::std::vec::Vec<::std::boxed::Box<GoogleCloudDataplexV1DataDocumentationResultField>>,
-    /// Output only. The name of the column.
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-}
-
 /// The profile information for a double type field.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoDoubleFieldInfo {
@@ -4200,4 +4274,1538 @@ pub struct GoogleCloudDataplexV1DataProfileResultProfileFieldProfileInfoTopNValu
     /// Output only. String value of a top N non-null value.
     #[serde(default)]
     pub value: ::core::option::Option<String>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexOrganizationsLocationsEncryptionConfigsCreateArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexOrganizationsLocationsEncryptionConfigsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1EncryptionConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexOrganizationsLocationsEncryptionConfigsGetArgs>
+    for GoogleCloudDataplexV1EncryptionConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexOrganizationsLocationsEncryptionConfigsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDataplexV1EncryptionConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1EncryptionConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexOrganizationsLocationsEncryptionConfigsGetIamPolicyArgs>
+    for GoogleIamV1Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexOrganizationsLocationsEncryptionConfigsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListEncryptionConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexOrganizationsLocationsEncryptionConfigsListArgs>
+    for GoogleCloudDataplexV1ListEncryptionConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexOrganizationsLocationsEncryptionConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListEncryptionConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListEncryptionConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexOrganizationsLocationsEncryptionConfigsTestIamPermissionsArgs>
+    for GoogleIamV1TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexOrganizationsLocationsEncryptionConfigsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleIamV1TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV1TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexOrganizationsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DataplexOrganizationsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexOrganizationsLocationsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexOrganizationsLocationsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudLocationLocation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsGetArgs> for GoogleCloudLocationLocation {
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsGetArgs) -> String {
+        format!("gcp::GoogleCloudLocationLocation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudLocationLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudLocationListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsListArgs>
+    for GoogleCloudLocationListLocationsResponse
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudLocationListLocationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudLocationListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1LookupContextResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLookupContextArgs>
+    for GoogleCloudDataplexV1LookupContextResponse
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsLookupContextArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1LookupContextResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1LookupContextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1Entry.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLookupEntryArgs> for GoogleCloudDataplexV1Entry {
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsLookupEntryArgs) -> String {
+        format!("gcp::GoogleCloudDataplexV1Entry/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1Entry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1LookupEntryLinksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLookupEntryLinksArgs>
+    for GoogleCloudDataplexV1LookupEntryLinksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsLookupEntryLinksArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1LookupEntryLinksResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1LookupEntryLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1SearchEntriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsSearchEntriesArgs>
+    for GoogleCloudDataplexV1SearchEntriesResponse
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsSearchEntriesArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1SearchEntriesResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1SearchEntriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1AspectType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsAspectTypesGetArgs>
+    for GoogleCloudDataplexV1AspectType
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsAspectTypesGetArgs) -> String {
+        format!("gcp::GoogleCloudDataplexV1AspectType/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1AspectType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListAspectTypesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsAspectTypesListArgs>
+    for GoogleCloudDataplexV1ListAspectTypesResponse
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsAspectTypesListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListAspectTypesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListAspectTypesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1DataAttributeBinding.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataAttributeBindingsGetArgs>
+    for GoogleCloudDataplexV1DataAttributeBinding
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsDataAttributeBindingsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1DataAttributeBinding/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1DataAttributeBinding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListDataAttributeBindingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataAttributeBindingsListArgs>
+    for GoogleCloudDataplexV1ListDataAttributeBindingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsDataAttributeBindingsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListDataAttributeBindingsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListDataAttributeBindingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1DataProduct.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataProductsGetArgs>
+    for GoogleCloudDataplexV1DataProduct
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsDataProductsGetArgs) -> String {
+        format!("gcp::GoogleCloudDataplexV1DataProduct/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1DataProduct"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListDataProductsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataProductsListArgs>
+    for GoogleCloudDataplexV1ListDataProductsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsDataProductsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListDataProductsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListDataProductsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1DataAsset.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataProductsDataAssetsGetArgs>
+    for GoogleCloudDataplexV1DataAsset
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsDataProductsDataAssetsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDataplexV1DataAsset/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1DataAsset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListDataAssetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataProductsDataAssetsListArgs>
+    for GoogleCloudDataplexV1ListDataAssetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsDataProductsDataAssetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListDataAssetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListDataAssetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1GenerateDataQualityRulesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataScansGenerateDataQualityRulesArgs>
+    for GoogleCloudDataplexV1GenerateDataQualityRulesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsDataScansGenerateDataQualityRulesArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1GenerateDataQualityRulesResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1GenerateDataQualityRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1DataScan.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataScansGetArgs>
+    for GoogleCloudDataplexV1DataScan
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsDataScansGetArgs) -> String {
+        format!("gcp::GoogleCloudDataplexV1DataScan/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1DataScan"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListDataScansResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataScansListArgs>
+    for GoogleCloudDataplexV1ListDataScansResponse
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsDataScansListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListDataScansResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListDataScansResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1RunDataScanResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataScansRunArgs>
+    for GoogleCloudDataplexV1RunDataScanResponse
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsDataScansRunArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1RunDataScanResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1RunDataScanResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1DataScanJob.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataScansJobsGetArgs>
+    for GoogleCloudDataplexV1DataScanJob
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsDataScansJobsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDataplexV1DataScanJob/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1DataScanJob"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListDataScanJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataScansJobsListArgs>
+    for GoogleCloudDataplexV1ListDataScanJobsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsDataScansJobsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListDataScanJobsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListDataScanJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1DataTaxonomy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataTaxonomiesGetArgs>
+    for GoogleCloudDataplexV1DataTaxonomy
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsDataTaxonomiesGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDataplexV1DataTaxonomy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1DataTaxonomy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListDataTaxonomiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataTaxonomiesListArgs>
+    for GoogleCloudDataplexV1ListDataTaxonomiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsDataTaxonomiesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListDataTaxonomiesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListDataTaxonomiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1DataAttribute.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataTaxonomiesAttributesGetArgs>
+    for GoogleCloudDataplexV1DataAttribute
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsDataTaxonomiesAttributesGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDataplexV1DataAttribute/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1DataAttribute"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListDataAttributesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsDataTaxonomiesAttributesListArgs>
+    for GoogleCloudDataplexV1ListDataAttributesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsDataTaxonomiesAttributesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListDataAttributesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListDataAttributesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1EntryGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsEntryGroupsGetArgs>
+    for GoogleCloudDataplexV1EntryGroup
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsEntryGroupsGetArgs) -> String {
+        format!("gcp::GoogleCloudDataplexV1EntryGroup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1EntryGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListEntryGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsEntryGroupsListArgs>
+    for GoogleCloudDataplexV1ListEntryGroupsResponse
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsEntryGroupsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListEntryGroupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListEntryGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListEntriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsEntryGroupsEntriesListArgs>
+    for GoogleCloudDataplexV1ListEntriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsEntryGroupsEntriesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListEntriesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListEntriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1EntryLink.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsEntryGroupsEntryLinksCreateArgs>
+    for GoogleCloudDataplexV1EntryLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsEntryGroupsEntryLinksCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDataplexV1EntryLink/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1EntryLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1EntryType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsEntryTypesGetArgs>
+    for GoogleCloudDataplexV1EntryType
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsEntryTypesGetArgs) -> String {
+        format!("gcp::GoogleCloudDataplexV1EntryType/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1EntryType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListEntryTypesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsEntryTypesListArgs>
+    for GoogleCloudDataplexV1ListEntryTypesResponse
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsEntryTypesListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListEntryTypesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListEntryTypesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1Glossary.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsGlossariesGetArgs>
+    for GoogleCloudDataplexV1Glossary
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsGlossariesGetArgs) -> String {
+        format!("gcp::GoogleCloudDataplexV1Glossary/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1Glossary"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListGlossariesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsGlossariesListArgs>
+    for GoogleCloudDataplexV1ListGlossariesResponse
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsGlossariesListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListGlossariesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListGlossariesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1GlossaryCategory.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsGlossariesCategoriesCreateArgs>
+    for GoogleCloudDataplexV1GlossaryCategory
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsGlossariesCategoriesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1GlossaryCategory/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1GlossaryCategory"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListGlossaryCategoriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsGlossariesCategoriesListArgs>
+    for GoogleCloudDataplexV1ListGlossaryCategoriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsGlossariesCategoriesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListGlossaryCategoriesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListGlossaryCategoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1GlossaryTerm.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsGlossariesTermsCreateArgs>
+    for GoogleCloudDataplexV1GlossaryTerm
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsGlossariesTermsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDataplexV1GlossaryTerm/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1GlossaryTerm"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListGlossaryTermsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsGlossariesTermsListArgs>
+    for GoogleCloudDataplexV1ListGlossaryTermsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsGlossariesTermsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListGlossaryTermsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListGlossaryTermsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1Lake.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesGetArgs> for GoogleCloudDataplexV1Lake {
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsLakesGetArgs) -> String {
+        format!("gcp::GoogleCloudDataplexV1Lake/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1Lake"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListLakesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesListArgs>
+    for GoogleCloudDataplexV1ListLakesResponse
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsLakesListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListLakesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListLakesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListActionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesActionsListArgs>
+    for GoogleCloudDataplexV1ListActionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsLakesActionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListActionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListActionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1Task.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesTasksGetArgs> for GoogleCloudDataplexV1Task {
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsLakesTasksGetArgs) -> String {
+        format!("gcp::GoogleCloudDataplexV1Task/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1Task"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListTasksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesTasksListArgs>
+    for GoogleCloudDataplexV1ListTasksResponse
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsLakesTasksListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListTasksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListTasksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1RunTaskResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesTasksRunArgs>
+    for GoogleCloudDataplexV1RunTaskResponse
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsLakesTasksRunArgs) -> String {
+        format!("gcp::GoogleCloudDataplexV1RunTaskResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1RunTaskResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1Job.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesTasksJobsGetArgs>
+    for GoogleCloudDataplexV1Job
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsLakesTasksJobsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDataplexV1Job/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesTasksJobsListArgs>
+    for GoogleCloudDataplexV1ListJobsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsLakesTasksJobsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListJobsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1Zone.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesZonesGetArgs> for GoogleCloudDataplexV1Zone {
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsLakesZonesGetArgs) -> String {
+        format!("gcp::GoogleCloudDataplexV1Zone/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1Zone"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListZonesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesZonesListArgs>
+    for GoogleCloudDataplexV1ListZonesResponse
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsLakesZonesListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListZonesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListZonesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1Asset.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesZonesAssetsGetArgs>
+    for GoogleCloudDataplexV1Asset
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsLakesZonesAssetsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDataplexV1Asset/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1Asset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListAssetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesZonesAssetsListArgs>
+    for GoogleCloudDataplexV1ListAssetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsLakesZonesAssetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListAssetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListAssetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1Entity.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesZonesEntitiesCreateArgs>
+    for GoogleCloudDataplexV1Entity
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsLakesZonesEntitiesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDataplexV1Entity/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1Entity"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListEntitiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesZonesEntitiesListArgs>
+    for GoogleCloudDataplexV1ListEntitiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsLakesZonesEntitiesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListEntitiesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListEntitiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1Partition.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesZonesEntitiesPartitionsCreateArgs>
+    for GoogleCloudDataplexV1Partition
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsLakesZonesEntitiesPartitionsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDataplexV1Partition/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1Partition"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListPartitionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsLakesZonesEntitiesPartitionsListArgs>
+    for GoogleCloudDataplexV1ListPartitionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsLakesZonesEntitiesPartitionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListPartitionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListPartitionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1MetadataFeed.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsMetadataFeedsGetArgs>
+    for GoogleCloudDataplexV1MetadataFeed
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsMetadataFeedsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDataplexV1MetadataFeed/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1MetadataFeed"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListMetadataFeedsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsMetadataFeedsListArgs>
+    for GoogleCloudDataplexV1ListMetadataFeedsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsMetadataFeedsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListMetadataFeedsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListMetadataFeedsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1MetadataJob.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsMetadataJobsGetArgs>
+    for GoogleCloudDataplexV1MetadataJob
+{
+    fn generate_resource_id(&self, input: &DataplexProjectsLocationsMetadataJobsGetArgs) -> String {
+        format!("gcp::GoogleCloudDataplexV1MetadataJob/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1MetadataJob"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDataplexV1ListMetadataJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataplexProjectsLocationsMetadataJobsListArgs>
+    for GoogleCloudDataplexV1ListMetadataJobsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataplexProjectsLocationsMetadataJobsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDataplexV1ListMetadataJobsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDataplexV1ListMetadataJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

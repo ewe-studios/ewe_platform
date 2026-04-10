@@ -670,7 +670,7 @@ pub struct VpcNetworkSource {
 /// Defines the conditions under which an EgressPolicy matches a request. Conditions based on information about the source of the request. Note that if the destination of the request is also protected by a ServicePerimeter, then that ServicePerimeter must have an IngressPolicy which allows access in order for this request to succeed.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EgressFrom {
-    /// A list of identities that are allowed access through [EgressPolicy]. Identities can be an individual user, service account, Google group, or third-party identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.
+    /// A list of identities that are allowed access through [EgressPolicy]. Identities can be an individual user, service account, Google group, third-party identity, or agent identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.
     #[serde(default)]
     pub identities: ::core::option::Option<::std::vec::Vec<String>>,
     /// Specifies the type of identities that are allowed access to outside the perimeter. If left unspecified, then members of identities field will be allowed access. // TODO: enum values: ["IDENTITY_TYPE_UNSPECIFIED", "ANY_IDENTITY", "ANY_USER_ACCOUNT", "ANY_SERVICE_ACCOUNT"]
@@ -704,7 +704,7 @@ pub struct EgressTo {
 /// Defines the conditions under which an IngressPolicy matches a request. Conditions are based on information about the source of the request. The request must satisfy what is defined in sources AND identity related fields in order to match.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngressFrom {
-    /// A list of identities that are allowed access through [IngressPolicy]. Identities can be an individual user, service account, Google group, or third-party identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.
+    /// A list of identities that are allowed access through [IngressPolicy]. Identities can be an individual user, service account, Google group, third-party identity, or agent identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.
     #[serde(default)]
     pub identities: ::core::option::Option<::std::vec::Vec<String>>,
     /// Specifies the type of identities that are allowed access from outside the perimeter. If left unspecified, then members of identities field will be allowed access. // TODO: enum values: ["IDENTITY_TYPE_UNSPECIFIED", "ANY_IDENTITY", "ANY_USER_ACCOUNT", "ANY_SERVICE_ACCOUNT"]
@@ -807,4 +807,398 @@ pub struct MethodSelector {
     /// A valid Cloud IAM permission for the corresponding service_name in ApiOperation.
     #[serde(default)]
     pub permission: ::core::option::Option<String>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerAccessPoliciesCreateArgs) -> String {
+        "gcp::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesGetArgs> for AccessPolicy {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerAccessPoliciesGetArgs) -> String {
+        format!("gcp::AccessPolicy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAccessPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesListArgs> for ListAccessPoliciesResponse {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerAccessPoliciesListArgs) -> String {
+        "gcp::ListAccessPoliciesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAccessPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessLevel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAccessLevelsGetArgs> for AccessLevel {
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAccessLevelsGetArgs,
+    ) -> String {
+        format!("gcp::AccessLevel/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessLevel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAccessLevelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAccessLevelsListArgs>
+    for ListAccessLevelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAccessLevelsListArgs,
+    ) -> String {
+        format!("gcp::ListAccessLevelsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAccessLevelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AuthorizedOrgsDesc.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsGetArgs>
+    for AuthorizedOrgsDesc
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsGetArgs,
+    ) -> String {
+        format!("gcp::AuthorizedOrgsDesc/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AuthorizedOrgsDesc"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAuthorizedOrgsDescsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsListArgs>
+    for ListAuthorizedOrgsDescsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesAuthorizedOrgsDescsListArgs,
+    ) -> String {
+        format!("gcp::ListAuthorizedOrgsDescsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAuthorizedOrgsDescsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ServicePerimeter.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesServicePerimetersGetArgs>
+    for ServicePerimeter
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesServicePerimetersGetArgs,
+    ) -> String {
+        format!("gcp::ServicePerimeter/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ServicePerimeter"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListServicePerimetersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerAccessPoliciesServicePerimetersListArgs>
+    for ListServicePerimetersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerAccessPoliciesServicePerimetersListArgs,
+    ) -> String {
+        format!("gcp::ListServicePerimetersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListServicePerimetersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerOperationsCancelArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerOperationsListArgs) -> String {
+        "gcp::ListOperationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GcpUserAccessBinding.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerOrganizationsGcpUserAccessBindingsGetArgs>
+    for GcpUserAccessBinding
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsGetArgs,
+    ) -> String {
+        format!("gcp::GcpUserAccessBinding/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GcpUserAccessBinding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListGcpUserAccessBindingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerOrganizationsGcpUserAccessBindingsListArgs>
+    for ListGcpUserAccessBindingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccesscontextmanagerOrganizationsGcpUserAccessBindingsListArgs,
+    ) -> String {
+        format!("gcp::ListGcpUserAccessBindingsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListGcpUserAccessBindingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSupportedPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerPermissionsListArgs>
+    for ListSupportedPermissionsResponse
+{
+    fn generate_resource_id(&self, input: &AccesscontextmanagerPermissionsListArgs) -> String {
+        "gcp::ListSupportedPermissionsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSupportedPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SupportedService.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerServicesGetArgs> for SupportedService {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerServicesGetArgs) -> String {
+        format!("gcp::SupportedService/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SupportedService"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSupportedServicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccesscontextmanagerServicesListArgs> for ListSupportedServicesResponse {
+    fn generate_resource_id(&self, input: &AccesscontextmanagerServicesListArgs) -> String {
+        "gcp::ListSupportedServicesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSupportedServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

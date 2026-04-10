@@ -143,3 +143,85 @@ pub struct Date {
     #[serde(default)]
     pub year: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for FetchMultiDailyMetricsTimeSeriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BusinessprofileperformanceLocationsFetchMultiDailyMetricsTimeSeriesArgs>
+    for FetchMultiDailyMetricsTimeSeriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BusinessprofileperformanceLocationsFetchMultiDailyMetricsTimeSeriesArgs,
+    ) -> String {
+        format!(
+            "gcp::FetchMultiDailyMetricsTimeSeriesResponse/{}",
+            input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchMultiDailyMetricsTimeSeriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetDailyMetricsTimeSeriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BusinessprofileperformanceLocationsGetDailyMetricsTimeSeriesArgs>
+    for GetDailyMetricsTimeSeriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BusinessprofileperformanceLocationsGetDailyMetricsTimeSeriesArgs,
+    ) -> String {
+        format!("gcp::GetDailyMetricsTimeSeriesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetDailyMetricsTimeSeriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSearchKeywordImpressionsMonthlyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BusinessprofileperformanceLocationsSearchkeywordsImpressionsMonthlyListArgs>
+    for ListSearchKeywordImpressionsMonthlyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BusinessprofileperformanceLocationsSearchkeywordsImpressionsMonthlyListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListSearchKeywordImpressionsMonthlyResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSearchKeywordImpressionsMonthlyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

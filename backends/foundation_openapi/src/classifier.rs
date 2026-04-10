@@ -157,6 +157,7 @@ impl OperationTypeClassifier {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::BTreeMap;
 
     #[test]
     fn test_classify_create_operations() {

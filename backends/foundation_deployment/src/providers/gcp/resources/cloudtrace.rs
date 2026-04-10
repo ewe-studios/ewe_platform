@@ -264,3 +264,45 @@ pub struct Attributes {
     #[serde(default, rename = "droppedAttributesCount")]
     pub dropped_attributes_count: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtraceProjectsTracesBatchWriteArgs> for Empty {
+    fn generate_resource_id(&self, input: &CloudtraceProjectsTracesBatchWriteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Span.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudtraceProjectsTracesSpansCreateSpanArgs> for Span {
+    fn generate_resource_id(&self, input: &CloudtraceProjectsTracesSpansCreateSpanArgs) -> String {
+        format!("gcp::Span/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Span"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -2118,3 +2118,792 @@ pub struct GoogleTypeMoney {
     #[serde(default)]
     pub units: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1CheckCloudIdentityAccountsExistResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsCheckCloudIdentityAccountsExistArgs>
+    for GoogleCloudChannelV1CheckCloudIdentityAccountsExistResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsCheckCloudIdentityAccountsExistArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1CheckCloudIdentityAccountsExistResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1CheckCloudIdentityAccountsExistResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListSubscribersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsListSubscribersArgs>
+    for GoogleCloudChannelV1ListSubscribersResponse
+{
+    fn generate_resource_id(&self, input: &CloudchannelAccountsListSubscribersArgs) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListSubscribersResponse/{}",
+            input.account
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListSubscribersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListTransferableOffersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsListTransferableOffersArgs>
+    for GoogleCloudChannelV1ListTransferableOffersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsListTransferableOffersArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListTransferableOffersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListTransferableOffersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListTransferableSkusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsListTransferableSkusArgs>
+    for GoogleCloudChannelV1ListTransferableSkusResponse
+{
+    fn generate_resource_id(&self, input: &CloudchannelAccountsListTransferableSkusArgs) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListTransferableSkusResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListTransferableSkusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1RegisterSubscriberResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsRegisterArgs>
+    for GoogleCloudChannelV1RegisterSubscriberResponse
+{
+    fn generate_resource_id(&self, input: &CloudchannelAccountsRegisterArgs) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1RegisterSubscriberResponse/{}",
+            input.account
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1RegisterSubscriberResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1UnregisterSubscriberResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsUnregisterArgs>
+    for GoogleCloudChannelV1UnregisterSubscriberResponse
+{
+    fn generate_resource_id(&self, input: &CloudchannelAccountsUnregisterArgs) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1UnregisterSubscriberResponse/{}",
+            input.account
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1UnregisterSubscriberResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ChannelPartnerLink.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsChannelPartnerLinksCreateArgs>
+    for GoogleCloudChannelV1ChannelPartnerLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsChannelPartnerLinksCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ChannelPartnerLink/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ChannelPartnerLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListChannelPartnerLinksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsChannelPartnerLinksListArgs>
+    for GoogleCloudChannelV1ListChannelPartnerLinksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsChannelPartnerLinksListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListChannelPartnerLinksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListChannelPartnerLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ChannelPartnerRepricingConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsCreateArgs,
+    > for GoogleCloudChannelV1ChannelPartnerRepricingConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ChannelPartnerRepricingConfig/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ChannelPartnerRepricingConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsDeleteArgs,
+    > for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListChannelPartnerRepricingConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsListArgs,
+    > for GoogleCloudChannelV1ListChannelPartnerRepricingConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsChannelPartnerLinksChannelPartnerRepricingConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListChannelPartnerRepricingConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListChannelPartnerRepricingConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1Customer.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsChannelPartnerLinksCustomersCreateArgs>
+    for GoogleCloudChannelV1Customer
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsChannelPartnerLinksCustomersCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudChannelV1Customer/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1Customer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListCustomersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsChannelPartnerLinksCustomersListArgs>
+    for GoogleCloudChannelV1ListCustomersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsChannelPartnerLinksCustomersListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListCustomersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListCustomersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListPurchasableOffersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsCustomersListPurchasableOffersArgs>
+    for GoogleCloudChannelV1ListPurchasableOffersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsCustomersListPurchasableOffersArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListPurchasableOffersResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListPurchasableOffersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListPurchasableSkusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsCustomersListPurchasableSkusArgs>
+    for GoogleCloudChannelV1ListPurchasableSkusResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsCustomersListPurchasableSkusArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListPurchasableSkusResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListPurchasableSkusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsCustomersProvisionCloudIdentityArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsCustomersProvisionCloudIdentityArgs,
+    ) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.customer)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1QueryEligibleBillingAccountsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsCustomersQueryEligibleBillingAccountsArgs>
+    for GoogleCloudChannelV1QueryEligibleBillingAccountsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsCustomersQueryEligibleBillingAccountsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1QueryEligibleBillingAccountsResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1QueryEligibleBillingAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1CustomerRepricingConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsCustomersCustomerRepricingConfigsCreateArgs>
+    for GoogleCloudChannelV1CustomerRepricingConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsCustomersCustomerRepricingConfigsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1CustomerRepricingConfig/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1CustomerRepricingConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListCustomerRepricingConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsCustomersCustomerRepricingConfigsListArgs>
+    for GoogleCloudChannelV1ListCustomerRepricingConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsCustomersCustomerRepricingConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListCustomerRepricingConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListCustomerRepricingConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1Entitlement.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsCustomersEntitlementsGetArgs>
+    for GoogleCloudChannelV1Entitlement
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsCustomersEntitlementsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudChannelV1Entitlement/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1Entitlement"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListEntitlementsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsCustomersEntitlementsListArgs>
+    for GoogleCloudChannelV1ListEntitlementsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsCustomersEntitlementsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListEntitlementsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListEntitlementsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListEntitlementChangesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsCustomersEntitlementsListEntitlementChangesArgs>
+    for GoogleCloudChannelV1ListEntitlementChangesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsCustomersEntitlementsListEntitlementChangesArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListEntitlementChangesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListEntitlementChangesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1Offer.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsCustomersEntitlementsLookupOfferArgs>
+    for GoogleCloudChannelV1Offer
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsCustomersEntitlementsLookupOfferArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudChannelV1Offer/{}", input.entitlement)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1Offer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListOffersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsOffersListArgs>
+    for GoogleCloudChannelV1ListOffersResponse
+{
+    fn generate_resource_id(&self, input: &CloudchannelAccountsOffersListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListOffersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListOffersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1FetchReportResultsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsReportJobsFetchReportResultsArgs>
+    for GoogleCloudChannelV1FetchReportResultsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsReportJobsFetchReportResultsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1FetchReportResultsResponse/{}",
+            input.report_job
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1FetchReportResultsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListReportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsReportsListArgs>
+    for GoogleCloudChannelV1ListReportsResponse
+{
+    fn generate_resource_id(&self, input: &CloudchannelAccountsReportsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListReportsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListSkuGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsSkuGroupsListArgs>
+    for GoogleCloudChannelV1ListSkuGroupsResponse
+{
+    fn generate_resource_id(&self, input: &CloudchannelAccountsSkuGroupsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListSkuGroupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListSkuGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListSkuGroupBillableSkusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelAccountsSkuGroupsBillableSkusListArgs>
+    for GoogleCloudChannelV1ListSkuGroupBillableSkusResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudchannelAccountsSkuGroupsBillableSkusListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudChannelV1ListSkuGroupBillableSkusResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListSkuGroupBillableSkusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &CloudchannelOperationsListArgs) -> String {
+        "gcp::GoogleLongrunningListOperationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListProductsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelProductsListArgs> for GoogleCloudChannelV1ListProductsResponse {
+    fn generate_resource_id(&self, input: &CloudchannelProductsListArgs) -> String {
+        "gcp::GoogleCloudChannelV1ListProductsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListProductsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudChannelV1ListSkusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudchannelProductsSkusListArgs> for GoogleCloudChannelV1ListSkusResponse {
+    fn generate_resource_id(&self, input: &CloudchannelProductsSkusListArgs) -> String {
+        format!("gcp::GoogleCloudChannelV1ListSkusResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudChannelV1ListSkusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

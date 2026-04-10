@@ -1341,3 +1341,799 @@ pub struct YouTubeVideo {
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Course.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesCreateArgs> for Course {
+    fn generate_resource_id(&self, input: &ClassroomCoursesCreateArgs) -> String {
+        "gcp::Course".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Course"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &ClassroomCoursesDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GradingPeriodSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesGetGradingPeriodSettingsArgs> for GradingPeriodSettings {
+    fn generate_resource_id(&self, input: &ClassroomCoursesGetGradingPeriodSettingsArgs) -> String {
+        format!("gcp::GradingPeriodSettings/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GradingPeriodSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCoursesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesListArgs> for ListCoursesResponse {
+    fn generate_resource_id(&self, input: &ClassroomCoursesListArgs) -> String {
+        "gcp::ListCoursesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCoursesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CourseAlias.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesAliasesCreateArgs> for CourseAlias {
+    fn generate_resource_id(&self, input: &ClassroomCoursesAliasesCreateArgs) -> String {
+        format!("gcp::CourseAlias/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CourseAlias"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCourseAliasesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesAliasesListArgs> for ListCourseAliasesResponse {
+    fn generate_resource_id(&self, input: &ClassroomCoursesAliasesListArgs) -> String {
+        format!("gcp::ListCourseAliasesResponse/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCourseAliasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Announcement.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesAnnouncementsCreateArgs> for Announcement {
+    fn generate_resource_id(&self, input: &ClassroomCoursesAnnouncementsCreateArgs) -> String {
+        format!("gcp::Announcement/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Announcement"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AddOnContext.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesAnnouncementsGetAddOnContextArgs> for AddOnContext {
+    fn generate_resource_id(
+        &self,
+        input: &ClassroomCoursesAnnouncementsGetAddOnContextArgs,
+    ) -> String {
+        format!("gcp::AddOnContext/{}/{}", input.course_id, input.item_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AddOnContext"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAnnouncementsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesAnnouncementsListArgs> for ListAnnouncementsResponse {
+    fn generate_resource_id(&self, input: &ClassroomCoursesAnnouncementsListArgs) -> String {
+        format!("gcp::ListAnnouncementsResponse/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAnnouncementsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AddOnAttachment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesAnnouncementsAddOnAttachmentsCreateArgs>
+    for AddOnAttachment
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClassroomCoursesAnnouncementsAddOnAttachmentsCreateArgs,
+    ) -> String {
+        format!("gcp::AddOnAttachment/{}/{}", input.course_id, input.item_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AddOnAttachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAddOnAttachmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesAnnouncementsAddOnAttachmentsListArgs>
+    for ListAddOnAttachmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClassroomCoursesAnnouncementsAddOnAttachmentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListAddOnAttachmentsResponse/{}/{}",
+            input.course_id, input.item_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAddOnAttachmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CourseWork.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesCourseWorkCreateArgs> for CourseWork {
+    fn generate_resource_id(&self, input: &ClassroomCoursesCourseWorkCreateArgs) -> String {
+        format!("gcp::CourseWork/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CourseWork"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCourseWorkResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesCourseWorkListArgs> for ListCourseWorkResponse {
+    fn generate_resource_id(&self, input: &ClassroomCoursesCourseWorkListArgs) -> String {
+        format!("gcp::ListCourseWorkResponse/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCourseWorkResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Rubric.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesCourseWorkUpdateRubricArgs> for Rubric {
+    fn generate_resource_id(&self, input: &ClassroomCoursesCourseWorkUpdateRubricArgs) -> String {
+        format!("gcp::Rubric/{}/{}", input.course_id, input.course_work_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Rubric"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AddOnAttachmentStudentSubmission.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesCourseWorkAddOnAttachmentsStudentSubmissionsGetArgs>
+    for AddOnAttachmentStudentSubmission
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClassroomCoursesCourseWorkAddOnAttachmentsStudentSubmissionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::AddOnAttachmentStudentSubmission/{}/{}/{}/{}",
+            input.course_id, input.item_id, input.attachment_id, input.submission_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AddOnAttachmentStudentSubmission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRubricsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesCourseWorkRubricsListArgs> for ListRubricsResponse {
+    fn generate_resource_id(&self, input: &ClassroomCoursesCourseWorkRubricsListArgs) -> String {
+        format!(
+            "gcp::ListRubricsResponse/{}/{}",
+            input.course_id, input.course_work_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRubricsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StudentSubmission.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesCourseWorkStudentSubmissionsGetArgs> for StudentSubmission {
+    fn generate_resource_id(
+        &self,
+        input: &ClassroomCoursesCourseWorkStudentSubmissionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::StudentSubmission/{}/{}/{}",
+            input.course_id, input.course_work_id, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StudentSubmission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListStudentSubmissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesCourseWorkStudentSubmissionsListArgs>
+    for ListStudentSubmissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClassroomCoursesCourseWorkStudentSubmissionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListStudentSubmissionsResponse/{}/{}",
+            input.course_id, input.course_work_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListStudentSubmissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CourseWorkMaterial.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesCourseWorkMaterialsCreateArgs> for CourseWorkMaterial {
+    fn generate_resource_id(
+        &self,
+        input: &ClassroomCoursesCourseWorkMaterialsCreateArgs,
+    ) -> String {
+        format!("gcp::CourseWorkMaterial/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CourseWorkMaterial"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCourseWorkMaterialResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesCourseWorkMaterialsListArgs>
+    for ListCourseWorkMaterialResponse
+{
+    fn generate_resource_id(&self, input: &ClassroomCoursesCourseWorkMaterialsListArgs) -> String {
+        format!("gcp::ListCourseWorkMaterialResponse/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCourseWorkMaterialResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StudentGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesStudentGroupsCreateArgs> for StudentGroup {
+    fn generate_resource_id(&self, input: &ClassroomCoursesStudentGroupsCreateArgs) -> String {
+        format!("gcp::StudentGroup/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StudentGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListStudentGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesStudentGroupsListArgs> for ListStudentGroupsResponse {
+    fn generate_resource_id(&self, input: &ClassroomCoursesStudentGroupsListArgs) -> String {
+        format!("gcp::ListStudentGroupsResponse/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListStudentGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StudentGroupMember.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesStudentGroupsStudentGroupMembersCreateArgs>
+    for StudentGroupMember
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClassroomCoursesStudentGroupsStudentGroupMembersCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::StudentGroupMember/{}/{}",
+            input.course_id, input.student_group_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StudentGroupMember"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListStudentGroupMembersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesStudentGroupsStudentGroupMembersListArgs>
+    for ListStudentGroupMembersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClassroomCoursesStudentGroupsStudentGroupMembersListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListStudentGroupMembersResponse/{}/{}",
+            input.course_id, input.student_group_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListStudentGroupMembersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Student.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesStudentsCreateArgs> for Student {
+    fn generate_resource_id(&self, input: &ClassroomCoursesStudentsCreateArgs) -> String {
+        format!("gcp::Student/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Student"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListStudentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesStudentsListArgs> for ListStudentsResponse {
+    fn generate_resource_id(&self, input: &ClassroomCoursesStudentsListArgs) -> String {
+        format!("gcp::ListStudentsResponse/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListStudentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Teacher.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesTeachersCreateArgs> for Teacher {
+    fn generate_resource_id(&self, input: &ClassroomCoursesTeachersCreateArgs) -> String {
+        format!("gcp::Teacher/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Teacher"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTeachersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesTeachersListArgs> for ListTeachersResponse {
+    fn generate_resource_id(&self, input: &ClassroomCoursesTeachersListArgs) -> String {
+        format!("gcp::ListTeachersResponse/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTeachersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Topic.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesTopicsCreateArgs> for Topic {
+    fn generate_resource_id(&self, input: &ClassroomCoursesTopicsCreateArgs) -> String {
+        format!("gcp::Topic/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Topic"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTopicResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomCoursesTopicsListArgs> for ListTopicResponse {
+    fn generate_resource_id(&self, input: &ClassroomCoursesTopicsListArgs) -> String {
+        format!("gcp::ListTopicResponse/{}", input.course_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTopicResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Invitation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomInvitationsCreateArgs> for Invitation {
+    fn generate_resource_id(&self, input: &ClassroomInvitationsCreateArgs) -> String {
+        "gcp::Invitation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Invitation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInvitationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomInvitationsListArgs> for ListInvitationsResponse {
+    fn generate_resource_id(&self, input: &ClassroomInvitationsListArgs) -> String {
+        "gcp::ListInvitationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInvitationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Registration.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomRegistrationsCreateArgs> for Registration {
+    fn generate_resource_id(&self, input: &ClassroomRegistrationsCreateArgs) -> String {
+        "gcp::Registration".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Registration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomUserProfilesGetArgs> for UserProfile {
+    fn generate_resource_id(&self, input: &ClassroomUserProfilesGetArgs) -> String {
+        format!("gcp::UserProfile/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GuardianInvitation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomUserProfilesGuardianInvitationsCreateArgs> for GuardianInvitation {
+    fn generate_resource_id(
+        &self,
+        input: &ClassroomUserProfilesGuardianInvitationsCreateArgs,
+    ) -> String {
+        format!("gcp::GuardianInvitation/{}", input.student_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GuardianInvitation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListGuardianInvitationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomUserProfilesGuardianInvitationsListArgs>
+    for ListGuardianInvitationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClassroomUserProfilesGuardianInvitationsListArgs,
+    ) -> String {
+        format!("gcp::ListGuardianInvitationsResponse/{}", input.student_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListGuardianInvitationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Guardian.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomUserProfilesGuardiansGetArgs> for Guardian {
+    fn generate_resource_id(&self, input: &ClassroomUserProfilesGuardiansGetArgs) -> String {
+        format!("gcp::Guardian/{}/{}", input.student_id, input.guardian_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Guardian"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListGuardiansResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClassroomUserProfilesGuardiansListArgs> for ListGuardiansResponse {
+    fn generate_resource_id(&self, input: &ClassroomUserProfilesGuardiansListArgs) -> String {
+        format!("gcp::ListGuardiansResponse/{}", input.student_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListGuardiansResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

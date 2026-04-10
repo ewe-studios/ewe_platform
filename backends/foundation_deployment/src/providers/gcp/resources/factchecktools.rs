@@ -223,3 +223,112 @@ pub struct GoogleFactcheckingFactchecktoolsV1alpha1Publisher {
     #[serde(default)]
     pub site: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FactchecktoolsClaimsImageSearchArgs>
+    for GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchResponse
+{
+    fn generate_resource_id(&self, input: &FactchecktoolsClaimsImageSearchArgs) -> String {
+        "gcp::GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchResponse"
+            .to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimImageSearchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimSearchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FactchecktoolsClaimsSearchArgs>
+    for GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimSearchResponse
+{
+    fn generate_resource_id(&self, input: &FactchecktoolsClaimsSearchArgs) -> String {
+        "gcp::GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimSearchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFactcheckingFactchecktoolsV1alpha1FactCheckedClaimSearchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FactchecktoolsPagesCreateArgs>
+    for GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage
+{
+    fn generate_resource_id(&self, input: &FactchecktoolsPagesCreateArgs) -> String {
+        "gcp::GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFactcheckingFactchecktoolsV1alpha1ClaimReviewMarkupPage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FactchecktoolsPagesDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &FactchecktoolsPagesDeleteArgs) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FactchecktoolsPagesListArgs>
+    for GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesResponse
+{
+    fn generate_resource_id(&self, input: &FactchecktoolsPagesListArgs) -> String {
+        "gcp::GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesResponse"
+            .to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleFactcheckingFactchecktoolsV1alpha1ListClaimReviewMarkupPagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -2321,3 +2321,961 @@ pub struct SchemaSegment {
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &HealthcareProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &HealthcareProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Dataset.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsGetArgs> for Dataset {
+    fn generate_resource_id(&self, input: &HealthcareProjectsLocationsDatasetsGetArgs) -> String {
+        format!("gcp::Dataset/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Dataset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDatasetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsListArgs> for ListDatasetsResponse {
+    fn generate_resource_id(&self, input: &HealthcareProjectsLocationsDatasetsListArgs) -> String {
+        format!("gcp::ListDatasetsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDatasetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CheckDataAccessResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsConsentStoresCheckDataAccessArgs>
+    for CheckDataAccessResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsConsentStoresCheckDataAccessArgs,
+    ) -> String {
+        format!("gcp::CheckDataAccessResponse/{}", input.consent_store)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CheckDataAccessResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ConsentStore.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsConsentStoresCreateArgs>
+    for ConsentStore
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsConsentStoresCreateArgs,
+    ) -> String {
+        format!("gcp::ConsentStore/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ConsentStore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EvaluateUserConsentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsConsentStoresEvaluateUserConsentsArgs>
+    for EvaluateUserConsentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsConsentStoresEvaluateUserConsentsArgs,
+    ) -> String {
+        format!("gcp::EvaluateUserConsentsResponse/{}", input.consent_store)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EvaluateUserConsentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConsentStoresResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsConsentStoresListArgs>
+    for ListConsentStoresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsConsentStoresListArgs,
+    ) -> String {
+        format!("gcp::ListConsentStoresResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConsentStoresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AttributeDefinition.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsCreateArgs,
+    > for AttributeDefinition
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsCreateArgs,
+    ) -> String {
+        format!("gcp::AttributeDefinition/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AttributeDefinition"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAttributeDefinitionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsListArgs>
+    for ListAttributeDefinitionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsConsentStoresAttributeDefinitionsListArgs,
+    ) -> String {
+        format!("gcp::ListAttributeDefinitionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAttributeDefinitionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ConsentArtifact.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsConsentStoresConsentArtifactsCreateArgs>
+    for ConsentArtifact
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsConsentStoresConsentArtifactsCreateArgs,
+    ) -> String {
+        format!("gcp::ConsentArtifact/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ConsentArtifact"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConsentArtifactsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsConsentStoresConsentArtifactsListArgs>
+    for ListConsentArtifactsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsConsentStoresConsentArtifactsListArgs,
+    ) -> String {
+        format!("gcp::ListConsentArtifactsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConsentArtifactsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Consent.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsConsentStoresConsentsActivateArgs>
+    for Consent
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsConsentStoresConsentsActivateArgs,
+    ) -> String {
+        format!("gcp::Consent/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Consent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConsentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsConsentStoresConsentsListArgs>
+    for ListConsentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsConsentStoresConsentsListArgs,
+    ) -> String {
+        format!("gcp::ListConsentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConsentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConsentRevisionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsConsentStoresConsentsListRevisionsArgs>
+    for ListConsentRevisionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsConsentStoresConsentsListRevisionsArgs,
+    ) -> String {
+        format!("gcp::ListConsentRevisionsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConsentRevisionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ArchiveUserDataMappingResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsArchiveArgs>
+    for ArchiveUserDataMappingResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsArchiveArgs,
+    ) -> String {
+        format!("gcp::ArchiveUserDataMappingResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ArchiveUserDataMappingResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserDataMapping.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsCreateArgs>
+    for UserDataMapping
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsCreateArgs,
+    ) -> String {
+        format!("gcp::UserDataMapping/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserDataMapping"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUserDataMappingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsListArgs>
+    for ListUserDataMappingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsConsentStoresUserDataMappingsListArgs,
+    ) -> String {
+        format!("gcp::ListUserDataMappingsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUserDataMappingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DicomStore.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsDicomStoresCreateArgs> for DicomStore {
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsDicomStoresCreateArgs,
+    ) -> String {
+        format!("gcp::DicomStore/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DicomStore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DicomStoreMetrics.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsDicomStoresGetDICOMStoreMetricsArgs>
+    for DicomStoreMetrics
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsDicomStoresGetDICOMStoreMetricsArgs,
+    ) -> String {
+        format!("gcp::DicomStoreMetrics/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DicomStoreMetrics"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDicomStoresResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsDicomStoresListArgs>
+    for ListDicomStoresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsDicomStoresListArgs,
+    ) -> String {
+        format!("gcp::ListDicomStoresResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDicomStoresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HttpBody.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsDicomStoresSearchForInstancesArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsDicomStoresSearchForInstancesArgs,
+    ) -> String {
+        format!("gcp::HttpBody/{}/{}", input.parent, input.dicom_web_path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StudyMetrics.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesGetStudyMetricsArgs,
+    > for StudyMetrics
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesGetStudyMetricsArgs,
+    ) -> String {
+        format!("gcp::StudyMetrics/{}", input.study)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StudyMetrics"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SeriesMetrics.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesSeriesGetSeriesMetricsArgs,
+    > for SeriesMetrics
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesSeriesGetSeriesMetricsArgs,
+    ) -> String {
+        format!("gcp::SeriesMetrics/{}", input.series)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SeriesMetrics"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StorageInfo.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesSeriesInstancesGetStorageInfoArgs> for StorageInfo {
+    fn generate_resource_id(&self, input: &HealthcareProjectsLocationsDatasetsDicomStoresDicomWebStudiesSeriesInstancesGetStorageInfoArgs) -> String {
+        format!("gcp::StorageInfo/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StorageInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FhirStore.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsFhirStoresCreateArgs> for FhirStore {
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsFhirStoresCreateArgs,
+    ) -> String {
+        format!("gcp::FhirStore/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FhirStore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExplainDataAccessResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsFhirStoresExplainDataAccessArgs>
+    for ExplainDataAccessResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsFhirStoresExplainDataAccessArgs,
+    ) -> String {
+        format!("gcp::ExplainDataAccessResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExplainDataAccessResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FhirStoreMetrics.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsFhirStoresGetFHIRStoreMetricsArgs>
+    for FhirStoreMetrics
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsFhirStoresGetFHIRStoreMetricsArgs,
+    ) -> String {
+        format!("gcp::FhirStoreMetrics/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FhirStoreMetrics"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListFhirStoresResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsFhirStoresListArgs>
+    for ListFhirStoresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsFhirStoresListArgs,
+    ) -> String {
+        format!("gcp::ListFhirStoresResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListFhirStoresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Hl7V2Store.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsHl7v2StoresCreateArgs> for Hl7V2Store {
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsHl7v2StoresCreateArgs,
+    ) -> String {
+        format!("gcp::Hl7V2Store/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Hl7V2Store"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Hl7V2StoreMetrics.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsHl7v2StoresGetHL7v2StoreMetricsArgs>
+    for Hl7V2StoreMetrics
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsHl7v2StoresGetHL7v2StoreMetricsArgs,
+    ) -> String {
+        format!("gcp::Hl7V2StoreMetrics/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Hl7V2StoreMetrics"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListHl7V2StoresResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsHl7v2StoresListArgs>
+    for ListHl7V2StoresResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsHl7v2StoresListArgs,
+    ) -> String {
+        format!("gcp::ListHl7V2StoresResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListHl7V2StoresResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Message.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsHl7v2StoresMessagesCreateArgs>
+    for Message
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsHl7v2StoresMessagesCreateArgs,
+    ) -> String {
+        format!("gcp::Message/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Message"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IngestMessageResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsHl7v2StoresMessagesIngestArgs>
+    for IngestMessageResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsHl7v2StoresMessagesIngestArgs,
+    ) -> String {
+        format!("gcp::IngestMessageResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IngestMessageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMessagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsHl7v2StoresMessagesListArgs>
+    for ListMessagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsHl7v2StoresMessagesListArgs,
+    ) -> String {
+        format!("gcp::ListMessagesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMessagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsDatasetsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsDatasetsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AnalyzeEntitiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthcareProjectsLocationsServicesNlpAnalyzeEntitiesArgs>
+    for AnalyzeEntitiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HealthcareProjectsLocationsServicesNlpAnalyzeEntitiesArgs,
+    ) -> String {
+        format!("gcp::AnalyzeEntitiesResponse/{}", input.nlp_service)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AnalyzeEntitiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

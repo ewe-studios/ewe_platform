@@ -1870,3 +1870,717 @@ pub struct FlyHTTPResponseOptions {
     #[serde(default)]
     pub pristine: ::core::option::Option<bool>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAppsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppsListArgs> for ListAppsResponse {
+    fn generate_resource_id(&self, input: &AppsListArgs) -> String {
+        "fly_io::ListAppsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::ListAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for App.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppsShowArgs> for App {
+    fn generate_resource_id(&self, input: &AppsShowArgs) -> String {
+        format!("fly_io::App/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::App"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCertificatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppCertificatesListArgs> for ListCertificatesResponse {
+    fn generate_resource_id(&self, input: &AppCertificatesListArgs) -> String {
+        format!("fly_io::ListCertificatesResponse/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::ListCertificatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for CertificateDetail.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppCertificatesAcmeCreateArgs> for CertificateDetail {
+    fn generate_resource_id(&self, input: &AppCertificatesAcmeCreateArgs) -> String {
+        format!("fly_io::CertificateDetail/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::CertificateDetail"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for CertificateCheckResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppCertificatesCheckArgs> for CertificateCheckResponse {
+    fn generate_resource_id(&self, input: &AppCertificatesCheckArgs) -> String {
+        format!(
+            "fly_io::CertificateCheckResponse/{}/{}",
+            input.app_name, input.hostname
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::CertificateCheckResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for DestroyCustomCertificateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppCertificatesCustomDeleteArgs> for DestroyCustomCertificateResponse {
+    fn generate_resource_id(&self, input: &AppCertificatesCustomDeleteArgs) -> String {
+        format!(
+            "fly_io::DestroyCustomCertificateResponse/{}/{}",
+            input.app_name, input.hostname
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::DestroyCustomCertificateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for CreateAppResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppCreateDeployTokenArgs> for CreateAppResponse {
+    fn generate_resource_id(&self, input: &AppCreateDeployTokenArgs) -> String {
+        format!("fly_io::CreateAppResponse/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::CreateAppResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for ListIPAssignmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppIPAssignmentsListArgs> for ListIPAssignmentsResponse {
+    fn generate_resource_id(&self, input: &AppIPAssignmentsListArgs) -> String {
+        format!("fly_io::ListIPAssignmentsResponse/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::ListIPAssignmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for IPAssignment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppIPAssignmentsCreateArgs> for IPAssignment {
+    fn generate_resource_id(&self, input: &AppIPAssignmentsCreateArgs) -> String {
+        format!("fly_io::IPAssignment/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::IPAssignment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for Machine.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesCreateArgs> for Machine {
+    fn generate_resource_id(&self, input: &MachinesCreateArgs) -> String {
+        format!("fly_io::Machine/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::Machine"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for Flydv1ExecResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesExecArgs> for Flydv1ExecResponse {
+    fn generate_resource_id(&self, input: &MachinesExecArgs) -> String {
+        format!(
+            "fly_io::Flydv1ExecResponse/{}/{}",
+            input.app_name, input.machine_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::Flydv1ExecResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for Lease.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesShowLeaseArgs> for Lease {
+    fn generate_resource_id(&self, input: &MachinesShowLeaseArgs) -> String {
+        format!("fly_io::Lease/{}/{}", input.app_name, input.machine_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::Lease"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for MainMemoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesGetMemoryArgs> for MainMemoryResponse {
+    fn generate_resource_id(&self, input: &MachinesGetMemoryArgs) -> String {
+        format!(
+            "fly_io::MainMemoryResponse/{}/{}",
+            input.app_name, input.machine_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::MainMemoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for MainReclaimMemoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesReclaimMemoryArgs> for MainReclaimMemoryResponse {
+    fn generate_resource_id(&self, input: &MachinesReclaimMemoryArgs) -> String {
+        format!(
+            "fly_io::MainReclaimMemoryResponse/{}/{}",
+            input.app_name, input.machine_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::MainReclaimMemoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for MetadataValueResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesGetMetadataKeyArgs> for MetadataValueResponse {
+    fn generate_resource_id(&self, input: &MachinesGetMetadataKeyArgs) -> String {
+        format!(
+            "fly_io::MetadataValueResponse/{}/{}/{}",
+            input.app_name, input.machine_id, input.key
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::MetadataValueResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for WaitMachineResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesWaitArgs> for WaitMachineResponse {
+    fn generate_resource_id(&self, input: &MachinesWaitArgs) -> String {
+        format!(
+            "fly_io::WaitMachineResponse/{}/{}",
+            input.app_name, input.machine_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::WaitMachineResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for SecretKeys.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeysListArgs> for SecretKeys {
+    fn generate_resource_id(&self, input: &SecretkeysListArgs) -> String {
+        format!("fly_io::SecretKeys/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::SecretKeys"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for SecretKey.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeyGetArgs> for SecretKey {
+    fn generate_resource_id(&self, input: &SecretkeyGetArgs) -> String {
+        format!("fly_io::SecretKey/{}/{}", input.app_name, input.secret_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::SecretKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for SetSecretkeyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeySetArgs> for SetSecretkeyResponse {
+    fn generate_resource_id(&self, input: &SecretkeySetArgs) -> String {
+        format!(
+            "fly_io::SetSecretkeyResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::SetSecretkeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for DeleteSecretkeyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeyDeleteArgs> for DeleteSecretkeyResponse {
+    fn generate_resource_id(&self, input: &SecretkeyDeleteArgs) -> String {
+        format!(
+            "fly_io::DeleteSecretkeyResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::DeleteSecretkeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for DecryptSecretkeyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeyDecryptArgs> for DecryptSecretkeyResponse {
+    fn generate_resource_id(&self, input: &SecretkeyDecryptArgs) -> String {
+        format!(
+            "fly_io::DecryptSecretkeyResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::DecryptSecretkeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for EncryptSecretkeyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeyEncryptArgs> for EncryptSecretkeyResponse {
+    fn generate_resource_id(&self, input: &SecretkeyEncryptArgs) -> String {
+        format!(
+            "fly_io::EncryptSecretkeyResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::EncryptSecretkeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for SignSecretkeyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretkeySignArgs> for SignSecretkeyResponse {
+    fn generate_resource_id(&self, input: &SecretkeySignArgs) -> String {
+        format!(
+            "fly_io::SignSecretkeyResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::SignSecretkeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for AppSecrets.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretsListArgs> for AppSecrets {
+    fn generate_resource_id(&self, input: &SecretsListArgs) -> String {
+        format!("fly_io::AppSecrets/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::AppSecrets"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for AppSecretsUpdateResp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretsUpdateArgs> for AppSecretsUpdateResp {
+    fn generate_resource_id(&self, input: &SecretsUpdateArgs) -> String {
+        format!("fly_io::AppSecretsUpdateResp/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::AppSecretsUpdateResp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for AppSecret.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretGetArgs> for AppSecret {
+    fn generate_resource_id(&self, input: &SecretGetArgs) -> String {
+        format!("fly_io::AppSecret/{}/{}", input.app_name, input.secret_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::AppSecret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for SetAppSecretResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretCreateArgs> for SetAppSecretResponse {
+    fn generate_resource_id(&self, input: &SecretCreateArgs) -> String {
+        format!(
+            "fly_io::SetAppSecretResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::SetAppSecretResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for DeleteAppSecretResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretDeleteArgs> for DeleteAppSecretResponse {
+    fn generate_resource_id(&self, input: &SecretDeleteArgs) -> String {
+        format!(
+            "fly_io::DeleteAppSecretResponse/{}/{}",
+            input.app_name, input.secret_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::DeleteAppSecretResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for Volume.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VolumesCreateArgs> for Volume {
+    fn generate_resource_id(&self, input: &VolumesCreateArgs) -> String {
+        format!("fly_io::Volume/{}", input.app_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::Volume"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for ExtendVolumeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VolumesExtendArgs> for ExtendVolumeResponse {
+    fn generate_resource_id(&self, input: &VolumesExtendArgs) -> String {
+        format!(
+            "fly_io::ExtendVolumeResponse/{}/{}",
+            input.app_name, input.volume_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::ExtendVolumeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for OrgMachinesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MachinesOrgListArgs> for OrgMachinesResponse {
+    fn generate_resource_id(&self, input: &MachinesOrgListArgs) -> String {
+        format!("fly_io::OrgMachinesResponse/{}", input.org_slug)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::OrgMachinesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for OrgVolumesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<VolumesOrgListArgs> for OrgVolumesResponse {
+    fn generate_resource_id(&self, input: &VolumesOrgListArgs) -> String {
+        format!("fly_io::OrgVolumesResponse/{}", input.org_slug)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::OrgVolumesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for MainGetPlacementsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlatformPlacementsPostArgs> for MainGetPlacementsResponse {
+    fn generate_resource_id(&self, input: &PlatformPlacementsPostArgs) -> String {
+        "fly_io::MainGetPlacementsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::MainGetPlacementsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for MainRegionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlatformRegionsGetArgs> for MainRegionResponse {
+    fn generate_resource_id(&self, input: &PlatformRegionsGetArgs) -> String {
+        "fly_io::MainRegionResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::MainRegionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}
+
+/// ResourceIdentifier implementation for CurrentTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CurrentTokenShowArgs> for CurrentTokenResponse {
+    fn generate_resource_id(&self, input: &CurrentTokenShowArgs) -> String {
+        "fly_io::CurrentTokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "fly_io::CurrentTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "fly_io"
+    }
+}

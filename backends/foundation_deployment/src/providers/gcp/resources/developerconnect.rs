@@ -410,6 +410,9 @@ pub struct AccountConnector {
     /// Optional. Configuration for the http and git proxy features.
     #[serde(default, rename = "proxyConfig")]
     pub proxy_config: ::core::option::Option<ProxyConfig>,
+    /// Output only. A system-assigned unique identifier for the Account Connector.
+    #[serde(default)]
+    pub uid: ::core::option::Option<String>,
     /// Output only. The timestamp when the accountConnector was updated.
     #[serde(default, rename = "updateTime")]
     pub update_time: ::core::option::Option<String>,
@@ -724,6 +727,9 @@ pub struct ProxyConfig {
     /// Optional. Setting this to true allows the git and http proxies to perform actions on behalf of the user configured under the account connector.
     #[serde(default)]
     pub enabled: ::core::option::Option<bool>,
+    /// Output only. The base URI for the HTTP proxy endpoint. Has the format https://{generatedID}-a-h-{shortRegion}.developerconnect.dev Populated only when enabled is set to true. This endpoint is used by other Google services that integrate with Developer Connect.
+    #[serde(default, rename = "httpProxyBaseUri")]
+    pub http_proxy_base_uri: ::core::option::Option<String>,
 }
 
 /// Configuration for connections to an instance of Bitbucket Cloud.
@@ -1123,4 +1129,638 @@ pub struct GoogleCloudRun {
     /// Required. Immutable. The name of the Cloud Run service. Format: projects/{project}/locations/{location}/services/{service}.
     #[serde(default, rename = "serviceUri")]
     pub service_uri: ::core::option::Option<String>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &DeveloperconnectProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &DeveloperconnectProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsAccountConnectorsCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchUserRepositoriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsFetchUserRepositoriesArgs>
+    for FetchUserRepositoriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsAccountConnectorsFetchUserRepositoriesArgs,
+    ) -> String {
+        format!(
+            "gcp::FetchUserRepositoriesResponse/{}",
+            input.account_connector
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchUserRepositoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountConnector.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsGetArgs>
+    for AccountConnector
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsAccountConnectorsGetArgs,
+    ) -> String {
+        format!("gcp::AccountConnector/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountConnector"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAccountConnectorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsListArgs>
+    for ListAccountConnectorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsAccountConnectorsListArgs,
+    ) -> String {
+        format!("gcp::ListAccountConnectorsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAccountConnectorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchAccessTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsUsersFetchAccessTokenArgs>
+    for FetchAccessTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsAccountConnectorsUsersFetchAccessTokenArgs,
+    ) -> String {
+        format!("gcp::FetchAccessTokenResponse/{}", input.account_connector)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchAccessTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for User.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsUsersFetchSelfArgs>
+    for User
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsAccountConnectorsUsersFetchSelfArgs,
+    ) -> String {
+        format!("gcp::User/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::User"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FinishOAuthResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOAuthFlowArgs>
+    for FinishOAuthResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsAccountConnectorsUsersFinishOAuthFlowArgs,
+    ) -> String {
+        format!("gcp::FinishOAuthResponse/{}", input.account_connector)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FinishOAuthResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUsersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsUsersListArgs>
+    for ListUsersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsAccountConnectorsUsersListArgs,
+    ) -> String {
+        format!("gcp::ListUsersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StartOAuthResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOAuthFlowArgs>
+    for StartOAuthResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsAccountConnectorsUsersStartOAuthFlowArgs,
+    ) -> String {
+        format!("gcp::StartOAuthResponse/{}", input.account_connector)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StartOAuthResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchGitHubInstallationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsConnectionsFetchGitHubInstallationsArgs>
+    for FetchGitHubInstallationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsConnectionsFetchGitHubInstallationsArgs,
+    ) -> String {
+        format!("gcp::FetchGitHubInstallationsResponse/{}", input.connection)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchGitHubInstallationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchLinkableGitRepositoriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<DeveloperconnectProjectsLocationsConnectionsFetchLinkableGitRepositoriesArgs>
+    for FetchLinkableGitRepositoriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsConnectionsFetchLinkableGitRepositoriesArgs,
+    ) -> String {
+        format!(
+            "gcp::FetchLinkableGitRepositoriesResponse/{}",
+            input.connection
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchLinkableGitRepositoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Connection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsConnectionsGetArgs> for Connection {
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsConnectionsGetArgs,
+    ) -> String {
+        format!("gcp::Connection/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Connection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsConnectionsListArgs>
+    for ListConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsConnectionsListArgs,
+    ) -> String {
+        format!("gcp::ListConnectionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DeveloperconnectProjectsLocationsConnectionsProcessGitHubEnterpriseWebhookArgs,
+    > for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsConnectionsProcessGitHubEnterpriseWebhookArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchGitRefsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchGitRefsArgs,
+    > for FetchGitRefsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchGitRefsArgs,
+    ) -> String {
+        format!("gcp::FetchGitRefsResponse/{}", input.git_repository_link)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchGitRefsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchReadTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchReadTokenArgs,
+    > for FetchReadTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchReadTokenArgs,
+    ) -> String {
+        format!("gcp::FetchReadTokenResponse/{}", input.git_repository_link)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchReadTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FetchReadWriteTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchReadWriteTokenArgs,
+    > for FetchReadWriteTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksFetchReadWriteTokenArgs,
+    ) -> String {
+        format!(
+            "gcp::FetchReadWriteTokenResponse/{}",
+            input.git_repository_link
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FetchReadWriteTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GitRepositoryLink.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksGetArgs>
+    for GitRepositoryLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksGetArgs,
+    ) -> String {
+        format!("gcp::GitRepositoryLink/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GitRepositoryLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListGitRepositoryLinksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksListArgs>
+    for ListGitRepositoryLinksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsConnectionsGitRepositoryLinksListArgs,
+    ) -> String {
+        format!("gcp::ListGitRepositoryLinksResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListGitRepositoryLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InsightsConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsInsightsConfigsGetArgs>
+    for InsightsConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsInsightsConfigsGetArgs,
+    ) -> String {
+        format!("gcp::InsightsConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InsightsConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInsightsConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsInsightsConfigsListArgs>
+    for ListInsightsConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsInsightsConfigsListArgs,
+    ) -> String {
+        format!("gcp::ListInsightsConfigsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInsightsConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DeploymentEvent.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsInsightsConfigsDeploymentEventsGetArgs>
+    for DeploymentEvent
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsInsightsConfigsDeploymentEventsGetArgs,
+    ) -> String {
+        format!("gcp::DeploymentEvent/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DeploymentEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDeploymentEventsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsInsightsConfigsDeploymentEventsListArgs>
+    for ListDeploymentEventsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsInsightsConfigsDeploymentEventsListArgs,
+    ) -> String {
+        format!("gcp::ListDeploymentEventsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDeploymentEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeveloperconnectProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeveloperconnectProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -370,3 +370,151 @@ pub struct MapValue {
     #[serde(default, rename = "fpVal")]
     pub fp_val: ::core::option::Option<f64>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for DataSource.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FitnessUsersDataSourcesCreateArgs> for DataSource {
+    fn generate_resource_id(&self, input: &FitnessUsersDataSourcesCreateArgs) -> String {
+        format!("gcp::DataSource/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DataSource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDataSourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FitnessUsersDataSourcesListArgs> for ListDataSourcesResponse {
+    fn generate_resource_id(&self, input: &FitnessUsersDataSourcesListArgs) -> String {
+        format!("gcp::ListDataSourcesResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDataSourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDataPointChangesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FitnessUsersDataSourcesDataPointChangesListArgs>
+    for ListDataPointChangesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FitnessUsersDataSourcesDataPointChangesListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListDataPointChangesResponse/{}/{}",
+            input.user_id, input.data_source_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDataPointChangesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Dataset.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FitnessUsersDataSourcesDatasetsGetArgs> for Dataset {
+    fn generate_resource_id(&self, input: &FitnessUsersDataSourcesDatasetsGetArgs) -> String {
+        format!(
+            "gcp::Dataset/{}/{}/{}",
+            input.user_id, input.data_source_id, input.dataset_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Dataset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AggregateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FitnessUsersDatasetAggregateArgs> for AggregateResponse {
+    fn generate_resource_id(&self, input: &FitnessUsersDatasetAggregateArgs) -> String {
+        format!("gcp::AggregateResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AggregateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSessionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FitnessUsersSessionsListArgs> for ListSessionsResponse {
+    fn generate_resource_id(&self, input: &FitnessUsersSessionsListArgs) -> String {
+        format!("gcp::ListSessionsResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSessionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Session.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FitnessUsersSessionsUpdateArgs> for Session {
+    fn generate_resource_id(&self, input: &FitnessUsersSessionsUpdateArgs) -> String {
+        format!("gcp::Session/{}/{}", input.user_id, input.session_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Session"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

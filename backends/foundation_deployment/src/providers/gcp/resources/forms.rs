@@ -817,3 +817,159 @@ pub struct VideoLink {
     #[serde(default, rename = "youtubeUri")]
     pub youtube_uri: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchUpdateFormResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsBatchUpdateArgs> for BatchUpdateFormResponse {
+    fn generate_resource_id(&self, input: &FormsFormsBatchUpdateArgs) -> String {
+        format!("gcp::BatchUpdateFormResponse/{}", input.form_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchUpdateFormResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Form.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsCreateArgs> for Form {
+    fn generate_resource_id(&self, input: &FormsFormsCreateArgs) -> String {
+        "gcp::Form".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Form"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SetPublishSettingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsSetPublishSettingsArgs> for SetPublishSettingsResponse {
+    fn generate_resource_id(&self, input: &FormsFormsSetPublishSettingsArgs) -> String {
+        format!("gcp::SetPublishSettingsResponse/{}", input.form_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SetPublishSettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FormResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsResponsesGetArgs> for FormResponse {
+    fn generate_resource_id(&self, input: &FormsFormsResponsesGetArgs) -> String {
+        format!("gcp::FormResponse/{}/{}", input.form_id, input.response_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FormResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListFormResponsesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsResponsesListArgs> for ListFormResponsesResponse {
+    fn generate_resource_id(&self, input: &FormsFormsResponsesListArgs) -> String {
+        format!("gcp::ListFormResponsesResponse/{}", input.form_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListFormResponsesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Watch.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsWatchesCreateArgs> for Watch {
+    fn generate_resource_id(&self, input: &FormsFormsWatchesCreateArgs) -> String {
+        format!("gcp::Watch/{}", input.form_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Watch"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsWatchesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &FormsFormsWatchesDeleteArgs) -> String {
+        format!("gcp::Empty/{}/{}", input.form_id, input.watch_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListWatchesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FormsFormsWatchesListArgs> for ListWatchesResponse {
+    fn generate_resource_id(&self, input: &FormsFormsWatchesListArgs) -> String {
+        format!("gcp::ListWatchesResponse/{}", input.form_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListWatchesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

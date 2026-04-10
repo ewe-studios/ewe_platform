@@ -46,3 +46,45 @@ pub struct UrlNotification {
     #[serde(default)]
     pub url: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for UrlNotificationMetadata.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IndexingUrlNotificationsGetMetadataArgs> for UrlNotificationMetadata {
+    fn generate_resource_id(&self, input: &IndexingUrlNotificationsGetMetadataArgs) -> String {
+        "gcp::UrlNotificationMetadata".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UrlNotificationMetadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PublishUrlNotificationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IndexingUrlNotificationsPublishArgs> for PublishUrlNotificationResponse {
+    fn generate_resource_id(&self, input: &IndexingUrlNotificationsPublishArgs) -> String {
+        "gcp::PublishUrlNotificationResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PublishUrlNotificationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

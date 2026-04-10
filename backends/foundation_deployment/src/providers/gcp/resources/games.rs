@@ -1328,3 +1328,752 @@ pub struct PlayerLevel {
     #[serde(default, rename = "minExperiencePoints")]
     pub min_experience_points: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GeneratePlayGroupingApiTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAccesstokensGeneratePlayGroupingApiTokenArgs>
+    for GeneratePlayGroupingApiTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesAccesstokensGeneratePlayGroupingApiTokenArgs,
+    ) -> String {
+        "gcp::GeneratePlayGroupingApiTokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GeneratePlayGroupingApiTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateRecallPlayGroupingApiTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAccesstokensGenerateRecallPlayGroupingApiTokenArgs>
+    for GenerateRecallPlayGroupingApiTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesAccesstokensGenerateRecallPlayGroupingApiTokenArgs,
+    ) -> String {
+        "gcp::GenerateRecallPlayGroupingApiTokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateRecallPlayGroupingApiTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AchievementDefinitionsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAchievementDefinitionsListArgs>
+    for AchievementDefinitionsListResponse
+{
+    fn generate_resource_id(&self, input: &GamesAchievementDefinitionsListArgs) -> String {
+        "gcp::AchievementDefinitionsListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AchievementDefinitionsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AchievementIncrementResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAchievementsIncrementArgs> for AchievementIncrementResponse {
+    fn generate_resource_id(&self, input: &GamesAchievementsIncrementArgs) -> String {
+        format!("gcp::AchievementIncrementResponse/{}", input.achievement_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AchievementIncrementResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlayerAchievementListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAchievementsListArgs> for PlayerAchievementListResponse {
+    fn generate_resource_id(&self, input: &GamesAchievementsListArgs) -> String {
+        format!("gcp::PlayerAchievementListResponse/{}", input.player_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlayerAchievementListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AchievementRevealResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAchievementsRevealArgs> for AchievementRevealResponse {
+    fn generate_resource_id(&self, input: &GamesAchievementsRevealArgs) -> String {
+        format!("gcp::AchievementRevealResponse/{}", input.achievement_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AchievementRevealResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AchievementSetStepsAtLeastResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAchievementsSetStepsAtLeastArgs>
+    for AchievementSetStepsAtLeastResponse
+{
+    fn generate_resource_id(&self, input: &GamesAchievementsSetStepsAtLeastArgs) -> String {
+        format!(
+            "gcp::AchievementSetStepsAtLeastResponse/{}",
+            input.achievement_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AchievementSetStepsAtLeastResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AchievementUnlockResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAchievementsUnlockArgs> for AchievementUnlockResponse {
+    fn generate_resource_id(&self, input: &GamesAchievementsUnlockArgs) -> String {
+        format!("gcp::AchievementUnlockResponse/{}", input.achievement_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AchievementUnlockResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AchievementUpdateMultipleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesAchievementsUpdateMultipleArgs> for AchievementUpdateMultipleResponse {
+    fn generate_resource_id(&self, input: &GamesAchievementsUpdateMultipleArgs) -> String {
+        "gcp::AchievementUpdateMultipleResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AchievementUpdateMultipleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Application.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesApplicationsGetArgs> for Application {
+    fn generate_resource_id(&self, input: &GamesApplicationsGetArgs) -> String {
+        format!("gcp::Application/{}", input.application_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Application"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EndPoint.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesApplicationsGetEndPointArgs> for EndPoint {
+    fn generate_resource_id(&self, input: &GamesApplicationsGetEndPointArgs) -> String {
+        "gcp::EndPoint".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EndPoint"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApplicationVerifyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesApplicationsVerifyArgs> for ApplicationVerifyResponse {
+    fn generate_resource_id(&self, input: &GamesApplicationsVerifyArgs) -> String {
+        format!("gcp::ApplicationVerifyResponse/{}", input.application_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApplicationVerifyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlayerEventListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesEventsListByPlayerArgs> for PlayerEventListResponse {
+    fn generate_resource_id(&self, input: &GamesEventsListByPlayerArgs) -> String {
+        "gcp::PlayerEventListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlayerEventListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EventDefinitionListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesEventsListDefinitionsArgs> for EventDefinitionListResponse {
+    fn generate_resource_id(&self, input: &GamesEventsListDefinitionsArgs) -> String {
+        "gcp::EventDefinitionListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EventDefinitionListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EventUpdateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesEventsRecordArgs> for EventUpdateResponse {
+    fn generate_resource_id(&self, input: &GamesEventsRecordArgs) -> String {
+        "gcp::EventUpdateResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EventUpdateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Leaderboard.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesLeaderboardsGetArgs> for Leaderboard {
+    fn generate_resource_id(&self, input: &GamesLeaderboardsGetArgs) -> String {
+        format!("gcp::Leaderboard/{}", input.leaderboard_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Leaderboard"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LeaderboardListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesLeaderboardsListArgs> for LeaderboardListResponse {
+    fn generate_resource_id(&self, input: &GamesLeaderboardsListArgs) -> String {
+        "gcp::LeaderboardListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LeaderboardListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MetagameConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesMetagameGetMetagameConfigArgs> for MetagameConfig {
+    fn generate_resource_id(&self, input: &GamesMetagameGetMetagameConfigArgs) -> String {
+        "gcp::MetagameConfig".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MetagameConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CategoryListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesMetagameListCategoriesByPlayerArgs> for CategoryListResponse {
+    fn generate_resource_id(&self, input: &GamesMetagameListCategoriesByPlayerArgs) -> String {
+        format!(
+            "gcp::CategoryListResponse/{}/{}",
+            input.player_id, input.collection
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CategoryListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Player.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesPlayersGetArgs> for Player {
+    fn generate_resource_id(&self, input: &GamesPlayersGetArgs) -> String {
+        format!("gcp::Player/{}", input.player_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Player"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetMultipleApplicationPlayerIdsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesPlayersGetMultipleApplicationPlayerIdsArgs>
+    for GetMultipleApplicationPlayerIdsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesPlayersGetMultipleApplicationPlayerIdsArgs,
+    ) -> String {
+        "gcp::GetMultipleApplicationPlayerIdsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetMultipleApplicationPlayerIdsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ScopedPlayerIds.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesPlayersGetScopedPlayerIdsArgs> for ScopedPlayerIds {
+    fn generate_resource_id(&self, input: &GamesPlayersGetScopedPlayerIdsArgs) -> String {
+        "gcp::ScopedPlayerIds".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ScopedPlayerIds"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlayerListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesPlayersListArgs> for PlayerListResponse {
+    fn generate_resource_id(&self, input: &GamesPlayersListArgs) -> String {
+        format!("gcp::PlayerListResponse/{}", input.collection)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlayerListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RetrieveGamesPlayerTokensResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesRecallGamesPlayerTokensArgs> for RetrieveGamesPlayerTokensResponse {
+    fn generate_resource_id(&self, input: &GamesRecallGamesPlayerTokensArgs) -> String {
+        format!(
+            "gcp::RetrieveGamesPlayerTokensResponse/{}",
+            input.session_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetrieveGamesPlayerTokensResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RetrieveDeveloperGamesLastPlayerTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesRecallLastTokenFromAllDeveloperGamesArgs>
+    for RetrieveDeveloperGamesLastPlayerTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GamesRecallLastTokenFromAllDeveloperGamesArgs,
+    ) -> String {
+        format!(
+            "gcp::RetrieveDeveloperGamesLastPlayerTokenResponse/{}",
+            input.session_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetrieveDeveloperGamesLastPlayerTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LinkPersonaResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesRecallLinkPersonaArgs> for LinkPersonaResponse {
+    fn generate_resource_id(&self, input: &GamesRecallLinkPersonaArgs) -> String {
+        "gcp::LinkPersonaResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LinkPersonaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResetPersonaResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesRecallResetPersonaArgs> for ResetPersonaResponse {
+    fn generate_resource_id(&self, input: &GamesRecallResetPersonaArgs) -> String {
+        "gcp::ResetPersonaResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResetPersonaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RetrievePlayerTokensResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesRecallRetrieveTokensArgs> for RetrievePlayerTokensResponse {
+    fn generate_resource_id(&self, input: &GamesRecallRetrieveTokensArgs) -> String {
+        format!("gcp::RetrievePlayerTokensResponse/{}", input.session_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetrievePlayerTokensResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UnlinkPersonaResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesRecallUnlinkPersonaArgs> for UnlinkPersonaResponse {
+    fn generate_resource_id(&self, input: &GamesRecallUnlinkPersonaArgs) -> String {
+        "gcp::UnlinkPersonaResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UnlinkPersonaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RevisionCheckResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesRevisionsCheckArgs> for RevisionCheckResponse {
+    fn generate_resource_id(&self, input: &GamesRevisionsCheckArgs) -> String {
+        "gcp::RevisionCheckResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RevisionCheckResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlayerLeaderboardScoreListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesScoresGetArgs> for PlayerLeaderboardScoreListResponse {
+    fn generate_resource_id(&self, input: &GamesScoresGetArgs) -> String {
+        format!(
+            "gcp::PlayerLeaderboardScoreListResponse/{}/{}/{}",
+            input.player_id, input.leaderboard_id, input.time_span
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlayerLeaderboardScoreListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LeaderboardScores.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesScoresListArgs> for LeaderboardScores {
+    fn generate_resource_id(&self, input: &GamesScoresListArgs) -> String {
+        format!(
+            "gcp::LeaderboardScores/{}/{}",
+            input.leaderboard_id, input.collection
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LeaderboardScores"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlayerScoreResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesScoresSubmitArgs> for PlayerScoreResponse {
+    fn generate_resource_id(&self, input: &GamesScoresSubmitArgs) -> String {
+        format!("gcp::PlayerScoreResponse/{}", input.leaderboard_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlayerScoreResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PlayerScoreListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesScoresSubmitMultipleArgs> for PlayerScoreListResponse {
+    fn generate_resource_id(&self, input: &GamesScoresSubmitMultipleArgs) -> String {
+        "gcp::PlayerScoreListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PlayerScoreListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Snapshot.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesSnapshotsGetArgs> for Snapshot {
+    fn generate_resource_id(&self, input: &GamesSnapshotsGetArgs) -> String {
+        format!("gcp::Snapshot/{}", input.snapshot_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Snapshot"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SnapshotListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesSnapshotsListArgs> for SnapshotListResponse {
+    fn generate_resource_id(&self, input: &GamesSnapshotsListArgs) -> String {
+        format!("gcp::SnapshotListResponse/{}", input.player_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SnapshotListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StatsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GamesStatsGetArgs> for StatsResponse {
+    fn generate_resource_id(&self, input: &GamesStatsGetArgs) -> String {
+        "gcp::StatsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -1459,3 +1459,443 @@ pub struct Volume {
     #[serde(default, rename = "volumeType")]
     pub volume_type: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &AppengineAppsCreateArgs) -> String {
+        "gcp::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Application.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsGetArgs> for Application {
+    fn generate_resource_id(&self, input: &AppengineAppsGetArgs) -> String {
+        format!("gcp::Application/{}", input.apps_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Application"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRuntimesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsListRuntimesArgs> for ListRuntimesResponse {
+    fn generate_resource_id(&self, input: &AppengineAppsListRuntimesArgs) -> String {
+        format!("gcp::ListRuntimesResponse/{}", input.apps_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRuntimesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AuthorizedCertificate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsAuthorizedCertificatesCreateArgs> for AuthorizedCertificate {
+    fn generate_resource_id(
+        &self,
+        input: &AppengineAppsAuthorizedCertificatesCreateArgs,
+    ) -> String {
+        format!("gcp::AuthorizedCertificate/{}", input.apps_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AuthorizedCertificate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsAuthorizedCertificatesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &AppengineAppsAuthorizedCertificatesDeleteArgs,
+    ) -> String {
+        format!(
+            "gcp::Empty/{}/{}",
+            input.apps_id, input.authorized_certificates_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAuthorizedCertificatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsAuthorizedCertificatesListArgs>
+    for ListAuthorizedCertificatesResponse
+{
+    fn generate_resource_id(&self, input: &AppengineAppsAuthorizedCertificatesListArgs) -> String {
+        format!("gcp::ListAuthorizedCertificatesResponse/{}", input.apps_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAuthorizedCertificatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAuthorizedDomainsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsAuthorizedDomainsListArgs> for ListAuthorizedDomainsResponse {
+    fn generate_resource_id(&self, input: &AppengineAppsAuthorizedDomainsListArgs) -> String {
+        format!("gcp::ListAuthorizedDomainsResponse/{}", input.apps_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAuthorizedDomainsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DomainMapping.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsDomainMappingsGetArgs> for DomainMapping {
+    fn generate_resource_id(&self, input: &AppengineAppsDomainMappingsGetArgs) -> String {
+        format!(
+            "gcp::DomainMapping/{}/{}",
+            input.apps_id, input.domain_mappings_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DomainMapping"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDomainMappingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsDomainMappingsListArgs> for ListDomainMappingsResponse {
+    fn generate_resource_id(&self, input: &AppengineAppsDomainMappingsListArgs) -> String {
+        format!("gcp::ListDomainMappingsResponse/{}", input.apps_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDomainMappingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchUpdateIngressRulesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsFirewallIngressRulesBatchUpdateArgs>
+    for BatchUpdateIngressRulesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AppengineAppsFirewallIngressRulesBatchUpdateArgs,
+    ) -> String {
+        format!("gcp::BatchUpdateIngressRulesResponse/{}", input.apps_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchUpdateIngressRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallRule.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsFirewallIngressRulesCreateArgs> for FirewallRule {
+    fn generate_resource_id(&self, input: &AppengineAppsFirewallIngressRulesCreateArgs) -> String {
+        format!("gcp::FirewallRule/{}", input.apps_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FirewallRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListIngressRulesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsFirewallIngressRulesListArgs> for ListIngressRulesResponse {
+    fn generate_resource_id(&self, input: &AppengineAppsFirewallIngressRulesListArgs) -> String {
+        format!("gcp::ListIngressRulesResponse/{}", input.apps_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListIngressRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &AppengineAppsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}/{}", input.apps_id, input.locations_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &AppengineAppsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.apps_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &AppengineAppsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.apps_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Service.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsServicesGetArgs> for Service {
+    fn generate_resource_id(&self, input: &AppengineAppsServicesGetArgs) -> String {
+        format!("gcp::Service/{}/{}", input.apps_id, input.services_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Service"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListServicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsServicesListArgs> for ListServicesResponse {
+    fn generate_resource_id(&self, input: &AppengineAppsServicesListArgs) -> String {
+        format!("gcp::ListServicesResponse/{}", input.apps_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Version.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsServicesVersionsGetArgs> for Version {
+    fn generate_resource_id(&self, input: &AppengineAppsServicesVersionsGetArgs) -> String {
+        format!(
+            "gcp::Version/{}/{}/{}",
+            input.apps_id, input.services_id, input.versions_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Version"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsServicesVersionsListArgs> for ListVersionsResponse {
+    fn generate_resource_id(&self, input: &AppengineAppsServicesVersionsListArgs) -> String {
+        format!(
+            "gcp::ListVersionsResponse/{}/{}",
+            input.apps_id, input.services_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Instance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsServicesVersionsInstancesGetArgs> for Instance {
+    fn generate_resource_id(
+        &self,
+        input: &AppengineAppsServicesVersionsInstancesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::Instance/{}/{}/{}/{}",
+            input.apps_id, input.services_id, input.versions_id, input.instances_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Instance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInstancesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppengineAppsServicesVersionsInstancesListArgs> for ListInstancesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &AppengineAppsServicesVersionsInstancesListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListInstancesResponse/{}/{}/{}",
+            input.apps_id, input.services_id, input.versions_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

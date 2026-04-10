@@ -2161,3 +2161,102 @@ pub struct XPSTimestampStats {
     #[serde(default, rename = "medianTimestampNanos")]
     pub median_timestamp_nanos: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for AnalyzeEntitiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LanguageDocumentsAnalyzeEntitiesArgs> for AnalyzeEntitiesResponse {
+    fn generate_resource_id(&self, input: &LanguageDocumentsAnalyzeEntitiesArgs) -> String {
+        "gcp::AnalyzeEntitiesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AnalyzeEntitiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AnalyzeSentimentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LanguageDocumentsAnalyzeSentimentArgs> for AnalyzeSentimentResponse {
+    fn generate_resource_id(&self, input: &LanguageDocumentsAnalyzeSentimentArgs) -> String {
+        "gcp::AnalyzeSentimentResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AnalyzeSentimentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AnnotateTextResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LanguageDocumentsAnnotateTextArgs> for AnnotateTextResponse {
+    fn generate_resource_id(&self, input: &LanguageDocumentsAnnotateTextArgs) -> String {
+        "gcp::AnnotateTextResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AnnotateTextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ClassifyTextResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LanguageDocumentsClassifyTextArgs> for ClassifyTextResponse {
+    fn generate_resource_id(&self, input: &LanguageDocumentsClassifyTextArgs) -> String {
+        "gcp::ClassifyTextResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ClassifyTextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ModerateTextResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LanguageDocumentsModerateTextArgs> for ModerateTextResponse {
+    fn generate_resource_id(&self, input: &LanguageDocumentsModerateTextArgs) -> String {
+        "gcp::ModerateTextResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ModerateTextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -1488,3 +1488,917 @@ pub struct GoogleDevtoolsArtifactregistryV1RemoteRepositoryConfigYumRepositoryPu
     #[serde(default, rename = "repositoryPath")]
     pub repository_path: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ProjectSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsGetProjectSettingsArgs> for ProjectSettings {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsGetProjectSettingsArgs,
+    ) -> String {
+        format!("gcp::ProjectSettings/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProjectSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &ArtifactregistryProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ProjectConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsGetProjectConfigArgs> for ProjectConfig {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsGetProjectConfigArgs,
+    ) -> String {
+        format!("gcp::ProjectConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProjectConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VPCSCConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsGetVpcscConfigArgs> for VPCSCConfig {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsGetVpcscConfigArgs,
+    ) -> String {
+        format!("gcp::VPCSCConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VPCSCConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &ArtifactregistryProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Repository.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesGetArgs> for Repository {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesGetArgs,
+    ) -> String {
+        format!("gcp::Repository/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Repository"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRepositoriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesListArgs>
+    for ListRepositoriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesListArgs,
+    ) -> String {
+        format!("gcp::ListRepositoriesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRepositoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UploadAptArtifactMediaResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesAptArtifactsUploadArgs>
+    for UploadAptArtifactMediaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesAptArtifactsUploadArgs,
+    ) -> String {
+        format!("gcp::UploadAptArtifactMediaResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UploadAptArtifactMediaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Attachment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesAttachmentsGetArgs>
+    for Attachment
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsGetArgs,
+    ) -> String {
+        format!("gcp::Attachment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Attachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAttachmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesAttachmentsListArgs>
+    for ListAttachmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesAttachmentsListArgs,
+    ) -> String {
+        format!("gcp::ListAttachmentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAttachmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DockerImage.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesDockerImagesGetArgs>
+    for DockerImage
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesDockerImagesGetArgs,
+    ) -> String {
+        format!("gcp::DockerImage/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DockerImage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDockerImagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesDockerImagesListArgs>
+    for ListDockerImagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesDockerImagesListArgs,
+    ) -> String {
+        format!("gcp::ListDockerImagesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDockerImagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DownloadFileResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesFilesDownloadArgs>
+    for DownloadFileResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesFilesDownloadArgs,
+    ) -> String {
+        format!("gcp::DownloadFileResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DownloadFileResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleDevtoolsArtifactregistryV1File.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesFilesGetArgs>
+    for GoogleDevtoolsArtifactregistryV1File
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesFilesGetArgs,
+    ) -> String {
+        format!("gcp::GoogleDevtoolsArtifactregistryV1File/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleDevtoolsArtifactregistryV1File"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListFilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesFilesListArgs>
+    for ListFilesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesFilesListArgs,
+    ) -> String {
+        format!("gcp::ListFilesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListFilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UploadFileMediaResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesFilesUploadArgs>
+    for UploadFileMediaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesFilesUploadArgs,
+    ) -> String {
+        format!("gcp::UploadFileMediaResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UploadFileMediaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UploadGenericArtifactMediaResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesGenericArtifactsUploadArgs>
+    for UploadGenericArtifactMediaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesGenericArtifactsUploadArgs,
+    ) -> String {
+        format!("gcp::UploadGenericArtifactMediaResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UploadGenericArtifactMediaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UploadGoModuleMediaResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesGoModulesUploadArgs>
+    for UploadGoModuleMediaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesGoModulesUploadArgs,
+    ) -> String {
+        format!("gcp::UploadGoModuleMediaResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UploadGoModuleMediaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UploadGoogetArtifactMediaResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsUploadArgs>
+    for UploadGoogetArtifactMediaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesGoogetArtifactsUploadArgs,
+    ) -> String {
+        format!("gcp::UploadGoogetArtifactMediaResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UploadGoogetArtifactMediaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UploadKfpArtifactMediaResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesKfpArtifactsUploadArgs>
+    for UploadKfpArtifactMediaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesKfpArtifactsUploadArgs,
+    ) -> String {
+        format!("gcp::UploadKfpArtifactMediaResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UploadKfpArtifactMediaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MavenArtifact.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsGetArgs>
+    for MavenArtifact
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsGetArgs,
+    ) -> String {
+        format!("gcp::MavenArtifact/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MavenArtifact"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMavenArtifactsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsListArgs>
+    for ListMavenArtifactsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesMavenArtifactsListArgs,
+    ) -> String {
+        format!("gcp::ListMavenArtifactsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMavenArtifactsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NpmPackage.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesNpmPackagesGetArgs>
+    for NpmPackage
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesNpmPackagesGetArgs,
+    ) -> String {
+        format!("gcp::NpmPackage/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NpmPackage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListNpmPackagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesNpmPackagesListArgs>
+    for ListNpmPackagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesNpmPackagesListArgs,
+    ) -> String {
+        format!("gcp::ListNpmPackagesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListNpmPackagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Package.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesGetArgs> for Package {
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesGetArgs,
+    ) -> String {
+        format!("gcp::Package/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Package"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPackagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesListArgs>
+    for ListPackagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesListArgs,
+    ) -> String {
+        format!("gcp::ListPackagesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPackagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Tag.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesTagsCreateArgs>
+    for Tag
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsCreateArgs,
+    ) -> String {
+        format!("gcp::Tag/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Tag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTagsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesTagsListArgs>
+    for ListTagsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesTagsListArgs,
+    ) -> String {
+        format!("gcp::ListTagsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Version.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsGetArgs>
+    for Version
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsGetArgs,
+    ) -> String {
+        format!("gcp::Version/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Version"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsListArgs>
+    for ListVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPackagesVersionsListArgs,
+    ) -> String {
+        format!("gcp::ListVersionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PythonPackage.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPythonPackagesGetArgs>
+    for PythonPackage
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPythonPackagesGetArgs,
+    ) -> String {
+        format!("gcp::PythonPackage/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PythonPackage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPythonPackagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesPythonPackagesListArgs>
+    for ListPythonPackagesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesPythonPackagesListArgs,
+    ) -> String {
+        format!("gcp::ListPythonPackagesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPythonPackagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleDevtoolsArtifactregistryV1Rule.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesRulesCreateArgs>
+    for GoogleDevtoolsArtifactregistryV1Rule
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesRulesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleDevtoolsArtifactregistryV1Rule/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleDevtoolsArtifactregistryV1Rule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRulesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesRulesListArgs>
+    for ListRulesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesRulesListArgs,
+    ) -> String {
+        format!("gcp::ListRulesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UploadYumArtifactMediaResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArtifactregistryProjectsLocationsRepositoriesYumArtifactsUploadArgs>
+    for UploadYumArtifactMediaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArtifactregistryProjectsLocationsRepositoriesYumArtifactsUploadArgs,
+    ) -> String {
+        format!("gcp::UploadYumArtifactMediaResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UploadYumArtifactMediaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

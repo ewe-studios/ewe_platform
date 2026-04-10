@@ -4762,3 +4762,498 @@ pub struct GoogleCloudDocumentaiV1Vertex {
     #[serde(default)]
     pub y: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiOperationsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &DocumentaiOperationsDeleteArgs) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1FetchProcessorTypesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsFetchProcessorTypesArgs>
+    for GoogleCloudDocumentaiV1FetchProcessorTypesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DocumentaiProjectsLocationsFetchProcessorTypesArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDocumentaiV1FetchProcessorTypesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1FetchProcessorTypesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudLocationLocation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsGetArgs> for GoogleCloudLocationLocation {
+    fn generate_resource_id(&self, input: &DocumentaiProjectsLocationsGetArgs) -> String {
+        format!("gcp::GoogleCloudLocationLocation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudLocationLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudLocationListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsListArgs>
+    for GoogleCloudLocationListLocationsResponse
+{
+    fn generate_resource_id(&self, input: &DocumentaiProjectsLocationsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudLocationListLocationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudLocationListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsOperationsGetArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(&self, input: &DocumentaiProjectsLocationsOperationsGetArgs) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DocumentaiProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1ProcessorType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsProcessorTypesGetArgs>
+    for GoogleCloudDocumentaiV1ProcessorType
+{
+    fn generate_resource_id(
+        &self,
+        input: &DocumentaiProjectsLocationsProcessorTypesGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDocumentaiV1ProcessorType/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1ProcessorType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1ListProcessorTypesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsProcessorTypesListArgs>
+    for GoogleCloudDocumentaiV1ListProcessorTypesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DocumentaiProjectsLocationsProcessorTypesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDocumentaiV1ListProcessorTypesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1ListProcessorTypesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1Processor.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsProcessorsCreateArgs>
+    for GoogleCloudDocumentaiV1Processor
+{
+    fn generate_resource_id(
+        &self,
+        input: &DocumentaiProjectsLocationsProcessorsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDocumentaiV1Processor/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1Processor"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1ListProcessorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsProcessorsListArgs>
+    for GoogleCloudDocumentaiV1ListProcessorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DocumentaiProjectsLocationsProcessorsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDocumentaiV1ListProcessorsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1ListProcessorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1ProcessResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsProcessorsProcessArgs>
+    for GoogleCloudDocumentaiV1ProcessResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DocumentaiProjectsLocationsProcessorsProcessArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDocumentaiV1ProcessResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1ProcessResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1ProcessorVersion.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsProcessorsProcessorVersionsGetArgs>
+    for GoogleCloudDocumentaiV1ProcessorVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &DocumentaiProjectsLocationsProcessorsProcessorVersionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDocumentaiV1ProcessorVersion/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1ProcessorVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1ListProcessorVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsProcessorsProcessorVersionsListArgs>
+    for GoogleCloudDocumentaiV1ListProcessorVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DocumentaiProjectsLocationsProcessorsProcessorVersionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDocumentaiV1ListProcessorVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1ListProcessorVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1Evaluation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluationsGetArgs>
+    for GoogleCloudDocumentaiV1Evaluation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluationsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDocumentaiV1Evaluation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1Evaluation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1ListEvaluationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluationsListArgs>
+    for GoogleCloudDocumentaiV1ListEvaluationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DocumentaiProjectsLocationsProcessorsProcessorVersionsEvaluationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDocumentaiV1ListEvaluationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1ListEvaluationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1NextSchema.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsSchemasCreateArgs>
+    for GoogleCloudDocumentaiV1NextSchema
+{
+    fn generate_resource_id(&self, input: &DocumentaiProjectsLocationsSchemasCreateArgs) -> String {
+        format!("gcp::GoogleCloudDocumentaiV1NextSchema/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1NextSchema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1ListSchemasResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsSchemasListArgs>
+    for GoogleCloudDocumentaiV1ListSchemasResponse
+{
+    fn generate_resource_id(&self, input: &DocumentaiProjectsLocationsSchemasListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDocumentaiV1ListSchemasResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1ListSchemasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1SchemaVersion.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsSchemasSchemaVersionsCreateArgs>
+    for GoogleCloudDocumentaiV1SchemaVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &DocumentaiProjectsLocationsSchemasSchemaVersionsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDocumentaiV1SchemaVersion/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1SchemaVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1GenerateSchemaVersionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsSchemasSchemaVersionsGenerateArgs>
+    for GoogleCloudDocumentaiV1GenerateSchemaVersionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DocumentaiProjectsLocationsSchemasSchemaVersionsGenerateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDocumentaiV1GenerateSchemaVersionResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1GenerateSchemaVersionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDocumentaiV1ListSchemaVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DocumentaiProjectsLocationsSchemasSchemaVersionsListArgs>
+    for GoogleCloudDocumentaiV1ListSchemaVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DocumentaiProjectsLocationsSchemasSchemaVersionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDocumentaiV1ListSchemaVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDocumentaiV1ListSchemaVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

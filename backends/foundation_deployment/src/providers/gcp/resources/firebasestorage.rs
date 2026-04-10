@@ -64,3 +64,89 @@ pub struct Bucket {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasestorageProjectsDeleteDefaultBucketArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &FirebasestorageProjectsDeleteDefaultBucketArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DefaultBucket.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasestorageProjectsGetDefaultBucketArgs> for DefaultBucket {
+    fn generate_resource_id(&self, input: &FirebasestorageProjectsGetDefaultBucketArgs) -> String {
+        format!("gcp::DefaultBucket/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DefaultBucket"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Bucket.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasestorageProjectsBucketsAddFirebaseArgs> for Bucket {
+    fn generate_resource_id(
+        &self,
+        input: &FirebasestorageProjectsBucketsAddFirebaseArgs,
+    ) -> String {
+        format!("gcp::Bucket/{}", input.bucket)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Bucket"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBucketsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasestorageProjectsBucketsListArgs> for ListBucketsResponse {
+    fn generate_resource_id(&self, input: &FirebasestorageProjectsBucketsListArgs) -> String {
+        format!("gcp::ListBucketsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBucketsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

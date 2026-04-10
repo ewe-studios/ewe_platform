@@ -514,26 +514,37 @@ impl ResourceGenerator {
     /// which is used to generate ResourceIdentifier implementations.
     fn extract_endpoints(&self, spec_content: &str) -> Vec<CodegenEndpoint> {
         // Use foundation_openapi for all endpoint extraction
-        let Ok(processor) = foundation_openapi::process_spec(spec_content) else {
-            tracing::warn!("Failed to parse spec for endpoint extraction");
-            return Vec::new();
-        };
+        match foundation_openapi::process_spec(spec_content) {
+            Ok(processor) => {
+                // Get endpoints from foundation_openapi
+                let endpoints = processor.endpoints();
+                tracing::info!("    Extracted {} endpoints from spec", endpoints.len());
 
-        // Get endpoints from foundation_openapi
-        let endpoints = processor.endpoints();
+                // Convert to CodegenEndpoint format for codegen
+                let mut endpoints_with_response = 0;
+                let result = endpoints
+                    .into_iter()
+                    .map(|ep| {
+                        let response_type = ep.response_type.map(|rt| rt.as_rust_type().to_string());
+                        if response_type.is_some() {
+                            endpoints_with_response += 1;
+                        }
+                        CodegenEndpoint {
+                            operation_id: ep.operation_id,
+                            response_type,
+                            path_params: ep.path_params,
+                        }
+                    })
+                    .collect();
 
-        // Convert to CodegenEndpoint format for codegen
-        endpoints
-            .into_iter()
-            .map(|ep| {
-                let response_type = ep.response_type.map(|rt| rt.as_rust_type().to_string());
-                CodegenEndpoint {
-                    operation_id: ep.operation_id,
-                    response_type,
-                    path_params: ep.path_params,
-                }
-            })
-            .collect()
+                tracing::info!("    Endpoints with response types: {}", endpoints_with_response);
+                result
+            }
+            Err(e) => {
+                tracing::warn!("process_spec error: {:?}", e);
+                Vec::new()
+            }
+        }
     }
 
     /// Extract a single resource from a schema.
@@ -903,11 +914,14 @@ impl ResourceGenerator {
         endpoints: &[CodegenEndpoint],
         provider: &str,
     ) -> Result<(), GenResourceError> {
+        tracing::info!("    Generating ResourceIdentifier impls for {} endpoints", endpoints.len());
+
         // Build provider prefix for resource kinds
         let provider_prefix = provider.replace('-', "_");
 
         // Deduplicate by response type - we only want one ResourceIdentifier impl per type
         let mut seen_response_types: std::collections::HashSet<String> = std::collections::HashSet::new();
+        let mut generated_count = 0;
 
         writeln!(out)?;
         writeln!(out, "// =============================================================================")?;
@@ -922,10 +936,17 @@ impl ResourceGenerator {
                 None => continue,
             };
 
+            // Skip serde_json::Value and () types - these don't need ResourceIdentifier
+            if response_type == "serde_json::Value" || response_type == "()" {
+                continue;
+            }
+
             // Skip if we already generated an impl for this type
             if !seen_response_types.insert(response_type.clone()) {
                 continue;
             }
+
+            generated_count += 1;
 
             // Generate Args type name from operation_id
             let args_type = format!("{}Args", self.to_pascal_case(&endpoint.operation_id));
@@ -972,6 +993,7 @@ impl ResourceGenerator {
             writeln!(out)?;
         }
 
+        tracing::info!("    Generated {} ResourceIdentifier impls", generated_count);
         Ok(())
     }
 
@@ -1307,6 +1329,21 @@ impl ResourceGenerator {
             Self::provider_display(provider).to_string()
         };
 
+        // Build import path for Args types from clients module
+        // For single-spec providers like cloudflare: crate::providers::cloudflare::clients::types::*
+        // For multi-API providers like gcp: crate::providers::gcp::clients::{api}::*
+        let (clients_import, resource_identifier_import) = if api_name.is_empty() {
+            (
+                format!("use crate::providers::{provider}::clients::types::*;"),
+                "use foundation_db::state::resource_identifier::ResourceIdentifier;".to_string()
+            )
+        } else {
+            (
+                format!("use crate::providers::{provider}::clients::{api_name}::*;"),
+                "use foundation_db::state::resource_identifier::ResourceIdentifier;".to_string()
+            )
+        };
+
         writeln!(out,
             "//! Auto-generated resource types for {display}.\n\
              //!\n\
@@ -1319,7 +1356,9 @@ impl ResourceGenerator {
              \n\
              use serde::{{Deserialize, Serialize}};\n\
              use foundation_macros::JsonHash;\n\
-             use super::*;\n"
+             use super::*;\n\
+             {resource_identifier_import}\n\
+             {clients_import}\n"
         ).map_err(|e| GenResourceError::WriteFile { path: format!("generated code for {label}"), source: std::io::Error::new(std::io::ErrorKind::Other, e) })?;
 
         // Topologically sort resources and detect recursive types

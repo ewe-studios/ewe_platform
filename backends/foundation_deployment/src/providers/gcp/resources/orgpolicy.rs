@@ -284,3 +284,147 @@ pub struct GoogleTypeExpr {
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListConstraintsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyFoldersConstraintsListArgs>
+    for GoogleCloudOrgpolicyV2ListConstraintsResponse
+{
+    fn generate_resource_id(&self, input: &OrgpolicyFoldersConstraintsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudOrgpolicyV2ListConstraintsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudOrgpolicyV2ListConstraintsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyFoldersPoliciesCreateArgs> for GoogleCloudOrgpolicyV2Policy {
+    fn generate_resource_id(&self, input: &OrgpolicyFoldersPoliciesCreateArgs) -> String {
+        format!("gcp::GoogleCloudOrgpolicyV2Policy/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudOrgpolicyV2Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyFoldersPoliciesDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &OrgpolicyFoldersPoliciesDeleteArgs) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyFoldersPoliciesListArgs>
+    for GoogleCloudOrgpolicyV2ListPoliciesResponse
+{
+    fn generate_resource_id(&self, input: &OrgpolicyFoldersPoliciesListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudOrgpolicyV2ListPoliciesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudOrgpolicyV2ListPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2CustomConstraint.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyOrganizationsCustomConstraintsCreateArgs>
+    for GoogleCloudOrgpolicyV2CustomConstraint
+{
+    fn generate_resource_id(
+        &self,
+        input: &OrgpolicyOrganizationsCustomConstraintsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudOrgpolicyV2CustomConstraint/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudOrgpolicyV2CustomConstraint"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudOrgpolicyV2ListCustomConstraintsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrgpolicyOrganizationsCustomConstraintsListArgs>
+    for GoogleCloudOrgpolicyV2ListCustomConstraintsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OrgpolicyOrganizationsCustomConstraintsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudOrgpolicyV2ListCustomConstraintsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudOrgpolicyV2ListCustomConstraintsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

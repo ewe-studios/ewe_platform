@@ -21,3 +21,26 @@ pub struct Groups {
     #[serde(default, rename = "responseCode")]
     pub response_code: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Groups.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GroupsmigrationArchiveInsertArgs> for Groups {
+    fn generate_resource_id(&self, input: &GroupsmigrationArchiveInsertArgs) -> String {
+        format!("gcp::Groups/{}", input.group_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Groups"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

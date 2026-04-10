@@ -76,7 +76,7 @@ pub struct NetworkResource {
     /// Immutable. Configuration for this network resource, which describes how it should be created or imported. This field only controls how the network resource is initially created or imported. Subsequent changes to the network resource should be made via the resource''s API and will not be reflected in the configuration.
     #[serde(default)]
     pub config: ::core::option::Option<NetworkResourceConfig>,
-    /// Reference to a network in Google Compute Engine.
+    /// Output only. Reference to a network in Google Compute Engine.
     #[serde(default)]
     pub network: ::core::option::Option<NetworkReference>,
 }
@@ -110,16 +110,16 @@ pub struct OperationMetadata {
 /// A resource representing a form of persistent storage that is accessible to compute resources in the cluster.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorageResource {
-    /// Reference to a Google Cloud Storage bucket. Populated if and only if the storage resource was configured to use Google Cloud Storage.
+    /// Output only. Reference to a Google Cloud Storage bucket. Populated if and only if the storage resource was configured to use Google Cloud Storage.
     #[serde(default)]
     pub bucket: ::core::option::Option<BucketReference>,
     /// Required. Immutable. Configuration for this storage resource, which describes how it should be created or imported. This field only controls how the storage resource is initially created or imported. Subsequent changes to the storage resource should be made via the resource''s API and will not be reflected in the configuration.
     #[serde(default)]
     pub config: ::core::option::Option<StorageResourceConfig>,
-    /// Reference to a Filestore instance. Populated if and only if the storage resource was configured to use Filestore.
+    /// Output only. Reference to a Filestore instance. Populated if and only if the storage resource was configured to use Filestore.
     #[serde(default)]
     pub filestore: ::core::option::Option<FilestoreReference>,
-    /// Reference to a Managed Lustre instance. Populated if and only if the storage resource was configured to use Managed Lustre.
+    /// Output only. Reference to a Managed Lustre instance. Populated if and only if the storage resource was configured to use Managed Lustre.
     #[serde(default)]
     pub lustre: ::core::option::Option<LustreReference>,
 }
@@ -159,7 +159,7 @@ pub struct Cluster {
     /// Identifier. [Relative resource name](https://google.aip.dev/122) of the cluster, in the format projects/{project}/locations/{location}/clusters/{cluster}.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
-    /// Optional. Network resources available to the cluster. Must contain at most one value. Keys specify the ID of the network resource by which it can be referenced elsewhere, and must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).
+    /// Optional. Network resources available to the cluster. Must contain exactly one value. Keys specify the ID of the network resource by which it can be referenced elsewhere, and must conform to [RFC-1034](https://datatracker.ietf.org/doc/html/rfc1034) (lower-case, alphanumeric, and at most 63 characters).
     #[serde(default, rename = "networkResources")]
     pub network_resources: ::core::option::Option<serde_json::Value>,
     /// Optional. Orchestrator that is responsible for scheduling and running jobs on the cluster.
@@ -796,7 +796,7 @@ pub struct SlurmLoginNodes {
 /// Configuration for Slurm nodesets in the cluster. Nodesets are groups of compute nodes used by Slurm that are responsible for running workloads submitted to the cluster.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlurmNodeSet {
-    /// Optional. ID of the compute resource on which this nodeset will run. Must match a key in the cluster''s compute_resources.
+    /// Required. ID of the compute resource on which this nodeset will run. Must match a key in the cluster''s compute_resources.
     #[serde(default, rename = "computeId")]
     pub compute_id: ::core::option::Option<String>,
     /// Optional. If set, indicates that the nodeset should be backed by Compute Engine instances.
@@ -869,4 +869,160 @@ pub struct BootDisk {
     /// Required. Immutable. [Persistent disk type](https://cloud.google.com/compute/docs/disks#disk-types), in the format projects/{project}/zones/{zone}/diskTypes/{disk_type}.
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HypercomputeclusterProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &HypercomputeclusterProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HypercomputeclusterProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &HypercomputeclusterProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HypercomputeclusterProjectsLocationsClustersCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &HypercomputeclusterProjectsLocationsClustersCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Cluster.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HypercomputeclusterProjectsLocationsClustersGetArgs> for Cluster {
+    fn generate_resource_id(
+        &self,
+        input: &HypercomputeclusterProjectsLocationsClustersGetArgs,
+    ) -> String {
+        format!("gcp::Cluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Cluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListClustersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HypercomputeclusterProjectsLocationsClustersListArgs>
+    for ListClustersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HypercomputeclusterProjectsLocationsClustersListArgs,
+    ) -> String {
+        format!("gcp::ListClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HypercomputeclusterProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &HypercomputeclusterProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HypercomputeclusterProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HypercomputeclusterProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

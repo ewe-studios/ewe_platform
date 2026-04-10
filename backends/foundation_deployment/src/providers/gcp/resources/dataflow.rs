@@ -1252,12 +1252,15 @@ pub struct PipelineDescription {
 /// Additional job parameters that can only be updated during runtime using the projects.jobs.update method. These fields have no effect when specified during job creation.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuntimeUpdatableParams {
-    /// Optional. Deprecated: Use autoscaling_tier instead. The backlog threshold duration in seconds for autoscaling. Value must be non-negative.
+    /// Optional. Deprecated: Use latency_tier instead. The backlog threshold duration in seconds for autoscaling. Value must be non-negative.
     #[serde(default, rename = "acceptableBacklogDuration")]
     pub acceptable_backlog_duration: ::core::option::Option<String>,
-    /// Optional. The backlog threshold tier for autoscaling. Value must be one of "low-latency", "medium-latency", or "high-latency".
+    /// Optional. Deprecated: Use latency_tier instead. The backlog threshold tier for autoscaling. Value must be one of "low-latency", "medium-latency", or "high-latency".
     #[serde(default, rename = "autoscalingTier")]
     pub autoscaling_tier: ::core::option::Option<String>,
+    /// Optional. The backlog threshold tier for autoscaling. Value must be one of "low-latency", "medium-latency", or "high-latency".
+    #[serde(default, rename = "latencyTier")]
+    pub latency_tier: ::core::option::Option<String>,
     /// The maximum number of workers to cap autoscaling at. This field is currently only supported for Streaming Engine jobs.
     #[serde(default, rename = "maxNumWorkers")]
     pub max_num_workers: ::core::option::Option<i32>,
@@ -1755,7 +1758,7 @@ pub struct FlexTemplateRuntimeEnvironment {
     /// Name for the Cloud KMS key for the job. Key format is: projects//locations//keyRings//cryptoKeys/
     #[serde(default, rename = "kmsKeyName")]
     pub kms_key_name: ::core::option::Option<String>,
-    /// The machine type to use for launching the job. The default is n1-standard-1.
+    /// The machine type to use for launching the job. If not set, Dataflow will select a default machine type.
     #[serde(default, rename = "launcherMachineType")]
     pub launcher_machine_type: ::core::option::Option<String>,
     /// The machine type to use for the job. Defaults to the value from the template if not specified.
@@ -3444,4 +3447,414 @@ pub struct Position {
     /// CloudPosition is a base64 encoded BatchShufflePosition (with FIXED sharding).
     #[serde(default, rename = "shufflePosition")]
     pub shuffle_position: ::core::option::Option<String>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for DeleteSnapshotResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsDeleteSnapshotsArgs> for DeleteSnapshotResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsDeleteSnapshotsArgs) -> String {
+        format!("gcp::DeleteSnapshotResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DeleteSnapshotResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SendWorkerMessagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsWorkerMessagesArgs> for SendWorkerMessagesResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsWorkerMessagesArgs) -> String {
+        format!("gcp::SendWorkerMessagesResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SendWorkerMessagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsAggregatedArgs> for ListJobsResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsAggregatedArgs) -> String {
+        format!("gcp::ListJobsResponse/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Job.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsCreateArgs> for Job {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsCreateArgs) -> String {
+        format!("gcp::Job/{}", input.project_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for JobMetrics.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsGetMetricsArgs> for JobMetrics {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsGetMetricsArgs) -> String {
+        format!("gcp::JobMetrics/{}/{}", input.project_id, input.job_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::JobMetrics"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Snapshot.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsSnapshotArgs> for Snapshot {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsSnapshotArgs) -> String {
+        format!("gcp::Snapshot/{}/{}", input.project_id, input.job_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Snapshot"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetDebugConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsDebugGetConfigArgs> for GetDebugConfigResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsDebugGetConfigArgs) -> String {
+        format!(
+            "gcp::GetDebugConfigResponse/{}/{}",
+            input.project_id, input.job_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetDebugConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SendDebugCaptureResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsDebugSendCaptureArgs> for SendDebugCaptureResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsDebugSendCaptureArgs) -> String {
+        format!(
+            "gcp::SendDebugCaptureResponse/{}/{}",
+            input.project_id, input.job_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SendDebugCaptureResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListJobMessagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsMessagesListArgs> for ListJobMessagesResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsMessagesListArgs) -> String {
+        format!(
+            "gcp::ListJobMessagesResponse/{}/{}",
+            input.project_id, input.job_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListJobMessagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LeaseWorkItemResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsWorkItemsLeaseArgs> for LeaseWorkItemResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsJobsWorkItemsLeaseArgs) -> String {
+        format!(
+            "gcp::LeaseWorkItemResponse/{}/{}",
+            input.project_id, input.job_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LeaseWorkItemResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReportWorkItemStatusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsJobsWorkItemsReportStatusArgs>
+    for ReportWorkItemStatusResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsJobsWorkItemsReportStatusArgs,
+    ) -> String {
+        format!(
+            "gcp::ReportWorkItemStatusResponse/{}/{}",
+            input.project_id, input.job_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReportWorkItemStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LaunchFlexTemplateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsFlexTemplatesLaunchArgs>
+    for LaunchFlexTemplateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsFlexTemplatesLaunchArgs,
+    ) -> String {
+        format!(
+            "gcp::LaunchFlexTemplateResponse/{}/{}",
+            input.project_id, input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LaunchFlexTemplateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for JobExecutionDetails.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsGetExecutionDetailsArgs>
+    for JobExecutionDetails
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsJobsGetExecutionDetailsArgs,
+    ) -> String {
+        format!(
+            "gcp::JobExecutionDetails/{}/{}/{}",
+            input.project_id, input.location, input.job_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::JobExecutionDetails"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetWorkerStacktracesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsDebugGetWorkerStacktracesArgs>
+    for GetWorkerStacktracesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsJobsDebugGetWorkerStacktracesArgs,
+    ) -> String {
+        format!(
+            "gcp::GetWorkerStacktracesResponse/{}/{}/{}",
+            input.project_id, input.location, input.job_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetWorkerStacktracesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSnapshotsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsSnapshotsListArgs> for ListSnapshotsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsJobsSnapshotsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListSnapshotsResponse/{}/{}/{}",
+            input.project_id, input.location, input.job_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSnapshotsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StageExecutionDetails.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsJobsStagesGetExecutionDetailsArgs>
+    for StageExecutionDetails
+{
+    fn generate_resource_id(
+        &self,
+        input: &DataflowProjectsLocationsJobsStagesGetExecutionDetailsArgs,
+    ) -> String {
+        format!(
+            "gcp::StageExecutionDetails/{}/{}/{}/{}",
+            input.project_id, input.location, input.job_id, input.stage_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StageExecutionDetails"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetTemplateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsTemplatesGetArgs> for GetTemplateResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsTemplatesGetArgs) -> String {
+        format!(
+            "gcp::GetTemplateResponse/{}/{}",
+            input.project_id, input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetTemplateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LaunchTemplateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DataflowProjectsLocationsTemplatesLaunchArgs> for LaunchTemplateResponse {
+    fn generate_resource_id(&self, input: &DataflowProjectsLocationsTemplatesLaunchArgs) -> String {
+        format!(
+            "gcp::LaunchTemplateResponse/{}/{}",
+            input.project_id, input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LaunchTemplateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

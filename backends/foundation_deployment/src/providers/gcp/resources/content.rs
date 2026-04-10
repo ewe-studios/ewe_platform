@@ -5804,3 +5804,1777 @@ pub struct TextWithTooltip {
     #[serde(default, rename = "tooltipIconStyle")]
     pub tooltip_icon_style: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for AccountsAuthInfoResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsAuthinfoArgs> for AccountsAuthInfoResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsAuthinfoArgs) -> String {
+        "gcp::AccountsAuthInfoResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountsAuthInfoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountsClaimWebsiteResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsClaimwebsiteArgs> for AccountsClaimWebsiteResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsClaimwebsiteArgs) -> String {
+        format!(
+            "gcp::AccountsClaimWebsiteResponse/{}/{}",
+            input.merchant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountsClaimWebsiteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountsCustomBatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsCustombatchArgs> for AccountsCustomBatchResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsCustombatchArgs) -> String {
+        "gcp::AccountsCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountsCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Account.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsGetArgs> for Account {
+    fn generate_resource_id(&self, input: &ContentAccountsGetArgs) -> String {
+        format!("gcp::Account/{}/{}", input.merchant_id, input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountsLinkResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsLinkArgs> for AccountsLinkResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsLinkArgs) -> String {
+        format!(
+            "gcp::AccountsLinkResponse/{}/{}",
+            input.merchant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountsLinkResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsListArgs> for AccountsListResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsListArgs) -> String {
+        format!("gcp::AccountsListResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountsListLinksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsListlinksArgs> for AccountsListLinksResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsListlinksArgs) -> String {
+        format!(
+            "gcp::AccountsListLinksResponse/{}/{}",
+            input.merchant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountsListLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RequestPhoneVerificationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsRequestphoneverificationArgs>
+    for RequestPhoneVerificationResponse
+{
+    fn generate_resource_id(&self, input: &ContentAccountsRequestphoneverificationArgs) -> String {
+        format!(
+            "gcp::RequestPhoneVerificationResponse/{}/{}",
+            input.merchant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RequestPhoneVerificationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountsUpdateLabelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsUpdatelabelsArgs> for AccountsUpdateLabelsResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsUpdatelabelsArgs) -> String {
+        format!(
+            "gcp::AccountsUpdateLabelsResponse/{}/{}",
+            input.merchant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountsUpdateLabelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VerifyPhoneNumberResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsVerifyphonenumberArgs> for VerifyPhoneNumberResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsVerifyphonenumberArgs) -> String {
+        format!(
+            "gcp::VerifyPhoneNumberResponse/{}/{}",
+            input.merchant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VerifyPhoneNumberResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountCredentials.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsCredentialsCreateArgs> for AccountCredentials {
+    fn generate_resource_id(&self, input: &ContentAccountsCredentialsCreateArgs) -> String {
+        format!("gcp::AccountCredentials/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountCredentials"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountLabel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsLabelsCreateArgs> for AccountLabel {
+    fn generate_resource_id(&self, input: &ContentAccountsLabelsCreateArgs) -> String {
+        format!("gcp::AccountLabel/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountLabel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAccountLabelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsLabelsListArgs> for ListAccountLabelsResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsLabelsListArgs) -> String {
+        format!("gcp::ListAccountLabelsResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAccountLabelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountReturnCarrier.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsReturncarrierCreateArgs> for AccountReturnCarrier {
+    fn generate_resource_id(&self, input: &ContentAccountsReturncarrierCreateArgs) -> String {
+        format!("gcp::AccountReturnCarrier/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountReturnCarrier"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAccountReturnCarrierResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountsReturncarrierListArgs> for ListAccountReturnCarrierResponse {
+    fn generate_resource_id(&self, input: &ContentAccountsReturncarrierListArgs) -> String {
+        format!("gcp::ListAccountReturnCarrierResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAccountReturnCarrierResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountstatusesCustomBatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountstatusesCustombatchArgs>
+    for AccountstatusesCustomBatchResponse
+{
+    fn generate_resource_id(&self, input: &ContentAccountstatusesCustombatchArgs) -> String {
+        "gcp::AccountstatusesCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountstatusesCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountStatus.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountstatusesGetArgs> for AccountStatus {
+    fn generate_resource_id(&self, input: &ContentAccountstatusesGetArgs) -> String {
+        format!(
+            "gcp::AccountStatus/{}/{}",
+            input.merchant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountstatusesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccountstatusesListArgs> for AccountstatusesListResponse {
+    fn generate_resource_id(&self, input: &ContentAccountstatusesListArgs) -> String {
+        format!("gcp::AccountstatusesListResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountstatusesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccounttaxCustomBatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccounttaxCustombatchArgs> for AccounttaxCustomBatchResponse {
+    fn generate_resource_id(&self, input: &ContentAccounttaxCustombatchArgs) -> String {
+        "gcp::AccounttaxCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccounttaxCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountTax.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccounttaxGetArgs> for AccountTax {
+    fn generate_resource_id(&self, input: &ContentAccounttaxGetArgs) -> String {
+        format!("gcp::AccountTax/{}/{}", input.merchant_id, input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountTax"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccounttaxListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentAccounttaxListArgs> for AccounttaxListResponse {
+    fn generate_resource_id(&self, input: &ContentAccounttaxListArgs) -> String {
+        format!("gcp::AccounttaxListResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccounttaxListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Collection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentCollectionsCreateArgs> for Collection {
+    fn generate_resource_id(&self, input: &ContentCollectionsCreateArgs) -> String {
+        format!("gcp::Collection/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Collection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCollectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentCollectionsListArgs> for ListCollectionsResponse {
+    fn generate_resource_id(&self, input: &ContentCollectionsListArgs) -> String {
+        format!("gcp::ListCollectionsResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCollectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CollectionStatus.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentCollectionstatusesGetArgs> for CollectionStatus {
+    fn generate_resource_id(&self, input: &ContentCollectionstatusesGetArgs) -> String {
+        format!(
+            "gcp::CollectionStatus/{}/{}",
+            input.merchant_id, input.collection_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CollectionStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCollectionStatusesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentCollectionstatusesListArgs> for ListCollectionStatusesResponse {
+    fn generate_resource_id(&self, input: &ContentCollectionstatusesListArgs) -> String {
+        format!("gcp::ListCollectionStatusesResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCollectionStatusesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ConversionSource.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentConversionsourcesCreateArgs> for ConversionSource {
+    fn generate_resource_id(&self, input: &ContentConversionsourcesCreateArgs) -> String {
+        format!("gcp::ConversionSource/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ConversionSource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConversionSourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentConversionsourcesListArgs> for ListConversionSourcesResponse {
+    fn generate_resource_id(&self, input: &ContentConversionsourcesListArgs) -> String {
+        format!("gcp::ListConversionSourcesResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConversionSourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Css.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentCssesGetArgs> for Css {
+    fn generate_resource_id(&self, input: &ContentCssesGetArgs) -> String {
+        format!("gcp::Css/{}/{}", input.css_group_id, input.css_domain_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Css"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCssesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentCssesListArgs> for ListCssesResponse {
+    fn generate_resource_id(&self, input: &ContentCssesListArgs) -> String {
+        format!("gcp::ListCssesResponse/{}", input.css_group_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCssesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DatafeedsCustomBatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedsCustombatchArgs> for DatafeedsCustomBatchResponse {
+    fn generate_resource_id(&self, input: &ContentDatafeedsCustombatchArgs) -> String {
+        "gcp::DatafeedsCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DatafeedsCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DatafeedsFetchNowResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedsFetchnowArgs> for DatafeedsFetchNowResponse {
+    fn generate_resource_id(&self, input: &ContentDatafeedsFetchnowArgs) -> String {
+        format!(
+            "gcp::DatafeedsFetchNowResponse/{}/{}",
+            input.merchant_id, input.datafeed_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DatafeedsFetchNowResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Datafeed.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedsGetArgs> for Datafeed {
+    fn generate_resource_id(&self, input: &ContentDatafeedsGetArgs) -> String {
+        format!("gcp::Datafeed/{}/{}", input.merchant_id, input.datafeed_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Datafeed"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DatafeedsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedsListArgs> for DatafeedsListResponse {
+    fn generate_resource_id(&self, input: &ContentDatafeedsListArgs) -> String {
+        format!("gcp::DatafeedsListResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DatafeedsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DatafeedstatusesCustomBatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedstatusesCustombatchArgs>
+    for DatafeedstatusesCustomBatchResponse
+{
+    fn generate_resource_id(&self, input: &ContentDatafeedstatusesCustombatchArgs) -> String {
+        "gcp::DatafeedstatusesCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DatafeedstatusesCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DatafeedStatus.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedstatusesGetArgs> for DatafeedStatus {
+    fn generate_resource_id(&self, input: &ContentDatafeedstatusesGetArgs) -> String {
+        format!(
+            "gcp::DatafeedStatus/{}/{}",
+            input.merchant_id, input.datafeed_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DatafeedStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DatafeedstatusesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentDatafeedstatusesListArgs> for DatafeedstatusesListResponse {
+    fn generate_resource_id(&self, input: &ContentDatafeedstatusesListArgs) -> String {
+        format!("gcp::DatafeedstatusesListResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DatafeedstatusesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FreeListingsProgramStatus.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentFreelistingsprogramGetArgs> for FreeListingsProgramStatus {
+    fn generate_resource_id(&self, input: &ContentFreelistingsprogramGetArgs) -> String {
+        format!("gcp::FreeListingsProgramStatus/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FreeListingsProgramStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CheckoutSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentFreelistingsprogramCheckoutsettingsGetArgs> for CheckoutSettings {
+    fn generate_resource_id(
+        &self,
+        input: &ContentFreelistingsprogramCheckoutsettingsGetArgs,
+    ) -> String {
+        format!("gcp::CheckoutSettings/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CheckoutSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LiasettingsCustomBatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsCustombatchArgs> for LiasettingsCustomBatchResponse {
+    fn generate_resource_id(&self, input: &ContentLiasettingsCustombatchArgs) -> String {
+        "gcp::LiasettingsCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LiasettingsCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LiaSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsGetArgs> for LiaSettings {
+    fn generate_resource_id(&self, input: &ContentLiasettingsGetArgs) -> String {
+        format!(
+            "gcp::LiaSettings/{}/{}",
+            input.merchant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LiaSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LiasettingsGetAccessibleGmbAccountsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsGetaccessiblegmbaccountsArgs>
+    for LiasettingsGetAccessibleGmbAccountsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentLiasettingsGetaccessiblegmbaccountsArgs,
+    ) -> String {
+        format!(
+            "gcp::LiasettingsGetAccessibleGmbAccountsResponse/{}/{}",
+            input.merchant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LiasettingsGetAccessibleGmbAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LiasettingsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsListArgs> for LiasettingsListResponse {
+    fn generate_resource_id(&self, input: &ContentLiasettingsListArgs) -> String {
+        format!("gcp::LiasettingsListResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LiasettingsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LiasettingsListPosDataProvidersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsListposdataprovidersArgs>
+    for LiasettingsListPosDataProvidersResponse
+{
+    fn generate_resource_id(&self, input: &ContentLiasettingsListposdataprovidersArgs) -> String {
+        "gcp::LiasettingsListPosDataProvidersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LiasettingsListPosDataProvidersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LiasettingsRequestGmbAccessResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsRequestgmbaccessArgs>
+    for LiasettingsRequestGmbAccessResponse
+{
+    fn generate_resource_id(&self, input: &ContentLiasettingsRequestgmbaccessArgs) -> String {
+        format!(
+            "gcp::LiasettingsRequestGmbAccessResponse/{}/{}",
+            input.merchant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LiasettingsRequestGmbAccessResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LiasettingsRequestInventoryVerificationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsRequestinventoryverificationArgs>
+    for LiasettingsRequestInventoryVerificationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentLiasettingsRequestinventoryverificationArgs,
+    ) -> String {
+        format!(
+            "gcp::LiasettingsRequestInventoryVerificationResponse/{}/{}/{}",
+            input.merchant_id, input.account_id, input.country
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LiasettingsRequestInventoryVerificationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LiasettingsSetInventoryVerificationContactResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsSetinventoryverificationcontactArgs>
+    for LiasettingsSetInventoryVerificationContactResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentLiasettingsSetinventoryverificationcontactArgs,
+    ) -> String {
+        format!(
+            "gcp::LiasettingsSetInventoryVerificationContactResponse/{}/{}",
+            input.merchant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LiasettingsSetInventoryVerificationContactResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LiaOmnichannelExperience.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsSetomnichannelexperienceArgs>
+    for LiaOmnichannelExperience
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentLiasettingsSetomnichannelexperienceArgs,
+    ) -> String {
+        format!(
+            "gcp::LiaOmnichannelExperience/{}/{}",
+            input.merchant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LiaOmnichannelExperience"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LiasettingsSetPosDataProviderResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLiasettingsSetposdataproviderArgs>
+    for LiasettingsSetPosDataProviderResponse
+{
+    fn generate_resource_id(&self, input: &ContentLiasettingsSetposdataproviderArgs) -> String {
+        format!(
+            "gcp::LiasettingsSetPosDataProviderResponse/{}/{}",
+            input.merchant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LiasettingsSetPosDataProviderResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LocalinventoryCustomBatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLocalinventoryCustombatchArgs>
+    for LocalinventoryCustomBatchResponse
+{
+    fn generate_resource_id(&self, input: &ContentLocalinventoryCustombatchArgs) -> String {
+        "gcp::LocalinventoryCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LocalinventoryCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LocalInventory.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentLocalinventoryInsertArgs> for LocalInventory {
+    fn generate_resource_id(&self, input: &ContentLocalinventoryInsertArgs) -> String {
+        format!(
+            "gcp::LocalInventory/{}/{}",
+            input.merchant_id, input.product_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LocalInventory"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RenderAccountIssuesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentMerchantsupportRenderaccountissuesArgs>
+    for RenderAccountIssuesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentMerchantsupportRenderaccountissuesArgs,
+    ) -> String {
+        format!("gcp::RenderAccountIssuesResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RenderAccountIssuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RenderProductIssuesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentMerchantsupportRenderproductissuesArgs>
+    for RenderProductIssuesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentMerchantsupportRenderproductissuesArgs,
+    ) -> String {
+        format!(
+            "gcp::RenderProductIssuesResponse/{}/{}",
+            input.merchant_id, input.product_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RenderProductIssuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TriggerActionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentMerchantsupportTriggeractionArgs> for TriggerActionResponse {
+    fn generate_resource_id(&self, input: &ContentMerchantsupportTriggeractionArgs) -> String {
+        format!("gcp::TriggerActionResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TriggerActionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for OrderTrackingSignal.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentOrdertrackingsignalsCreateArgs> for OrderTrackingSignal {
+    fn generate_resource_id(&self, input: &ContentOrdertrackingsignalsCreateArgs) -> String {
+        format!("gcp::OrderTrackingSignal/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::OrderTrackingSignal"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PosCustomBatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPosCustombatchArgs> for PosCustomBatchResponse {
+    fn generate_resource_id(&self, input: &ContentPosCustombatchArgs) -> String {
+        "gcp::PosCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PosCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PosStore.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPosGetArgs> for PosStore {
+    fn generate_resource_id(&self, input: &ContentPosGetArgs) -> String {
+        format!(
+            "gcp::PosStore/{}/{}/{}",
+            input.merchant_id, input.target_merchant_id, input.store_code
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PosStore"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PosInventoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPosInventoryArgs> for PosInventoryResponse {
+    fn generate_resource_id(&self, input: &ContentPosInventoryArgs) -> String {
+        format!(
+            "gcp::PosInventoryResponse/{}/{}",
+            input.merchant_id, input.target_merchant_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PosInventoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PosListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPosListArgs> for PosListResponse {
+    fn generate_resource_id(&self, input: &ContentPosListArgs) -> String {
+        format!(
+            "gcp::PosListResponse/{}/{}",
+            input.merchant_id, input.target_merchant_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PosListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PosSaleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPosSaleArgs> for PosSaleResponse {
+    fn generate_resource_id(&self, input: &ContentPosSaleArgs) -> String {
+        format!(
+            "gcp::PosSaleResponse/{}/{}",
+            input.merchant_id, input.target_merchant_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PosSaleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ProductDeliveryTime.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductdeliverytimeCreateArgs> for ProductDeliveryTime {
+    fn generate_resource_id(&self, input: &ContentProductdeliverytimeCreateArgs) -> String {
+        format!("gcp::ProductDeliveryTime/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProductDeliveryTime"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ProductsCustomBatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductsCustombatchArgs> for ProductsCustomBatchResponse {
+    fn generate_resource_id(&self, input: &ContentProductsCustombatchArgs) -> String {
+        "gcp::ProductsCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProductsCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Product.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductsGetArgs> for Product {
+    fn generate_resource_id(&self, input: &ContentProductsGetArgs) -> String {
+        format!("gcp::Product/{}/{}", input.merchant_id, input.product_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Product"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ProductsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductsListArgs> for ProductsListResponse {
+    fn generate_resource_id(&self, input: &ContentProductsListArgs) -> String {
+        format!("gcp::ProductsListResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProductsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ProductstatusesCustomBatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductstatusesCustombatchArgs>
+    for ProductstatusesCustomBatchResponse
+{
+    fn generate_resource_id(&self, input: &ContentProductstatusesCustombatchArgs) -> String {
+        "gcp::ProductstatusesCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProductstatusesCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ProductStatus.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductstatusesGetArgs> for ProductStatus {
+    fn generate_resource_id(&self, input: &ContentProductstatusesGetArgs) -> String {
+        format!(
+            "gcp::ProductStatus/{}/{}",
+            input.merchant_id, input.product_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProductStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ProductstatusesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentProductstatusesListArgs> for ProductstatusesListResponse {
+    fn generate_resource_id(&self, input: &ContentProductstatusesListArgs) -> String {
+        format!("gcp::ProductstatusesListResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProductstatusesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Promotion.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPromotionsCreateArgs> for Promotion {
+    fn generate_resource_id(&self, input: &ContentPromotionsCreateArgs) -> String {
+        format!("gcp::Promotion/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Promotion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPromotionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPromotionsListArgs> for ListPromotionResponse {
+    fn generate_resource_id(&self, input: &ContentPromotionsListArgs) -> String {
+        format!("gcp::ListPromotionResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPromotionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PubsubNotificationSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentPubsubnotificationsettingsGetArgs> for PubsubNotificationSettings {
+    fn generate_resource_id(&self, input: &ContentPubsubnotificationsettingsGetArgs) -> String {
+        format!("gcp::PubsubNotificationSettings/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PubsubNotificationSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMethodQuotasResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentQuotasListArgs> for ListMethodQuotasResponse {
+    fn generate_resource_id(&self, input: &ContentQuotasListArgs) -> String {
+        format!("gcp::ListMethodQuotasResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMethodQuotasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateRecommendationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentRecommendationsGenerateArgs> for GenerateRecommendationsResponse {
+    fn generate_resource_id(&self, input: &ContentRecommendationsGenerateArgs) -> String {
+        format!("gcp::GenerateRecommendationsResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateRecommendationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RegionalinventoryCustomBatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentRegionalinventoryCustombatchArgs>
+    for RegionalinventoryCustomBatchResponse
+{
+    fn generate_resource_id(&self, input: &ContentRegionalinventoryCustombatchArgs) -> String {
+        "gcp::RegionalinventoryCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RegionalinventoryCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RegionalInventory.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentRegionalinventoryInsertArgs> for RegionalInventory {
+    fn generate_resource_id(&self, input: &ContentRegionalinventoryInsertArgs) -> String {
+        format!(
+            "gcp::RegionalInventory/{}/{}",
+            input.merchant_id, input.product_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RegionalInventory"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Region.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentRegionsCreateArgs> for Region {
+    fn generate_resource_id(&self, input: &ContentRegionsCreateArgs) -> String {
+        format!("gcp::Region/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Region"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListRegionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentRegionsListArgs> for ListRegionsResponse {
+    fn generate_resource_id(&self, input: &ContentRegionsListArgs) -> String {
+        format!("gcp::ListRegionsResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListRegionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentReportsSearchArgs> for SearchResponse {
+    fn generate_resource_id(&self, input: &ContentReportsSearchArgs) -> String {
+        format!("gcp::SearchResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReturnPolicyOnline.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentReturnpolicyonlineCreateArgs> for ReturnPolicyOnline {
+    fn generate_resource_id(&self, input: &ContentReturnpolicyonlineCreateArgs) -> String {
+        format!("gcp::ReturnPolicyOnline/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReturnPolicyOnline"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListReturnPolicyOnlineResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentReturnpolicyonlineListArgs> for ListReturnPolicyOnlineResponse {
+    fn generate_resource_id(&self, input: &ContentReturnpolicyonlineListArgs) -> String {
+        format!("gcp::ListReturnPolicyOnlineResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListReturnPolicyOnlineResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ShippingsettingsCustomBatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShippingsettingsCustombatchArgs>
+    for ShippingsettingsCustomBatchResponse
+{
+    fn generate_resource_id(&self, input: &ContentShippingsettingsCustombatchArgs) -> String {
+        "gcp::ShippingsettingsCustomBatchResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ShippingsettingsCustomBatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ShippingSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShippingsettingsGetArgs> for ShippingSettings {
+    fn generate_resource_id(&self, input: &ContentShippingsettingsGetArgs) -> String {
+        format!(
+            "gcp::ShippingSettings/{}/{}",
+            input.merchant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ShippingSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ShippingsettingsGetSupportedCarriersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShippingsettingsGetsupportedcarriersArgs>
+    for ShippingsettingsGetSupportedCarriersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentShippingsettingsGetsupportedcarriersArgs,
+    ) -> String {
+        format!(
+            "gcp::ShippingsettingsGetSupportedCarriersResponse/{}",
+            input.merchant_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ShippingsettingsGetSupportedCarriersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ShippingsettingsGetSupportedHolidaysResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShippingsettingsGetsupportedholidaysArgs>
+    for ShippingsettingsGetSupportedHolidaysResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentShippingsettingsGetsupportedholidaysArgs,
+    ) -> String {
+        format!(
+            "gcp::ShippingsettingsGetSupportedHolidaysResponse/{}",
+            input.merchant_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ShippingsettingsGetSupportedHolidaysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ShippingsettingsGetSupportedPickupServicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShippingsettingsGetsupportedpickupservicesArgs>
+    for ShippingsettingsGetSupportedPickupServicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentShippingsettingsGetsupportedpickupservicesArgs,
+    ) -> String {
+        format!(
+            "gcp::ShippingsettingsGetSupportedPickupServicesResponse/{}",
+            input.merchant_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ShippingsettingsGetSupportedPickupServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ShippingsettingsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShippingsettingsListArgs> for ShippingsettingsListResponse {
+    fn generate_resource_id(&self, input: &ContentShippingsettingsListArgs) -> String {
+        format!("gcp::ShippingsettingsListResponse/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ShippingsettingsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ShoppingAdsProgramStatus.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentShoppingadsprogramGetArgs> for ShoppingAdsProgramStatus {
+    fn generate_resource_id(&self, input: &ContentShoppingadsprogramGetArgs) -> String {
+        format!("gcp::ShoppingAdsProgramStatus/{}", input.merchant_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ShoppingAdsProgramStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

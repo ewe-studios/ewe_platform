@@ -1998,3 +1998,50 @@ pub struct LivingAreaSleeping {
     #[serde(default, rename = "syntheticPillowsException")]
     pub synthetic_pillows_exception: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Lodging.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinesslodgingLocationsGetLodgingArgs> for Lodging {
+    fn generate_resource_id(&self, input: &MybusinesslodgingLocationsGetLodgingArgs) -> String {
+        format!("gcp::Lodging/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Lodging"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetGoogleUpdatedLodgingResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinesslodgingLocationsLodgingGetGoogleUpdatedArgs>
+    for GetGoogleUpdatedLodgingResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinesslodgingLocationsLodgingGetGoogleUpdatedArgs,
+    ) -> String {
+        format!("gcp::GetGoogleUpdatedLodgingResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetGoogleUpdatedLodgingResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

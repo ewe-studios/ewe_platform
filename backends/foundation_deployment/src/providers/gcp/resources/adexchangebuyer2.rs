@@ -1696,3 +1696,689 @@ pub struct TimeOfDay {
     #[serde(default)]
     pub seconds: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Client.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsClientsCreateArgs> for Client {
+    fn generate_resource_id(&self, input: &Adexchangebuyer2AccountsClientsCreateArgs) -> String {
+        format!("gcp::Client/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Client"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListClientsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsClientsListArgs> for ListClientsResponse {
+    fn generate_resource_id(&self, input: &Adexchangebuyer2AccountsClientsListArgs) -> String {
+        format!("gcp::ListClientsResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListClientsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ClientUserInvitation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsClientsInvitationsCreateArgs>
+    for ClientUserInvitation
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2AccountsClientsInvitationsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::ClientUserInvitation/{}/{}",
+            input.account_id, input.client_account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ClientUserInvitation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListClientUserInvitationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsClientsInvitationsListArgs>
+    for ListClientUserInvitationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2AccountsClientsInvitationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListClientUserInvitationsResponse/{}/{}",
+            input.account_id, input.client_account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListClientUserInvitationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ClientUser.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsClientsUsersGetArgs> for ClientUser {
+    fn generate_resource_id(&self, input: &Adexchangebuyer2AccountsClientsUsersGetArgs) -> String {
+        format!(
+            "gcp::ClientUser/{}/{}/{}",
+            input.account_id, input.client_account_id, input.user_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ClientUser"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListClientUsersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsClientsUsersListArgs> for ListClientUsersResponse {
+    fn generate_resource_id(&self, input: &Adexchangebuyer2AccountsClientsUsersListArgs) -> String {
+        format!(
+            "gcp::ListClientUsersResponse/{}/{}",
+            input.account_id, input.client_account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListClientUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Creative.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsCreativesCreateArgs> for Creative {
+    fn generate_resource_id(&self, input: &Adexchangebuyer2AccountsCreativesCreateArgs) -> String {
+        format!("gcp::Creative/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Creative"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCreativesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsCreativesListArgs> for ListCreativesResponse {
+    fn generate_resource_id(&self, input: &Adexchangebuyer2AccountsCreativesListArgs) -> String {
+        format!("gcp::ListCreativesResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCreativesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsCreativesStopWatchingArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2AccountsCreativesStopWatchingArgs,
+    ) -> String {
+        format!("gcp::Empty/{}/{}", input.account_id, input.creative_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDealAssociationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsCreativesDealAssociationsListArgs>
+    for ListDealAssociationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2AccountsCreativesDealAssociationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListDealAssociationsResponse/{}/{}",
+            input.account_id, input.creative_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDealAssociationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListProposalsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsFinalizedProposalsListArgs>
+    for ListProposalsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2AccountsFinalizedProposalsListArgs,
+    ) -> String {
+        format!("gcp::ListProposalsResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListProposalsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Proposal.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsFinalizedProposalsPauseArgs> for Proposal {
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2AccountsFinalizedProposalsPauseArgs,
+    ) -> String {
+        format!("gcp::Proposal/{}/{}", input.account_id, input.proposal_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Proposal"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Product.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsProductsGetArgs> for Product {
+    fn generate_resource_id(&self, input: &Adexchangebuyer2AccountsProductsGetArgs) -> String {
+        format!("gcp::Product/{}/{}", input.account_id, input.product_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Product"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListProductsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsProductsListArgs> for ListProductsResponse {
+    fn generate_resource_id(&self, input: &Adexchangebuyer2AccountsProductsListArgs) -> String {
+        format!("gcp::ListProductsResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListProductsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Note.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsProposalsAddNoteArgs> for Note {
+    fn generate_resource_id(&self, input: &Adexchangebuyer2AccountsProposalsAddNoteArgs) -> String {
+        format!("gcp::Note/{}/{}", input.account_id, input.proposal_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Note"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PublisherProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsPublisherProfilesGetArgs> for PublisherProfile {
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2AccountsPublisherProfilesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::PublisherProfile/{}/{}",
+            input.account_id, input.publisher_profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PublisherProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPublisherProfilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2AccountsPublisherProfilesListArgs>
+    for ListPublisherProfilesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2AccountsPublisherProfilesListArgs,
+    ) -> String {
+        format!("gcp::ListPublisherProfilesResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPublisherProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FilterSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2BiddersAccountsFilterSetsCreateArgs> for FilterSet {
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2BiddersAccountsFilterSetsCreateArgs,
+    ) -> String {
+        format!("gcp::FilterSet/{}", input.owner_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FilterSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListFilterSetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2BiddersAccountsFilterSetsListArgs>
+    for ListFilterSetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2BiddersAccountsFilterSetsListArgs,
+    ) -> String {
+        format!("gcp::ListFilterSetsResponse/{}", input.owner_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListFilterSetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBidMetricsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2BiddersAccountsFilterSetsBidMetricsListArgs>
+    for ListBidMetricsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2BiddersAccountsFilterSetsBidMetricsListArgs,
+    ) -> String {
+        format!("gcp::ListBidMetricsResponse/{}", input.filter_set_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBidMetricsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBidResponseErrorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2BiddersAccountsFilterSetsBidResponseErrorsListArgs>
+    for ListBidResponseErrorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2BiddersAccountsFilterSetsBidResponseErrorsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListBidResponseErrorsResponse/{}",
+            input.filter_set_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBidResponseErrorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBidResponsesWithoutBidsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2BiddersAccountsFilterSetsBidResponsesWithoutBidsListArgs>
+    for ListBidResponsesWithoutBidsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2BiddersAccountsFilterSetsBidResponsesWithoutBidsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListBidResponsesWithoutBidsResponse/{}",
+            input.filter_set_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBidResponsesWithoutBidsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListFilteredBidRequestsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidRequestsListArgs>
+    for ListFilteredBidRequestsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidRequestsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListFilteredBidRequestsResponse/{}",
+            input.filter_set_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListFilteredBidRequestsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListFilteredBidsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsListArgs>
+    for ListFilteredBidsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsListArgs,
+    ) -> String {
+        format!("gcp::ListFilteredBidsResponse/{}", input.filter_set_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListFilteredBidsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCreativeStatusBreakdownByCreativeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsCreativesListArgs>
+    for ListCreativeStatusBreakdownByCreativeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsCreativesListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListCreativeStatusBreakdownByCreativeResponse/{}/{}",
+            input.filter_set_name, input.creative_status_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCreativeStatusBreakdownByCreativeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCreativeStatusBreakdownByDetailResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsDetailsListArgs>
+    for ListCreativeStatusBreakdownByDetailResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2BiddersAccountsFilterSetsFilteredBidsDetailsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListCreativeStatusBreakdownByDetailResponse/{}/{}",
+            input.filter_set_name, input.creative_status_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCreativeStatusBreakdownByDetailResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListImpressionMetricsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2BiddersAccountsFilterSetsImpressionMetricsListArgs>
+    for ListImpressionMetricsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2BiddersAccountsFilterSetsImpressionMetricsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListImpressionMetricsResponse/{}",
+            input.filter_set_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListImpressionMetricsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLosingBidsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2BiddersAccountsFilterSetsLosingBidsListArgs>
+    for ListLosingBidsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2BiddersAccountsFilterSetsLosingBidsListArgs,
+    ) -> String {
+        format!("gcp::ListLosingBidsResponse/{}", input.filter_set_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLosingBidsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListNonBillableWinningBidsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Adexchangebuyer2BiddersAccountsFilterSetsNonBillableWinningBidsListArgs>
+    for ListNonBillableWinningBidsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Adexchangebuyer2BiddersAccountsFilterSetsNonBillableWinningBidsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListNonBillableWinningBidsResponse/{}",
+            input.filter_set_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListNonBillableWinningBidsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

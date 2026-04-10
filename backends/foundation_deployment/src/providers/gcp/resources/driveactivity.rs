@@ -799,3 +799,26 @@ pub struct SingleUser {
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for QueryDriveActivityResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveactivityActivityQueryArgs> for QueryDriveActivityResponse {
+    fn generate_resource_id(&self, input: &DriveactivityActivityQueryArgs) -> String {
+        "gcp::QueryDriveActivityResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryDriveActivityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

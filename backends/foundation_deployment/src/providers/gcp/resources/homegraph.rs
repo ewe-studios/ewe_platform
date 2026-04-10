@@ -253,3 +253,107 @@ pub struct AgentOtherDeviceId {
     #[serde(default, rename = "deviceId")]
     pub device_id: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HomegraphAgentUsersDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &HomegraphAgentUsersDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.agent_user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HomegraphDevicesQueryArgs> for QueryResponse {
+    fn generate_resource_id(&self, input: &HomegraphDevicesQueryArgs) -> String {
+        "gcp::QueryResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReportStateAndNotificationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HomegraphDevicesReportStateAndNotificationArgs>
+    for ReportStateAndNotificationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &HomegraphDevicesReportStateAndNotificationArgs,
+    ) -> String {
+        "gcp::ReportStateAndNotificationResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReportStateAndNotificationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RequestSyncDevicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HomegraphDevicesRequestSyncArgs> for RequestSyncDevicesResponse {
+    fn generate_resource_id(&self, input: &HomegraphDevicesRequestSyncArgs) -> String {
+        "gcp::RequestSyncDevicesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RequestSyncDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SyncResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HomegraphDevicesSyncArgs> for SyncResponse {
+    fn generate_resource_id(&self, input: &HomegraphDevicesSyncArgs) -> String {
+        "gcp::SyncResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SyncResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -1307,3 +1307,490 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedUser
     #[serde(default, rename = "outputType")]
     pub output_type: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpOrganizationsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpOrganizationsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpOrganizationsLocationsOperationsGetArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpOrganizationsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpOrganizationsLocationsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpOrganizationsLocationsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudLocationLocation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsGetArgs> for GoogleCloudLocationLocation {
+    fn generate_resource_id(&self, input: &BeyondcorpProjectsLocationsGetArgs) -> String {
+        format!("gcp::GoogleCloudLocationLocation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudLocationLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudLocationListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsListArgs>
+    for GoogleCloudLocationListLocationsResponse
+{
+    fn generate_resource_id(&self, input: &BeyondcorpProjectsLocationsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudLocationListLocationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudLocationListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectionsV1AppConnection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectionsGetArgs>
+    for GoogleCloudBeyondcorpAppconnectionsV1AppConnection
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudBeyondcorpAppconnectionsV1AppConnection/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudBeyondcorpAppconnectionsV1AppConnection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectionsGetIamPolicyArgs>
+    for GoogleIamV1Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectionsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectionsListArgs>
+    for GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectionsResolveArgs>
+    for GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectionsResolveArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectionsTestIamPermissionsArgs>
+    for GoogleIamV1TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectionsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleIamV1TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV1TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectorsV1AppConnector.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectorsGetArgs>
+    for GoogleCloudBeyondcorpAppconnectorsV1AppConnector
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectorsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudBeyondcorpAppconnectorsV1AppConnector/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudBeyondcorpAppconnectorsV1AppConnector"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectorsListArgs>
+    for GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectorsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppConnectorsResolveInstanceConfigArgs>
+    for GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppConnectorsResolveInstanceConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse/{}",
+            input.app_connector
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AppGateway.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppGatewaysGetArgs> for AppGateway {
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppGatewaysGetArgs,
+    ) -> String {
+        format!("gcp::AppGateway/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AppGateway"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAppGatewaysResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsAppGatewaysListArgs>
+    for ListAppGatewaysResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsAppGatewaysListArgs,
+    ) -> String {
+        format!("gcp::ListAppGatewaysResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAppGatewaysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysGetArgs>
+    for GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysListArgs>
+    for GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpSecuritygatewaysV1Application.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetArgs>
+    for GoogleCloudBeyondcorpSecuritygatewaysV1Application
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudBeyondcorpSecuritygatewaysV1Application/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudBeyondcorpSecuritygatewaysV1Application"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeyondcorpProjectsLocationsSecurityGatewaysApplicationsListArgs>
+    for GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BeyondcorpProjectsLocationsSecurityGatewaysApplicationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

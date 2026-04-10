@@ -201,3 +201,26 @@ pub struct Groups {
     #[serde(default, rename = "whoCanViewMembership")]
     pub who_can_view_membership: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Groups.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GroupsSettingsGroupsGetArgs> for Groups {
+    fn generate_resource_id(&self, input: &GroupsSettingsGroupsGetArgs) -> String {
+        format!("gcp::Groups/{}", input.group_unique_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Groups"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

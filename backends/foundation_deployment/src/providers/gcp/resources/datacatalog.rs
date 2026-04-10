@@ -1694,3 +1694,651 @@ pub struct GoogleCloudDatacatalogV1PhysicalSchemaThriftSchema {
     #[serde(default)]
     pub text: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1SearchCatalogResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogCatalogSearchArgs>
+    for GoogleCloudDatacatalogV1SearchCatalogResponse
+{
+    fn generate_resource_id(&self, input: &DatacatalogCatalogSearchArgs) -> String {
+        "gcp::GoogleCloudDatacatalogV1SearchCatalogResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1SearchCatalogResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Entry.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogEntriesLookupArgs> for GoogleCloudDatacatalogV1Entry {
+    fn generate_resource_id(&self, input: &DatacatalogEntriesLookupArgs) -> String {
+        "gcp::GoogleCloudDatacatalogV1Entry".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1Entry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1OrganizationConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogOrganizationsLocationsRetrieveConfigArgs>
+    for GoogleCloudDatacatalogV1OrganizationConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogOrganizationsLocationsRetrieveConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogV1OrganizationConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1OrganizationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1MigrationConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogOrganizationsLocationsRetrieveEffectiveConfigArgs>
+    for GoogleCloudDatacatalogV1MigrationConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogOrganizationsLocationsRetrieveEffectiveConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogV1MigrationConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1MigrationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1EntryGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsCreateArgs>
+    for GoogleCloudDatacatalogV1EntryGroup
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDatacatalogV1EntryGroup/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1EntryGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListEntryGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsListArgs>
+    for GoogleCloudDatacatalogV1ListEntryGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogV1ListEntryGroupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1ListEntryGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesImportArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesImportArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListEntriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesListArgs>
+    for GoogleCloudDatacatalogV1ListEntriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogV1ListEntriesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1ListEntriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Contacts.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryContactsArgs>
+    for GoogleCloudDatacatalogV1Contacts
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryContactsArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDatacatalogV1Contacts/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1Contacts"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1EntryOverview.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryOverviewArgs>
+    for GoogleCloudDatacatalogV1EntryOverview
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesModifyEntryOverviewArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDatacatalogV1EntryOverview/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1EntryOverview"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1StarEntryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesStarArgs>
+    for GoogleCloudDatacatalogV1StarEntryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesStarArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogV1StarEntryResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1StarEntryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1UnstarEntryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesUnstarArgs>
+    for GoogleCloudDatacatalogV1UnstarEntryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesUnstarArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogV1UnstarEntryResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1UnstarEntryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Tag.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesTagsCreateArgs>
+    for GoogleCloudDatacatalogV1Tag
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDatacatalogV1Tag/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1Tag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListTagsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsEntryGroupsEntriesTagsListArgs>
+    for GoogleCloudDatacatalogV1ListTagsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsEntryGroupsEntriesTagsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogV1ListTagsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1ListTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTagTemplatesCreateArgs>
+    for GoogleCloudDatacatalogV1TagTemplate
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTagTemplatesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDatacatalogV1TagTemplate/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1TagTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1TagTemplateField.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTagTemplatesFieldsCreateArgs>
+    for GoogleCloudDatacatalogV1TagTemplateField
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTagTemplatesFieldsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogV1TagTemplateField/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1TagTemplateField"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1Taxonomy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesCreateArgs>
+    for GoogleCloudDatacatalogV1Taxonomy
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDatacatalogV1Taxonomy/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1Taxonomy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ExportTaxonomiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesExportArgs>
+    for GoogleCloudDatacatalogV1ExportTaxonomiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesExportArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogV1ExportTaxonomiesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1ExportTaxonomiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ImportTaxonomiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesImportArgs>
+    for GoogleCloudDatacatalogV1ImportTaxonomiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesImportArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogV1ImportTaxonomiesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1ImportTaxonomiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListTaxonomiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesListArgs>
+    for GoogleCloudDatacatalogV1ListTaxonomiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogV1ListTaxonomiesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1ListTaxonomiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1PolicyTag.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesPolicyTagsCreateArgs>
+    for GoogleCloudDatacatalogV1PolicyTag
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDatacatalogV1PolicyTag/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1PolicyTag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogV1ListPolicyTagsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatacatalogProjectsLocationsTaxonomiesPolicyTagsListArgs>
+    for GoogleCloudDatacatalogV1ListPolicyTagsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatacatalogProjectsLocationsTaxonomiesPolicyTagsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogV1ListPolicyTagsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogV1ListPolicyTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

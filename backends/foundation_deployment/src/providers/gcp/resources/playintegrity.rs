@@ -292,3 +292,66 @@ pub struct WriteDates {
     #[serde(default, rename = "yyyymmThird")]
     pub yyyymm_third: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for WriteDeviceRecallResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlayintegrityDeviceRecallWriteArgs> for WriteDeviceRecallResponse {
+    fn generate_resource_id(&self, input: &PlayintegrityDeviceRecallWriteArgs) -> String {
+        format!("gcp::WriteDeviceRecallResponse/{}", input.package_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WriteDeviceRecallResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DecodeIntegrityTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlayintegrityDecodeIntegrityTokenArgs> for DecodeIntegrityTokenResponse {
+    fn generate_resource_id(&self, input: &PlayintegrityDecodeIntegrityTokenArgs) -> String {
+        format!("gcp::DecodeIntegrityTokenResponse/{}", input.package_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DecodeIntegrityTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DecodePcIntegrityTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlayintegrityDecodePcIntegrityTokenArgs>
+    for DecodePcIntegrityTokenResponse
+{
+    fn generate_resource_id(&self, input: &PlayintegrityDecodePcIntegrityTokenArgs) -> String {
+        format!("gcp::DecodePcIntegrityTokenResponse/{}", input.package_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DecodePcIntegrityTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

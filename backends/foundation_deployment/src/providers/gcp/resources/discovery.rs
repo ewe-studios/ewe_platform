@@ -265,3 +265,45 @@ pub struct RestResource {
     #[serde(default)]
     pub resources: ::core::option::Option<serde_json::Value>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for RestDescription.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryApisGetRestArgs> for RestDescription {
+    fn generate_resource_id(&self, input: &DiscoveryApisGetRestArgs) -> String {
+        format!("gcp::RestDescription/{}/{}", input.api, input.version)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RestDescription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DirectoryList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiscoveryApisListArgs> for DirectoryList {
+    fn generate_resource_id(&self, input: &DiscoveryApisListArgs) -> String {
+        "gcp::DirectoryList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DirectoryList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -10,6 +10,8 @@
 use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
+use foundation_db::state::resource_identifier::ResourceIdentifier;
+use crate::providers::cloudflare::clients::types::*;
 
 /// AaaAlertTypes resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -36320,4 +36322,16404 @@ pub struct TunnelOriginRequest {
     /// Timeout for completing a TLS handshake to your origin server, if you have chosen to connect Tunnel to an HTTPS server.
     #[serde(default, rename = "tlsTimeout")]
     pub tls_timeout: ::core::option::Option<i64>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for IamResponseCollectionAccounts.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountsListAccountsArgs> for IamResponseCollectionAccounts {
+    fn generate_resource_id(&self, input: &AccountsListAccountsArgs) -> String {
+        "cloudflare::IamResponseCollectionAccounts".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamResponseCollectionAccounts"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamResponseSingleAccount.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountCreationArgs> for IamResponseSingleAccount {
+    fn generate_resource_id(&self, input: &AccountCreationArgs) -> String {
+        "cloudflare::IamResponseSingleAccount".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamResponseSingleAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AlexandriaGetApplicationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetApplicationsArgs> for AlexandriaGetApplicationsResponse {
+    fn generate_resource_id(&self, input: &GetApplicationsArgs) -> String {
+        format!(
+            "cloudflare::AlexandriaGetApplicationsResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AlexandriaGetApplicationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AlexandriaGetApplicationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateApplicationArgs> for AlexandriaGetApplicationResponse {
+    fn generate_resource_id(&self, input: &CreateApplicationArgs) -> String {
+        format!(
+            "cloudflare::AlexandriaGetApplicationResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AlexandriaGetApplicationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AlexandriaGetCategoriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetCategoriesArgs> for AlexandriaGetCategoriesResponse {
+    fn generate_resource_id(&self, input: &GetCategoriesArgs) -> String {
+        format!(
+            "cloudflare::AlexandriaGetCategoriesResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AlexandriaGetCategoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AlexandriaGetCategoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetCategoryByIdArgs> for AlexandriaGetCategoryResponse {
+    fn generate_resource_id(&self, input: &GetCategoryByIdArgs) -> String {
+        format!(
+            "cloudflare::AlexandriaGetCategoryResponse/{}/{}",
+            input.account_id, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AlexandriaGetCategoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomPagesCustomPageResultList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomPagesForAnAccountListCustomPagesArgs>
+    for CustomPagesCustomPageResultList
+{
+    fn generate_resource_id(&self, input: &CustomPagesForAnAccountListCustomPagesArgs) -> String {
+        format!(
+            "cloudflare::CustomPagesCustomPageResultList/{}",
+            input.account_identifier
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CustomPagesCustomPageResultList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomPagesCustomAssetResultList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomAssetsForAnAccountListCustomAssetsArgs>
+    for CustomPagesCustomAssetResultList
+{
+    fn generate_resource_id(&self, input: &CustomAssetsForAnAccountListCustomAssetsArgs) -> String {
+        format!(
+            "cloudflare::CustomPagesCustomAssetResultList/{}",
+            input.account_identifier
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CustomPagesCustomAssetResultList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomPagesCustomAssetResult.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomAssetsForAnAccountCreateACustomAssetArgs>
+    for CustomPagesCustomAssetResult
+{
+    fn generate_resource_id(
+        &self,
+        input: &CustomAssetsForAnAccountCreateACustomAssetArgs,
+    ) -> String {
+        format!(
+            "cloudflare::CustomPagesCustomAssetResult/{}",
+            input.account_identifier
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CustomPagesCustomAssetResult"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomPagesCustomPageResult.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomPagesForAnAccountGetACustomPageArgs> for CustomPagesCustomPageResult {
+    fn generate_resource_id(&self, input: &CustomPagesForAnAccountGetACustomPageArgs) -> String {
+        format!(
+            "cloudflare::CustomPagesCustomPageResult/{}/{}",
+            input.identifier, input.account_identifier
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CustomPagesCustomPageResult"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamApiResponseSingleId.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountDeletionArgs> for IamApiResponseSingleId {
+    fn generate_resource_id(&self, input: &AccountDeletionArgs) -> String {
+        format!("cloudflare::IamApiResponseSingleId/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamApiResponseSingleId"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AbuseReportsMitigationAppealResult.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RequestReviewArgs> for AbuseReportsMitigationAppealResult {
+    fn generate_resource_id(&self, input: &RequestReviewArgs) -> String {
+        format!(
+            "cloudflare::AbuseReportsMitigationAppealResult/{}/{}",
+            input.account_id, input.report_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AbuseReportsMitigationAppealResult"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AbuseReportsSubmitReportResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SubmitAbuseReportArgs> for AbuseReportsSubmitReportResponse {
+    fn generate_resource_id(&self, input: &SubmitAbuseReportArgs) -> String {
+        format!(
+            "cloudflare::AbuseReportsSubmitReportResponse/{}/{}",
+            input.account_id, input.report_param
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AbuseReportsSubmitReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessAppsComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessApplicationsListAccessApplicationsArgs>
+    for AccessAppsComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &AccessApplicationsListAccessApplicationsArgs) -> String {
+        format!(
+            "cloudflare::AccessAppsComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessAppsComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessCaComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessShortLivedCertificateCAsListShortLivedCertificateCAsArgs>
+    for AccessCaComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessShortLivedCertificateCAsListShortLivedCertificateCAsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessCaComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessCaComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessAppsComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessApplicationsGetAnAccessApplicationArgs>
+    for AccessAppsComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(&self, input: &AccessApplicationsGetAnAccessApplicationArgs) -> String {
+        format!(
+            "cloudflare::AccessAppsComponentsSchemasSingleResponse/{}/{}",
+            input.app_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessAppsComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessApplicationsDeleteAnAccessApplicationArgs> for AccessIdResponse {
+    fn generate_resource_id(
+        &self,
+        input: &AccessApplicationsDeleteAnAccessApplicationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessIdResponse/{}/{}",
+            input.app_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessCaComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessShortLivedCertificateCAsGetAShortLivedCertificateCaArgs>
+    for AccessCaComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessShortLivedCertificateCAsGetAShortLivedCertificateCaArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessCaComponentsSchemasSingleResponse/{}/{}",
+            input.app_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessCaComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSchemasIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessShortLivedCertificateCAsDeleteAShortLivedCertificateCaArgs>
+    for AccessSchemasIdResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessShortLivedCertificateCAsDeleteAShortLivedCertificateCaArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessSchemasIdResponse/{}/{}",
+            input.app_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessSchemasIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessAppPoliciesComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessPoliciesListAccessAppPoliciesArgs>
+    for AccessAppPoliciesComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &AccessPoliciesListAccessAppPoliciesArgs) -> String {
+        format!(
+            "cloudflare::AccessAppPoliciesComponentsSchemasResponseCollection/{}/{}",
+            input.app_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessAppPoliciesComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessAppPoliciesComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessPoliciesCreateAnAccessPolicyArgs>
+    for AccessAppPoliciesComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(&self, input: &AccessPoliciesCreateAnAccessPolicyArgs) -> String {
+        format!(
+            "cloudflare::AccessAppPoliciesComponentsSchemasSingleResponse/{}/{}",
+            input.app_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessAppPoliciesComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessAppPoliciesComponentsSchemasIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessPoliciesDeleteAnAccessPolicyArgs>
+    for AccessAppPoliciesComponentsSchemasIdResponse
+{
+    fn generate_resource_id(&self, input: &AccessPoliciesDeleteAnAccessPolicyArgs) -> String {
+        format!(
+            "cloudflare::AccessAppPoliciesComponentsSchemasIdResponse/{}/{}/{}",
+            input.app_id, input.policy_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessAppPoliciesComponentsSchemasIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSchemasEmptyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessApplicationsRevokeServiceTokensArgs> for AccessSchemasEmptyResponse {
+    fn generate_resource_id(&self, input: &AccessApplicationsRevokeServiceTokensArgs) -> String {
+        format!(
+            "cloudflare::AccessSchemasEmptyResponse/{}/{}",
+            input.app_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessSchemasEmptyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessPolicyCheckResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessApplicationsTestAccessPoliciesArgs> for AccessPolicyCheckResponse {
+    fn generate_resource_id(&self, input: &AccessApplicationsTestAccessPoliciesArgs) -> String {
+        format!(
+            "cloudflare::AccessPolicyCheckResponse/{}/{}",
+            input.app_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessPolicyCheckResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessBookmarksComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessBookmarkApplicationsDeprecatedListBookmarkApplicationsArgs>
+    for AccessBookmarksComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessBookmarkApplicationsDeprecatedListBookmarkApplicationsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessBookmarksComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessBookmarksComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessBookmarksComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessBookmarkApplicationsDeprecatedGetABookmarkApplicationArgs>
+    for AccessBookmarksComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessBookmarkApplicationsDeprecatedGetABookmarkApplicationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessBookmarksComponentsSchemasSingleResponse/{}/{}",
+            input.bookmark_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessBookmarksComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessCertificatesComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessMtlsAuthenticationListMtlsCertificatesArgs>
+    for AccessCertificatesComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessMtlsAuthenticationListMtlsCertificatesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessCertificatesComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessCertificatesComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessCertificatesComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessMtlsAuthenticationAddAnMtlsCertificateArgs>
+    for AccessCertificatesComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessMtlsAuthenticationAddAnMtlsCertificateArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessCertificatesComponentsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessCertificatesComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessResponseCollectionHostnames.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessMtlsAuthenticationListMtlsCertificatesHostnameSettingsArgs>
+    for AccessResponseCollectionHostnames
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessMtlsAuthenticationListMtlsCertificatesHostnameSettingsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessResponseCollectionHostnames/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessResponseCollectionHostnames"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessComponentsSchemasIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessMtlsAuthenticationDeleteAnMtlsCertificateArgs>
+    for AccessComponentsSchemasIdResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessMtlsAuthenticationDeleteAnMtlsCertificateArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessComponentsSchemasIdResponse/{}/{}",
+            input.certificate_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessComponentsSchemasIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessCustomPagesComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessCustomPagesListCustomPagesArgs>
+    for AccessCustomPagesComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &AccessCustomPagesListCustomPagesArgs) -> String {
+        format!(
+            "cloudflare::AccessCustomPagesComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessCustomPagesComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSingleResponseWithoutHtml.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessCustomPagesCreateACustomPageArgs>
+    for AccessSingleResponseWithoutHtml
+{
+    fn generate_resource_id(&self, input: &AccessCustomPagesCreateACustomPageArgs) -> String {
+        format!(
+            "cloudflare::AccessSingleResponseWithoutHtml/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessSingleResponseWithoutHtml"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessCustomPagesComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessCustomPagesGetACustomPageArgs>
+    for AccessCustomPagesComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(&self, input: &AccessCustomPagesGetACustomPageArgs) -> String {
+        format!(
+            "cloudflare::AccessCustomPagesComponentsSchemasSingleResponse/{}/{}",
+            input.custom_page_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessCustomPagesComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessGatewayCaComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessGatewayCaListSSHCaArgs>
+    for AccessGatewayCaComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &AccessGatewayCaListSSHCaArgs) -> String {
+        format!(
+            "cloudflare::AccessGatewayCaComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessGatewayCaComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessGatewayCaComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessGatewayCaAddAnSSHCaArgs>
+    for AccessGatewayCaComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(&self, input: &AccessGatewayCaAddAnSSHCaArgs) -> String {
+        format!(
+            "cloudflare::AccessGatewayCaComponentsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessGatewayCaComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessGroupsListAccessGroupsArgs> for AccessSchemasResponseCollection {
+    fn generate_resource_id(&self, input: &AccessGroupsListAccessGroupsArgs) -> String {
+        format!(
+            "cloudflare::AccessSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessGroupsComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessGroupsCreateAnAccessGroupArgs>
+    for AccessGroupsComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(&self, input: &AccessGroupsCreateAnAccessGroupArgs) -> String {
+        format!(
+            "cloudflare::AccessGroupsComponentsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessGroupsComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessIdentityProvidersListAccessIdentityProvidersArgs>
+    for AccessResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessIdentityProvidersListAccessIdentityProvidersArgs,
+    ) -> String {
+        format!("cloudflare::AccessResponseCollection/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessIdentityProvidersAddAnAccessIdentityProviderArgs>
+    for AccessComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessIdentityProvidersAddAnAccessIdentityProviderArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessComponentsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessScimGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessIdentityProvidersListScimGroupResourcesArgs>
+    for AccessScimGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessIdentityProvidersListScimGroupResourcesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessScimGroupsResponse/{}/{}",
+            input.identity_provider_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessScimGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessScimUsersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessIdentityProvidersListScimUserResourcesArgs>
+    for AccessScimUsersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessIdentityProvidersListScimUserResourcesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessScimUsersResponse/{}/{}",
+            input.identity_provider_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessScimUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessKeysComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessKeyConfigurationGetTheAccessKeyConfigurationArgs>
+    for AccessKeysComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessKeyConfigurationGetTheAccessKeyConfigurationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessKeysComponentsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessKeysComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessAccessRequestsComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessAuthenticationLogsGetAccessAuthenticationLogsArgs>
+    for AccessAccessRequestsComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessAuthenticationLogsGetAccessAuthenticationLogsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessAccessRequestsComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessAccessRequestsComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessScimUpdateLogsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessScimUpdateLogsListAccessScimUpdateLogsArgs>
+    for AccessScimUpdateLogsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessScimUpdateLogsListAccessScimUpdateLogsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessScimUpdateLogsResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessScimUpdateLogsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustOrganizationGetYourZeroTrustOrganizationArgs>
+    for AccessSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustOrganizationGetYourZeroTrustOrganizationArgs,
+    ) -> String {
+        format!("cloudflare::AccessSingleResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessEmptyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustOrganizationRevokeAllAccessTokensForAUserArgs>
+    for AccessEmptyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustOrganizationRevokeAllAccessTokensForAUserArgs,
+    ) -> String {
+        format!("cloudflare::AccessEmptyResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessEmptyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessReusablePoliciesComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessPoliciesListAccessReusablePoliciesArgs>
+    for AccessReusablePoliciesComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &AccessPoliciesListAccessReusablePoliciesArgs) -> String {
+        format!(
+            "cloudflare::AccessReusablePoliciesComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessReusablePoliciesComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessReusablePoliciesComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessPoliciesCreateAnAccessReusablePolicyArgs>
+    for AccessReusablePoliciesComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessPoliciesCreateAnAccessReusablePolicyArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessReusablePoliciesComponentsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessReusablePoliciesComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessReusablePoliciesComponentsSchemasIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessPoliciesDeleteAnAccessReusablePolicyArgs>
+    for AccessReusablePoliciesComponentsSchemasIdResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessPoliciesDeleteAnAccessReusablePolicyArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessReusablePoliciesComponentsSchemasIdResponse/{}/{}",
+            input.account_id, input.policy_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessReusablePoliciesComponentsSchemasIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessPolicyInitResp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessPolicyTestsArgs> for AccessPolicyInitResp {
+    fn generate_resource_id(&self, input: &AccessPolicyTestsArgs) -> String {
+        format!("cloudflare::AccessPolicyInitResp/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessPolicyInitResp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessPolicyUpdateResp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessPolicyTestsGetAnUpdateArgs> for AccessPolicyUpdateResp {
+    fn generate_resource_id(&self, input: &AccessPolicyTestsGetAnUpdateArgs) -> String {
+        format!(
+            "cloudflare::AccessPolicyUpdateResp/{}/{}",
+            input.account_id, input.policy_test_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessPolicyUpdateResp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessPolicyUsersResp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessPolicyTestsGetAUserPageArgs> for AccessPolicyUsersResp {
+    fn generate_resource_id(&self, input: &AccessPolicyTestsGetAUserPageArgs) -> String {
+        format!(
+            "cloudflare::AccessPolicyUsersResp/{}/{}",
+            input.account_id, input.policy_test_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessPolicyUsersResp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSeatsComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustSeatsUpdateAUserSeatArgs>
+    for AccessSeatsComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &ZeroTrustSeatsUpdateAUserSeatArgs) -> String {
+        format!(
+            "cloudflare::AccessSeatsComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessSeatsComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessServiceTokensListServiceTokensArgs>
+    for AccessComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &AccessServiceTokensListServiceTokensArgs) -> String {
+        format!(
+            "cloudflare::AccessComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessCreateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessServiceTokensCreateAServiceTokenArgs> for AccessCreateResponse {
+    fn generate_resource_id(&self, input: &AccessServiceTokensCreateAServiceTokenArgs) -> String {
+        format!("cloudflare::AccessCreateResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessCreateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessServiceTokensGetAServiceTokenArgs> for AccessSchemasSingleResponse {
+    fn generate_resource_id(&self, input: &AccessServiceTokensGetAServiceTokenArgs) -> String {
+        format!(
+            "cloudflare::AccessSchemasSingleResponse/{}/{}",
+            input.service_token_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessTagsComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessTagsListTagsArgs> for AccessTagsComponentsSchemasResponseCollection {
+    fn generate_resource_id(&self, input: &AccessTagsListTagsArgs) -> String {
+        format!(
+            "cloudflare::AccessTagsComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessTagsComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessTagsComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessTagsCreateTagArgs> for AccessTagsComponentsSchemasSingleResponse {
+    fn generate_resource_id(&self, input: &AccessTagsCreateTagArgs) -> String {
+        format!(
+            "cloudflare::AccessTagsComponentsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessTagsComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessNameResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessTagsDeleteATagArgs> for AccessNameResponse {
+    fn generate_resource_id(&self, input: &AccessTagsDeleteATagArgs) -> String {
+        format!(
+            "cloudflare::AccessNameResponse/{}/{}",
+            input.account_id, input.tag_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessNameResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessUsersComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustUsersGetUsersArgs>
+    for AccessUsersComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &ZeroTrustUsersGetUsersArgs) -> String {
+        format!(
+            "cloudflare::AccessUsersComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessUsersComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSingleUserResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustUsersCreateUserArgs> for AccessSingleUserResponse {
+    fn generate_resource_id(&self, input: &ZeroTrustUsersCreateUserArgs) -> String {
+        format!("cloudflare::AccessSingleUserResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessSingleUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessDeleteUserResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustUsersDeleteUserArgs> for AccessDeleteUserResponse {
+    fn generate_resource_id(&self, input: &ZeroTrustUsersDeleteUserArgs) -> String {
+        format!(
+            "cloudflare::AccessDeleteUserResponse/{}/{}",
+            input.user_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessDeleteUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessActiveSessionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustUsersGetActiveSessionsArgs> for AccessActiveSessionsResponse {
+    fn generate_resource_id(&self, input: &ZeroTrustUsersGetActiveSessionsArgs) -> String {
+        format!(
+            "cloudflare::AccessActiveSessionsResponse/{}/{}",
+            input.user_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessActiveSessionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessActiveSessionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustUsersGetActiveSessionArgs> for AccessActiveSessionResponse {
+    fn generate_resource_id(&self, input: &ZeroTrustUsersGetActiveSessionArgs) -> String {
+        format!(
+            "cloudflare::AccessActiveSessionResponse/{}/{}/{}",
+            input.user_id, input.account_id, input.nonce
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessActiveSessionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessFailedLoginResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustUsersGetFailedLoginsArgs> for AccessFailedLoginResponse {
+    fn generate_resource_id(&self, input: &ZeroTrustUsersGetFailedLoginsArgs) -> String {
+        format!(
+            "cloudflare::AccessFailedLoginResponse/{}/{}",
+            input.user_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessFailedLoginResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessLastSeenIdentityResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustUsersGetLastSeenIdentityArgs> for AccessLastSeenIdentityResponse {
+    fn generate_resource_id(&self, input: &ZeroTrustUsersGetLastSeenIdentityArgs) -> String {
+        format!(
+            "cloudflare::AccessLastSeenIdentityResponse/{}/{}",
+            input.user_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessLastSeenIdentityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessDeleteAuthenticatorResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustUsersDeleteMfaAuthenticatorArgs>
+    for AccessDeleteAuthenticatorResponse
+{
+    fn generate_resource_id(&self, input: &ZeroTrustUsersDeleteMfaAuthenticatorArgs) -> String {
+        format!(
+            "cloudflare::AccessDeleteAuthenticatorResponse/{}/{}/{}",
+            input.user_id, input.account_id, input.authenticator_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessDeleteAuthenticatorResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementAddressMapsListAddressMapsArgs>
+    for AddressingComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAddressManagementAddressMapsListAddressMapsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AddressingComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingFullResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementAddressMapsCreateAddressMapArgs>
+    for AddressingFullResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAddressManagementAddressMapsCreateAddressMapArgs,
+    ) -> String {
+        format!("cloudflare::AddressingFullResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingFullResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementAddressMapsUpdateAddressMapArgs>
+    for AddressingComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAddressManagementAddressMapsUpdateAddressMapArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AddressingComponentsSchemasSingleResponse/{}/{}",
+            input.address_map_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingApiResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementAddressMapsDeleteAddressMapArgs>
+    for AddressingApiResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAddressManagementAddressMapsDeleteAddressMapArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AddressingApiResponseCollection/{}/{}",
+            input.address_map_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingApiResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingLeasesComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementListLeasesArgs>
+    for AddressingLeasesComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &IpAddressManagementListLeasesArgs) -> String {
+        format!(
+            "cloudflare::AddressingLeasesComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingLeasesComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingLoaUploadResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementPrefixesUploadLoaDocumentArgs>
+    for AddressingLoaUploadResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAddressManagementPrefixesUploadLoaDocumentArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AddressingLoaUploadResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingLoaUploadResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementPrefixesListPrefixesArgs>
+    for AddressingResponseCollection
+{
+    fn generate_resource_id(&self, input: &IpAddressManagementPrefixesListPrefixesArgs) -> String {
+        format!(
+            "cloudflare::AddressingResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementPrefixesAddPrefixArgs> for AddressingSingleResponse {
+    fn generate_resource_id(&self, input: &IpAddressManagementPrefixesAddPrefixArgs) -> String {
+        format!("cloudflare::AddressingSingleResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingApiResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementPrefixesDeletePrefixArgs>
+    for AddressingApiResponseSingle
+{
+    fn generate_resource_id(&self, input: &IpAddressManagementPrefixesDeletePrefixArgs) -> String {
+        format!(
+            "cloudflare::AddressingApiResponseSingle/{}/{}",
+            input.prefix_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingApiResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingResponseCollectionBgp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementPrefixesListBgpPrefixesArgs>
+    for AddressingResponseCollectionBgp
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAddressManagementPrefixesListBgpPrefixesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AddressingResponseCollectionBgp/{}/{}",
+            input.account_id, input.prefix_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingResponseCollectionBgp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingSingleResponseBgp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementPrefixesCreateBgpPrefixArgs>
+    for AddressingSingleResponseBgp
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAddressManagementPrefixesCreateBgpPrefixArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AddressingSingleResponseBgp/{}/{}",
+            input.account_id, input.prefix_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingSingleResponseBgp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingApiResponseCommon.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementPrefixesDeleteBgpPrefixArgs>
+    for AddressingApiResponseCommon
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAddressManagementPrefixesDeleteBgpPrefixArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AddressingApiResponseCommon/{}/{}/{}",
+            input.account_id, input.prefix_id, input.bgp_prefix_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingApiResponseCommon"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingAdvertisedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementDynamicAdvertisementGetAdvertisementStatusArgs>
+    for AddressingAdvertisedResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAddressManagementDynamicAdvertisementGetAdvertisementStatusArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AddressingAdvertisedResponse/{}/{}",
+            input.prefix_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingAdvertisedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementPrefixDelegationListPrefixDelegationsArgs>
+    for AddressingSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAddressManagementPrefixDelegationListPrefixDelegationsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AddressingSchemasResponseCollection/{}/{}",
+            input.prefix_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementPrefixDelegationCreatePrefixDelegationArgs>
+    for AddressingSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAddressManagementPrefixDelegationCreatePrefixDelegationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AddressingSchemasSingleResponse/{}/{}",
+            input.prefix_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressingIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAddressManagementPrefixDelegationDeletePrefixDelegationArgs>
+    for AddressingIdResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAddressManagementPrefixDelegationDeletePrefixDelegationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AddressingIdResponse/{}/{}/{}",
+            input.delegation_id, input.prefix_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AddressingIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaAlertsResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotificationAlertTypesGetAlertTypesArgs> for AaaAlertsResponseCollection {
+    fn generate_resource_id(&self, input: &NotificationAlertTypesGetAlertTypesArgs) -> String {
+        format!(
+            "cloudflare::AaaAlertsResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaAlertsResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotificationMechanismEligibilityGetDeliveryMechanismEligibilityArgs>
+    for AaaSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotificationMechanismEligibilityGetDeliveryMechanismEligibilityArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AaaSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotificationDestinationsWithPagerDutyListPagerDutyServicesArgs>
+    for AaaComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotificationDestinationsWithPagerDutyListPagerDutyServicesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AaaComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaSchemasApiResponseCommon.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotificationDestinationsWithPagerDutyDeletePagerDutyServicesArgs>
+    for AaaSchemasApiResponseCommon
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotificationDestinationsWithPagerDutyDeletePagerDutyServicesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AaaSchemasApiResponseCommon/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaSchemasApiResponseCommon"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaSensitiveIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotificationDestinationsWithPagerDutyConnectPagerDutyArgs>
+    for AaaSensitiveIdResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotificationDestinationsWithPagerDutyConnectPagerDutyArgs,
+    ) -> String {
+        format!("cloudflare::AaaSensitiveIdResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaSensitiveIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotificationDestinationsWithPagerDutyConnectPagerDutyTokenArgs>
+    for AaaIdResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotificationDestinationsWithPagerDutyConnectPagerDutyTokenArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AaaIdResponse/{}/{}",
+            input.account_id, input.token_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaWebhooksComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotificationWebhooksListWebhooksArgs>
+    for AaaWebhooksComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &NotificationWebhooksListWebhooksArgs) -> String {
+        format!(
+            "cloudflare::AaaWebhooksComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaWebhooksComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotificationWebhooksGetAWebhookArgs> for AaaSchemasSingleResponse {
+    fn generate_resource_id(&self, input: &NotificationWebhooksGetAWebhookArgs) -> String {
+        format!(
+            "cloudflare::AaaSchemasSingleResponse/{}/{}",
+            input.account_id, input.webhook_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaHistoryComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotificationHistoryListHistoryArgs>
+    for AaaHistoryComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &NotificationHistoryListHistoryArgs) -> String {
+        format!(
+            "cloudflare::AaaHistoryComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaHistoryComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaPoliciesComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotificationPoliciesListNotificationPoliciesArgs>
+    for AaaPoliciesComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotificationPoliciesListNotificationPoliciesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AaaPoliciesComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaPoliciesComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotificationPoliciesGetANotificationPolicyArgs> for AaaSingleResponse {
+    fn generate_resource_id(
+        &self,
+        input: &NotificationPoliciesGetANotificationPolicyArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AaaSingleResponse/{}/{}",
+            input.account_id, input.policy_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaApiResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotificationPoliciesDeleteANotificationPolicyArgs>
+    for AaaApiResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &NotificationPoliciesDeleteANotificationPolicyArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AaaApiResponseCollection/{}/{}",
+            input.account_id, input.policy_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaApiResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaSilencesComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotificationSilencesListSilencesArgs>
+    for AaaSilencesComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &NotificationSilencesListSilencesArgs) -> String {
+        format!(
+            "cloudflare::AaaSilencesComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaSilencesComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaSilenceComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NotificationSilencesGetSilenceArgs>
+    for AaaSilenceComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &NotificationSilencesGetSilenceArgs) -> String {
+        format!(
+            "cloudflare::AaaSilenceComponentsSchemasResponseCollection/{}/{}",
+            input.account_id, input.silence_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaSilenceComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaAuditLogsResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuditLogsGetAccountAuditLogsArgs> for AaaAuditLogsResponseCollection {
+    fn generate_resource_id(&self, input: &AuditLogsGetAccountAuditLogsArgs) -> String {
+        format!(
+            "cloudflare::AaaAuditLogsResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaAuditLogsResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for BillSubsApiBillingResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountBillingProfileDeprecatedBillingProfileDetailsArgs>
+    for BillSubsApiBillingResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccountBillingProfileDeprecatedBillingProfileDetailsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::BillSubsApiBillingResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::BillSubsApiBillingResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for BillableUsageApiUsageResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BillableUsageGetPaygoAccountUsageArgs> for BillableUsageApiUsageResponse {
+    fn generate_resource_id(&self, input: &BillableUsageGetPaygoAccountUsageArgs) -> String {
+        format!(
+            "cloudflare::BillableUsageApiUsageResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::BillableUsageApiUsageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CallsAppResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CallsAppsListArgs> for CallsAppResponseCollection {
+    fn generate_resource_id(&self, input: &CallsAppsListArgs) -> String {
+        format!(
+            "cloudflare::CallsAppResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CallsAppResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CallsAppResponseSingleWithSecret.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CallsAppsCreateANewAppArgs> for CallsAppResponseSingleWithSecret {
+    fn generate_resource_id(&self, input: &CallsAppsCreateANewAppArgs) -> String {
+        format!(
+            "cloudflare::CallsAppResponseSingleWithSecret/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CallsAppResponseSingleWithSecret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CallsAppResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CallsAppsRetrieveAppDetailsArgs> for CallsAppResponseSingle {
+    fn generate_resource_id(&self, input: &CallsAppsRetrieveAppDetailsArgs) -> String {
+        format!(
+            "cloudflare::CallsAppResponseSingle/{}/{}",
+            input.app_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CallsAppResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CallsTurnKeyCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CallsTurnKeyListArgs> for CallsTurnKeyCollection {
+    fn generate_resource_id(&self, input: &CallsTurnKeyListArgs) -> String {
+        format!("cloudflare::CallsTurnKeyCollection/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CallsTurnKeyCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CallsTurnKeySingleWithSecret.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CallsTurnKeyCreateArgs> for CallsTurnKeySingleWithSecret {
+    fn generate_resource_id(&self, input: &CallsTurnKeyCreateArgs) -> String {
+        format!(
+            "cloudflare::CallsTurnKeySingleWithSecret/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CallsTurnKeySingleWithSecret"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CallsTurnKeyResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CallsRetrieveTurnKeyDetailsArgs> for CallsTurnKeyResponseSingle {
+    fn generate_resource_id(&self, input: &CallsRetrieveTurnKeyDetailsArgs) -> String {
+        format!(
+            "cloudflare::CallsTurnKeyResponseSingle/{}/{}",
+            input.key_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CallsTurnKeyResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelCfdTunnelResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareTunnelListCloudflareTunnelsArgs>
+    for TunnelCfdTunnelResponseCollection
+{
+    fn generate_resource_id(&self, input: &CloudflareTunnelListCloudflareTunnelsArgs) -> String {
+        format!(
+            "cloudflare::TunnelCfdTunnelResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelCfdTunnelResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelCfdTunnelResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareTunnelCreateACloudflareTunnelArgs>
+    for TunnelCfdTunnelResponseSingle
+{
+    fn generate_resource_id(&self, input: &CloudflareTunnelCreateACloudflareTunnelArgs) -> String {
+        format!(
+            "cloudflare::TunnelCfdTunnelResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelCfdTunnelResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelConfigurationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareTunnelConfigurationGetConfigurationArgs>
+    for TunnelConfigurationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudflareTunnelConfigurationGetConfigurationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TunnelConfigurationResponse/{}/{}",
+            input.account_id, input.tunnel_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelConfigurationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelTunnelConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareTunnelListCloudflareTunnelConnectionsArgs>
+    for TunnelTunnelConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudflareTunnelListCloudflareTunnelConnectionsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TunnelTunnelConnectionsResponse/{}/{}",
+            input.account_id, input.tunnel_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelTunnelConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelEmptyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareTunnelCleanUpCloudflareTunnelConnectionsArgs>
+    for TunnelEmptyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudflareTunnelCleanUpCloudflareTunnelConnectionsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TunnelEmptyResponse/{}/{}",
+            input.account_id, input.tunnel_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelEmptyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelTunnelClientResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareTunnelGetCloudflareTunnelConnectorArgs>
+    for TunnelTunnelClientResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudflareTunnelGetCloudflareTunnelConnectorArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TunnelTunnelClientResponse/{}/{}/{}",
+            input.account_id, input.tunnel_id, input.connector_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelTunnelClientResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelTunnelResponseToken.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareTunnelGetACloudflareTunnelManagementTokenArgs>
+    for TunnelTunnelResponseToken
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudflareTunnelGetACloudflareTunnelManagementTokenArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TunnelTunnelResponseToken/{}/{}",
+            input.account_id, input.tunnel_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelTunnelResponseToken"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CloudforceOneRequestsApiResponseCommon.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudforceOnePriorityDeleteArgs>
+    for CloudforceOneRequestsApiResponseCommon
+{
+    fn generate_resource_id(&self, input: &CloudforceOnePriorityDeleteArgs) -> String {
+        format!(
+            "cloudflare::CloudforceOneRequestsApiResponseCommon/{}/{}",
+            input.account_id, input.priority_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CloudforceOneRequestsApiResponseCommon"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CloudforceOneRulesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudforceOneListRulesArgs> for CloudforceOneRulesListResponse {
+    fn generate_resource_id(&self, input: &CloudforceOneListRulesArgs) -> String {
+        format!(
+            "cloudflare::CloudforceOneRulesListResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CloudforceOneRulesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CloudforceOneRule.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudforceOneCreateRuleArgs> for CloudforceOneRule {
+    fn generate_resource_id(&self, input: &CloudforceOneCreateRuleArgs) -> String {
+        format!("cloudflare::CloudforceOneRule/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CloudforceOneRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CloudforceOneDeleteAllResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudforceOneDeleteAllRulesArgs> for CloudforceOneDeleteAllResponse {
+    fn generate_resource_id(&self, input: &CloudforceOneDeleteAllRulesArgs) -> String {
+        format!(
+            "cloudflare::CloudforceOneDeleteAllResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CloudforceOneDeleteAllResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CloudforceOneStatsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudforceOneGetRuleStatsArgs> for CloudforceOneStatsResponse {
+    fn generate_resource_id(&self, input: &CloudforceOneGetRuleStatsArgs) -> String {
+        format!(
+            "cloudflare::CloudforceOneStatsResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CloudforceOneStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CloudforceOneTreeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudforceOneGetRuleTreeArgs> for CloudforceOneTreeResponse {
+    fn generate_resource_id(&self, input: &CloudforceOneGetRuleTreeArgs) -> String {
+        format!("cloudflare::CloudforceOneTreeResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CloudforceOneTreeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CloudforceOneValidationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudforceOneValidateRuleArgs> for CloudforceOneValidationResponse {
+    fn generate_resource_id(&self, input: &CloudforceOneValidateRuleArgs) -> String {
+        format!(
+            "cloudflare::CloudforceOneValidationResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CloudforceOneValidationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CloudforceOneSuccessResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudforceOneDeleteRuleArgs> for CloudforceOneSuccessResponse {
+    fn generate_resource_id(&self, input: &CloudforceOneDeleteRuleArgs) -> String {
+        format!("cloudflare::CloudforceOneSuccessResponse/{}", input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CloudforceOneSuccessResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for NscCniList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListCnisArgs> for NscCniList {
+    fn generate_resource_id(&self, input: &ListCnisArgs) -> String {
+        format!("cloudflare::NscCniList/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::NscCniList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for NscCni.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateCniArgs> for NscCni {
+    fn generate_resource_id(&self, input: &CreateCniArgs) -> String {
+        format!("cloudflare::NscCni/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::NscCni"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for NscInterconnectList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListInterconnectsArgs> for NscInterconnectList {
+    fn generate_resource_id(&self, input: &ListInterconnectsArgs) -> String {
+        format!("cloudflare::NscInterconnectList/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::NscInterconnectList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for NscInterconnect.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateInterconnectArgs> for NscInterconnect {
+    fn generate_resource_id(&self, input: &CreateInterconnectArgs) -> String {
+        format!("cloudflare::NscInterconnect/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::NscInterconnect"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for NscStatusInfo.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetInterconnectStatusArgs> for NscStatusInfo {
+    fn generate_resource_id(&self, input: &GetInterconnectStatusArgs) -> String {
+        format!(
+            "cloudflare::NscStatusInfo/{}/{}",
+            input.icon, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::NscStatusInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for NscSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetSettingsArgs> for NscSettings {
+    fn generate_resource_id(&self, input: &GetSettingsArgs) -> String {
+        format!("cloudflare::NscSettings/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::NscSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for NscSlotList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListSlotsArgs> for NscSlotList {
+    fn generate_resource_id(&self, input: &ListSlotsArgs) -> String {
+        format!("cloudflare::NscSlotList/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::NscSlotList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for NscSlotInfo.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetSlotArgs> for NscSlotInfo {
+    fn generate_resource_id(&self, input: &GetSlotArgs) -> String {
+        format!(
+            "cloudflare::NscSlotInfo/{}/{}",
+            input.slot, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::NscSlotInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsCustomNameserversAcnsResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLevelCustomNameserversListAccountCustomNameserversArgs>
+    for DnsCustomNameserversAcnsResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccountLevelCustomNameserversListAccountCustomNameserversArgs,
+    ) -> String {
+        format!(
+            "cloudflare::DnsCustomNameserversAcnsResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsCustomNameserversAcnsResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsCustomNameserversAcnsResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLevelCustomNameserversAddAccountCustomNameserverArgs>
+    for DnsCustomNameserversAcnsResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccountLevelCustomNameserversAddAccountCustomNameserverArgs,
+    ) -> String {
+        format!(
+            "cloudflare::DnsCustomNameserversAcnsResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsCustomNameserversAcnsResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsCustomNameserversEmptyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLevelCustomNameserversDeleteAccountCustomNameserverArgs>
+    for DnsCustomNameserversEmptyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccountLevelCustomNameserversDeleteAccountCustomNameserverArgs,
+    ) -> String {
+        format!(
+            "cloudflare::DnsCustomNameserversEmptyResponse/{}/{}",
+            input.custom_ns_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsCustomNameserversEmptyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesDevicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicesListDevicesArgs> for TeamsDevicesDevicesResponse {
+    fn generate_resource_id(&self, input: &DevicesListDevicesArgs) -> String {
+        format!(
+            "cloudflare::TeamsDevicesDevicesResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeviceManagedNetworksListDeviceManagedNetworksArgs>
+    for TeamsDevicesComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeviceManagedNetworksListDeviceManagedNetworksArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TeamsDevicesComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeviceManagedNetworksCreateDeviceManagedNetworkArgs>
+    for TeamsDevicesComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeviceManagedNetworksCreateDeviceManagedNetworkArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TeamsDevicesComponentsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesDeviceSettingsResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicesListDeviceSettingsPoliciesArgs>
+    for TeamsDevicesDeviceSettingsResponseCollection
+{
+    fn generate_resource_id(&self, input: &DevicesListDeviceSettingsPoliciesArgs) -> String {
+        format!(
+            "cloudflare::TeamsDevicesDeviceSettingsResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesDeviceSettingsResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesDefaultDeviceSettingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicesGetDefaultDeviceSettingsPolicyArgs>
+    for TeamsDevicesDefaultDeviceSettingsResponse
+{
+    fn generate_resource_id(&self, input: &DevicesGetDefaultDeviceSettingsPolicyArgs) -> String {
+        format!(
+            "cloudflare::TeamsDevicesDefaultDeviceSettingsResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesDefaultDeviceSettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesDeviceSettingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicesCreateDeviceSettingsPolicyArgs>
+    for TeamsDevicesDeviceSettingsResponse
+{
+    fn generate_resource_id(&self, input: &DevicesCreateDeviceSettingsPolicyArgs) -> String {
+        format!(
+            "cloudflare::TeamsDevicesDeviceSettingsResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesDeviceSettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesSplitTunnelResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicesGetSplitTunnelExcludeListArgs>
+    for TeamsDevicesSplitTunnelResponseCollection
+{
+    fn generate_resource_id(&self, input: &DevicesGetSplitTunnelExcludeListArgs) -> String {
+        format!(
+            "cloudflare::TeamsDevicesSplitTunnelResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesSplitTunnelResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesFallbackDomainResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicesGetLocalDomainFallbackListArgs>
+    for TeamsDevicesFallbackDomainResponseCollection
+{
+    fn generate_resource_id(&self, input: &DevicesGetLocalDomainFallbackListArgs) -> String {
+        format!(
+            "cloudflare::TeamsDevicesFallbackDomainResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesFallbackDomainResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesSplitTunnelIncludeResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicesGetSplitTunnelIncludeListArgs>
+    for TeamsDevicesSplitTunnelIncludeResponseCollection
+{
+    fn generate_resource_id(&self, input: &DevicesGetSplitTunnelIncludeListArgs) -> String {
+        format!(
+            "cloudflare::TeamsDevicesSplitTunnelIncludeResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesSplitTunnelIncludeResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicePostureRulesListDevicePostureRulesArgs>
+    for TeamsDevicesResponseCollection
+{
+    fn generate_resource_id(&self, input: &DevicePostureRulesListDevicePostureRulesArgs) -> String {
+        format!(
+            "cloudflare::TeamsDevicesResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicePostureRulesCreateDevicePostureRuleArgs>
+    for TeamsDevicesSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DevicePostureRulesCreateDevicePostureRuleArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TeamsDevicesSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicePostureIntegrationsListDevicePostureIntegrationsArgs>
+    for TeamsDevicesSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &DevicePostureIntegrationsListDevicePostureIntegrationsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TeamsDevicesSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicePostureIntegrationsCreateDevicePostureIntegrationArgs>
+    for TeamsDevicesSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DevicePostureIntegrationsCreateDevicePostureIntegrationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TeamsDevicesSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesSchemasIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicePostureIntegrationsDeleteDevicePostureIntegrationArgs>
+    for TeamsDevicesSchemasIdResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DevicePostureIntegrationsDeleteDevicePostureIntegrationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TeamsDevicesSchemasIdResponse/{}/{}",
+            input.integration_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesSchemasIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicePostureRulesDeleteDevicePostureRuleArgs> for TeamsDevicesIdResponse {
+    fn generate_resource_id(
+        &self,
+        input: &DevicePostureRulesDeleteDevicePostureRuleArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TeamsDevicesIdResponse/{}/{}",
+            input.rule_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesGlobalWarpOverrideResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicesResilienceRetrieveGlobalWarpOverrideArgs>
+    for TeamsDevicesGlobalWarpOverrideResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DevicesResilienceRetrieveGlobalWarpOverrideArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TeamsDevicesGlobalWarpOverrideResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesGlobalWarpOverrideResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesApiResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicesRevokeDevicesArgs> for TeamsDevicesApiResponseSingle {
+    fn generate_resource_id(&self, input: &DevicesRevokeDevicesArgs) -> String {
+        format!(
+            "cloudflare::TeamsDevicesApiResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesApiResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesZeroTrustAccountDeviceSettingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustAccountsGetDeviceSettingsForZeroTrustAccountArgs>
+    for TeamsDevicesZeroTrustAccountDeviceSettingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustAccountsGetDeviceSettingsForZeroTrustAccountArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TeamsDevicesZeroTrustAccountDeviceSettingsResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesZeroTrustAccountDeviceSettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesDeviceResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicesDeviceDetailsArgs> for TeamsDevicesDeviceResponse {
+    fn generate_resource_id(&self, input: &DevicesDeviceDetailsArgs) -> String {
+        format!(
+            "cloudflare::TeamsDevicesDeviceResponse/{}/{}",
+            input.device_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesDeviceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesOverrideCodesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicesListAdminOverrideCodeForDeviceArgs>
+    for TeamsDevicesOverrideCodesResponse
+{
+    fn generate_resource_id(&self, input: &DevicesListAdminOverrideCodeForDeviceArgs) -> String {
+        format!(
+            "cloudflare::TeamsDevicesOverrideCodesResponse/{}/{}",
+            input.device_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesOverrideCodesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DigitalExperienceMonitoringDexResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeviceDexTestDetailsArgs>
+    for DigitalExperienceMonitoringDexResponseCollection
+{
+    fn generate_resource_id(&self, input: &DeviceDexTestDetailsArgs) -> String {
+        format!(
+            "cloudflare::DigitalExperienceMonitoringDexResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DigitalExperienceMonitoringDexResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DigitalExperienceMonitoringDexSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeviceDexTestCreateDeviceDexTestArgs>
+    for DigitalExperienceMonitoringDexSingleResponse
+{
+    fn generate_resource_id(&self, input: &DeviceDexTestCreateDeviceDexTestArgs) -> String {
+        format!(
+            "cloudflare::DigitalExperienceMonitoringDexSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DigitalExperienceMonitoringDexSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DigitalExperienceMonitoringDexDeleteResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeviceDexTestDeleteDeviceDexTestArgs>
+    for DigitalExperienceMonitoringDexDeleteResponseCollection
+{
+    fn generate_resource_id(&self, input: &DeviceDexTestDeleteDeviceDexTestArgs) -> String {
+        format!(
+            "cloudflare::DigitalExperienceMonitoringDexDeleteResponseCollection/{}/{}",
+            input.account_id, input.dex_test_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DigitalExperienceMonitoringDexDeleteResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DigitalExperienceMonitoringDevice.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicesLiveStatusArgs> for DigitalExperienceMonitoringDevice {
+    fn generate_resource_id(&self, input: &DevicesLiveStatusArgs) -> String {
+        format!(
+            "cloudflare::DigitalExperienceMonitoringDevice/{}/{}",
+            input.account_id, input.device_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DigitalExperienceMonitoringDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DigitalExperienceMonitoringFleetStatusDevicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DexFleetStatusDevicesArgs>
+    for DigitalExperienceMonitoringFleetStatusDevicesResponse
+{
+    fn generate_resource_id(&self, input: &DexFleetStatusDevicesArgs) -> String {
+        format!(
+            "cloudflare::DigitalExperienceMonitoringFleetStatusDevicesResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DigitalExperienceMonitoringFleetStatusDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DigitalExperienceMonitoringFleetStatusLiveResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DexFleetStatusLiveArgs>
+    for DigitalExperienceMonitoringFleetStatusLiveResponse
+{
+    fn generate_resource_id(&self, input: &DexFleetStatusLiveArgs) -> String {
+        format!(
+            "cloudflare::DigitalExperienceMonitoringFleetStatusLiveResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DigitalExperienceMonitoringFleetStatusLiveResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DigitalExperienceMonitoringFleetStatusOverTimeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DexFleetStatusOverTimeArgs>
+    for DigitalExperienceMonitoringFleetStatusOverTimeResponse
+{
+    fn generate_resource_id(&self, input: &DexFleetStatusOverTimeArgs) -> String {
+        format!(
+            "cloudflare::DigitalExperienceMonitoringFleetStatusOverTimeResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DigitalExperienceMonitoringFleetStatusOverTimeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicTransitEndpointHealthCheckResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiagnosticsEndpointHealthcheckListArgs>
+    for MagicTransitEndpointHealthCheckResponseSingle
+{
+    fn generate_resource_id(&self, input: &DiagnosticsEndpointHealthcheckListArgs) -> String {
+        format!(
+            "cloudflare::MagicTransitEndpointHealthCheckResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicTransitEndpointHealthCheckResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicTransitApiResponseCommon.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiagnosticsEndpointHealthcheckDeleteArgs>
+    for MagicTransitApiResponseCommon
+{
+    fn generate_resource_id(&self, input: &DiagnosticsEndpointHealthcheckDeleteArgs) -> String {
+        format!(
+            "cloudflare::MagicTransitApiResponseCommon/{}/{}",
+            input.account_id, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicTransitApiResponseCommon"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicTransitTracerouteResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DiagnosticsTracerouteArgs> for MagicTransitTracerouteResponseCollection {
+    fn generate_resource_id(&self, input: &DiagnosticsTracerouteArgs) -> String {
+        format!(
+            "cloudflare::MagicTransitTracerouteResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicTransitTracerouteResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsFirewallDnsFirewallResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsFirewallListDnsFirewallClustersArgs>
+    for DnsFirewallDnsFirewallResponseCollection
+{
+    fn generate_resource_id(&self, input: &DnsFirewallListDnsFirewallClustersArgs) -> String {
+        format!(
+            "cloudflare::DnsFirewallDnsFirewallResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsFirewallDnsFirewallResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsFirewallDnsFirewallSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsFirewallCreateDnsFirewallClusterArgs>
+    for DnsFirewallDnsFirewallSingleResponse
+{
+    fn generate_resource_id(&self, input: &DnsFirewallCreateDnsFirewallClusterArgs) -> String {
+        format!(
+            "cloudflare::DnsFirewallDnsFirewallSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsFirewallDnsFirewallSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsFirewallDnsFirewallReverseDnsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsFirewallShowDnsFirewallClusterReverseDnsArgs>
+    for DnsFirewallDnsFirewallReverseDnsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DnsFirewallShowDnsFirewallClusterReverseDnsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::DnsFirewallDnsFirewallReverseDnsResponse/{}/{}",
+            input.dns_firewall_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsFirewallDnsFirewallReverseDnsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsRecordsDnsResponseAccountUsage.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsRecordsForAnAccountGetUsageArgs> for DnsRecordsDnsResponseAccountUsage {
+    fn generate_resource_id(&self, input: &DnsRecordsForAnAccountGetUsageArgs) -> String {
+        format!(
+            "cloudflare::DnsRecordsDnsResponseAccountUsage/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsRecordsDnsResponseAccountUsage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsSettingsDnsResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsSettingsForAnAccountListDnsSettingsArgs>
+    for DnsSettingsDnsResponseSingle
+{
+    fn generate_resource_id(&self, input: &DnsSettingsForAnAccountListDnsSettingsArgs) -> String {
+        format!(
+            "cloudflare::DnsSettingsDnsResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsSettingsDnsResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsSettingsDnsViewResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsViewsForAnAccountListInternalDnsViewsArgs>
+    for DnsSettingsDnsViewResponseCollection
+{
+    fn generate_resource_id(&self, input: &DnsViewsForAnAccountListInternalDnsViewsArgs) -> String {
+        format!(
+            "cloudflare::DnsSettingsDnsViewResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsSettingsDnsViewResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsSettingsDnsViewResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsViewsForAnAccountCreateInternalDnsViewsArgs>
+    for DnsSettingsDnsViewResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &DnsViewsForAnAccountCreateInternalDnsViewsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::DnsSettingsDnsViewResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsSettingsDnsViewResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for EmailDestinationAddressesResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EmailRoutingDestinationAddressesListDestinationAddressesArgs>
+    for EmailDestinationAddressesResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &EmailRoutingDestinationAddressesListDestinationAddressesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::EmailDestinationAddressesResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::EmailDestinationAddressesResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for EmailDestinationAddressResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EmailRoutingDestinationAddressesCreateADestinationAddressArgs>
+    for EmailDestinationAddressResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &EmailRoutingDestinationAddressesCreateADestinationAddressArgs,
+    ) -> String {
+        format!(
+            "cloudflare::EmailDestinationAddressResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::EmailDestinationAddressResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAccessRulesForAnAccountListIpAccessRulesArgs>
+    for FirewallResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAccessRulesForAnAccountListIpAccessRulesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::FirewallResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAccessRulesForAnAccountCreateAnIpAccessRuleArgs>
+    for FirewallResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAccessRulesForAnAccountCreateAnIpAccessRuleArgs,
+    ) -> String {
+        format!("cloudflare::FirewallResponseSingle/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallApiResponseSingleId.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAccessRulesForAnAccountDeleteAnIpAccessRuleArgs>
+    for FirewallApiResponseSingleId
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAccessRulesForAnAccountDeleteAnIpAccessRuleArgs,
+    ) -> String {
+        format!(
+            "cloudflare::FirewallApiResponseSingleId/{}/{}",
+            input.rule_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallApiResponseSingleId"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayGatewayAccount.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustAccountsGetZeroTrustAccountInformationArgs>
+    for ZeroTrustGatewayGatewayAccount
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustAccountsGetZeroTrustAccountInformationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayGatewayAccount/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayGatewayAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustGatewayApplicationAndApplicationTypeMappingsListApplicationAndApplicationTypeMappingsArgs> for ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection {
+    fn generate_resource_id(&self, input: &ZeroTrustGatewayApplicationAndApplicationTypeMappingsListApplicationAndApplicationTypeMappingsArgs) -> String {
+        format!("cloudflare::ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayAppTypesComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayApplicationsReviewStatusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustApplicationsReviewStatusListArgs>
+    for ZeroTrustGatewayApplicationsReviewStatusResponse
+{
+    fn generate_resource_id(&self, input: &ZeroTrustApplicationsReviewStatusListArgs) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayApplicationsReviewStatusResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayApplicationsReviewStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustGetAuditSshSettingsArgs>
+    for ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(&self, input: &ZeroTrustGetAuditSshSettingsArgs) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayAuditSshSettingsComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustGatewayCategoriesListCategoriesArgs>
+    for ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &ZeroTrustGatewayCategoriesListCategoriesArgs) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayCategoriesComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustCertificatesListZeroTrustCertificatesArgs>
+    for ZeroTrustGatewayResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustCertificatesListZeroTrustCertificatesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewaySingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustCertificatesCreateZeroTrustCertificateArgs>
+    for ZeroTrustGatewaySingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustCertificatesCreateZeroTrustCertificateArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewaySingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewaySingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayGatewayAccountConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustAccountsGetZeroTrustAccountConfigurationArgs>
+    for ZeroTrustGatewayGatewayAccountConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustAccountsGetZeroTrustAccountConfigurationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayGatewayAccountConfig/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayGatewayAccountConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayCustomCertificateSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustAccountsGetZeroTrustCertificateConfigurationArgs>
+    for ZeroTrustGatewayCustomCertificateSettings
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustAccountsGetZeroTrustCertificateConfigurationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayCustomCertificateSettings/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayCustomCertificateSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewaySchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustListsListZeroTrustListsArgs>
+    for ZeroTrustGatewaySchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &ZeroTrustListsListZeroTrustListsArgs) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewaySchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewaySchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewaySingleResponseWithListItems.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustListsCreateZeroTrustListArgs>
+    for ZeroTrustGatewaySingleResponseWithListItems
+{
+    fn generate_resource_id(&self, input: &ZeroTrustListsCreateZeroTrustListArgs) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewaySingleResponseWithListItems/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewaySingleResponseWithListItems"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayListSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustListsZeroTrustListDetailsArgs>
+    for ZeroTrustGatewayListSingleResponse
+{
+    fn generate_resource_id(&self, input: &ZeroTrustListsZeroTrustListDetailsArgs) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayListSingleResponse/{}/{}",
+            input.list_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayListSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayEmptyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustListsDeleteZeroTrustListArgs> for ZeroTrustGatewayEmptyResponse {
+    fn generate_resource_id(&self, input: &ZeroTrustListsDeleteZeroTrustListArgs) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayEmptyResponse/{}/{}",
+            input.list_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayEmptyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayListItemResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustListsZeroTrustListItemsArgs>
+    for ZeroTrustGatewayListItemResponseCollection
+{
+    fn generate_resource_id(&self, input: &ZeroTrustListsZeroTrustListItemsArgs) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayListItemResponseCollection/{}/{}",
+            input.list_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayListItemResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustGatewayLocationsListZeroTrustGatewayLocationsArgs>
+    for ZeroTrustGatewayComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustGatewayLocationsListZeroTrustGatewayLocationsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewaySchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustGatewayLocationsCreateZeroTrustGatewayLocationArgs>
+    for ZeroTrustGatewaySchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustGatewayLocationsCreateZeroTrustGatewayLocationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewaySchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewaySchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayGatewayAccountLoggingSettingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustAccountsGetLoggingSettingsForTheZeroTrustAccountArgs>
+    for ZeroTrustGatewayGatewayAccountLoggingSettingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustAccountsGetLoggingSettingsForTheZeroTrustAccountArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayGatewayAccountLoggingSettingsResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayGatewayAccountLoggingSettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustGatewayPacfilesListArgs>
+    for ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &ZeroTrustGatewayPacfilesListArgs) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayPacfilesComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustGatewayPacfilesCreatePacfileArgs>
+    for ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(&self, input: &ZeroTrustGatewayPacfilesCreatePacfileArgs) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayPacfilesComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustGatewayProxyEndpointsListProxyEndpointsArgs>
+    for ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustGatewayProxyEndpointsListProxyEndpointsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayProxyEndpointsComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustGatewayProxyEndpointsCreateProxyEndpointArgs>
+    for ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustGatewayProxyEndpointsCreateProxyEndpointArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayProxyEndpointsComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayRulesComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustGatewayRulesListZeroTrustGatewayRulesArgs>
+    for ZeroTrustGatewayRulesComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustGatewayRulesListZeroTrustGatewayRulesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayRulesComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayRulesComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZeroTrustGatewayComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustGatewayRulesCreateZeroTrustGatewayRuleArgs>
+    for ZeroTrustGatewayComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustGatewayRulesCreateZeroTrustGatewayRuleArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ZeroTrustGatewayComponentsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZeroTrustGatewayComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamCollectionPermissionGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountPermissionGroupListArgs> for IamCollectionPermissionGroupsResponse {
+    fn generate_resource_id(&self, input: &AccountPermissionGroupListArgs) -> String {
+        format!(
+            "cloudflare::IamCollectionPermissionGroupsResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamCollectionPermissionGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamSinglePermissionGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountPermissionGroupDetailsArgs> for IamSinglePermissionGroupsResponse {
+    fn generate_resource_id(&self, input: &AccountPermissionGroupDetailsArgs) -> String {
+        format!(
+            "cloudflare::IamSinglePermissionGroupsResponse/{}/{}",
+            input.account_id, input.permission_group_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamSinglePermissionGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ImagesImagesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareImagesListImagesArgs> for ImagesImagesListResponse {
+    fn generate_resource_id(&self, input: &CloudflareImagesListImagesArgs) -> String {
+        format!("cloudflare::ImagesImagesListResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ImagesImagesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ImagesImageResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareImagesUploadAnImageViaUrlArgs> for ImagesImageResponseSingle {
+    fn generate_resource_id(&self, input: &CloudflareImagesUploadAnImageViaUrlArgs) -> String {
+        format!("cloudflare::ImagesImageResponseSingle/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ImagesImageResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ImagesImageKeyResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareImagesKeysListSigningKeysArgs>
+    for ImagesImageKeyResponseCollection
+{
+    fn generate_resource_id(&self, input: &CloudflareImagesKeysListSigningKeysArgs) -> String {
+        format!(
+            "cloudflare::ImagesImageKeyResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ImagesImageKeyResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ImagesImagesStatsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareImagesImagesUsageStatisticsArgs> for ImagesImagesStatsResponse {
+    fn generate_resource_id(&self, input: &CloudflareImagesImagesUsageStatisticsArgs) -> String {
+        format!("cloudflare::ImagesImagesStatsResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ImagesImagesStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ImagesImageVariantListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareImagesVariantsListVariantsArgs>
+    for ImagesImageVariantListResponse
+{
+    fn generate_resource_id(&self, input: &CloudflareImagesVariantsListVariantsArgs) -> String {
+        format!(
+            "cloudflare::ImagesImageVariantListResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ImagesImageVariantListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ImagesImageVariantSimpleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareImagesVariantsCreateAVariantArgs>
+    for ImagesImageVariantSimpleResponse
+{
+    fn generate_resource_id(&self, input: &CloudflareImagesVariantsCreateAVariantArgs) -> String {
+        format!(
+            "cloudflare::ImagesImageVariantSimpleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ImagesImageVariantSimpleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ImagesDeletedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareImagesVariantsDeleteAVariantArgs> for ImagesDeletedResponse {
+    fn generate_resource_id(&self, input: &CloudflareImagesVariantsDeleteAVariantArgs) -> String {
+        format!(
+            "cloudflare::ImagesDeletedResponse/{}/{}",
+            input.variant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ImagesDeletedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ImagesImageVariantFlatResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareImagesVariantsVariantDetailsFlatArgs>
+    for ImagesImageVariantFlatResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudflareImagesVariantsVariantDetailsFlatArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ImagesImageVariantFlatResponse/{}/{}",
+            input.variant_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ImagesImageVariantFlatResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ImagesImagesListResponseV2.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareImagesListImagesV2Args> for ImagesImagesListResponseV2 {
+    fn generate_resource_id(&self, input: &CloudflareImagesListImagesV2Args) -> String {
+        format!(
+            "cloudflare::ImagesImagesListResponseV2/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ImagesImagesListResponseV2"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ImagesImageDirectUploadResponseV2.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareImagesCreateAuthenticatedDirectUploadUrlV2Args>
+    for ImagesImageDirectUploadResponseV2
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudflareImagesCreateAuthenticatedDirectUploadUrlV2Args,
+    ) -> String {
+        format!(
+            "cloudflare::ImagesImageDirectUploadResponseV2/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ImagesImageDirectUploadResponseV2"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IntelAsnComponentsSchemasResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AsnIntelligenceGetAsnOverviewArgs> for IntelAsnComponentsSchemasResponse {
+    fn generate_resource_id(&self, input: &AsnIntelligenceGetAsnOverviewArgs) -> String {
+        format!(
+            "cloudflare::IntelAsnComponentsSchemasResponse/{}/{}",
+            input.asn, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IntelAsnComponentsSchemasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecurityCenterValueCountsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetSecurityCenterIssueCountsByClassArgs>
+    for SecurityCenterValueCountsResponse
+{
+    fn generate_resource_id(&self, input: &GetSecurityCenterIssueCountsByClassArgs) -> String {
+        format!(
+            "cloudflare::SecurityCenterValueCountsResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecurityCenterValueCountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IntelComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PassiveDnsByIpGetPassiveDnsByIpArgs>
+    for IntelComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(&self, input: &PassiveDnsByIpGetPassiveDnsByIpArgs) -> String {
+        format!(
+            "cloudflare::IntelComponentsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IntelComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IntelSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainIntelligenceGetDomainDetailsArgs> for IntelSingleResponse {
+    fn generate_resource_id(&self, input: &DomainIntelligenceGetDomainDetailsArgs) -> String {
+        format!("cloudflare::IntelSingleResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IntelSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IntelResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainHistoryGetDomainHistoryArgs> for IntelResponse {
+    fn generate_resource_id(&self, input: &DomainHistoryGetDomainHistoryArgs) -> String {
+        format!("cloudflare::IntelResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IntelResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IntelCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DomainIntelligenceGetMultipleDomainDetailsArgs>
+    for IntelCollectionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DomainIntelligenceGetMultipleDomainDetailsArgs,
+    ) -> String {
+        format!("cloudflare::IntelCollectionResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IntelCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomIndicatorFeedsIndicatorFeedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomIndicatorFeedsGetIndicatorFeedsArgs>
+    for CustomIndicatorFeedsIndicatorFeedResponse
+{
+    fn generate_resource_id(&self, input: &CustomIndicatorFeedsGetIndicatorFeedsArgs) -> String {
+        format!(
+            "cloudflare::CustomIndicatorFeedsIndicatorFeedResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CustomIndicatorFeedsIndicatorFeedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomIndicatorFeedsCreateFeedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomIndicatorFeedsCreateIndicatorFeedsArgs>
+    for CustomIndicatorFeedsCreateFeedResponse
+{
+    fn generate_resource_id(&self, input: &CustomIndicatorFeedsCreateIndicatorFeedsArgs) -> String {
+        format!(
+            "cloudflare::CustomIndicatorFeedsCreateFeedResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CustomIndicatorFeedsCreateFeedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomIndicatorFeedsPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomIndicatorFeedsAddPermissionArgs>
+    for CustomIndicatorFeedsPermissionsResponse
+{
+    fn generate_resource_id(&self, input: &CustomIndicatorFeedsAddPermissionArgs) -> String {
+        format!(
+            "cloudflare::CustomIndicatorFeedsPermissionsResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CustomIndicatorFeedsPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomIndicatorFeedsPermissionListItemResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomIndicatorFeedsViewPermissionsArgs>
+    for CustomIndicatorFeedsPermissionListItemResponse
+{
+    fn generate_resource_id(&self, input: &CustomIndicatorFeedsViewPermissionsArgs) -> String {
+        format!(
+            "cloudflare::CustomIndicatorFeedsPermissionListItemResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CustomIndicatorFeedsPermissionListItemResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomIndicatorFeedsIndicatorFeedMetadataResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomIndicatorFeedsGetIndicatorFeedMetadataArgs>
+    for CustomIndicatorFeedsIndicatorFeedMetadataResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CustomIndicatorFeedsGetIndicatorFeedMetadataArgs,
+    ) -> String {
+        format!(
+            "cloudflare::CustomIndicatorFeedsIndicatorFeedMetadataResponse/{}/{}",
+            input.account_id, input.feed_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CustomIndicatorFeedsIndicatorFeedMetadataResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomIndicatorFeedsUpdatePublicFieldResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomIndicatorFeedsUpdateIndicatorFeedMetadataArgs>
+    for CustomIndicatorFeedsUpdatePublicFieldResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CustomIndicatorFeedsUpdateIndicatorFeedMetadataArgs,
+    ) -> String {
+        format!(
+            "cloudflare::CustomIndicatorFeedsUpdatePublicFieldResponse/{}/{}",
+            input.account_id, input.feed_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CustomIndicatorFeedsUpdatePublicFieldResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomIndicatorFeedsUpdateFeedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomIndicatorFeedsDownloadIndicatorFeedDataArgs>
+    for CustomIndicatorFeedsUpdateFeedResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CustomIndicatorFeedsDownloadIndicatorFeedDataArgs,
+    ) -> String {
+        format!(
+            "cloudflare::CustomIndicatorFeedsUpdateFeedResponse/{}/{}",
+            input.account_id, input.feed_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CustomIndicatorFeedsUpdateFeedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IntelSchemasResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpIntelligenceGetIpOverviewArgs> for IntelSchemasResponse {
+    fn generate_resource_id(&self, input: &IpIntelligenceGetIpOverviewArgs) -> String {
+        format!("cloudflare::IntelSchemasResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IntelSchemasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IntelComponentsSchemasResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpListGetIpListsArgs> for IntelComponentsSchemasResponse {
+    fn generate_resource_id(&self, input: &IpListGetIpListsArgs) -> String {
+        format!(
+            "cloudflare::IntelComponentsSchemasResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IntelComponentsSchemasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IntelApiResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MiscategorizationCreateMiscategorizationArgs> for IntelApiResponseSingle {
+    fn generate_resource_id(&self, input: &MiscategorizationCreateMiscategorizationArgs) -> String {
+        format!("cloudflare::IntelApiResponseSingle/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IntelApiResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IntelSinkholesGetSinkholesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SinkholeConfigGetSinkholesArgs> for IntelSinkholesGetSinkholesResponse {
+    fn generate_resource_id(&self, input: &SinkholeConfigGetSinkholesArgs) -> String {
+        format!(
+            "cloudflare::IntelSinkholesGetSinkholesResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IntelSinkholesGetSinkholesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CloudforceOneWhoisSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WhoisRecordGetWhoisRecordArgs> for CloudforceOneWhoisSchemasSingleResponse {
+    fn generate_resource_id(&self, input: &WhoisRecordGetWhoisRecordArgs) -> String {
+        format!(
+            "cloudflare::CloudforceOneWhoisSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CloudforceOneWhoisSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingMonitorGroupResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLoadBalancerMonitorGroupsListMonitorGroupsArgs>
+    for LoadBalancingMonitorGroupResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccountLoadBalancerMonitorGroupsListMonitorGroupsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::LoadBalancingMonitorGroupResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingMonitorGroupResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingMonitorGroupSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLoadBalancerMonitorGroupsCreateMonitorGroupArgs>
+    for LoadBalancingMonitorGroupSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccountLoadBalancerMonitorGroupsCreateMonitorGroupArgs,
+    ) -> String {
+        format!(
+            "cloudflare::LoadBalancingMonitorGroupSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingMonitorGroupSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingMonitorGroupReferencesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLoadBalancerMonitorGroupsListMonitorGroupReferencesArgs>
+    for LoadBalancingMonitorGroupReferencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccountLoadBalancerMonitorGroupsListMonitorGroupReferencesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::LoadBalancingMonitorGroupReferencesResponse/{}/{}",
+            input.monitor_group_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingMonitorGroupReferencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingMonitorResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLoadBalancerMonitorsListMonitorsArgs>
+    for LoadBalancingMonitorResponseCollection
+{
+    fn generate_resource_id(&self, input: &AccountLoadBalancerMonitorsListMonitorsArgs) -> String {
+        format!(
+            "cloudflare::LoadBalancingMonitorResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingMonitorResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingMonitorResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLoadBalancerMonitorsCreateMonitorArgs>
+    for LoadBalancingMonitorResponseSingle
+{
+    fn generate_resource_id(&self, input: &AccountLoadBalancerMonitorsCreateMonitorArgs) -> String {
+        format!(
+            "cloudflare::LoadBalancingMonitorResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingMonitorResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLoadBalancerMonitorsDeleteMonitorArgs> for LoadBalancingIdResponse {
+    fn generate_resource_id(&self, input: &AccountLoadBalancerMonitorsDeleteMonitorArgs) -> String {
+        format!(
+            "cloudflare::LoadBalancingIdResponse/{}/{}",
+            input.monitor_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingPreviewResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLoadBalancerMonitorsPreviewMonitorArgs>
+    for LoadBalancingPreviewResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccountLoadBalancerMonitorsPreviewMonitorArgs,
+    ) -> String {
+        format!(
+            "cloudflare::LoadBalancingPreviewResponse/{}/{}",
+            input.monitor_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingPreviewResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingMonitorReferencesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLoadBalancerMonitorsListMonitorReferencesArgs>
+    for LoadBalancingMonitorReferencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccountLoadBalancerMonitorsListMonitorReferencesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::LoadBalancingMonitorReferencesResponse/{}/{}",
+            input.monitor_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingMonitorReferencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLoadBalancerPoolsListPoolsArgs>
+    for LoadBalancingSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &AccountLoadBalancerPoolsListPoolsArgs) -> String {
+        format!(
+            "cloudflare::LoadBalancingSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLoadBalancerPoolsCreatePoolArgs>
+    for LoadBalancingSchemasSingleResponse
+{
+    fn generate_resource_id(&self, input: &AccountLoadBalancerPoolsCreatePoolArgs) -> String {
+        format!(
+            "cloudflare::LoadBalancingSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingSchemasIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLoadBalancerPoolsDeletePoolArgs> for LoadBalancingSchemasIdResponse {
+    fn generate_resource_id(&self, input: &AccountLoadBalancerPoolsDeletePoolArgs) -> String {
+        format!(
+            "cloudflare::LoadBalancingSchemasIdResponse/{}/{}",
+            input.pool_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingSchemasIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingHealthDetails.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLoadBalancerPoolsPoolHealthDetailsArgs>
+    for LoadBalancingHealthDetails
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccountLoadBalancerPoolsPoolHealthDetailsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::LoadBalancingHealthDetails/{}/{}",
+            input.pool_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingHealthDetails"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingPoolsReferencesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLoadBalancerPoolsListPoolReferencesArgs>
+    for LoadBalancingPoolsReferencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccountLoadBalancerPoolsListPoolReferencesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::LoadBalancingPoolsReferencesResponse/{}/{}",
+            input.pool_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingPoolsReferencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingPreviewResultResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountLoadBalancerMonitorsPreviewResultArgs>
+    for LoadBalancingPreviewResultResponse
+{
+    fn generate_resource_id(&self, input: &AccountLoadBalancerMonitorsPreviewResultArgs) -> String {
+        format!(
+            "cloudflare::LoadBalancingPreviewResultResponse/{}/{}",
+            input.preview_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingPreviewResultResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingRegionComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LoadBalancerRegionsListRegionsArgs>
+    for LoadBalancingRegionComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &LoadBalancerRegionsListRegionsArgs) -> String {
+        format!(
+            "cloudflare::LoadBalancingRegionComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingRegionComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LoadBalancerRegionsGetRegionArgs>
+    for LoadBalancingComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(&self, input: &LoadBalancerRegionsGetRegionArgs) -> String {
+        format!(
+            "cloudflare::LoadBalancingComponentsSchemasSingleResponse/{}/{}",
+            input.region_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LogpushLogpushFieldResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetAccountsAccountIdLogpushDatasetsDatasetIdFieldsArgs>
+    for LogpushLogpushFieldResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &GetAccountsAccountIdLogpushDatasetsDatasetIdFieldsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::LogpushLogpushFieldResponseCollection/{}/{}",
+            input.dataset_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LogpushLogpushFieldResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LogpushLogpushJobResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetAccountsAccountIdLogpushDatasetsDatasetIdJobsArgs>
+    for LogpushLogpushJobResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &GetAccountsAccountIdLogpushDatasetsDatasetIdJobsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::LogpushLogpushJobResponseCollection/{}/{}",
+            input.dataset_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LogpushLogpushJobResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LogpushLogpushJobResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostAccountsAccountIdLogpushJobsArgs> for LogpushLogpushJobResponseSingle {
+    fn generate_resource_id(&self, input: &PostAccountsAccountIdLogpushJobsArgs) -> String {
+        format!(
+            "cloudflare::LogpushLogpushJobResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LogpushLogpushJobResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LogpushGetOwnershipResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostAccountsAccountIdLogpushOwnershipArgs> for LogpushGetOwnershipResponse {
+    fn generate_resource_id(&self, input: &PostAccountsAccountIdLogpushOwnershipArgs) -> String {
+        format!(
+            "cloudflare::LogpushGetOwnershipResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LogpushGetOwnershipResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LogpushValidateOwnershipResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostAccountsAccountIdLogpushOwnershipValidateArgs>
+    for LogpushValidateOwnershipResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PostAccountsAccountIdLogpushOwnershipValidateArgs,
+    ) -> String {
+        format!(
+            "cloudflare::LogpushValidateOwnershipResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LogpushValidateOwnershipResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LogpushValidateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteAccountsAccountIdLogpushValidateDestinationArgs>
+    for LogpushValidateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeleteAccountsAccountIdLogpushValidateDestinationArgs,
+    ) -> String {
+        format!("cloudflare::LogpushValidateResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LogpushValidateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LogpushDestinationExistsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteAccountsAccountIdLogpushValidateDestinationExistsArgs>
+    for LogpushDestinationExistsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeleteAccountsAccountIdLogpushValidateDestinationExistsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::LogpushDestinationExistsResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LogpushDestinationExistsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaAuditLogsV2ResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuditLogsV2GetAccountAuditLogsArgs> for AaaAuditLogsV2ResponseCollection {
+    fn generate_resource_id(&self, input: &AuditLogsV2GetAccountAuditLogsArgs) -> String {
+        format!(
+            "cloudflare::AaaAuditLogsV2ResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaAuditLogsV2ResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LogcontrolCmbConfigResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetAccountsAccountIdLogsControlCmbConfigArgs>
+    for LogcontrolCmbConfigResponseSingle
+{
+    fn generate_resource_id(&self, input: &GetAccountsAccountIdLogsControlCmbConfigArgs) -> String {
+        format!(
+            "cloudflare::LogcontrolCmbConfigResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LogcontrolCmbConfigResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DosDnsProtectionRuleListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListDnsProtectionRulesForAccountArgs> for DosDnsProtectionRuleListResponse {
+    fn generate_resource_id(&self, input: &ListDnsProtectionRulesForAccountArgs) -> String {
+        format!(
+            "cloudflare::DosDnsProtectionRuleListResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DosDnsProtectionRuleListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DosDnsProtectionRuleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateDnsProtectionRuleArgs> for DosDnsProtectionRuleResponse {
+    fn generate_resource_id(&self, input: &CreateDnsProtectionRuleArgs) -> String {
+        format!(
+            "cloudflare::DosDnsProtectionRuleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DosDnsProtectionRuleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DosApiResponseCommon.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeleteDnsProtectionRulesForAccountArgs> for DosApiResponseCommon {
+    fn generate_resource_id(&self, input: &DeleteDnsProtectionRulesForAccountArgs) -> String {
+        format!("cloudflare::DosApiResponseCommon/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DosApiResponseCommon"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DosInfraPrefixListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListAllowlistPrefixesForAccountArgs> for DosInfraPrefixListResponse {
+    fn generate_resource_id(&self, input: &ListAllowlistPrefixesForAccountArgs) -> String {
+        format!(
+            "cloudflare::DosInfraPrefixListResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DosInfraPrefixListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DosInfraPrefixResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateAllowlistedPrefixArgs> for DosInfraPrefixResponse {
+    fn generate_resource_id(&self, input: &CreateAllowlistedPrefixArgs) -> String {
+        format!("cloudflare::DosInfraPrefixResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DosInfraPrefixResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DosPrefixListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListPrefixesForAccountArgs> for DosPrefixListResponse {
+    fn generate_resource_id(&self, input: &ListPrefixesForAccountArgs) -> String {
+        format!("cloudflare::DosPrefixListResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DosPrefixListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DosPrefixResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreatePrefixArgs> for DosPrefixResponse {
+    fn generate_resource_id(&self, input: &CreatePrefixArgs) -> String {
+        format!("cloudflare::DosPrefixResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DosPrefixResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DosExpressionFilterListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListSynProtectionFiltersForAccountArgs>
+    for DosExpressionFilterListResponse
+{
+    fn generate_resource_id(&self, input: &ListSynProtectionFiltersForAccountArgs) -> String {
+        format!(
+            "cloudflare::DosExpressionFilterListResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DosExpressionFilterListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DosExpressionFilterResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateSynProtectionFilterArgs> for DosExpressionFilterResponse {
+    fn generate_resource_id(&self, input: &CreateSynProtectionFilterArgs) -> String {
+        format!(
+            "cloudflare::DosExpressionFilterResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DosExpressionFilterResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DosSynProtectionRuleListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListSynProtectionRulesForAccountArgs> for DosSynProtectionRuleListResponse {
+    fn generate_resource_id(&self, input: &ListSynProtectionRulesForAccountArgs) -> String {
+        format!(
+            "cloudflare::DosSynProtectionRuleListResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DosSynProtectionRuleListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DosSynProtectionRuleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateSynProtectionRuleArgs> for DosSynProtectionRuleResponse {
+    fn generate_resource_id(&self, input: &CreateSynProtectionRuleArgs) -> String {
+        format!(
+            "cloudflare::DosSynProtectionRuleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DosSynProtectionRuleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DosTcpFlowProtectionRuleListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListTcpFlowProtectionRulesForAccountArgs>
+    for DosTcpFlowProtectionRuleListResponse
+{
+    fn generate_resource_id(&self, input: &ListTcpFlowProtectionRulesForAccountArgs) -> String {
+        format!(
+            "cloudflare::DosTcpFlowProtectionRuleListResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DosTcpFlowProtectionRuleListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DosTcpFlowProtectionRuleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CreateTcpFlowProtectionRuleArgs> for DosTcpFlowProtectionRuleResponse {
+    fn generate_resource_id(&self, input: &CreateTcpFlowProtectionRuleArgs) -> String {
+        format!(
+            "cloudflare::DosTcpFlowProtectionRuleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DosTcpFlowProtectionRuleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DosProtectionStatusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetProtectionStatusArgs> for DosProtectionStatusResponse {
+    fn generate_resource_id(&self, input: &GetProtectionStatusArgs) -> String {
+        format!(
+            "cloudflare::DosProtectionStatusResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DosProtectionStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicAppsCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicAccountAppsListAppsArgs> for MagicAppsCollectionResponse {
+    fn generate_resource_id(&self, input: &MagicAccountAppsListAppsArgs) -> String {
+        format!(
+            "cloudflare::MagicAppsCollectionResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicAppsCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicAppSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicAccountAppsAddAppArgs> for MagicAppSingleResponse {
+    fn generate_resource_id(&self, input: &MagicAccountAppsAddAppArgs) -> String {
+        format!("cloudflare::MagicAppSingleResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicAppSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicComponentsSchemasTunnelsCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicInterconnectsListInterconnectsArgs>
+    for MagicComponentsSchemasTunnelsCollectionResponse
+{
+    fn generate_resource_id(&self, input: &MagicInterconnectsListInterconnectsArgs) -> String {
+        format!(
+            "cloudflare::MagicComponentsSchemasTunnelsCollectionResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicComponentsSchemasTunnelsCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicComponentsSchemasModifiedTunnelsCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicInterconnectsUpdateMultipleInterconnectsArgs>
+    for MagicComponentsSchemasModifiedTunnelsCollectionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MagicInterconnectsUpdateMultipleInterconnectsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::MagicComponentsSchemasModifiedTunnelsCollectionResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicComponentsSchemasModifiedTunnelsCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicComponentsSchemasTunnelSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicInterconnectsListInterconnectDetailsArgs>
+    for MagicComponentsSchemasTunnelSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MagicInterconnectsListInterconnectDetailsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::MagicComponentsSchemasTunnelSingleResponse/{}/{}",
+            input.cf_interconnect_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicComponentsSchemasTunnelSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicComponentsSchemasTunnelModifiedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicInterconnectsUpdateInterconnectArgs>
+    for MagicComponentsSchemasTunnelModifiedResponse
+{
+    fn generate_resource_id(&self, input: &MagicInterconnectsUpdateInterconnectArgs) -> String {
+        format!(
+            "cloudflare::MagicComponentsSchemasTunnelModifiedResponse/{}/{}",
+            input.cf_interconnect_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicComponentsSchemasTunnelModifiedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnReadAccountCatalogSyncsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CatalogSyncsListArgs> for McnReadAccountCatalogSyncsResponse {
+    fn generate_resource_id(&self, input: &CatalogSyncsListArgs) -> String {
+        format!(
+            "cloudflare::McnReadAccountCatalogSyncsResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnReadAccountCatalogSyncsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnCreateCatalogSyncResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CatalogSyncsCreateArgs> for McnCreateCatalogSyncResponse {
+    fn generate_resource_id(&self, input: &CatalogSyncsCreateArgs) -> String {
+        format!(
+            "cloudflare::McnCreateCatalogSyncResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnCreateCatalogSyncResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnCatalogSyncsPrebuiltPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CatalogSyncsPrebuiltPoliciesListArgs>
+    for McnCatalogSyncsPrebuiltPoliciesResponse
+{
+    fn generate_resource_id(&self, input: &CatalogSyncsPrebuiltPoliciesListArgs) -> String {
+        format!(
+            "cloudflare::McnCatalogSyncsPrebuiltPoliciesResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnCatalogSyncsPrebuiltPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnReadAccountCatalogSyncResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CatalogSyncsReadArgs> for McnReadAccountCatalogSyncResponse {
+    fn generate_resource_id(&self, input: &CatalogSyncsReadArgs) -> String {
+        format!(
+            "cloudflare::McnReadAccountCatalogSyncResponse/{}/{}",
+            input.account_id, input.sync_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnReadAccountCatalogSyncResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnUpdateCatalogSyncResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CatalogSyncsUpdateArgs> for McnUpdateCatalogSyncResponse {
+    fn generate_resource_id(&self, input: &CatalogSyncsUpdateArgs) -> String {
+        format!(
+            "cloudflare::McnUpdateCatalogSyncResponse/{}/{}",
+            input.account_id, input.sync_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnUpdateCatalogSyncResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnDeleteCatalogSyncResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CatalogSyncsDeleteArgs> for McnDeleteCatalogSyncResponse {
+    fn generate_resource_id(&self, input: &CatalogSyncsDeleteArgs) -> String {
+        format!(
+            "cloudflare::McnDeleteCatalogSyncResponse/{}/{}",
+            input.account_id, input.sync_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnDeleteCatalogSyncResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnRefreshCatalogSyncResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CatalogSyncsRefreshArgs> for McnRefreshCatalogSyncResponse {
+    fn generate_resource_id(&self, input: &CatalogSyncsRefreshArgs) -> String {
+        format!(
+            "cloudflare::McnRefreshCatalogSyncResponse/{}/{}",
+            input.account_id, input.sync_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnRefreshCatalogSyncResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnListOnrampsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OnrampsListArgs> for McnListOnrampsResponse {
+    fn generate_resource_id(&self, input: &OnrampsListArgs) -> String {
+        format!("cloudflare::McnListOnrampsResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnListOnrampsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnCreateOnrampResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OnrampsCreateArgs> for McnCreateOnrampResponse {
+    fn generate_resource_id(&self, input: &OnrampsCreateArgs) -> String {
+        format!("cloudflare::McnCreateOnrampResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnCreateOnrampResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnGetMagicWanAddressSpaceResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OnrampsMwanAddrSpaceReadArgs> for McnGetMagicWanAddressSpaceResponse {
+    fn generate_resource_id(&self, input: &OnrampsMwanAddrSpaceReadArgs) -> String {
+        format!(
+            "cloudflare::McnGetMagicWanAddressSpaceResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnGetMagicWanAddressSpaceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnUpdateMagicWanAddressSpaceResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OnrampsMwanAddrSpaceUpdateArgs> for McnUpdateMagicWanAddressSpaceResponse {
+    fn generate_resource_id(&self, input: &OnrampsMwanAddrSpaceUpdateArgs) -> String {
+        format!(
+            "cloudflare::McnUpdateMagicWanAddressSpaceResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnUpdateMagicWanAddressSpaceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnGetOnrampResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OnrampsReadArgs> for McnGetOnrampResponse {
+    fn generate_resource_id(&self, input: &OnrampsReadArgs) -> String {
+        format!(
+            "cloudflare::McnGetOnrampResponse/{}/{}",
+            input.account_id, input.onramp_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnGetOnrampResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnUpdateOnrampResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OnrampsUpdateArgs> for McnUpdateOnrampResponse {
+    fn generate_resource_id(&self, input: &OnrampsUpdateArgs) -> String {
+        format!(
+            "cloudflare::McnUpdateOnrampResponse/{}/{}",
+            input.account_id, input.onramp_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnUpdateOnrampResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnDeleteOnrampResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OnrampsDeleteArgs> for McnDeleteOnrampResponse {
+    fn generate_resource_id(&self, input: &OnrampsDeleteArgs) -> String {
+        format!(
+            "cloudflare::McnDeleteOnrampResponse/{}/{}",
+            input.account_id, input.onramp_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnDeleteOnrampResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnGoodResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OnrampsApplyArgs> for McnGoodResponse {
+    fn generate_resource_id(&self, input: &OnrampsApplyArgs) -> String {
+        format!(
+            "cloudflare::McnGoodResponse/{}/{}",
+            input.account_id, input.onramp_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnGoodResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnReadAccountProvidersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProvidersListArgs> for McnReadAccountProvidersResponse {
+    fn generate_resource_id(&self, input: &ProvidersListArgs) -> String {
+        format!(
+            "cloudflare::McnReadAccountProvidersResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnReadAccountProvidersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnCreateProviderResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProvidersCreateArgs> for McnCreateProviderResponse {
+    fn generate_resource_id(&self, input: &ProvidersCreateArgs) -> String {
+        format!("cloudflare::McnCreateProviderResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnCreateProviderResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnReadAccountProviderResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProvidersReadArgs> for McnReadAccountProviderResponse {
+    fn generate_resource_id(&self, input: &ProvidersReadArgs) -> String {
+        format!(
+            "cloudflare::McnReadAccountProviderResponse/{}/{}",
+            input.account_id, input.provider_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnReadAccountProviderResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnUpdateProviderResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProvidersUpdateArgs> for McnUpdateProviderResponse {
+    fn generate_resource_id(&self, input: &ProvidersUpdateArgs) -> String {
+        format!(
+            "cloudflare::McnUpdateProviderResponse/{}/{}",
+            input.account_id, input.provider_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnUpdateProviderResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnDeleteProviderResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProvidersDeleteArgs> for McnDeleteProviderResponse {
+    fn generate_resource_id(&self, input: &ProvidersDeleteArgs) -> String {
+        format!(
+            "cloudflare::McnDeleteProviderResponse/{}/{}",
+            input.account_id, input.provider_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnDeleteProviderResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnProviderInitialSetupResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProvidersInitialSetupArgs> for McnProviderInitialSetupResponse {
+    fn generate_resource_id(&self, input: &ProvidersInitialSetupArgs) -> String {
+        format!(
+            "cloudflare::McnProviderInitialSetupResponse/{}/{}",
+            input.account_id, input.provider_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnProviderInitialSetupResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnReadAccountResourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResourcesCatalogListArgs> for McnReadAccountResourcesResponse {
+    fn generate_resource_id(&self, input: &ResourcesCatalogListArgs) -> String {
+        format!(
+            "cloudflare::McnReadAccountResourcesResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnReadAccountResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnResourcesCatalogPolicyPreviewResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResourcesCatalogPolicyPreviewArgs>
+    for McnResourcesCatalogPolicyPreviewResponse
+{
+    fn generate_resource_id(&self, input: &ResourcesCatalogPolicyPreviewArgs) -> String {
+        format!(
+            "cloudflare::McnResourcesCatalogPolicyPreviewResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnResourcesCatalogPolicyPreviewResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for McnReadAccountResourceResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResourcesCatalogReadArgs> for McnReadAccountResourceResponse {
+    fn generate_resource_id(&self, input: &ResourcesCatalogReadArgs) -> String {
+        format!(
+            "cloudflare::McnReadAccountResourceResponse/{}/{}",
+            input.account_id, input.resource_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::McnReadAccountResourceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MconnCustomerConnectorListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MconnConnectorListArgs> for MconnCustomerConnectorListResponse {
+    fn generate_resource_id(&self, input: &MconnConnectorListArgs) -> String {
+        format!(
+            "cloudflare::MconnCustomerConnectorListResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MconnCustomerConnectorListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MconnCustomerConnectorCreateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MconnConnectorCreateArgs> for MconnCustomerConnectorCreateResponse {
+    fn generate_resource_id(&self, input: &MconnConnectorCreateArgs) -> String {
+        format!(
+            "cloudflare::MconnCustomerConnectorCreateResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MconnCustomerConnectorCreateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MconnCustomerConnectorFetchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MconnConnectorFetchArgs> for MconnCustomerConnectorFetchResponse {
+    fn generate_resource_id(&self, input: &MconnConnectorFetchArgs) -> String {
+        format!(
+            "cloudflare::MconnCustomerConnectorFetchResponse/{}/{}",
+            input.account_id, input.connector_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MconnCustomerConnectorFetchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MconnCustomerConnectorUpdateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MconnConnectorReplaceArgs> for MconnCustomerConnectorUpdateResponse {
+    fn generate_resource_id(&self, input: &MconnConnectorReplaceArgs) -> String {
+        format!(
+            "cloudflare::MconnCustomerConnectorUpdateResponse/{}/{}",
+            input.account_id, input.connector_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MconnCustomerConnectorUpdateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MconnCustomerConnectorDeleteResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MconnConnectorDeleteArgs> for MconnCustomerConnectorDeleteResponse {
+    fn generate_resource_id(&self, input: &MconnConnectorDeleteArgs) -> String {
+        format!(
+            "cloudflare::MconnCustomerConnectorDeleteResponse/{}/{}",
+            input.account_id, input.connector_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MconnCustomerConnectorDeleteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MconnCustomerEventsGetSuccess.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MconnConnectorTelemetryEventsListArgs> for MconnCustomerEventsGetSuccess {
+    fn generate_resource_id(&self, input: &MconnConnectorTelemetryEventsListArgs) -> String {
+        format!(
+            "cloudflare::MconnCustomerEventsGetSuccess/{}/{}",
+            input.account_id, input.connector_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MconnCustomerEventsGetSuccess"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MconnCustomerEventsGetLatestSuccess.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MconnConnectorTelemetryEventsListLatestArgs>
+    for MconnCustomerEventsGetLatestSuccess
+{
+    fn generate_resource_id(&self, input: &MconnConnectorTelemetryEventsListLatestArgs) -> String {
+        format!(
+            "cloudflare::MconnCustomerEventsGetLatestSuccess/{}/{}",
+            input.account_id, input.connector_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MconnCustomerEventsGetLatestSuccess"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MconnCustomerEventGetSuccess.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MconnConnectorTelemetryEventsGetArgs> for MconnCustomerEventGetSuccess {
+    fn generate_resource_id(&self, input: &MconnConnectorTelemetryEventsGetArgs) -> String {
+        format!(
+            "cloudflare::MconnCustomerEventGetSuccess/{}/{}/{}/{}",
+            input.account_id, input.connector_id, input.event_t, input.event_n
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MconnCustomerEventGetSuccess"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MconnCustomerSnapshotsGetSuccess.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MconnConnectorTelemetrySnapshotsListArgs>
+    for MconnCustomerSnapshotsGetSuccess
+{
+    fn generate_resource_id(&self, input: &MconnConnectorTelemetrySnapshotsListArgs) -> String {
+        format!(
+            "cloudflare::MconnCustomerSnapshotsGetSuccess/{}/{}",
+            input.account_id, input.connector_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MconnCustomerSnapshotsGetSuccess"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MconnCustomerSnapshotsGetLatestSuccess.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MconnConnectorTelemetrySnapshotsListLatestArgs>
+    for MconnCustomerSnapshotsGetLatestSuccess
+{
+    fn generate_resource_id(
+        &self,
+        input: &MconnConnectorTelemetrySnapshotsListLatestArgs,
+    ) -> String {
+        format!(
+            "cloudflare::MconnCustomerSnapshotsGetLatestSuccess/{}/{}",
+            input.account_id, input.connector_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MconnCustomerSnapshotsGetLatestSuccess"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MconnCustomerSnapshotGetSuccess.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MconnConnectorTelemetrySnapshotsGetArgs>
+    for MconnCustomerSnapshotGetSuccess
+{
+    fn generate_resource_id(&self, input: &MconnConnectorTelemetrySnapshotsGetArgs) -> String {
+        format!(
+            "cloudflare::MconnCustomerSnapshotGetSuccess/{}/{}/{}",
+            input.account_id, input.connector_id, input.snapshot_t
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MconnCustomerSnapshotGetSuccess"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicTunnelsCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicGreTunnelsListGreTunnelsArgs> for MagicTunnelsCollectionResponse {
+    fn generate_resource_id(&self, input: &MagicGreTunnelsListGreTunnelsArgs) -> String {
+        format!(
+            "cloudflare::MagicTunnelsCollectionResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicTunnelsCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicCreateGreTunnelResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicGreTunnelsCreateGreTunnelsArgs> for MagicCreateGreTunnelResponse {
+    fn generate_resource_id(&self, input: &MagicGreTunnelsCreateGreTunnelsArgs) -> String {
+        format!(
+            "cloudflare::MagicCreateGreTunnelResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicCreateGreTunnelResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicModifiedTunnelsCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicGreTunnelsUpdateMultipleGreTunnelsArgs>
+    for MagicModifiedTunnelsCollectionResponse
+{
+    fn generate_resource_id(&self, input: &MagicGreTunnelsUpdateMultipleGreTunnelsArgs) -> String {
+        format!(
+            "cloudflare::MagicModifiedTunnelsCollectionResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicModifiedTunnelsCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicTunnelSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicGreTunnelsListGreTunnelDetailsArgs> for MagicTunnelSingleResponse {
+    fn generate_resource_id(&self, input: &MagicGreTunnelsListGreTunnelDetailsArgs) -> String {
+        format!(
+            "cloudflare::MagicTunnelSingleResponse/{}/{}",
+            input.gre_tunnel_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicTunnelSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicTunnelModifiedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicGreTunnelsUpdateGreTunnelArgs> for MagicTunnelModifiedResponse {
+    fn generate_resource_id(&self, input: &MagicGreTunnelsUpdateGreTunnelArgs) -> String {
+        format!(
+            "cloudflare::MagicTunnelModifiedResponse/{}/{}",
+            input.gre_tunnel_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicTunnelModifiedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicTunnelDeletedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicGreTunnelsDeleteGreTunnelArgs> for MagicTunnelDeletedResponse {
+    fn generate_resource_id(&self, input: &MagicGreTunnelsDeleteGreTunnelArgs) -> String {
+        format!(
+            "cloudflare::MagicTunnelDeletedResponse/{}/{}",
+            input.gre_tunnel_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicTunnelDeletedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicSchemasTunnelsCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicIpsecTunnelsListIpsecTunnelsArgs>
+    for MagicSchemasTunnelsCollectionResponse
+{
+    fn generate_resource_id(&self, input: &MagicIpsecTunnelsListIpsecTunnelsArgs) -> String {
+        format!(
+            "cloudflare::MagicSchemasTunnelsCollectionResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicSchemasTunnelsCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicSchemasCreateIpsecTunnelResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicIpsecTunnelsCreateIpsecTunnelsArgs>
+    for MagicSchemasCreateIpsecTunnelResponse
+{
+    fn generate_resource_id(&self, input: &MagicIpsecTunnelsCreateIpsecTunnelsArgs) -> String {
+        format!(
+            "cloudflare::MagicSchemasCreateIpsecTunnelResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicSchemasCreateIpsecTunnelResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicSchemasModifiedTunnelsCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicIpsecTunnelsUpdateMultipleIpsecTunnelsArgs>
+    for MagicSchemasModifiedTunnelsCollectionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MagicIpsecTunnelsUpdateMultipleIpsecTunnelsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::MagicSchemasModifiedTunnelsCollectionResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicSchemasModifiedTunnelsCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicSchemasTunnelSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicIpsecTunnelsListIpsecTunnelDetailsArgs>
+    for MagicSchemasTunnelSingleResponse
+{
+    fn generate_resource_id(&self, input: &MagicIpsecTunnelsListIpsecTunnelDetailsArgs) -> String {
+        format!(
+            "cloudflare::MagicSchemasTunnelSingleResponse/{}/{}",
+            input.ipsec_tunnel_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicSchemasTunnelSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicSchemasTunnelModifiedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicIpsecTunnelsUpdateIpsecTunnelArgs>
+    for MagicSchemasTunnelModifiedResponse
+{
+    fn generate_resource_id(&self, input: &MagicIpsecTunnelsUpdateIpsecTunnelArgs) -> String {
+        format!(
+            "cloudflare::MagicSchemasTunnelModifiedResponse/{}/{}",
+            input.ipsec_tunnel_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicSchemasTunnelModifiedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicSchemasTunnelDeletedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicIpsecTunnelsDeleteIpsecTunnelArgs>
+    for MagicSchemasTunnelDeletedResponse
+{
+    fn generate_resource_id(&self, input: &MagicIpsecTunnelsDeleteIpsecTunnelArgs) -> String {
+        format!(
+            "cloudflare::MagicSchemasTunnelDeletedResponse/{}/{}",
+            input.ipsec_tunnel_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicSchemasTunnelDeletedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicPskGenerationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicIpsecTunnelsGeneratePreSharedKeyPskForIpsecTunnelsArgs>
+    for MagicPskGenerationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MagicIpsecTunnelsGeneratePreSharedKeyPskForIpsecTunnelsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::MagicPskGenerationResponse/{}/{}",
+            input.ipsec_tunnel_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicPskGenerationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicRoutesCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicStaticRoutesListRoutesArgs> for MagicRoutesCollectionResponse {
+    fn generate_resource_id(&self, input: &MagicStaticRoutesListRoutesArgs) -> String {
+        format!(
+            "cloudflare::MagicRoutesCollectionResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicRoutesCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicCreateRouteResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicStaticRoutesCreateRoutesArgs> for MagicCreateRouteResponse {
+    fn generate_resource_id(&self, input: &MagicStaticRoutesCreateRoutesArgs) -> String {
+        format!("cloudflare::MagicCreateRouteResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicCreateRouteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicMultipleRouteModifiedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicStaticRoutesUpdateManyRoutesArgs>
+    for MagicMultipleRouteModifiedResponse
+{
+    fn generate_resource_id(&self, input: &MagicStaticRoutesUpdateManyRoutesArgs) -> String {
+        format!(
+            "cloudflare::MagicMultipleRouteModifiedResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicMultipleRouteModifiedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicMultipleRouteDeleteResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicStaticRoutesDeleteManyRoutesArgs>
+    for MagicMultipleRouteDeleteResponse
+{
+    fn generate_resource_id(&self, input: &MagicStaticRoutesDeleteManyRoutesArgs) -> String {
+        format!(
+            "cloudflare::MagicMultipleRouteDeleteResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicMultipleRouteDeleteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicRouteSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicStaticRoutesRouteDetailsArgs> for MagicRouteSingleResponse {
+    fn generate_resource_id(&self, input: &MagicStaticRoutesRouteDetailsArgs) -> String {
+        format!(
+            "cloudflare::MagicRouteSingleResponse/{}/{}",
+            input.route_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicRouteSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicRouteModifiedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicStaticRoutesUpdateRouteArgs> for MagicRouteModifiedResponse {
+    fn generate_resource_id(&self, input: &MagicStaticRoutesUpdateRouteArgs) -> String {
+        format!(
+            "cloudflare::MagicRouteModifiedResponse/{}/{}",
+            input.route_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicRouteModifiedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicRouteDeletedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicStaticRoutesDeleteRouteArgs> for MagicRouteDeletedResponse {
+    fn generate_resource_id(&self, input: &MagicStaticRoutesDeleteRouteArgs) -> String {
+        format!(
+            "cloudflare::MagicRouteDeletedResponse/{}/{}",
+            input.route_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicRouteDeletedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicSitesCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSitesListSitesArgs> for MagicSitesCollectionResponse {
+    fn generate_resource_id(&self, input: &MagicSitesListSitesArgs) -> String {
+        format!(
+            "cloudflare::MagicSitesCollectionResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicSitesCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicSiteSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSitesCreateSiteArgs> for MagicSiteSingleResponse {
+    fn generate_resource_id(&self, input: &MagicSitesCreateSiteArgs) -> String {
+        format!("cloudflare::MagicSiteSingleResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicSiteSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicSiteModifiedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSitesUpdateSiteArgs> for MagicSiteModifiedResponse {
+    fn generate_resource_id(&self, input: &MagicSitesUpdateSiteArgs) -> String {
+        format!(
+            "cloudflare::MagicSiteModifiedResponse/{}/{}",
+            input.site_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicSiteModifiedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicSiteDeletedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSitesDeleteSiteArgs> for MagicSiteDeletedResponse {
+    fn generate_resource_id(&self, input: &MagicSitesDeleteSiteArgs) -> String {
+        format!(
+            "cloudflare::MagicSiteDeletedResponse/{}/{}",
+            input.site_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicSiteDeletedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicAclsCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteAclsListAclsArgs> for MagicAclsCollectionResponse {
+    fn generate_resource_id(&self, input: &MagicSiteAclsListAclsArgs) -> String {
+        format!(
+            "cloudflare::MagicAclsCollectionResponse/{}/{}",
+            input.account_id, input.site_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicAclsCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicAclSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteAclsCreateAclArgs> for MagicAclSingleResponse {
+    fn generate_resource_id(&self, input: &MagicSiteAclsCreateAclArgs) -> String {
+        format!(
+            "cloudflare::MagicAclSingleResponse/{}/{}",
+            input.account_id, input.site_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicAclSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicAclModifiedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteAclsUpdateAclArgs> for MagicAclModifiedResponse {
+    fn generate_resource_id(&self, input: &MagicSiteAclsUpdateAclArgs) -> String {
+        format!(
+            "cloudflare::MagicAclModifiedResponse/{}/{}/{}",
+            input.site_id, input.account_id, input.acl_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicAclModifiedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicAclDeletedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteAclsDeleteAclArgs> for MagicAclDeletedResponse {
+    fn generate_resource_id(&self, input: &MagicSiteAclsDeleteAclArgs) -> String {
+        format!(
+            "cloudflare::MagicAclDeletedResponse/{}/{}/{}",
+            input.site_id, input.account_id, input.acl_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicAclDeletedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicAppConfigsCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteAppConfigsListAppConfigsArgs>
+    for MagicAppConfigsCollectionResponse
+{
+    fn generate_resource_id(&self, input: &MagicSiteAppConfigsListAppConfigsArgs) -> String {
+        format!(
+            "cloudflare::MagicAppConfigsCollectionResponse/{}/{}",
+            input.account_id, input.site_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicAppConfigsCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicAppConfigSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteAppConfigsAddAppConfigArgs> for MagicAppConfigSingleResponse {
+    fn generate_resource_id(&self, input: &MagicSiteAppConfigsAddAppConfigArgs) -> String {
+        format!(
+            "cloudflare::MagicAppConfigSingleResponse/{}/{}",
+            input.account_id, input.site_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicAppConfigSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicLansCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteLansListLansArgs> for MagicLansCollectionResponse {
+    fn generate_resource_id(&self, input: &MagicSiteLansListLansArgs) -> String {
+        format!(
+            "cloudflare::MagicLansCollectionResponse/{}/{}",
+            input.account_id, input.site_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicLansCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicLanSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteLansLanDetailsArgs> for MagicLanSingleResponse {
+    fn generate_resource_id(&self, input: &MagicSiteLansLanDetailsArgs) -> String {
+        format!(
+            "cloudflare::MagicLanSingleResponse/{}/{}/{}",
+            input.site_id, input.account_id, input.lan_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicLanSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicLanModifiedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteLansUpdateLanArgs> for MagicLanModifiedResponse {
+    fn generate_resource_id(&self, input: &MagicSiteLansUpdateLanArgs) -> String {
+        format!(
+            "cloudflare::MagicLanModifiedResponse/{}/{}/{}",
+            input.site_id, input.account_id, input.lan_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicLanModifiedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicLanDeletedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteLansDeleteLanArgs> for MagicLanDeletedResponse {
+    fn generate_resource_id(&self, input: &MagicSiteLansDeleteLanArgs) -> String {
+        format!(
+            "cloudflare::MagicLanDeletedResponse/{}/{}/{}",
+            input.site_id, input.account_id, input.lan_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicLanDeletedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicNetflowConfigSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteNetflowConfigDetailsArgs> for MagicNetflowConfigSingleResponse {
+    fn generate_resource_id(&self, input: &MagicSiteNetflowConfigDetailsArgs) -> String {
+        format!(
+            "cloudflare::MagicNetflowConfigSingleResponse/{}/{}",
+            input.account_id, input.site_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicNetflowConfigSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicWansCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteWansListWansArgs> for MagicWansCollectionResponse {
+    fn generate_resource_id(&self, input: &MagicSiteWansListWansArgs) -> String {
+        format!(
+            "cloudflare::MagicWansCollectionResponse/{}/{}",
+            input.account_id, input.site_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicWansCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicWanSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteWansWanDetailsArgs> for MagicWanSingleResponse {
+    fn generate_resource_id(&self, input: &MagicSiteWansWanDetailsArgs) -> String {
+        format!(
+            "cloudflare::MagicWanSingleResponse/{}/{}/{}",
+            input.site_id, input.account_id, input.wan_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicWanSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicWanModifiedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteWansUpdateWanArgs> for MagicWanModifiedResponse {
+    fn generate_resource_id(&self, input: &MagicSiteWansUpdateWanArgs) -> String {
+        format!(
+            "cloudflare::MagicWanModifiedResponse/{}/{}/{}",
+            input.site_id, input.account_id, input.wan_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicWanModifiedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicWanDeletedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicSiteWansDeleteWanArgs> for MagicWanDeletedResponse {
+    fn generate_resource_id(&self, input: &MagicSiteWansDeleteWanArgs) -> String {
+        format!(
+            "cloudflare::MagicWanDeletedResponse/{}/{}/{}",
+            input.site_id, input.account_id, input.wan_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicWanDeletedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamCollectionMemberResponseWithPolicies.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountMembersListMembersArgs> for IamCollectionMemberResponseWithPolicies {
+    fn generate_resource_id(&self, input: &AccountMembersListMembersArgs) -> String {
+        format!(
+            "cloudflare::IamCollectionMemberResponseWithPolicies/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamCollectionMemberResponseWithPolicies"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamSingleMemberResponseWithPolicies.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountMembersAddMemberArgs> for IamSingleMemberResponseWithPolicies {
+    fn generate_resource_id(&self, input: &AccountMembersAddMemberArgs) -> String {
+        format!(
+            "cloudflare::IamSingleMemberResponseWithPolicies/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamSingleMemberResponseWithPolicies"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicVisibilityMnmMnmConfigSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicNetworkMonitoringConfigurationListAccountConfigurationArgs>
+    for MagicVisibilityMnmMnmConfigSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MagicNetworkMonitoringConfigurationListAccountConfigurationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::MagicVisibilityMnmMnmConfigSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicVisibilityMnmMnmConfigSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicVisibilityMnmMnmRulesCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicNetworkMonitoringRulesListRulesArgs>
+    for MagicVisibilityMnmMnmRulesCollectionResponse
+{
+    fn generate_resource_id(&self, input: &MagicNetworkMonitoringRulesListRulesArgs) -> String {
+        format!(
+            "cloudflare::MagicVisibilityMnmMnmRulesCollectionResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicVisibilityMnmMnmRulesCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicVisibilityMnmMnmRulesSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicNetworkMonitoringRulesCreateRulesArgs>
+    for MagicVisibilityMnmMnmRulesSingleResponse
+{
+    fn generate_resource_id(&self, input: &MagicNetworkMonitoringRulesCreateRulesArgs) -> String {
+        format!(
+            "cloudflare::MagicVisibilityMnmMnmRulesSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicVisibilityMnmMnmRulesSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicVisibilityMnmMnmRuleAdvertisementSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicNetworkMonitoringRulesUpdateAdvertisementForRuleArgs>
+    for MagicVisibilityMnmMnmRuleAdvertisementSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MagicNetworkMonitoringRulesUpdateAdvertisementForRuleArgs,
+    ) -> String {
+        format!(
+            "cloudflare::MagicVisibilityMnmMnmRuleAdvertisementSingleResponse/{}/{}",
+            input.rule_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicVisibilityMnmMnmRuleAdvertisementSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicVisibilityMnmMnmVpcFlowsSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicNetworkMonitoringVpcFlowsGenerateAuthenticationTokenArgs>
+    for MagicVisibilityMnmMnmVpcFlowsSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MagicNetworkMonitoringVpcFlowsGenerateAuthenticationTokenArgs,
+    ) -> String {
+        format!(
+            "cloudflare::MagicVisibilityMnmMnmVpcFlowsSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicVisibilityMnmMnmVpcFlowsSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MTlsCertificateManagementListMTlsCertificatesArgs>
+    for TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &MTlsCertificateManagementListMTlsCertificatesArgs,
+    ) -> String {
+        format!("cloudflare::TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesCertificateResponseSinglePost.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MTlsCertificateManagementUploadMTlsCertificateArgs>
+    for TlsCertificatesAndHostnamesCertificateResponseSinglePost
+{
+    fn generate_resource_id(
+        &self,
+        input: &MTlsCertificateManagementUploadMTlsCertificateArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesCertificateResponseSinglePost/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesCertificateResponseSinglePost"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MTlsCertificateManagementGetMTlsCertificateArgs>
+    for TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &MTlsCertificateManagementGetMTlsCertificateArgs,
+    ) -> String {
+        format!("cloudflare::TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle/{}/{}", input.mtls_certificate_id, input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesMtlsManagementComponentsSchemasCertificateResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesAssociationResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MTlsCertificateManagementListMTlsCertificateAssociationsArgs>
+    for TlsCertificatesAndHostnamesAssociationResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &MTlsCertificateManagementListMTlsCertificateAssociationsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesAssociationResponseCollection/{}/{}",
+            input.mtls_certificate_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesAssociationResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for PayPerCrawlGetStripeConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PayPerCrawlCrawlerGetStripeConfigArgs>
+    for PayPerCrawlGetStripeConfigResponse
+{
+    fn generate_resource_id(&self, input: &PayPerCrawlCrawlerGetStripeConfigArgs) -> String {
+        format!(
+            "cloudflare::PayPerCrawlGetStripeConfigResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::PayPerCrawlGetStripeConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for PayPerCrawlCreateStripeConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PayPerCrawlCrawlerCreateStripeConfigArgs>
+    for PayPerCrawlCreateStripeConfigResponse
+{
+    fn generate_resource_id(&self, input: &PayPerCrawlCrawlerCreateStripeConfigArgs) -> String {
+        format!(
+            "cloudflare::PayPerCrawlCreateStripeConfigResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::PayPerCrawlCreateStripeConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for PayPerCrawlApiNoResultResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PayPerCrawlCrawlerDeleteStripeConfigArgs>
+    for PayPerCrawlApiNoResultResponse
+{
+    fn generate_resource_id(&self, input: &PayPerCrawlCrawlerDeleteStripeConfigArgs) -> String {
+        format!(
+            "cloudflare::PayPerCrawlApiNoResultResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::PayPerCrawlApiNoResultResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for PayPerCrawlQueryZonesCanBeEnabledResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PayPerCrawlQueryZonesCanBeEnabledArgs>
+    for PayPerCrawlQueryZonesCanBeEnabledResponse
+{
+    fn generate_resource_id(&self, input: &PayPerCrawlQueryZonesCanBeEnabledArgs) -> String {
+        format!(
+            "cloudflare::PayPerCrawlQueryZonesCanBeEnabledResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::PayPerCrawlQueryZonesCanBeEnabledResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicVisibilityPcapsPcapsCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicPcapCollectionListPacketCaptureRequestsArgs>
+    for MagicVisibilityPcapsPcapsCollectionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MagicPcapCollectionListPacketCaptureRequestsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::MagicVisibilityPcapsPcapsCollectionResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicVisibilityPcapsPcapsCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicVisibilityPcapsPcapsSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicPcapCollectionCreatePcapRequestArgs>
+    for MagicVisibilityPcapsPcapsSingleResponse
+{
+    fn generate_resource_id(&self, input: &MagicPcapCollectionCreatePcapRequestArgs) -> String {
+        format!(
+            "cloudflare::MagicVisibilityPcapsPcapsSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicVisibilityPcapsPcapsSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicVisibilityPcapsPcapsOwnershipCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicPcapCollectionListPcaPsBucketOwnershipArgs>
+    for MagicVisibilityPcapsPcapsOwnershipCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &MagicPcapCollectionListPcaPsBucketOwnershipArgs,
+    ) -> String {
+        format!(
+            "cloudflare::MagicVisibilityPcapsPcapsOwnershipCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicVisibilityPcapsPcapsOwnershipCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MagicVisibilityPcapsPcapsOwnershipSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MagicPcapCollectionAddBucketsForFullPacketCapturesArgs>
+    for MagicVisibilityPcapsPcapsOwnershipSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MagicPcapCollectionAddBucketsForFullPacketCapturesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::MagicVisibilityPcapsPcapsOwnershipSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MagicVisibilityPcapsPcapsOwnershipSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for MqApiV4Success.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<QueuesDeleteArgs> for MqApiV4Success {
+    fn generate_resource_id(&self, input: &QueuesDeleteArgs) -> String {
+        format!(
+            "cloudflare::MqApiV4Success/{}/{}",
+            input.queue_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::MqApiV4Success"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for R2V4Response.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<R2DeleteBucketArgs> for R2V4Response {
+    fn generate_resource_id(&self, input: &R2DeleteBucketArgs) -> String {
+        format!(
+            "cloudflare::R2V4Response/{}/{}",
+            input.bucket_name, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::R2V4Response"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for RealtimekitWebhooksListSuccessResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetAllWebhooksArgs> for RealtimekitWebhooksListSuccessResponse {
+    fn generate_resource_id(&self, input: &GetAllWebhooksArgs) -> String {
+        format!(
+            "cloudflare::RealtimekitWebhooksListSuccessResponse/{}/{}",
+            input.account_id, input.app_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::RealtimekitWebhooksListSuccessResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for RealtimekitWebhookSuccessResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AddWebhookArgs> for RealtimekitWebhookSuccessResponse {
+    fn generate_resource_id(&self, input: &AddWebhookArgs) -> String {
+        format!(
+            "cloudflare::RealtimekitWebhookSuccessResponse/{}/{}",
+            input.account_id, input.app_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::RealtimekitWebhookSuccessResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for RegistrarApiDomainResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RegistrarDomainsListDomainsArgs> for RegistrarApiDomainResponseCollection {
+    fn generate_resource_id(&self, input: &RegistrarDomainsListDomainsArgs) -> String {
+        format!(
+            "cloudflare::RegistrarApiDomainResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::RegistrarApiDomainResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for RegistrarApiDomainResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RegistrarDomainsGetDomainArgs> for RegistrarApiDomainResponseSingle {
+    fn generate_resource_id(&self, input: &RegistrarDomainsGetDomainArgs) -> String {
+        format!(
+            "cloudflare::RegistrarApiDomainResponseSingle/{}/{}",
+            input.domain_name, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::RegistrarApiDomainResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamCollectionRoleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountRolesListRolesArgs> for IamCollectionRoleResponse {
+    fn generate_resource_id(&self, input: &AccountRolesListRolesArgs) -> String {
+        format!("cloudflare::IamCollectionRoleResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamCollectionRoleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamSingleRoleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountRolesRoleDetailsArgs> for IamSingleRoleResponse {
+    fn generate_resource_id(&self, input: &AccountRolesRoleDetailsArgs) -> String {
+        format!(
+            "cloudflare::IamSingleRoleResponse/{}/{}",
+            input.role_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamSingleRoleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ListsListsResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListsGetListsArgs> for ListsListsResponseCollection {
+    fn generate_resource_id(&self, input: &ListsGetListsArgs) -> String {
+        format!(
+            "cloudflare::ListsListsResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ListsListsResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ListsListResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListsCreateAListArgs> for ListsListResponseCollection {
+    fn generate_resource_id(&self, input: &ListsCreateAListArgs) -> String {
+        format!(
+            "cloudflare::ListsListResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ListsListResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ListsBulkOperationResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListsGetBulkOperationStatusArgs> for ListsBulkOperationResponseSingle {
+    fn generate_resource_id(&self, input: &ListsGetBulkOperationStatusArgs) -> String {
+        format!(
+            "cloudflare::ListsBulkOperationResponseSingle/{}/{}",
+            input.operation_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ListsBulkOperationResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ListsListDeleteResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListsDeleteAListArgs> for ListsListDeleteResponseCollection {
+    fn generate_resource_id(&self, input: &ListsDeleteAListArgs) -> String {
+        format!(
+            "cloudflare::ListsListDeleteResponseCollection/{}/{}",
+            input.list_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ListsListDeleteResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ListsItemsListResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListsGetListItemsArgs> for ListsItemsListResponseCollection {
+    fn generate_resource_id(&self, input: &ListsGetListItemsArgs) -> String {
+        format!(
+            "cloudflare::ListsItemsListResponseCollection/{}/{}",
+            input.list_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ListsItemsListResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ListsListsAsyncResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListsCreateListItemsArgs> for ListsListsAsyncResponse {
+    fn generate_resource_id(&self, input: &ListsCreateListItemsArgs) -> String {
+        format!(
+            "cloudflare::ListsListsAsyncResponse/{}/{}",
+            input.list_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ListsListsAsyncResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ListsItemResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListsGetAListItemArgs> for ListsItemResponseSingle {
+    fn generate_resource_id(&self, input: &ListsGetAListItemArgs) -> String {
+        format!(
+            "cloudflare::ListsItemResponseSingle/{}/{}/{}",
+            input.item_id, input.list_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ListsItemResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for RumSiteResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebAnalyticsCreateSiteArgs> for RumSiteResponseSingle {
+    fn generate_resource_id(&self, input: &WebAnalyticsCreateSiteArgs) -> String {
+        format!("cloudflare::RumSiteResponseSingle/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::RumSiteResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for RumSitesResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebAnalyticsListSitesArgs> for RumSitesResponseCollection {
+    fn generate_resource_id(&self, input: &WebAnalyticsListSitesArgs) -> String {
+        format!(
+            "cloudflare::RumSitesResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::RumSitesResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for RumSiteTagResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebAnalyticsDeleteSiteArgs> for RumSiteTagResponseSingle {
+    fn generate_resource_id(&self, input: &WebAnalyticsDeleteSiteArgs) -> String {
+        format!(
+            "cloudflare::RumSiteTagResponseSingle/{}/{}",
+            input.account_id, input.site_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::RumSiteTagResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for RumRuleResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebAnalyticsCreateRuleArgs> for RumRuleResponseSingle {
+    fn generate_resource_id(&self, input: &WebAnalyticsCreateRuleArgs) -> String {
+        format!(
+            "cloudflare::RumRuleResponseSingle/{}/{}",
+            input.account_id, input.ruleset_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::RumRuleResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for RumRuleIdResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebAnalyticsDeleteRuleArgs> for RumRuleIdResponseSingle {
+    fn generate_resource_id(&self, input: &WebAnalyticsDeleteRuleArgs) -> String {
+        format!(
+            "cloudflare::RumRuleIdResponseSingle/{}/{}/{}",
+            input.account_id, input.ruleset_id, input.rule_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::RumRuleIdResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for RumRulesResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebAnalyticsListRulesArgs> for RumRulesResponseCollection {
+    fn generate_resource_id(&self, input: &WebAnalyticsListRulesArgs) -> String {
+        format!(
+            "cloudflare::RumRulesResponseCollection/{}/{}",
+            input.account_id, input.ruleset_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::RumRulesResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsAclListAcLsArgs>
+    for SecondaryDnsComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &SecondaryDnsAclListAcLsArgs) -> String {
+        format!(
+            "cloudflare::SecondaryDnsComponentsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsAclCreateAclArgs>
+    for SecondaryDnsComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(&self, input: &SecondaryDnsAclCreateAclArgs) -> String {
+        format!(
+            "cloudflare::SecondaryDnsComponentsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsComponentsSchemasIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsAclDeleteAclArgs> for SecondaryDnsComponentsSchemasIdResponse {
+    fn generate_resource_id(&self, input: &SecondaryDnsAclDeleteAclArgs) -> String {
+        format!(
+            "cloudflare::SecondaryDnsComponentsSchemasIdResponse/{}/{}",
+            input.acl_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsComponentsSchemasIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsPeerListPeersArgs> for SecondaryDnsSchemasResponseCollection {
+    fn generate_resource_id(&self, input: &SecondaryDnsPeerListPeersArgs) -> String {
+        format!(
+            "cloudflare::SecondaryDnsSchemasResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsPeerCreatePeerArgs> for SecondaryDnsSchemasSingleResponse {
+    fn generate_resource_id(&self, input: &SecondaryDnsPeerCreatePeerArgs) -> String {
+        format!(
+            "cloudflare::SecondaryDnsSchemasSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsTsigListTsiGsArgs> for SecondaryDnsResponseCollection {
+    fn generate_resource_id(&self, input: &SecondaryDnsTsigListTsiGsArgs) -> String {
+        format!(
+            "cloudflare::SecondaryDnsResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsTsigCreateTsigArgs> for SecondaryDnsSingleResponse {
+    fn generate_resource_id(&self, input: &SecondaryDnsTsigCreateTsigArgs) -> String {
+        format!(
+            "cloudflare::SecondaryDnsSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsSchemasIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsTsigDeleteTsigArgs> for SecondaryDnsSchemasIdResponse {
+    fn generate_resource_id(&self, input: &SecondaryDnsTsigDeleteTsigArgs) -> String {
+        format!(
+            "cloudflare::SecondaryDnsSchemasIdResponse/{}/{}",
+            input.tsig_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsSchemasIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecretsStoreQuotaResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretsStoreQuotaArgs> for SecretsStoreQuotaResponse {
+    fn generate_resource_id(&self, input: &SecretsStoreQuotaArgs) -> String {
+        format!("cloudflare::SecretsStoreQuotaResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecretsStoreQuotaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecretsStoreStoresResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretsStoreListArgs> for SecretsStoreStoresResponseCollection {
+    fn generate_resource_id(&self, input: &SecretsStoreListArgs) -> String {
+        format!(
+            "cloudflare::SecretsStoreStoresResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecretsStoreStoresResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecretsStoreStoreResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretsStoreGetStoreByIdArgs> for SecretsStoreStoreResponse {
+    fn generate_resource_id(&self, input: &SecretsStoreGetStoreByIdArgs) -> String {
+        format!(
+            "cloudflare::SecretsStoreStoreResponse/{}/{}",
+            input.account_id, input.store_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecretsStoreStoreResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecretsStoreSecretsResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretsStoreSecretsListArgs> for SecretsStoreSecretsResponseCollection {
+    fn generate_resource_id(&self, input: &SecretsStoreSecretsListArgs) -> String {
+        format!(
+            "cloudflare::SecretsStoreSecretsResponseCollection/{}/{}",
+            input.account_id, input.store_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecretsStoreSecretsResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecretsStoreSecretResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecretsStoreGetByIdArgs> for SecretsStoreSecretResponse {
+    fn generate_resource_id(&self, input: &SecretsStoreGetByIdArgs) -> String {
+        format!(
+            "cloudflare::SecretsStoreSecretResponse/{}/{}/{}",
+            input.account_id, input.store_id, input.secret_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecretsStoreSecretResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourceSharingShareResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SharesListArgs> for ResourceSharingShareResponseCollection {
+    fn generate_resource_id(&self, input: &SharesListArgs) -> String {
+        format!(
+            "cloudflare::ResourceSharingShareResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ResourceSharingShareResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourceSharingShareResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ShareCreateArgs> for ResourceSharingShareResponseSingle {
+    fn generate_resource_id(&self, input: &ShareCreateArgs) -> String {
+        format!(
+            "cloudflare::ResourceSharingShareResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ResourceSharingShareResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourceSharingShareRecipientResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ShareRecipientsListArgs>
+    for ResourceSharingShareRecipientResponseCollection
+{
+    fn generate_resource_id(&self, input: &ShareRecipientsListArgs) -> String {
+        format!(
+            "cloudflare::ResourceSharingShareRecipientResponseCollection/{}/{}",
+            input.account_id, input.share_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ResourceSharingShareRecipientResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourceSharingShareRecipientResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ShareRecipientCreateArgs> for ResourceSharingShareRecipientResponseSingle {
+    fn generate_resource_id(&self, input: &ShareRecipientCreateArgs) -> String {
+        format!(
+            "cloudflare::ResourceSharingShareRecipientResponseSingle/{}/{}",
+            input.account_id, input.share_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ResourceSharingShareRecipientResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourceSharingShareResourceResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ShareResourcesListArgs> for ResourceSharingShareResourceResponseCollection {
+    fn generate_resource_id(&self, input: &ShareResourcesListArgs) -> String {
+        format!(
+            "cloudflare::ResourceSharingShareResourceResponseCollection/{}/{}",
+            input.account_id, input.share_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ResourceSharingShareResourceResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourceSharingShareResourceResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ShareResourceCreateArgs> for ResourceSharingShareResourceResponseSingle {
+    fn generate_resource_id(&self, input: &ShareResourceCreateArgs) -> String {
+        format!(
+            "cloudflare::ResourceSharingShareResourceResponseSingle/{}/{}",
+            input.account_id, input.share_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ResourceSharingShareResourceResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamSsoConnectorCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetAllSsoConnectorsArgs> for IamSsoConnectorCollectionResponse {
+    fn generate_resource_id(&self, input: &GetAllSsoConnectorsArgs) -> String {
+        format!(
+            "cloudflare::IamSsoConnectorCollectionResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamSsoConnectorCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamSsoConnectorResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<InitNewSsoConnectorArgs> for IamSsoConnectorResponse {
+    fn generate_resource_id(&self, input: &InitNewSsoConnectorArgs) -> String {
+        format!("cloudflare::IamSsoConnectorResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamSsoConnectorResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamApiResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BeginSsoConnectorVerificationArgs> for IamApiResponseSingle {
+    fn generate_resource_id(&self, input: &BeginSsoConnectorVerificationArgs) -> String {
+        format!(
+            "cloudflare::IamApiResponseSingle/{}/{}",
+            input.account_id, input.sso_connector_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamApiResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersKvApiResponseCommonNoResult.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkersKvNamespaceRemoveANamespaceArgs>
+    for WorkersKvApiResponseCommonNoResult
+{
+    fn generate_resource_id(&self, input: &WorkersKvNamespaceRemoveANamespaceArgs) -> String {
+        format!(
+            "cloudflare::WorkersKvApiResponseCommonNoResult/{}/{}",
+            input.namespace_id, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersKvApiResponseCommonNoResult"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamVideoResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamVideosListVideosArgs> for StreamVideoResponseCollection {
+    fn generate_resource_id(&self, input: &StreamVideosListVideosArgs) -> String {
+        format!(
+            "cloudflare::StreamVideoResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamVideoResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamClipResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamVideoClippingClipVideosGivenAStartAndEndTimeArgs>
+    for StreamClipResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &StreamVideoClippingClipVideosGivenAStartAndEndTimeArgs,
+    ) -> String {
+        format!("cloudflare::StreamClipResponseSingle/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamClipResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamVideoResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamVideosUploadVideosFromAUrlArgs> for StreamVideoResponseSingle {
+    fn generate_resource_id(&self, input: &StreamVideosUploadVideosFromAUrlArgs) -> String {
+        format!("cloudflare::StreamVideoResponseSingle/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamVideoResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamDirectUploadResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamVideosUploadVideosViaDirectUploadUrLsArgs>
+    for StreamDirectUploadResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &StreamVideosUploadVideosViaDirectUploadUrLsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::StreamDirectUploadResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamDirectUploadResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamKeyResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamSigningKeysListSigningKeysArgs> for StreamKeyResponseCollection {
+    fn generate_resource_id(&self, input: &StreamSigningKeysListSigningKeysArgs) -> String {
+        format!(
+            "cloudflare::StreamKeyResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamKeyResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamKeyGenerationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamSigningKeysCreateSigningKeysArgs> for StreamKeyGenerationResponse {
+    fn generate_resource_id(&self, input: &StreamSigningKeysCreateSigningKeysArgs) -> String {
+        format!(
+            "cloudflare::StreamKeyGenerationResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamKeyGenerationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamDeletedResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamSigningKeysDeleteSigningKeysArgs> for StreamDeletedResponse {
+    fn generate_resource_id(&self, input: &StreamSigningKeysDeleteSigningKeysArgs) -> String {
+        format!(
+            "cloudflare::StreamDeletedResponse/{}/{}",
+            input.identifier, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamDeletedResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamLiveInputResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamLiveInputsListLiveInputsArgs> for StreamLiveInputResponseCollection {
+    fn generate_resource_id(&self, input: &StreamLiveInputsListLiveInputsArgs) -> String {
+        format!(
+            "cloudflare::StreamLiveInputResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamLiveInputResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamLiveInputResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamLiveInputsCreateALiveInputArgs> for StreamLiveInputResponseSingle {
+    fn generate_resource_id(&self, input: &StreamLiveInputsCreateALiveInputArgs) -> String {
+        format!(
+            "cloudflare::StreamLiveInputResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamLiveInputResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamOutputResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamLiveInputsListAllOutputsAssociatedWithASpecifiedLiveInputArgs>
+    for StreamOutputResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &StreamLiveInputsListAllOutputsAssociatedWithASpecifiedLiveInputArgs,
+    ) -> String {
+        format!(
+            "cloudflare::StreamOutputResponseCollection/{}/{}",
+            input.live_input_identifier, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamOutputResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamOutputResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamLiveInputsCreateANewOutputConnectedToALiveInputArgs>
+    for StreamOutputResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &StreamLiveInputsCreateANewOutputConnectedToALiveInputArgs,
+    ) -> String {
+        format!(
+            "cloudflare::StreamOutputResponseSingle/{}/{}",
+            input.live_input_identifier, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamOutputResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamStorageUseResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamVideosStorageUsageArgs> for StreamStorageUseResponse {
+    fn generate_resource_id(&self, input: &StreamVideosStorageUsageArgs) -> String {
+        format!("cloudflare::StreamStorageUseResponse/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamStorageUseResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamWatermarkResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamWatermarkProfileListWatermarkProfilesArgs>
+    for StreamWatermarkResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &StreamWatermarkProfileListWatermarkProfilesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::StreamWatermarkResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamWatermarkResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamWatermarkResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamWatermarkProfileCreateWatermarkProfilesViaBasicUploadArgs>
+    for StreamWatermarkResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &StreamWatermarkProfileCreateWatermarkProfilesViaBasicUploadArgs,
+    ) -> String {
+        format!(
+            "cloudflare::StreamWatermarkResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamWatermarkResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamWebhookResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamWebhookViewWebhooksArgs> for StreamWebhookResponseSingle {
+    fn generate_resource_id(&self, input: &StreamWebhookViewWebhooksArgs) -> String {
+        format!(
+            "cloudflare::StreamWebhookResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamWebhookResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamListAudioTrackResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ListAudioTracksArgs> for StreamListAudioTrackResponse {
+    fn generate_resource_id(&self, input: &ListAudioTracksArgs) -> String {
+        format!(
+            "cloudflare::StreamListAudioTrackResponse/{}/{}",
+            input.account_id, input.identifier
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamListAudioTrackResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamAddAudioTrackResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AddAudioTrackArgs> for StreamAddAudioTrackResponse {
+    fn generate_resource_id(&self, input: &AddAudioTrackArgs) -> String {
+        format!(
+            "cloudflare::StreamAddAudioTrackResponse/{}/{}",
+            input.account_id, input.identifier
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamAddAudioTrackResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamLanguageResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamSubtitlesCaptionsListCaptionsOrSubtitlesArgs>
+    for StreamLanguageResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &StreamSubtitlesCaptionsListCaptionsOrSubtitlesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::StreamLanguageResponseCollection/{}/{}",
+            input.identifier, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamLanguageResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamLanguageResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamSubtitlesCaptionsGetCaptionOrSubtitleForLanguageArgs>
+    for StreamLanguageResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &StreamSubtitlesCaptionsGetCaptionOrSubtitleForLanguageArgs,
+    ) -> String {
+        format!(
+            "cloudflare::StreamLanguageResponseSingle/{}/{}/{}",
+            input.language, input.identifier, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamLanguageResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamDownloadsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamMP4DownloadsListDownloadsArgs> for StreamDownloadsResponse {
+    fn generate_resource_id(&self, input: &StreamMP4DownloadsListDownloadsArgs) -> String {
+        format!(
+            "cloudflare::StreamDownloadsResponse/{}/{}",
+            input.identifier, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamDownloadsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamDownloadsResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamMP4DownloadsCreateDownloadsArgs> for StreamDownloadsResponseSingle {
+    fn generate_resource_id(&self, input: &StreamMP4DownloadsCreateDownloadsArgs) -> String {
+        format!(
+            "cloudflare::StreamDownloadsResponseSingle/{}/{}",
+            input.identifier, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamDownloadsResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for StreamSignedTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<StreamVideosCreateSignedUrlTokensForVideosArgs>
+    for StreamSignedTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &StreamVideosCreateSignedUrlTokensForVideosArgs,
+    ) -> String {
+        format!(
+            "cloudflare::StreamSignedTokenResponse/{}/{}",
+            input.identifier, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::StreamSignedTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for BillSubsApiAccountSubscriptionResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountSubscriptionsListSubscriptionsArgs>
+    for BillSubsApiAccountSubscriptionResponseCollection
+{
+    fn generate_resource_id(&self, input: &AccountSubscriptionsListSubscriptionsArgs) -> String {
+        format!(
+            "cloudflare::BillSubsApiAccountSubscriptionResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::BillSubsApiAccountSubscriptionResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for BillSubsApiAccountSubscriptionResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountSubscriptionsCreateSubscriptionArgs>
+    for BillSubsApiAccountSubscriptionResponseSingle
+{
+    fn generate_resource_id(&self, input: &AccountSubscriptionsCreateSubscriptionArgs) -> String {
+        format!(
+            "cloudflare::BillSubsApiAccountSubscriptionResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::BillSubsApiAccountSubscriptionResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourceTaggingTaggedResourceResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagsGetArgs> for ResourceTaggingTaggedResourceResponseSingle {
+    fn generate_resource_id(&self, input: &TagsGetArgs) -> String {
+        format!(
+            "cloudflare::ResourceTaggingTaggedResourceResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ResourceTaggingTaggedResourceResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourceTaggingTagKeysResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagsListKeysArgs> for ResourceTaggingTagKeysResponseCollection {
+    fn generate_resource_id(&self, input: &TagsListKeysArgs) -> String {
+        format!(
+            "cloudflare::ResourceTaggingTagKeysResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ResourceTaggingTagKeysResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourceTaggingTaggedResourceResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagsListArgs> for ResourceTaggingTaggedResourceResponseCollection {
+    fn generate_resource_id(&self, input: &TagsListArgs) -> String {
+        format!(
+            "cloudflare::ResourceTaggingTaggedResourceResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ResourceTaggingTaggedResourceResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourceTaggingTagValuesResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TagsListValuesArgs> for ResourceTaggingTagValuesResponseCollection {
+    fn generate_resource_id(&self, input: &TagsListValuesArgs) -> String {
+        format!(
+            "cloudflare::ResourceTaggingTagValuesResponseCollection/{}/{}",
+            input.account_id, input.tag_key
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ResourceTaggingTagValuesResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelTeamnetResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TunnelRouteListTunnelRoutesArgs> for TunnelTeamnetResponseCollection {
+    fn generate_resource_id(&self, input: &TunnelRouteListTunnelRoutesArgs) -> String {
+        format!(
+            "cloudflare::TunnelTeamnetResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelTeamnetResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelRouteResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TunnelRouteCreateATunnelRouteArgs> for TunnelRouteResponseSingle {
+    fn generate_resource_id(&self, input: &TunnelRouteCreateATunnelRouteArgs) -> String {
+        format!("cloudflare::TunnelRouteResponseSingle/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelRouteResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelTeamnetResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TunnelRouteGetTunnelRouteByIpArgs> for TunnelTeamnetResponseSingle {
+    fn generate_resource_id(&self, input: &TunnelRouteGetTunnelRouteByIpArgs) -> String {
+        format!(
+            "cloudflare::TunnelTeamnetResponseSingle/{}/{}",
+            input.ip, input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelTeamnetResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelVnetResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TunnelVirtualNetworkListVirtualNetworksArgs>
+    for TunnelVnetResponseCollection
+{
+    fn generate_resource_id(&self, input: &TunnelVirtualNetworkListVirtualNetworksArgs) -> String {
+        format!(
+            "cloudflare::TunnelVnetResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelVnetResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelVnetResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TunnelVirtualNetworkCreateAVirtualNetworkArgs>
+    for TunnelVnetResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &TunnelVirtualNetworkCreateAVirtualNetworkArgs,
+    ) -> String {
+        format!("cloudflare::TunnelVnetResponseSingle/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelVnetResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamCollectionTokensResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountApiTokensListTokensArgs> for IamCollectionTokensResponse {
+    fn generate_resource_id(&self, input: &AccountApiTokensListTokensArgs) -> String {
+        format!(
+            "cloudflare::IamCollectionTokensResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamCollectionTokensResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamSingleTokenCreateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountApiTokensCreateTokenArgs> for IamSingleTokenCreateResponse {
+    fn generate_resource_id(&self, input: &AccountApiTokensCreateTokenArgs) -> String {
+        format!(
+            "cloudflare::IamSingleTokenCreateResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamSingleTokenCreateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamPermissionsGroupResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountApiTokensListPermissionGroupsArgs>
+    for IamPermissionsGroupResponseCollection
+{
+    fn generate_resource_id(&self, input: &AccountApiTokensListPermissionGroupsArgs) -> String {
+        format!(
+            "cloudflare::IamPermissionsGroupResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamPermissionsGroupResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamTokenVerifyResponseSingleSegment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountApiTokensVerifyTokenArgs> for IamTokenVerifyResponseSingleSegment {
+    fn generate_resource_id(&self, input: &AccountApiTokensVerifyTokenArgs) -> String {
+        format!(
+            "cloudflare::IamTokenVerifyResponseSingleSegment/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamTokenVerifyResponseSingleSegment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamSingleTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountApiTokensTokenDetailsArgs> for IamSingleTokenResponse {
+    fn generate_resource_id(&self, input: &AccountApiTokensTokenDetailsArgs) -> String {
+        format!(
+            "cloudflare::IamSingleTokenResponse/{}/{}",
+            input.account_id, input.token_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamSingleTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamResponseSingleValue.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccountApiTokensRollTokenArgs> for IamResponseSingleValue {
+    fn generate_resource_id(&self, input: &AccountApiTokensRollTokenArgs) -> String {
+        format!(
+            "cloudflare::IamResponseSingleValue/{}/{}",
+            input.account_id, input.token_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamResponseSingleValue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelTunnelResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareTunnelListAllTunnelsArgs> for TunnelTunnelResponseCollection {
+    fn generate_resource_id(&self, input: &CloudflareTunnelListAllTunnelsArgs) -> String {
+        format!(
+            "cloudflare::TunnelTunnelResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelTunnelResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WaitingroomResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WaitingRoomListWaitingRoomsAccountArgs> for WaitingroomResponseCollection {
+    fn generate_resource_id(&self, input: &WaitingRoomListWaitingRoomsAccountArgs) -> String {
+        format!(
+            "cloudflare::WaitingroomResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WaitingroomResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelWarpConnectorResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareTunnelListWarpConnectorTunnelsArgs>
+    for TunnelWarpConnectorResponseCollection
+{
+    fn generate_resource_id(&self, input: &CloudflareTunnelListWarpConnectorTunnelsArgs) -> String {
+        format!(
+            "cloudflare::TunnelWarpConnectorResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelWarpConnectorResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelWarpConnectorResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareTunnelCreateAWarpConnectorTunnelArgs>
+    for TunnelWarpConnectorResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudflareTunnelCreateAWarpConnectorTunnelArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TunnelWarpConnectorResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelWarpConnectorResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelTunnelWarpConnectorConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareTunnelListWarpConnectorTunnelConnectionsArgs>
+    for TunnelTunnelWarpConnectorConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudflareTunnelListWarpConnectorTunnelConnectionsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TunnelTunnelWarpConnectorConnectionsResponse/{}/{}",
+            input.account_id, input.tunnel_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelTunnelWarpConnectorConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelTunnelWarpConnectorClientResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudflareTunnelGetWarpConnectorTunnelConnectorArgs>
+    for TunnelTunnelWarpConnectorClientResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudflareTunnelGetWarpConnectorTunnelConnectorArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TunnelTunnelWarpConnectorClientResponse/{}/{}/{}",
+            input.account_id, input.tunnel_id, input.connector_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelTunnelWarpConnectorClientResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersCompletedUploadAssetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkerAssetsUploadArgs> for WorkersCompletedUploadAssetsResponse {
+    fn generate_resource_id(&self, input: &WorkerAssetsUploadArgs) -> String {
+        format!(
+            "cloudflare::WorkersCompletedUploadAssetsResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersCompletedUploadAssetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersNamespaceListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NamespaceWorkerListArgs> for WorkersNamespaceListResponse {
+    fn generate_resource_id(&self, input: &NamespaceWorkerListArgs) -> String {
+        format!(
+            "cloudflare::WorkersNamespaceListResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersNamespaceListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersNamespaceSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NamespaceWorkerCreateArgs> for WorkersNamespaceSingleResponse {
+    fn generate_resource_id(&self, input: &NamespaceWorkerCreateArgs) -> String {
+        format!(
+            "cloudflare::WorkersNamespaceSingleResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersNamespaceSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersApiResponseNullResult.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NamespaceWorkerDeleteNamespaceArgs> for WorkersApiResponseNullResult {
+    fn generate_resource_id(&self, input: &NamespaceWorkerDeleteNamespaceArgs) -> String {
+        format!(
+            "cloudflare::WorkersApiResponseNullResult/{}/{}",
+            input.account_id, input.dispatch_namespace
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersApiResponseNullResult"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersNamespaceScriptDeleteBulkResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NamespaceWorkerDeleteScriptsArgs>
+    for WorkersNamespaceScriptDeleteBulkResponse
+{
+    fn generate_resource_id(&self, input: &NamespaceWorkerDeleteScriptsArgs) -> String {
+        format!(
+            "cloudflare::WorkersNamespaceScriptDeleteBulkResponse/{}/{}",
+            input.account_id, input.dispatch_namespace
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersNamespaceScriptDeleteBulkResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersNamespaceScriptResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NamespaceWorkerScriptWorkerDetailsArgs>
+    for WorkersNamespaceScriptResponseSingle
+{
+    fn generate_resource_id(&self, input: &NamespaceWorkerScriptWorkerDetailsArgs) -> String {
+        format!(
+            "cloudflare::WorkersNamespaceScriptResponseSingle/{}/{}/{}",
+            input.account_id, input.dispatch_namespace, input.script_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersNamespaceScriptResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersCreateAssetsUploadSessionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NamespaceWorkerScriptUpdateCreateAssetsUploadSessionArgs>
+    for WorkersCreateAssetsUploadSessionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NamespaceWorkerScriptUpdateCreateAssetsUploadSessionArgs,
+    ) -> String {
+        format!(
+            "cloudflare::WorkersCreateAssetsUploadSessionResponse/{}/{}/{}",
+            input.account_id, input.dispatch_namespace, input.script_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersCreateAssetsUploadSessionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersScriptResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NamespaceWorkerPutScriptContentArgs> for WorkersScriptResponseSingle {
+    fn generate_resource_id(&self, input: &NamespaceWorkerPutScriptContentArgs) -> String {
+        format!(
+            "cloudflare::WorkersScriptResponseSingle/{}/{}/{}",
+            input.account_id, input.dispatch_namespace, input.script_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersScriptResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersApiResponseCommon.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkersDomainsDeleteArgs> for WorkersApiResponseCommon {
+    fn generate_resource_id(&self, input: &WorkersDomainsDeleteArgs) -> String {
+        format!(
+            "cloudflare::WorkersApiResponseCommon/{}/{}",
+            input.account_id, input.domain_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersApiResponseCommon"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersScriptResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkerScriptListWorkersArgs> for WorkersScriptResponseCollection {
+    fn generate_resource_id(&self, input: &WorkerScriptListWorkersArgs) -> String {
+        format!(
+            "cloudflare::WorkersScriptResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersScriptResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersScriptSettingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkerScriptSettingsGetSettingsArgs> for WorkersScriptSettingsResponse {
+    fn generate_resource_id(&self, input: &WorkerScriptSettingsGetSettingsArgs) -> String {
+        format!(
+            "cloudflare::WorkersScriptSettingsResponse/{}/{}",
+            input.account_id, input.script_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersScriptSettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersScriptAndVersionSettingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkerScriptGetSettingsArgs> for WorkersScriptAndVersionSettingsResponse {
+    fn generate_resource_id(&self, input: &WorkerScriptGetSettingsArgs) -> String {
+        format!(
+            "cloudflare::WorkersScriptAndVersionSettingsResponse/{}/{}",
+            input.account_id, input.script_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersScriptAndVersionSettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersUsageModelResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkerScriptFetchUsageModelArgs> for WorkersUsageModelResponse {
+    fn generate_resource_id(&self, input: &WorkerScriptFetchUsageModelArgs) -> String {
+        format!(
+            "cloudflare::WorkersUsageModelResponse/{}/{}",
+            input.account_id, input.script_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersUsageModelResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersVersionsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkerVersionsListVersionsArgs> for WorkersVersionsListResponse {
+    fn generate_resource_id(&self, input: &WorkerVersionsListVersionsArgs) -> String {
+        format!(
+            "cloudflare::WorkersVersionsListResponse/{}/{}",
+            input.account_id, input.script_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersVersionsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersVersionsUploadResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkerVersionsUploadVersionArgs> for WorkersVersionsUploadResponse {
+    fn generate_resource_id(&self, input: &WorkerVersionsUploadVersionArgs) -> String {
+        format!(
+            "cloudflare::WorkersVersionsUploadResponse/{}/{}",
+            input.account_id, input.script_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersVersionsUploadResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkersVersionsSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WorkerVersionsGetVersionDetailArgs> for WorkersVersionsSingleResponse {
+    fn generate_resource_id(&self, input: &WorkerVersionsGetVersionDetailArgs) -> String {
+        format!(
+            "cloudflare::WorkersVersionsSingleResponse/{}/{}/{}",
+            input.account_id, input.script_name, input.version_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WorkersVersionsSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelZeroTrustConnectivitySettingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustAccountsGetConnectivitySettingsArgs>
+    for TunnelZeroTrustConnectivitySettingsResponse
+{
+    fn generate_resource_id(&self, input: &ZeroTrustAccountsGetConnectivitySettingsArgs) -> String {
+        format!(
+            "cloudflare::TunnelZeroTrustConnectivitySettingsResponse/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelZeroTrustConnectivitySettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelHostnameRouteResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustNetworksRouteHostnameListArgs>
+    for TunnelHostnameRouteResponseCollection
+{
+    fn generate_resource_id(&self, input: &ZeroTrustNetworksRouteHostnameListArgs) -> String {
+        format!(
+            "cloudflare::TunnelHostnameRouteResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelHostnameRouteResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelHostnameRouteResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustNetworksRouteHostnameCreateArgs>
+    for TunnelHostnameRouteResponseSingle
+{
+    fn generate_resource_id(&self, input: &ZeroTrustNetworksRouteHostnameCreateArgs) -> String {
+        format!(
+            "cloudflare::TunnelHostnameRouteResponseSingle/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelHostnameRouteResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelSubnetResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustNetworksSubnetsListArgs> for TunnelSubnetResponseCollection {
+    fn generate_resource_id(&self, input: &ZeroTrustNetworksSubnetsListArgs) -> String {
+        format!(
+            "cloudflare::TunnelSubnetResponseCollection/{}",
+            input.account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelSubnetResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelSubnetResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustNetworksSubnetUpdateCloudflareSourceArgs>
+    for TunnelSubnetResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZeroTrustNetworksSubnetUpdateCloudflareSourceArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TunnelSubnetResponseSingle/{}/{}",
+            input.account_id, input.address_family
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelSubnetResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelSubnetResponseSingleNullable.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZeroTrustNetworksSubnetDeleteWarpArgs>
+    for TunnelSubnetResponseSingleNullable
+{
+    fn generate_resource_id(&self, input: &ZeroTrustNetworksSubnetDeleteWarpArgs) -> String {
+        format!(
+            "cloudflare::TunnelSubnetResponseSingleNullable/{}/{}",
+            input.account_id, input.subnet_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TunnelSubnetResponseSingleNullable"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesSchemasCertificateResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OriginCaListCertificatesArgs>
+    for TlsCertificatesAndHostnamesSchemasCertificateResponseCollection
+{
+    fn generate_resource_id(&self, input: &OriginCaListCertificatesArgs) -> String {
+        "cloudflare::TlsCertificatesAndHostnamesSchemasCertificateResponseCollection".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesSchemasCertificateResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesSchemasCertificateResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OriginCaCreateCertificateArgs>
+    for TlsCertificatesAndHostnamesSchemasCertificateResponseSingle
+{
+    fn generate_resource_id(&self, input: &OriginCaCreateCertificateArgs) -> String {
+        "cloudflare::TlsCertificatesAndHostnamesSchemasCertificateResponseSingle".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesSchemasCertificateResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesCertificateRevokeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OriginCaRevokeCertificateArgs>
+    for TlsCertificatesAndHostnamesCertificateRevokeResponse
+{
+    fn generate_resource_id(&self, input: &OriginCaRevokeCertificateArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesCertificateRevokeResponse/{}",
+            input.certificate_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesCertificateRevokeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamSingleMembershipResponseWithPolicies.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UserSAccountMembershipsMembershipDetailsArgs>
+    for IamSingleMembershipResponseWithPolicies
+{
+    fn generate_resource_id(&self, input: &UserSAccountMembershipsMembershipDetailsArgs) -> String {
+        format!(
+            "cloudflare::IamSingleMembershipResponseWithPolicies/{}",
+            input.membership_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamSingleMembershipResponseWithPolicies"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AaaAuditLogsV2OrgResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AuditLogsV2GetOrganizationAuditLogsArgs>
+    for AaaAuditLogsV2OrgResponseCollection
+{
+    fn generate_resource_id(&self, input: &AuditLogsV2GetOrganizationAuditLogsArgs) -> String {
+        format!(
+            "cloudflare::AaaAuditLogsV2OrgResponseCollection/{}",
+            input.organization_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AaaAuditLogsV2OrgResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for OrganizationsApiProfileResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OrganizationsGetProfileArgs> for OrganizationsApiProfileResponse {
+    fn generate_resource_id(&self, input: &OrganizationsGetProfileArgs) -> String {
+        format!(
+            "cloudflare::OrganizationsApiProfileResponse/{}",
+            input.organization_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::OrganizationsApiProfileResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamSingleUserResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UserUserDetailsArgs> for IamSingleUserResponse {
+    fn generate_resource_id(&self, input: &UserUserDetailsArgs) -> String {
+        "cloudflare::IamSingleUserResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamSingleUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for BillSubsApiBillingHistoryCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UserBillingHistoryDeprecatedBillingHistoryDetailsArgs>
+    for BillSubsApiBillingHistoryCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &UserBillingHistoryDeprecatedBillingHistoryDetailsArgs,
+    ) -> String {
+        "cloudflare::BillSubsApiBillingHistoryCollection".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::BillSubsApiBillingHistoryCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallRuleCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAccessRulesForAUserListIpAccessRulesArgs>
+    for FirewallRuleCollectionResponse
+{
+    fn generate_resource_id(&self, input: &IpAccessRulesForAUserListIpAccessRulesArgs) -> String {
+        "cloudflare::FirewallRuleCollectionResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallRuleCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallRuleSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAccessRulesForAUserCreateAnIpAccessRuleArgs>
+    for FirewallRuleSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAccessRulesForAUserCreateAnIpAccessRuleArgs,
+    ) -> String {
+        "cloudflare::FirewallRuleSingleResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallRuleSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallRuleSingleIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IpAccessRulesForAUserDeleteAnIpAccessRuleArgs>
+    for FirewallRuleSingleIdResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IpAccessRulesForAUserDeleteAnIpAccessRuleArgs,
+    ) -> String {
+        format!("cloudflare::FirewallRuleSingleIdResponse/{}", input.rule_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallRuleSingleIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamSchemasCollectionInviteResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UserSInvitesListInvitationsArgs> for IamSchemasCollectionInviteResponse {
+    fn generate_resource_id(&self, input: &UserSInvitesListInvitationsArgs) -> String {
+        "cloudflare::IamSchemasCollectionInviteResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamSchemasCollectionInviteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamSingleInviteResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UserSInvitesInvitationDetailsArgs> for IamSingleInviteResponse {
+    fn generate_resource_id(&self, input: &UserSInvitesInvitationDetailsArgs) -> String {
+        format!("cloudflare::IamSingleInviteResponse/{}", input.invite_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamSingleInviteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LoadBalancerHealthcheckEventsListHealthcheckEventsArgs>
+    for LoadBalancingComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &LoadBalancerHealthcheckEventsListHealthcheckEventsArgs,
+    ) -> String {
+        "cloudflare::LoadBalancingComponentsSchemasResponseCollection".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamCollectionOrganizationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UserSOrganizationsListOrganizationsArgs>
+    for IamCollectionOrganizationResponse
+{
+    fn generate_resource_id(&self, input: &UserSOrganizationsListOrganizationsArgs) -> String {
+        "cloudflare::IamCollectionOrganizationResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamCollectionOrganizationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for IamSingleOrganizationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UserSOrganizationsOrganizationDetailsArgs>
+    for IamSingleOrganizationResponse
+{
+    fn generate_resource_id(&self, input: &UserSOrganizationsOrganizationDetailsArgs) -> String {
+        format!(
+            "cloudflare::IamSingleOrganizationResponse/{}",
+            input.organization_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::IamSingleOrganizationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for BillSubsApiUserSubscriptionResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UserSubscriptionGetUserSubscriptionsArgs>
+    for BillSubsApiUserSubscriptionResponseCollection
+{
+    fn generate_resource_id(&self, input: &UserSubscriptionGetUserSubscriptionsArgs) -> String {
+        "cloudflare::BillSubsApiUserSubscriptionResponseCollection".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::BillSubsApiUserSubscriptionResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for BillSubsApiUserSubscriptionResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UserSubscriptionUpdateUserSubscriptionArgs>
+    for BillSubsApiUserSubscriptionResponseSingle
+{
+    fn generate_resource_id(&self, input: &UserSubscriptionUpdateUserSubscriptionArgs) -> String {
+        format!(
+            "cloudflare::BillSubsApiUserSubscriptionResponseSingle/{}",
+            input.identifier
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::BillSubsApiUserSubscriptionResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZoneAnalyticsApiColoResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneAnalyticsDeprecatedGetAnalyticsByCoLocationsArgs>
+    for ZoneAnalyticsApiColoResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneAnalyticsDeprecatedGetAnalyticsByCoLocationsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ZoneAnalyticsApiColoResponse/{}",
+            input.zone_identifier
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZoneAnalyticsApiColoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZoneAnalyticsApiDashboardResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneAnalyticsDeprecatedGetDashboardArgs>
+    for ZoneAnalyticsApiDashboardResponse
+{
+    fn generate_resource_id(&self, input: &ZoneAnalyticsDeprecatedGetDashboardArgs) -> String {
+        format!(
+            "cloudflare::ZoneAnalyticsApiDashboardResponse/{}",
+            input.zone_identifier
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZoneAnalyticsApiDashboardResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomPagesCustomPage.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomPagesForAZoneGetACustomPageArgs> for CustomPagesCustomPage {
+    fn generate_resource_id(&self, input: &CustomPagesForAZoneGetACustomPageArgs) -> String {
+        format!(
+            "cloudflare::CustomPagesCustomPage/{}/{}",
+            input.identifier, input.zone_identifier
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CustomPagesCustomPage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZonesApiResponseSingleId.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Zones0DeleteArgs> for ZonesApiResponseSingleId {
+    fn generate_resource_id(&self, input: &Zones0DeleteArgs) -> String {
+        format!("cloudflare::ZonesApiResponseSingleId/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZonesApiResponseSingleId"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessAppsComponentsSchemasResponseCollection2.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessApplicationsListAccessApplicationsArgs>
+    for AccessAppsComponentsSchemasResponseCollection2
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessApplicationsListAccessApplicationsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessAppsComponentsSchemasResponseCollection2/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessAppsComponentsSchemasResponseCollection2"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessCaComponentsSchemasResponseCollection2.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessShortLivedCertificateCAsListShortLivedCertificateCAsArgs>
+    for AccessCaComponentsSchemasResponseCollection2
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessShortLivedCertificateCAsListShortLivedCertificateCAsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessCaComponentsSchemasResponseCollection2/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessCaComponentsSchemasResponseCollection2"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessAppsComponentsSchemasSingleResponse2.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessApplicationsGetAnAccessApplicationArgs>
+    for AccessAppsComponentsSchemasSingleResponse2
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessApplicationsGetAnAccessApplicationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessAppsComponentsSchemasSingleResponse2/{}/{}",
+            input.app_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessAppsComponentsSchemasSingleResponse2"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessCaComponentsSchemasSingleResponse2.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessShortLivedCertificateCAsGetAShortLivedCertificateCaArgs>
+    for AccessCaComponentsSchemasSingleResponse2
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessShortLivedCertificateCAsGetAShortLivedCertificateCaArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessCaComponentsSchemasSingleResponse2/{}/{}",
+            input.app_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessCaComponentsSchemasSingleResponse2"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessCaComponentsSchemasIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessShortLivedCertificateCAsDeleteAShortLivedCertificateCaArgs>
+    for AccessCaComponentsSchemasIdResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessShortLivedCertificateCAsDeleteAShortLivedCertificateCaArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessCaComponentsSchemasIdResponse/{}/{}",
+            input.app_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessCaComponentsSchemasIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessPoliciesComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessPoliciesListAccessPoliciesArgs>
+    for AccessPoliciesComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessPoliciesListAccessPoliciesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessPoliciesComponentsSchemasResponseCollection/{}/{}",
+            input.app_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessPoliciesComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessPoliciesComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessPoliciesCreateAnAccessPolicyArgs>
+    for AccessPoliciesComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessPoliciesCreateAnAccessPolicyArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessPoliciesComponentsSchemasSingleResponse/{}/{}",
+            input.app_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessPoliciesComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSchemasPolicyCheckResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessApplicationsTestAccessPoliciesArgs>
+    for AccessSchemasPolicyCheckResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessApplicationsTestAccessPoliciesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessSchemasPolicyCheckResponse/{}/{}",
+            input.app_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessSchemasPolicyCheckResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessCertificatesComponentsSchemasResponseCollection2.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessMtlsAuthenticationListMtlsCertificatesArgs>
+    for AccessCertificatesComponentsSchemasResponseCollection2
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessMtlsAuthenticationListMtlsCertificatesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessCertificatesComponentsSchemasResponseCollection2/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessCertificatesComponentsSchemasResponseCollection2"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessCertificatesComponentsSchemasSingleResponse2.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessMtlsAuthenticationAddAnMtlsCertificateArgs>
+    for AccessCertificatesComponentsSchemasSingleResponse2
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessMtlsAuthenticationAddAnMtlsCertificateArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessCertificatesComponentsSchemasSingleResponse2/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessCertificatesComponentsSchemasSingleResponse2"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSchemasResponseCollectionHostnames.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessMtlsAuthenticationListMtlsCertificatesHostnameSettingsArgs>
+    for AccessSchemasResponseCollectionHostnames
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessMtlsAuthenticationListMtlsCertificatesHostnameSettingsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessSchemasResponseCollectionHostnames/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessSchemasResponseCollectionHostnames"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessGroupsComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessGroupsListAccessGroupsArgs>
+    for AccessGroupsComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &ZoneLevelAccessGroupsListAccessGroupsArgs) -> String {
+        format!(
+            "cloudflare::AccessGroupsComponentsSchemasResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessGroupsComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessGroupsComponentsSchemasSingleResponse2.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessGroupsCreateAnAccessGroupArgs>
+    for AccessGroupsComponentsSchemasSingleResponse2
+{
+    fn generate_resource_id(&self, input: &ZoneLevelAccessGroupsCreateAnAccessGroupArgs) -> String {
+        format!(
+            "cloudflare::AccessGroupsComponentsSchemasSingleResponse2/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessGroupsComponentsSchemasSingleResponse2"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessIdentityProvidersComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessIdentityProvidersListAccessIdentityProvidersArgs>
+    for AccessIdentityProvidersComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessIdentityProvidersListAccessIdentityProvidersArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessIdentityProvidersComponentsSchemasResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessIdentityProvidersComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessIdentityProvidersComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessIdentityProvidersAddAnAccessIdentityProviderArgs>
+    for AccessIdentityProvidersComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessIdentityProvidersAddAnAccessIdentityProviderArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessIdentityProvidersComponentsSchemasSingleResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessIdentityProvidersComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessOrganizationsComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelZeroTrustOrganizationGetYourZeroTrustOrganizationArgs>
+    for AccessOrganizationsComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelZeroTrustOrganizationGetYourZeroTrustOrganizationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessOrganizationsComponentsSchemasSingleResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessOrganizationsComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessServiceTokensComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessServiceTokensListServiceTokensArgs>
+    for AccessServiceTokensComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessServiceTokensListServiceTokensArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessServiceTokensComponentsSchemasResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessServiceTokensComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessSchemasCreateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessServiceTokensCreateAServiceTokenArgs>
+    for AccessSchemasCreateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessServiceTokensCreateAServiceTokenArgs,
+    ) -> String {
+        format!("cloudflare::AccessSchemasCreateResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessSchemasCreateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessServiceTokensComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAccessServiceTokensGetAServiceTokenArgs>
+    for AccessServiceTokensComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAccessServiceTokensGetAServiceTokenArgs,
+    ) -> String {
+        format!(
+            "cloudflare::AccessServiceTokensComponentsSchemasSingleResponse/{}/{}",
+            input.service_token_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::AccessServiceTokensComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesCustomTrustStoreResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomOriginTrustStoreListDetailsArgs>
+    for TlsCertificatesAndHostnamesCustomTrustStoreResponseCollection
+{
+    fn generate_resource_id(&self, input: &CustomOriginTrustStoreListDetailsArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesCustomTrustStoreResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesCustomTrustStoreResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesCustomTrustStoreResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomOriginTrustStoreCreateArgs>
+    for TlsCertificatesAndHostnamesCustomTrustStoreResponseSingle
+{
+    fn generate_resource_id(&self, input: &CustomOriginTrustStoreCreateArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesCustomTrustStoreResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesCustomTrustStoreResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesCustomTrustStoreResponseIdOnly.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomOriginTrustStoreDeleteArgs>
+    for TlsCertificatesAndHostnamesCustomTrustStoreResponseIdOnly
+{
+    fn generate_resource_id(&self, input: &CustomOriginTrustStoreDeleteArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesCustomTrustStoreResponseIdOnly/{}/{}",
+            input.custom_origin_trust_store_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesCustomTrustStoreResponseIdOnly"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesTotalTlsSettingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<TotalTlsTotalTlsSettingsDetailsArgs>
+    for TlsCertificatesAndHostnamesTotalTlsSettingsResponse
+{
+    fn generate_resource_id(&self, input: &TotalTlsTotalTlsSettingsDetailsArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesTotalTlsSettingsResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesTotalTlsSettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ArgoAnalyticsResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArgoAnalyticsForZoneArgoAnalyticsForAZoneArgs>
+    for ArgoAnalyticsResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArgoAnalyticsForZoneArgoAnalyticsForAZoneArgs,
+    ) -> String {
+        format!("cloudflare::ArgoAnalyticsResponseSingle/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ArgoAnalyticsResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiShieldSchemaResponseDiscovery.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApiShieldApiDiscoveryRetrieveDiscoveredOperationsOnAZoneAsOpenapiArgs>
+    for ApiShieldSchemaResponseDiscovery
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApiShieldApiDiscoveryRetrieveDiscoveredOperationsOnAZoneAsOpenapiArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ApiShieldSchemaResponseDiscovery/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ApiShieldSchemaResponseDiscovery"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiShieldPatchDiscoveriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApiShieldApiPatchDiscoveredOperationsArgs>
+    for ApiShieldPatchDiscoveriesResponse
+{
+    fn generate_resource_id(&self, input: &ApiShieldApiPatchDiscoveredOperationsArgs) -> String {
+        format!(
+            "cloudflare::ApiShieldPatchDiscoveriesResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ApiShieldPatchDiscoveriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiShieldPatchDiscoveryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApiShieldApiPatchDiscoveredOperationArgs>
+    for ApiShieldPatchDiscoveryResponse
+{
+    fn generate_resource_id(&self, input: &ApiShieldApiPatchDiscoveredOperationArgs) -> String {
+        format!(
+            "cloudflare::ApiShieldPatchDiscoveryResponse/{}/{}",
+            input.zone_id, input.operation_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ApiShieldPatchDiscoveryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiShieldMultipleOperationResponsePaginated.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApiShieldEndpointManagementRetrieveInformationAboutAllOperationsOnAZoneArgs>
+    for ApiShieldMultipleOperationResponsePaginated
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApiShieldEndpointManagementRetrieveInformationAboutAllOperationsOnAZoneArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ApiShieldMultipleOperationResponsePaginated/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ApiShieldMultipleOperationResponsePaginated"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiShieldMultipleOperationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApiShieldEndpointManagementAddOperationsToAZoneArgs>
+    for ApiShieldMultipleOperationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApiShieldEndpointManagementAddOperationsToAZoneArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ApiShieldMultipleOperationResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ApiShieldMultipleOperationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiShieldApiResponseCommon.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApiShieldEndpointManagementDeleteMultipleOperationsArgs>
+    for ApiShieldApiResponseCommon
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApiShieldEndpointManagementDeleteMultipleOperationsArgs,
+    ) -> String {
+        format!("cloudflare::ApiShieldApiResponseCommon/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ApiShieldApiResponseCommon"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiShieldSingleOperationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApiShieldEndpointManagementAddOperationToAZoneArgs>
+    for ApiShieldSingleOperationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApiShieldEndpointManagementAddOperationToAZoneArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ApiShieldSingleOperationResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ApiShieldSingleOperationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiShieldOldOperationSchemaValidationSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApiShieldSchemaValidationRetrieveOperationLevelSettingsArgs>
+    for ApiShieldOldOperationSchemaValidationSettings
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApiShieldSchemaValidationRetrieveOperationLevelSettingsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ApiShieldOldOperationSchemaValidationSettings/{}/{}",
+            input.zone_id, input.operation_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ApiShieldOldOperationSchemaValidationSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiShieldSchemaResponseWithThresholds.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<ApiShieldEndpointManagementRetrieveOperationsAndFeaturesAsOpenApiSchemasArgs>
+    for ApiShieldSchemaResponseWithThresholds
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApiShieldEndpointManagementRetrieveOperationsAndFeaturesAsOpenApiSchemasArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ApiShieldSchemaResponseWithThresholds/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ApiShieldSchemaResponseWithThresholds"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiShieldOldZoneSchemaValidationSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApiShieldSchemaValidationRetrieveZoneLevelSettingsArgs>
+    for ApiShieldOldZoneSchemaValidationSettings
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApiShieldSchemaValidationRetrieveZoneLevelSettingsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::ApiShieldOldZoneSchemaValidationSettings/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ApiShieldOldZoneSchemaValidationSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiShieldApiResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApiShieldSchemaDeleteASchemaArgs> for ApiShieldApiResponseSingle {
+    fn generate_resource_id(&self, input: &ApiShieldSchemaDeleteASchemaArgs) -> String {
+        format!(
+            "cloudflare::ApiShieldApiResponseSingle/{}/{}",
+            input.zone_id, input.schema_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ApiShieldApiResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ArgoConfigApiResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ArgoSmartRoutingGetArgoSmartRoutingSettingArgs>
+    for ArgoConfigApiResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &ArgoSmartRoutingGetArgoSmartRoutingSettingArgs,
+    ) -> String {
+        format!("cloudflare::ArgoConfigApiResponseSingle/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ArgoConfigApiResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for BillSubsApiPlanResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneRatePlanListAvailableRatePlansArgs>
+    for BillSubsApiPlanResponseCollection
+{
+    fn generate_resource_id(&self, input: &ZoneRatePlanListAvailableRatePlansArgs) -> String {
+        format!(
+            "cloudflare::BillSubsApiPlanResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::BillSubsApiPlanResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for BotManagementBotManagementResponseBody.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BotManagementForAZoneGetConfigArgs>
+    for BotManagementBotManagementResponseBody
+{
+    fn generate_resource_id(&self, input: &BotManagementForAZoneGetConfigArgs) -> String {
+        format!(
+            "cloudflare::BotManagementBotManagementResponseBody/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::BotManagementBotManagementResponseBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesHostnameAssociationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClientCertificateForAZoneListHostnameAssociationsArgs>
+    for TlsCertificatesAndHostnamesHostnameAssociationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClientCertificateForAZoneListHostnameAssociationsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesHostnameAssociationsResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesHostnameAssociationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesClientCertificateResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClientCertificateForAZoneListClientCertificatesArgs>
+    for TlsCertificatesAndHostnamesClientCertificateResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClientCertificateForAZoneListClientCertificatesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesClientCertificateResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesClientCertificateResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesClientCertificateResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ClientCertificateForAZoneCreateClientCertificateArgs>
+    for TlsCertificatesAndHostnamesClientCertificateResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &ClientCertificateForAZoneCreateClientCertificateArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesClientCertificateResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesClientCertificateResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WafProductApiBundleSchemasApiResponseCommon.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafContentScanningDisableArgs>
+    for WafProductApiBundleSchemasApiResponseCommon
+{
+    fn generate_resource_id(&self, input: &WafContentScanningDisableArgs) -> String {
+        format!(
+            "cloudflare::WafProductApiBundleSchemasApiResponseCommon/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WafProductApiBundleSchemasApiResponseCommon"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WafProductApiBundleResponseCustomScanCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafContentScanningListCustomScanExpressionsArgs>
+    for WafProductApiBundleResponseCustomScanCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &WafContentScanningListCustomScanExpressionsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::WafProductApiBundleResponseCustomScanCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WafProductApiBundleResponseCustomScanCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WafProductApiBundleSchemasResponseStatus.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafContentScanningGetStatusArgs>
+    for WafProductApiBundleSchemasResponseStatus
+{
+    fn generate_resource_id(&self, input: &WafContentScanningGetStatusArgs) -> String {
+        format!(
+            "cloudflare::WafProductApiBundleSchemasResponseStatus/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WafProductApiBundleSchemasResponseStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesCertificateResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomSslForAZoneListSslConfigurationsArgs>
+    for TlsCertificatesAndHostnamesCertificateResponseCollection
+{
+    fn generate_resource_id(&self, input: &CustomSslForAZoneListSslConfigurationsArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesCertificateResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesCertificateResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesCertificateResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomSslForAZoneCreateSslConfigurationArgs>
+    for TlsCertificatesAndHostnamesCertificateResponseSingle
+{
+    fn generate_resource_id(&self, input: &CustomSslForAZoneCreateSslConfigurationArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesCertificateResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesCertificateResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesCertificateResponseIdOnly.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomSslForAZoneDeleteSslConfigurationArgs>
+    for TlsCertificatesAndHostnamesCertificateResponseIdOnly
+{
+    fn generate_resource_id(&self, input: &CustomSslForAZoneDeleteSslConfigurationArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesCertificateResponseIdOnly/{}/{}",
+            input.custom_certificate_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesCertificateResponseIdOnly"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesCustomHostnameResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomHostnameForAZoneListCustomHostnamesArgs>
+    for TlsCertificatesAndHostnamesCustomHostnameResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &CustomHostnameForAZoneListCustomHostnamesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesCustomHostnameResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesCustomHostnameResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesCustomHostnameResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomHostnameForAZoneCreateCustomHostnameArgs>
+    for TlsCertificatesAndHostnamesCustomHostnameResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &CustomHostnameForAZoneCreateCustomHostnameArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesCustomHostnameResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesCustomHostnameResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesFallbackOriginResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CustomHostnameFallbackOriginForAZoneGetFallbackOriginForCustomHostnamesArgs>
+    for TlsCertificatesAndHostnamesFallbackOriginResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CustomHostnameFallbackOriginForAZoneGetFallbackOriginForCustomHostnamesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesFallbackOriginResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesFallbackOriginResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsCustomNameserversGetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        AccountLevelCustomNameserversUsageForAZoneGetAccountCustomNameserverRelatedZoneMetadataArgs,
+    > for DnsCustomNameserversGetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccountLevelCustomNameserversUsageForAZoneGetAccountCustomNameserverRelatedZoneMetadataArgs,
+    ) -> String {
+        format!(
+            "cloudflare::DnsCustomNameserversGetResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsCustomNameserversGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsCustomNameserversSchemasEmptyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        AccountLevelCustomNameserversUsageForAZoneSetAccountCustomNameserverRelatedZoneMetadataArgs,
+    > for DnsCustomNameserversSchemasEmptyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccountLevelCustomNameserversUsageForAZoneSetAccountCustomNameserverRelatedZoneMetadataArgs,
+    ) -> String {
+        format!(
+            "cloudflare::DnsCustomNameserversSchemasEmptyResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsCustomNameserversSchemasEmptyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesDcvDelegationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DcvDelegationUuidGetArgs>
+    for TlsCertificatesAndHostnamesDcvDelegationResponse
+{
+    fn generate_resource_id(&self, input: &DcvDelegationUuidGetArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesDcvDelegationResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesDcvDelegationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamsDevicesDevicesPolicyCertificatesSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DevicesGetPolicyCertificatesArgs>
+    for TeamsDevicesDevicesPolicyCertificatesSingle
+{
+    fn generate_resource_id(&self, input: &DevicesGetPolicyCertificatesArgs) -> String {
+        format!(
+            "cloudflare::TeamsDevicesDevicesPolicyCertificatesSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TeamsDevicesDevicesPolicyCertificatesSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsRecordsDnsResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsRecordsForAZoneListDnsRecordsArgs> for DnsRecordsDnsResponseCollection {
+    fn generate_resource_id(&self, input: &DnsRecordsForAZoneListDnsRecordsArgs) -> String {
+        format!(
+            "cloudflare::DnsRecordsDnsResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsRecordsDnsResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsRecordsDnsResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsRecordsForAZoneCreateDnsRecordArgs> for DnsRecordsDnsResponseSingle {
+    fn generate_resource_id(&self, input: &DnsRecordsForAZoneCreateDnsRecordArgs) -> String {
+        format!("cloudflare::DnsRecordsDnsResponseSingle/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsRecordsDnsResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsRecordsDnsResponseBatch.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsRecordsForAZoneBatchDnsRecordsArgs> for DnsRecordsDnsResponseBatch {
+    fn generate_resource_id(&self, input: &DnsRecordsForAZoneBatchDnsRecordsArgs) -> String {
+        format!("cloudflare::DnsRecordsDnsResponseBatch/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsRecordsDnsResponseBatch"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsRecordsDnsResponseImportScan.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsRecordsForAZoneImportDnsRecordsArgs>
+    for DnsRecordsDnsResponseImportScan
+{
+    fn generate_resource_id(&self, input: &DnsRecordsForAZoneImportDnsRecordsArgs) -> String {
+        format!(
+            "cloudflare::DnsRecordsDnsResponseImportScan/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsRecordsDnsResponseImportScan"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsRecordsDnsResponseReviewScan.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsRecordsForAZoneApplyDnsScanResultsArgs>
+    for DnsRecordsDnsResponseReviewScan
+{
+    fn generate_resource_id(&self, input: &DnsRecordsForAZoneApplyDnsScanResultsArgs) -> String {
+        format!(
+            "cloudflare::DnsRecordsDnsResponseReviewScan/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsRecordsDnsResponseReviewScan"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsRecordsDnsResponseTriggerScan.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsRecordsForAZoneTriggerDnsScanArgs> for DnsRecordsDnsResponseTriggerScan {
+    fn generate_resource_id(&self, input: &DnsRecordsForAZoneTriggerDnsScanArgs) -> String {
+        format!(
+            "cloudflare::DnsRecordsDnsResponseTriggerScan/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsRecordsDnsResponseTriggerScan"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsRecordsDnsResponseZoneUsage.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsRecordsForAZoneGetUsageArgs> for DnsRecordsDnsResponseZoneUsage {
+    fn generate_resource_id(&self, input: &DnsRecordsForAZoneGetUsageArgs) -> String {
+        format!(
+            "cloudflare::DnsRecordsDnsResponseZoneUsage/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsRecordsDnsResponseZoneUsage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsSettingsSchemasDnsResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsSettingsForAZoneListDnsSettingsArgs>
+    for DnsSettingsSchemasDnsResponseSingle
+{
+    fn generate_resource_id(&self, input: &DnsSettingsForAZoneListDnsSettingsArgs) -> String {
+        format!(
+            "cloudflare::DnsSettingsSchemasDnsResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnsSettingsSchemasDnsResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnssecDnssecResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnssecDnssecDetailsArgs> for DnssecDnssecResponseSingle {
+    fn generate_resource_id(&self, input: &DnssecDnssecDetailsArgs) -> String {
+        format!("cloudflare::DnssecDnssecResponseSingle/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnssecDnssecResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for DnssecDeleteDnssecResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnssecDeleteDnssecRecordsArgs> for DnssecDeleteDnssecResponseSingle {
+    fn generate_resource_id(&self, input: &DnssecDeleteDnssecRecordsArgs) -> String {
+        format!(
+            "cloudflare::DnssecDeleteDnssecResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::DnssecDeleteDnssecResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for EmailEmailSettingsResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EmailRoutingSettingsGetEmailRoutingSettingsArgs>
+    for EmailEmailSettingsResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &EmailRoutingSettingsGetEmailRoutingSettingsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::EmailEmailSettingsResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::EmailEmailSettingsResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for EmailRulesResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EmailRoutingRoutingRulesListRoutingRulesArgs>
+    for EmailRulesResponseCollection
+{
+    fn generate_resource_id(&self, input: &EmailRoutingRoutingRulesListRoutingRulesArgs) -> String {
+        format!("cloudflare::EmailRulesResponseCollection/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::EmailRulesResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for EmailRuleResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EmailRoutingRoutingRulesCreateRoutingRuleArgs> for EmailRuleResponseSingle {
+    fn generate_resource_id(
+        &self,
+        input: &EmailRoutingRoutingRulesCreateRoutingRuleArgs,
+    ) -> String {
+        format!("cloudflare::EmailRuleResponseSingle/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::EmailRuleResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for EmailCatchAllRuleResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EmailRoutingRoutingRulesGetCatchAllRuleArgs>
+    for EmailCatchAllRuleResponseSingle
+{
+    fn generate_resource_id(&self, input: &EmailRoutingRoutingRulesGetCatchAllRuleArgs) -> String {
+        format!(
+            "cloudflare::EmailCatchAllRuleResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::EmailCatchAllRuleResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for EmailSendingSubdomainsResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EmailSendingSubdomainsListSendingSubdomainsArgs>
+    for EmailSendingSubdomainsResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &EmailSendingSubdomainsListSendingSubdomainsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::EmailSendingSubdomainsResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::EmailSendingSubdomainsResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for EmailSendingSubdomainResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EmailSendingSubdomainsCreateSendingSubdomainArgs>
+    for EmailSendingSubdomainResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &EmailSendingSubdomainsCreateSendingSubdomainArgs,
+    ) -> String {
+        format!(
+            "cloudflare::EmailSendingSubdomainResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::EmailSendingSubdomainResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for EmailSendingSubdomainPreviewResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EmailSendingSubdomainsPreviewSendingSubdomainArgs>
+    for EmailSendingSubdomainPreviewResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &EmailSendingSubdomainsPreviewSendingSubdomainArgs,
+    ) -> String {
+        format!(
+            "cloudflare::EmailSendingSubdomainPreviewResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::EmailSendingSubdomainPreviewResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for EmailApiResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EmailSendingSubdomainsDeleteSendingSubdomainArgs>
+    for EmailApiResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &EmailSendingSubdomainsDeleteSendingSubdomainArgs,
+    ) -> String {
+        format!(
+            "cloudflare::EmailApiResponseSingle/{}/{}",
+            input.subdomain_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::EmailApiResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for EmailDnsSettingsResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EmailSendingSubdomainsGetSendingSubdomainDnsArgs>
+    for EmailDnsSettingsResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &EmailSendingSubdomainsGetSendingSubdomainDnsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::EmailDnsSettingsResponseCollection/{}/{}",
+            input.subdomain_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::EmailDnsSettingsResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for KaminoEnvironmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZonesEnvironmentsListArgs> for KaminoEnvironmentsResponse {
+    fn generate_resource_id(&self, input: &ZonesEnvironmentsListArgs) -> String {
+        format!("cloudflare::KaminoEnvironmentsResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::KaminoEnvironmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallFilterResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FiltersListFiltersArgs> for FirewallFilterResponseCollection {
+    fn generate_resource_id(&self, input: &FiltersListFiltersArgs) -> String {
+        format!(
+            "cloudflare::FirewallFilterResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallFilterResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallFilterDeleteResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FiltersDeleteFiltersArgs> for FirewallFilterDeleteResponseCollection {
+    fn generate_resource_id(&self, input: &FiltersDeleteFiltersArgs) -> String {
+        format!(
+            "cloudflare::FirewallFilterDeleteResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallFilterDeleteResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallFilterResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FiltersGetAFilterArgs> for FirewallFilterResponseSingle {
+    fn generate_resource_id(&self, input: &FiltersGetAFilterArgs) -> String {
+        format!(
+            "cloudflare::FirewallFilterResponseSingle/{}/{}",
+            input.filter_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallFilterResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallFilterDeleteResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FiltersDeleteAFilterArgs> for FirewallFilterDeleteResponseSingle {
+    fn generate_resource_id(&self, input: &FiltersDeleteAFilterArgs) -> String {
+        format!(
+            "cloudflare::FirewallFilterDeleteResponseSingle/{}/{}",
+            input.filter_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallFilterDeleteResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WafProductApiBundleResponseCustomTopics.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirewallForAiCustomTopicsGetArgs>
+    for WafProductApiBundleResponseCustomTopics
+{
+    fn generate_resource_id(&self, input: &FirewallForAiCustomTopicsGetArgs) -> String {
+        format!(
+            "cloudflare::WafProductApiBundleResponseCustomTopics/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WafProductApiBundleResponseCustomTopics"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WafProductApiBundleResponseSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirewallForAiSettingsGetArgs> for WafProductApiBundleResponseSettings {
+    fn generate_resource_id(&self, input: &FirewallForAiSettingsGetArgs) -> String {
+        format!(
+            "cloudflare::WafProductApiBundleResponseSettings/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WafProductApiBundleResponseSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallZonelockdownResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLockdownListZoneLockdownRulesArgs>
+    for FirewallZonelockdownResponseCollection
+{
+    fn generate_resource_id(&self, input: &ZoneLockdownListZoneLockdownRulesArgs) -> String {
+        format!(
+            "cloudflare::FirewallZonelockdownResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallZonelockdownResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallZonelockdownResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLockdownCreateAZoneLockdownRuleArgs>
+    for FirewallZonelockdownResponseSingle
+{
+    fn generate_resource_id(&self, input: &ZoneLockdownCreateAZoneLockdownRuleArgs) -> String {
+        format!(
+            "cloudflare::FirewallZonelockdownResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallZonelockdownResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallFilterRulesResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirewallRulesListFirewallRulesArgs>
+    for FirewallFilterRulesResponseCollection
+{
+    fn generate_resource_id(&self, input: &FirewallRulesListFirewallRulesArgs) -> String {
+        format!(
+            "cloudflare::FirewallFilterRulesResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallFilterRulesResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallFilterRulesResponseCollectionDelete.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirewallRulesDeleteFirewallRulesArgs>
+    for FirewallFilterRulesResponseCollectionDelete
+{
+    fn generate_resource_id(&self, input: &FirewallRulesDeleteFirewallRulesArgs) -> String {
+        format!(
+            "cloudflare::FirewallFilterRulesResponseCollectionDelete/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallFilterRulesResponseCollectionDelete"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallFilterRulesSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirewallRulesGetAFirewallRuleArgs> for FirewallFilterRulesSingleResponse {
+    fn generate_resource_id(&self, input: &FirewallRulesGetAFirewallRuleArgs) -> String {
+        format!(
+            "cloudflare::FirewallFilterRulesSingleResponse/{}/{}",
+            input.rule_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallFilterRulesSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallFilterRulesSingleResponseDelete.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirewallRulesDeleteAFirewallRuleArgs>
+    for FirewallFilterRulesSingleResponseDelete
+{
+    fn generate_resource_id(&self, input: &FirewallRulesDeleteAFirewallRuleArgs) -> String {
+        format!(
+            "cloudflare::FirewallFilterRulesSingleResponseDelete/{}/{}",
+            input.rule_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallFilterRulesSingleResponseDelete"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallFirewalluablockResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UserAgentBlockingRulesListUserAgentBlockingRulesArgs>
+    for FirewallFirewalluablockResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &UserAgentBlockingRulesListUserAgentBlockingRulesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::FirewallFirewalluablockResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallFirewalluablockResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallFirewalluablockResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UserAgentBlockingRulesCreateAUserAgentBlockingRuleArgs>
+    for FirewallFirewalluablockResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &UserAgentBlockingRulesCreateAUserAgentBlockingRuleArgs,
+    ) -> String {
+        format!(
+            "cloudflare::FirewallFirewalluablockResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallFirewalluablockResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallOverrideResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafOverridesListWafOverridesArgs> for FirewallOverrideResponseCollection {
+    fn generate_resource_id(&self, input: &WafOverridesListWafOverridesArgs) -> String {
+        format!(
+            "cloudflare::FirewallOverrideResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallOverrideResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallOverrideResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafOverridesCreateAWafOverrideArgs> for FirewallOverrideResponseSingle {
+    fn generate_resource_id(&self, input: &WafOverridesCreateAWafOverrideArgs) -> String {
+        format!(
+            "cloudflare::FirewallOverrideResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallOverrideResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallPackageResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafPackagesListWafPackagesArgs> for FirewallPackageResponseCollection {
+    fn generate_resource_id(&self, input: &WafPackagesListWafPackagesArgs) -> String {
+        format!(
+            "cloudflare::FirewallPackageResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallPackageResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallPackageResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafPackagesGetAWafPackageArgs> for FirewallPackageResponseSingle {
+    fn generate_resource_id(&self, input: &WafPackagesGetAWafPackageArgs) -> String {
+        format!(
+            "cloudflare::FirewallPackageResponseSingle/{}/{}",
+            input.package_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallPackageResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WafManagedRulesRuleGroupResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafRuleGroupsListWafRuleGroupsArgs>
+    for WafManagedRulesRuleGroupResponseCollection
+{
+    fn generate_resource_id(&self, input: &WafRuleGroupsListWafRuleGroupsArgs) -> String {
+        format!(
+            "cloudflare::WafManagedRulesRuleGroupResponseCollection/{}/{}",
+            input.package_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WafManagedRulesRuleGroupResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WafManagedRulesRuleGroupResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafRuleGroupsGetAWafRuleGroupArgs>
+    for WafManagedRulesRuleGroupResponseSingle
+{
+    fn generate_resource_id(&self, input: &WafRuleGroupsGetAWafRuleGroupArgs) -> String {
+        format!(
+            "cloudflare::WafManagedRulesRuleGroupResponseSingle/{}/{}/{}",
+            input.group_id, input.package_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WafManagedRulesRuleGroupResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WafManagedRulesRuleResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafRulesListWafRulesArgs> for WafManagedRulesRuleResponseCollection {
+    fn generate_resource_id(&self, input: &WafRulesListWafRulesArgs) -> String {
+        format!(
+            "cloudflare::WafManagedRulesRuleResponseCollection/{}/{}",
+            input.package_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WafManagedRulesRuleResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WafManagedRulesRuleResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafRulesGetAWafRuleArgs> for WafManagedRulesRuleResponseSingle {
+    fn generate_resource_id(&self, input: &WafRulesGetAWafRuleArgs) -> String {
+        format!(
+            "cloudflare::WafManagedRulesRuleResponseSingle/{}/{}/{}",
+            input.rule_id, input.package_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WafManagedRulesRuleResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FraudFraudSettingsResponseBody.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FraudDetectionZoneGetSettingsArgs> for FraudFraudSettingsResponseBody {
+    fn generate_resource_id(&self, input: &FraudDetectionZoneGetSettingsArgs) -> String {
+        format!(
+            "cloudflare::FraudFraudSettingsResponseBody/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FraudFraudSettingsResponseBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthchecksResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthChecksListHealthChecksArgs> for HealthchecksResponseCollection {
+    fn generate_resource_id(&self, input: &HealthChecksListHealthChecksArgs) -> String {
+        format!(
+            "cloudflare::HealthchecksResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::HealthchecksResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthchecksSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthChecksCreateHealthCheckArgs> for HealthchecksSingleResponse {
+    fn generate_resource_id(&self, input: &HealthChecksCreateHealthCheckArgs) -> String {
+        format!("cloudflare::HealthchecksSingleResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::HealthchecksSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthchecksIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<HealthChecksDeletePreviewHealthCheckArgs> for HealthchecksIdResponse {
+    fn generate_resource_id(&self, input: &HealthChecksDeletePreviewHealthCheckArgs) -> String {
+        format!(
+            "cloudflare::HealthchecksIdResponse/{}/{}",
+            input.healthcheck_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::HealthchecksIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesPerHostnameSettingsResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PerHostnameTlsSettingsListArgs>
+    for TlsCertificatesAndHostnamesPerHostnameSettingsResponseCollection
+{
+    fn generate_resource_id(&self, input: &PerHostnameTlsSettingsListArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesPerHostnameSettingsResponseCollection/{}/{}",
+            input.zone_id, input.setting_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesPerHostnameSettingsResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesPerHostnameSettingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PerHostnameTlsSettingsGetArgs>
+    for TlsCertificatesAndHostnamesPerHostnameSettingsResponse
+{
+    fn generate_resource_id(&self, input: &PerHostnameTlsSettingsGetArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesPerHostnameSettingsResponse/{}/{}/{}",
+            input.zone_id, input.setting_id, input.hostname
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesPerHostnameSettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesPerHostnameSettingsResponseDelete.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PerHostnameTlsSettingsDeleteArgs>
+    for TlsCertificatesAndHostnamesPerHostnameSettingsResponseDelete
+{
+    fn generate_resource_id(&self, input: &PerHostnameTlsSettingsDeleteArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesPerHostnameSettingsResponseDelete/{}/{}/{}",
+            input.zone_id, input.setting_id, input.hostname
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesPerHostnameSettingsResponseDelete"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesKeylessResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KeylessSslForAZoneListKeylessSslConfigurationsArgs>
+    for TlsCertificatesAndHostnamesKeylessResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &KeylessSslForAZoneListKeylessSslConfigurationsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesKeylessResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesKeylessResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesKeylessResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KeylessSslForAZoneCreateKeylessSslConfigurationArgs>
+    for TlsCertificatesAndHostnamesKeylessResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &KeylessSslForAZoneCreateKeylessSslConfigurationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesKeylessResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesKeylessResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesKeylessResponseSingleId.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KeylessSslForAZoneDeleteKeylessSslConfigurationArgs>
+    for TlsCertificatesAndHostnamesKeylessResponseSingleId
+{
+    fn generate_resource_id(
+        &self,
+        input: &KeylessSslForAZoneDeleteKeylessSslConfigurationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesKeylessResponseSingleId/{}/{}",
+            input.keyless_certificate_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesKeylessResponseSingleId"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WafProductApiBundleResponseStatus.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafProductApiLeakedCredentialsGetStatusArgs>
+    for WafProductApiBundleResponseStatus
+{
+    fn generate_resource_id(&self, input: &WafProductApiLeakedCredentialsGetStatusArgs) -> String {
+        format!(
+            "cloudflare::WafProductApiBundleResponseStatus/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WafProductApiBundleResponseStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WafProductApiBundleResponseCustomDetectionCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafProductApiLeakedCredentialsListDetectionsArgs>
+    for WafProductApiBundleResponseCustomDetectionCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &WafProductApiLeakedCredentialsListDetectionsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::WafProductApiBundleResponseCustomDetectionCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WafProductApiBundleResponseCustomDetectionCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WafProductApiBundleResponseCustomDetection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafProductApiLeakedCredentialsCreateDetectionArgs>
+    for WafProductApiBundleResponseCustomDetection
+{
+    fn generate_resource_id(
+        &self,
+        input: &WafProductApiLeakedCredentialsCreateDetectionArgs,
+    ) -> String {
+        format!(
+            "cloudflare::WafProductApiBundleResponseCustomDetection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WafProductApiBundleResponseCustomDetection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WafProductApiBundleApiResponseCommon.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WafProductApiLeakedCredentialsDeleteDetectionArgs>
+    for WafProductApiBundleApiResponseCommon
+{
+    fn generate_resource_id(
+        &self,
+        input: &WafProductApiLeakedCredentialsDeleteDetectionArgs,
+    ) -> String {
+        format!(
+            "cloudflare::WafProductApiBundleApiResponseCommon/{}/{}",
+            input.zone_id, input.detection_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WafProductApiBundleApiResponseCommon"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingLoadBalancerComponentsSchemasResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LoadBalancersListLoadBalancersArgs>
+    for LoadBalancingLoadBalancerComponentsSchemasResponseCollection
+{
+    fn generate_resource_id(&self, input: &LoadBalancersListLoadBalancersArgs) -> String {
+        format!(
+            "cloudflare::LoadBalancingLoadBalancerComponentsSchemasResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingLoadBalancerComponentsSchemasResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingLoadBalancerComponentsSchemasSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LoadBalancersCreateLoadBalancerArgs>
+    for LoadBalancingLoadBalancerComponentsSchemasSingleResponse
+{
+    fn generate_resource_id(&self, input: &LoadBalancersCreateLoadBalancerArgs) -> String {
+        format!(
+            "cloudflare::LoadBalancingLoadBalancerComponentsSchemasSingleResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingLoadBalancerComponentsSchemasSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LoadBalancingComponentsSchemasIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<LoadBalancersDeleteLoadBalancerArgs>
+    for LoadBalancingComponentsSchemasIdResponse
+{
+    fn generate_resource_id(&self, input: &LoadBalancersDeleteLoadBalancerArgs) -> String {
+        format!(
+            "cloudflare::LoadBalancingComponentsSchemasIdResponse/{}/{}",
+            input.zone_id, input.load_balancer_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LoadBalancingComponentsSchemasIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LogpushInstantLogsJobResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetZonesZoneIdLogpushEdgeJobsArgs>
+    for LogpushInstantLogsJobResponseCollection
+{
+    fn generate_resource_id(&self, input: &GetZonesZoneIdLogpushEdgeJobsArgs) -> String {
+        format!(
+            "cloudflare::LogpushInstantLogsJobResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LogpushInstantLogsJobResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LogpushInstantLogsJobResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PostZonesZoneIdLogpushEdgeJobsArgs>
+    for LogpushInstantLogsJobResponseSingle
+{
+    fn generate_resource_id(&self, input: &PostZonesZoneIdLogpushEdgeJobsArgs) -> String {
+        format!(
+            "cloudflare::LogpushInstantLogsJobResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LogpushInstantLogsJobResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LogcontrolRetentionFlagResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetZonesZoneIdLogsControlRetentionFlagArgs>
+    for LogcontrolRetentionFlagResponseSingle
+{
+    fn generate_resource_id(&self, input: &GetZonesZoneIdLogsControlRetentionFlagArgs) -> String {
+        format!(
+            "cloudflare::LogcontrolRetentionFlagResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LogcontrolRetentionFlagResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LogshareLogsResponseJsonLines.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetZonesZoneIdLogsRayidsRayIdArgs> for LogshareLogsResponseJsonLines {
+    fn generate_resource_id(&self, input: &GetZonesZoneIdLogsRayidsRayIdArgs) -> String {
+        format!(
+            "cloudflare::LogshareLogsResponseJsonLines/{}/{}",
+            input.zone_id, input.ray_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LogshareLogsResponseJsonLines"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for LogshareFieldsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetZonesZoneIdLogsReceivedFieldsArgs> for LogshareFieldsResponse {
+    fn generate_resource_id(&self, input: &GetZonesZoneIdLogsReceivedFieldsArgs) -> String {
+        format!("cloudflare::LogshareFieldsResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::LogshareFieldsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAuthenticatedOriginPullsListCertificatesArgs>
+    for TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAuthenticatedOriginPullsListCertificatesArgs,
+    ) -> String {
+        format!("cloudflare::TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseCollection/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAuthenticatedOriginPullsUploadCertificateArgs>
+    for TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAuthenticatedOriginPullsUploadCertificateArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesComponentsSchemasCertificateResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesHostnameAssocResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PerHostnameAuthenticatedOriginPullListHostnameAssociationsArgs>
+    for TlsCertificatesAndHostnamesHostnameAssocResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &PerHostnameAuthenticatedOriginPullListHostnameAssociationsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesHostnameAssocResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesHostnameAssocResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesHostnameAopResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        PerHostnameAuthenticatedOriginPullEnableOrDisableAHostnameForClientAuthenticationArgs,
+    > for TlsCertificatesAndHostnamesHostnameAopResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &PerHostnameAuthenticatedOriginPullEnableOrDisableAHostnameForClientAuthenticationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesHostnameAopResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesHostnameAopResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificateResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PerHostnameAuthenticatedOriginPullListCertificatesArgs> for TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificateResponseCollection {
+    fn generate_resource_id(&self, input: &PerHostnameAuthenticatedOriginPullListCertificatesArgs) -> String {
+        format!("cloudflare::TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificateResponseCollection/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificateResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificateResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PerHostnameAuthenticatedOriginPullUploadAHostnameClientCertificateArgs> for TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificateResponseSingle {
+    fn generate_resource_id(&self, input: &PerHostnameAuthenticatedOriginPullUploadAHostnameClientCertificateArgs) -> String {
+        format!("cloudflare::TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificateResponseSingle/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesHostnameAuthenticatedOriginPullComponentsSchemasCertificateResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesHostnameAopSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        PerHostnameAuthenticatedOriginPullGetTheHostnameStatusForClientAuthenticationArgs,
+    > for TlsCertificatesAndHostnamesHostnameAopSingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PerHostnameAuthenticatedOriginPullGetTheHostnameStatusForClientAuthenticationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesHostnameAopSingleResponse/{}/{}",
+            input.hostname, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesHostnameAopSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesEnabledResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneLevelAuthenticatedOriginPullsGetEnablementSettingForZoneArgs>
+    for TlsCertificatesAndHostnamesEnabledResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneLevelAuthenticatedOriginPullsGetEnablementSettingForZoneArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesEnabledResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesEnabledResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for PageShieldListZoneConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PageShieldListConnectionsArgs> for PageShieldListZoneConnectionsResponse {
+    fn generate_resource_id(&self, input: &PageShieldListConnectionsArgs) -> String {
+        format!(
+            "cloudflare::PageShieldListZoneConnectionsResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::PageShieldListZoneConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for PageShieldGetZoneConnectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PageShieldGetConnectionArgs> for PageShieldGetZoneConnectionResponse {
+    fn generate_resource_id(&self, input: &PageShieldGetConnectionArgs) -> String {
+        format!(
+            "cloudflare::PageShieldGetZoneConnectionResponse/{}/{}",
+            input.zone_id, input.connection_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::PageShieldGetZoneConnectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for PageShieldListZoneCookiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PageShieldListCookiesArgs> for PageShieldListZoneCookiesResponse {
+    fn generate_resource_id(&self, input: &PageShieldListCookiesArgs) -> String {
+        format!(
+            "cloudflare::PageShieldListZoneCookiesResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::PageShieldListZoneCookiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for PageShieldGetZoneCookieResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PageShieldGetCookieArgs> for PageShieldGetZoneCookieResponse {
+    fn generate_resource_id(&self, input: &PageShieldGetCookieArgs) -> String {
+        format!(
+            "cloudflare::PageShieldGetZoneCookieResponse/{}/{}",
+            input.zone_id, input.cookie_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::PageShieldGetZoneCookieResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for PageShieldListZonePoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PageShieldListPoliciesArgs> for PageShieldListZonePoliciesResponse {
+    fn generate_resource_id(&self, input: &PageShieldListPoliciesArgs) -> String {
+        format!(
+            "cloudflare::PageShieldListZonePoliciesResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::PageShieldListZonePoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for PageShieldGetZonePolicyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PageShieldCreatePolicyArgs> for PageShieldGetZonePolicyResponse {
+    fn generate_resource_id(&self, input: &PageShieldCreatePolicyArgs) -> String {
+        format!(
+            "cloudflare::PageShieldGetZonePolicyResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::PageShieldGetZonePolicyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for PageShieldListZoneScriptsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PageShieldListScriptsArgs> for PageShieldListZoneScriptsResponse {
+    fn generate_resource_id(&self, input: &PageShieldListScriptsArgs) -> String {
+        format!(
+            "cloudflare::PageShieldListZoneScriptsResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::PageShieldListZoneScriptsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for PageShieldGetZoneScriptResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PageShieldGetScriptArgs> for PageShieldGetZoneScriptResponse {
+    fn generate_resource_id(&self, input: &PageShieldGetScriptArgs) -> String {
+        format!(
+            "cloudflare::PageShieldGetZoneScriptResponse/{}/{}",
+            input.zone_id, input.script_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::PageShieldGetZoneScriptResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZonesSchemasApiResponseSingleId.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PageRulesDeleteAPageRuleArgs> for ZonesSchemasApiResponseSingleId {
+    fn generate_resource_id(&self, input: &PageRulesDeleteAPageRuleArgs) -> String {
+        format!(
+            "cloudflare::ZonesSchemasApiResponseSingleId/{}/{}",
+            input.pagerule_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZonesSchemasApiResponseSingleId"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for PayPerCrawlGetConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PayPerCrawlGetConfigArgs> for PayPerCrawlGetConfigResponse {
+    fn generate_resource_id(&self, input: &PayPerCrawlGetConfigArgs) -> String {
+        format!("cloudflare::PayPerCrawlGetConfigResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::PayPerCrawlGetConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CachePurgeApiResponseSingleId.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZonePurgeArgs> for CachePurgeApiResponseSingleId {
+    fn generate_resource_id(&self, input: &ZonePurgeArgs) -> String {
+        format!(
+            "cloudflare::CachePurgeApiResponseSingleId/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CachePurgeApiResponseSingleId"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallRatelimitResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RateLimitsForAZoneListRateLimitsArgs>
+    for FirewallRatelimitResponseCollection
+{
+    fn generate_resource_id(&self, input: &RateLimitsForAZoneListRateLimitsArgs) -> String {
+        format!(
+            "cloudflare::FirewallRatelimitResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallRatelimitResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallRatelimitResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RateLimitsForAZoneCreateARateLimitArgs>
+    for FirewallRatelimitResponseSingle
+{
+    fn generate_resource_id(&self, input: &RateLimitsForAZoneCreateARateLimitArgs) -> String {
+        format!(
+            "cloudflare::FirewallRatelimitResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::FirewallRatelimitResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsForceResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsSecondaryZoneForceAxfrArgs> for SecondaryDnsForceResponse {
+    fn generate_resource_id(&self, input: &SecondaryDnsSecondaryZoneForceAxfrArgs) -> String {
+        format!("cloudflare::SecondaryDnsForceResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsForceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsSingleResponseIncoming.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsSecondaryZoneSecondaryZoneConfigurationDetailsArgs>
+    for SecondaryDnsSingleResponseIncoming
+{
+    fn generate_resource_id(
+        &self,
+        input: &SecondaryDnsSecondaryZoneSecondaryZoneConfigurationDetailsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::SecondaryDnsSingleResponseIncoming/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsSingleResponseIncoming"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsSecondaryZoneDeleteSecondaryZoneConfigurationArgs>
+    for SecondaryDnsIdResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SecondaryDnsSecondaryZoneDeleteSecondaryZoneConfigurationArgs,
+    ) -> String {
+        format!("cloudflare::SecondaryDnsIdResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsSingleResponseOutgoing.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsPrimaryZonePrimaryZoneConfigurationDetailsArgs>
+    for SecondaryDnsSingleResponseOutgoing
+{
+    fn generate_resource_id(
+        &self,
+        input: &SecondaryDnsPrimaryZonePrimaryZoneConfigurationDetailsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::SecondaryDnsSingleResponseOutgoing/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsSingleResponseOutgoing"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsDisableTransferResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsPrimaryZoneDisableOutgoingZoneTransfersArgs>
+    for SecondaryDnsDisableTransferResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SecondaryDnsPrimaryZoneDisableOutgoingZoneTransfersArgs,
+    ) -> String {
+        format!(
+            "cloudflare::SecondaryDnsDisableTransferResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsDisableTransferResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsEnableTransferResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsPrimaryZoneEnableOutgoingZoneTransfersArgs>
+    for SecondaryDnsEnableTransferResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &SecondaryDnsPrimaryZoneEnableOutgoingZoneTransfersArgs,
+    ) -> String {
+        format!(
+            "cloudflare::SecondaryDnsEnableTransferResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsEnableTransferResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SecondaryDnsSchemasForceResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SecondaryDnsPrimaryZoneForceDnsNotifyArgs>
+    for SecondaryDnsSchemasForceResponse
+{
+    fn generate_resource_id(&self, input: &SecondaryDnsPrimaryZoneForceDnsNotifyArgs) -> String {
+        format!(
+            "cloudflare::SecondaryDnsSchemasForceResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SecondaryDnsSchemasForceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZonesZoneSettingsResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneSettingsGetAllZoneSettingsArgs>
+    for ZonesZoneSettingsResponseCollection
+{
+    fn generate_resource_id(&self, input: &ZoneSettingsGetAllZoneSettingsArgs) -> String {
+        format!(
+            "cloudflare::ZonesZoneSettingsResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZonesZoneSettingsResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CacheRulesOriginH2MaxStreamsResponseValue.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneCacheSettingsGetOriginH2MaxStreamsSettingArgs>
+    for CacheRulesOriginH2MaxStreamsResponseValue
+{
+    fn generate_resource_id(
+        &self,
+        input: &ZoneCacheSettingsGetOriginH2MaxStreamsSettingArgs,
+    ) -> String {
+        format!(
+            "cloudflare::CacheRulesOriginH2MaxStreamsResponseValue/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CacheRulesOriginH2MaxStreamsResponseValue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for RumRumSiteResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WebAnalyticsGetRumStatusArgs> for RumRumSiteResponseSingle {
+    fn generate_resource_id(&self, input: &WebAnalyticsGetRumStatusArgs) -> String {
+        format!("cloudflare::RumRumSiteResponseSingle/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::RumRumSiteResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for CacheApiResponseSingleId.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SslDetectorAutomaticModeGetEnrollmentArgs> for CacheApiResponseSingleId {
+    fn generate_resource_id(&self, input: &SslDetectorAutomaticModeGetEnrollmentArgs) -> String {
+        format!("cloudflare::CacheApiResponseSingleId/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::CacheApiResponseSingleId"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZarazZarazConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetZonesZoneIdentifierZarazConfigArgs> for ZarazZarazConfigResponse {
+    fn generate_resource_id(&self, input: &GetZonesZoneIdentifierZarazConfigArgs) -> String {
+        format!("cloudflare::ZarazZarazConfigResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZarazZarazConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZarazZarazConfigReturn.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetZonesZoneIdentifierZarazExportArgs> for ZarazZarazConfigReturn {
+    fn generate_resource_id(&self, input: &GetZonesZoneIdentifierZarazExportArgs) -> String {
+        format!("cloudflare::ZarazZarazConfigReturn/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZarazZarazConfigReturn"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZarazZarazHistoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetZonesZoneIdentifierZarazHistoryArgs> for ZarazZarazHistoryResponse {
+    fn generate_resource_id(&self, input: &GetZonesZoneIdentifierZarazHistoryArgs) -> String {
+        format!("cloudflare::ZarazZarazHistoryResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZarazZarazHistoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZarazZarazConfigHistoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetZonesZoneIdentifierZarazConfigHistoryArgs>
+    for ZarazZarazConfigHistoryResponse
+{
+    fn generate_resource_id(&self, input: &GetZonesZoneIdentifierZarazConfigHistoryArgs) -> String {
+        format!(
+            "cloudflare::ZarazZarazConfigHistoryResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZarazZarazConfigHistoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ZarazZarazWorkflowResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GetZonesZoneIdentifierZarazWorkflowArgs> for ZarazZarazWorkflowResponse {
+    fn generate_resource_id(&self, input: &GetZonesZoneIdentifierZarazWorkflowArgs) -> String {
+        format!("cloudflare::ZarazZarazWorkflowResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ZarazZarazWorkflowResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SmartshieldResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SmartShieldListHealthChecksArgs> for SmartshieldResponseCollection {
+    fn generate_resource_id(&self, input: &SmartShieldListHealthChecksArgs) -> String {
+        format!(
+            "cloudflare::SmartshieldResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SmartshieldResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SmartshieldSingleHcResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SmartShieldCreateHealthCheckArgs> for SmartshieldSingleHcResponse {
+    fn generate_resource_id(&self, input: &SmartShieldCreateHealthCheckArgs) -> String {
+        format!("cloudflare::SmartshieldSingleHcResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SmartshieldSingleHcResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SmartshieldSingleHcIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SmartShieldDeleteHealthCheckArgs> for SmartshieldSingleHcIdResponse {
+    fn generate_resource_id(&self, input: &SmartShieldDeleteHealthCheckArgs) -> String {
+        format!(
+            "cloudflare::SmartshieldSingleHcIdResponse/{}/{}",
+            input.healthcheck_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SmartshieldSingleHcIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SpectrumAnalyticsQueryResponseAggregate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpectrumAggregateAnalyticsGetCurrentAggregatedAnalyticsArgs>
+    for SpectrumAnalyticsQueryResponseAggregate
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpectrumAggregateAnalyticsGetCurrentAggregatedAnalyticsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::SpectrumAnalyticsQueryResponseAggregate/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SpectrumAnalyticsQueryResponseAggregate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SpectrumAnalyticsQueryResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpectrumAnalyticsByTimeGetAnalyticsByTimeArgs>
+    for SpectrumAnalyticsQueryResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpectrumAnalyticsByTimeGetAnalyticsByTimeArgs,
+    ) -> String {
+        format!(
+            "cloudflare::SpectrumAnalyticsQueryResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SpectrumAnalyticsQueryResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SpectrumConfigAppConfigCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpectrumApplicationsListSpectrumApplicationsArgs>
+    for SpectrumConfigAppConfigCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpectrumApplicationsListSpectrumApplicationsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::SpectrumConfigAppConfigCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SpectrumConfigAppConfigCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SpectrumConfigAppConfigSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpectrumApplicationsCreateSpectrumApplicationUsingANameForTheOriginArgs>
+    for SpectrumConfigAppConfigSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpectrumApplicationsCreateSpectrumApplicationUsingANameForTheOriginArgs,
+    ) -> String {
+        format!(
+            "cloudflare::SpectrumConfigAppConfigSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SpectrumConfigAppConfigSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for SpectrumConfigApiResponseSingleId.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpectrumApplicationsDeleteSpectrumApplicationArgs>
+    for SpectrumConfigApiResponseSingleId
+{
+    fn generate_resource_id(
+        &self,
+        input: &SpectrumApplicationsDeleteSpectrumApplicationArgs,
+    ) -> String {
+        format!(
+            "cloudflare::SpectrumConfigApiResponseSingleId/{}/{}",
+            input.app_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::SpectrumConfigApiResponseSingleId"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ObservatoryAvailabilitiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpeedGetAvailabilitiesArgs> for ObservatoryAvailabilitiesResponse {
+    fn generate_resource_id(&self, input: &SpeedGetAvailabilitiesArgs) -> String {
+        format!(
+            "cloudflare::ObservatoryAvailabilitiesResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ObservatoryAvailabilitiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ObservatoryPagesResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpeedListPagesArgs> for ObservatoryPagesResponseCollection {
+    fn generate_resource_id(&self, input: &SpeedListPagesArgs) -> String {
+        format!(
+            "cloudflare::ObservatoryPagesResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ObservatoryPagesResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ObservatoryPageTestResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpeedListTestHistoryArgs> for ObservatoryPageTestResponseCollection {
+    fn generate_resource_id(&self, input: &SpeedListTestHistoryArgs) -> String {
+        format!(
+            "cloudflare::ObservatoryPageTestResponseCollection/{}/{}",
+            input.zone_id, input.url
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ObservatoryPageTestResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ObservatoryPageTestResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpeedCreateTestArgs> for ObservatoryPageTestResponseSingle {
+    fn generate_resource_id(&self, input: &SpeedCreateTestArgs) -> String {
+        format!(
+            "cloudflare::ObservatoryPageTestResponseSingle/{}/{}",
+            input.zone_id, input.url
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ObservatoryPageTestResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ObservatoryCountResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpeedDeleteTestsArgs> for ObservatoryCountResponse {
+    fn generate_resource_id(&self, input: &SpeedDeleteTestsArgs) -> String {
+        format!(
+            "cloudflare::ObservatoryCountResponse/{}/{}",
+            input.zone_id, input.url
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ObservatoryCountResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ObservatoryTrendResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpeedListPageTrendArgs> for ObservatoryTrendResponse {
+    fn generate_resource_id(&self, input: &SpeedListPageTrendArgs) -> String {
+        format!(
+            "cloudflare::ObservatoryTrendResponse/{}/{}",
+            input.zone_id, input.url
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ObservatoryTrendResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ObservatoryScheduleResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpeedGetScheduledTestArgs> for ObservatoryScheduleResponseSingle {
+    fn generate_resource_id(&self, input: &SpeedGetScheduledTestArgs) -> String {
+        format!(
+            "cloudflare::ObservatoryScheduleResponseSingle/{}/{}",
+            input.zone_id, input.url
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ObservatoryScheduleResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for ObservatoryCreateScheduleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SpeedCreateScheduledTestArgs> for ObservatoryCreateScheduleResponse {
+    fn generate_resource_id(&self, input: &SpeedCreateScheduledTestArgs) -> String {
+        format!(
+            "cloudflare::ObservatoryCreateScheduleResponse/{}/{}",
+            input.zone_id, input.url
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::ObservatoryCreateScheduleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesCertificateAnalyzeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyzeCertificateAnalyzeCertificateArgs>
+    for TlsCertificatesAndHostnamesCertificateAnalyzeResponse
+{
+    fn generate_resource_id(&self, input: &AnalyzeCertificateAnalyzeCertificateArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesCertificateAnalyzeResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesCertificateAnalyzeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesCertificatePackResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatePacksListCertificatePacksArgs>
+    for TlsCertificatesAndHostnamesCertificatePackResponseCollection
+{
+    fn generate_resource_id(&self, input: &CertificatePacksListCertificatePacksArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesCertificatePackResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesCertificatePackResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesAdvancedCertificatePackResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatePacksOrderAdvancedCertificateManagerCertificatePackArgs>
+    for TlsCertificatesAndHostnamesAdvancedCertificatePackResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &CertificatePacksOrderAdvancedCertificateManagerCertificatePackArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesAdvancedCertificatePackResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesAdvancedCertificatePackResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesCertificatePackQuotaResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatePacksGetCertificatePackQuotasArgs>
+    for TlsCertificatesAndHostnamesCertificatePackQuotaResponse
+{
+    fn generate_resource_id(&self, input: &CertificatePacksGetCertificatePackQuotasArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesCertificatePackQuotaResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesCertificatePackQuotaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesCertificatePackResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatePacksGetCertificatePackArgs>
+    for TlsCertificatesAndHostnamesCertificatePackResponseSingle
+{
+    fn generate_resource_id(&self, input: &CertificatePacksGetCertificatePackArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesCertificatePackResponseSingle/{}/{}",
+            input.certificate_pack_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesCertificatePackResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesDeleteAdvancedCertificatePackResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatePacksDeleteAdvancedCertificateManagerCertificatePackArgs>
+    for TlsCertificatesAndHostnamesDeleteAdvancedCertificatePackResponseSingle
+{
+    fn generate_resource_id(
+        &self,
+        input: &CertificatePacksDeleteAdvancedCertificateManagerCertificatePackArgs,
+    ) -> String {
+        format!("cloudflare::TlsCertificatesAndHostnamesDeleteAdvancedCertificatePackResponseSingle/{}/{}", input.certificate_pack_id, input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesDeleteAdvancedCertificatePackResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesSslUniversalSettingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<UniversalSslSettingsForAZoneUniversalSslSettingsDetailsArgs>
+    for TlsCertificatesAndHostnamesSslUniversalSettingsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &UniversalSslSettingsForAZoneUniversalSslSettingsDetailsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesSslUniversalSettingsResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesSslUniversalSettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesSslVerificationResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SslVerificationSslVerificationDetailsArgs>
+    for TlsCertificatesAndHostnamesSslVerificationResponseCollection
+{
+    fn generate_resource_id(&self, input: &SslVerificationSslVerificationDetailsArgs) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesSslVerificationResponseCollection/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesSslVerificationResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for TlsCertificatesAndHostnamesSslValidationMethodResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SslVerificationEditSslCertificatePackValidationMethodArgs>
+    for TlsCertificatesAndHostnamesSslValidationMethodResponseCollection
+{
+    fn generate_resource_id(
+        &self,
+        input: &SslVerificationEditSslCertificatePackValidationMethodArgs,
+    ) -> String {
+        format!(
+            "cloudflare::TlsCertificatesAndHostnamesSslValidationMethodResponseCollection/{}/{}",
+            input.certificate_pack_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::TlsCertificatesAndHostnamesSslValidationMethodResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for BillSubsApiZoneSubscriptionResponseSingle.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ZoneSubscriptionZoneSubscriptionDetailsArgs>
+    for BillSubsApiZoneSubscriptionResponseSingle
+{
+    fn generate_resource_id(&self, input: &ZoneSubscriptionZoneSubscriptionDetailsArgs) -> String {
+        format!(
+            "cloudflare::BillSubsApiZoneSubscriptionResponseSingle/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::BillSubsApiZoneSubscriptionResponseSingle"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WaitingroomSingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WaitingRoomCreateWaitingRoomArgs> for WaitingroomSingleResponse {
+    fn generate_resource_id(&self, input: &WaitingRoomCreateWaitingRoomArgs) -> String {
+        format!("cloudflare::WaitingroomSingleResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WaitingroomSingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WaitingroomPreviewResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WaitingRoomCreateACustomWaitingRoomPagePreviewArgs>
+    for WaitingroomPreviewResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &WaitingRoomCreateACustomWaitingRoomPagePreviewArgs,
+    ) -> String {
+        format!("cloudflare::WaitingroomPreviewResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WaitingroomPreviewResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WaitingroomZoneSettingsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WaitingRoomGetZoneSettingsArgs> for WaitingroomZoneSettingsResponse {
+    fn generate_resource_id(&self, input: &WaitingRoomGetZoneSettingsArgs) -> String {
+        format!(
+            "cloudflare::WaitingroomZoneSettingsResponse/{}",
+            input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WaitingroomZoneSettingsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WaitingroomWaitingRoomIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WaitingRoomDeleteWaitingRoomArgs> for WaitingroomWaitingRoomIdResponse {
+    fn generate_resource_id(&self, input: &WaitingRoomDeleteWaitingRoomArgs) -> String {
+        format!(
+            "cloudflare::WaitingroomWaitingRoomIdResponse/{}/{}",
+            input.waiting_room_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WaitingroomWaitingRoomIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WaitingroomEventResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WaitingRoomListEventsArgs> for WaitingroomEventResponseCollection {
+    fn generate_resource_id(&self, input: &WaitingRoomListEventsArgs) -> String {
+        format!(
+            "cloudflare::WaitingroomEventResponseCollection/{}/{}",
+            input.waiting_room_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WaitingroomEventResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WaitingroomEventResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WaitingRoomCreateEventArgs> for WaitingroomEventResponse {
+    fn generate_resource_id(&self, input: &WaitingRoomCreateEventArgs) -> String {
+        format!(
+            "cloudflare::WaitingroomEventResponse/{}/{}",
+            input.waiting_room_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WaitingroomEventResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WaitingroomEventIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WaitingRoomDeleteEventArgs> for WaitingroomEventIdResponse {
+    fn generate_resource_id(&self, input: &WaitingRoomDeleteEventArgs) -> String {
+        format!(
+            "cloudflare::WaitingroomEventIdResponse/{}/{}/{}",
+            input.event_id, input.waiting_room_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WaitingroomEventIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WaitingroomEventDetailsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WaitingRoomPreviewActiveEventDetailsArgs>
+    for WaitingroomEventDetailsResponse
+{
+    fn generate_resource_id(&self, input: &WaitingRoomPreviewActiveEventDetailsArgs) -> String {
+        format!(
+            "cloudflare::WaitingroomEventDetailsResponse/{}/{}/{}",
+            input.event_id, input.waiting_room_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WaitingroomEventDetailsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WaitingroomRulesResponseCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WaitingRoomListWaitingRoomRulesArgs>
+    for WaitingroomRulesResponseCollection
+{
+    fn generate_resource_id(&self, input: &WaitingRoomListWaitingRoomRulesArgs) -> String {
+        format!(
+            "cloudflare::WaitingroomRulesResponseCollection/{}/{}",
+            input.waiting_room_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WaitingroomRulesResponseCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for WaitingroomStatusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<WaitingRoomGetWaitingRoomStatusArgs> for WaitingroomStatusResponse {
+    fn generate_resource_id(&self, input: &WaitingRoomGetWaitingRoomStatusArgs) -> String {
+        format!(
+            "cloudflare::WaitingroomStatusResponse/{}/{}",
+            input.waiting_room_id, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::WaitingroomStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for Web3CollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Web3HostnameListWeb3HostnamesArgs> for Web3CollectionResponse {
+    fn generate_resource_id(&self, input: &Web3HostnameListWeb3HostnamesArgs) -> String {
+        format!("cloudflare::Web3CollectionResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::Web3CollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for Web3SingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Web3HostnameCreateWeb3HostnameArgs> for Web3SingleResponse {
+    fn generate_resource_id(&self, input: &Web3HostnameCreateWeb3HostnameArgs) -> String {
+        format!("cloudflare::Web3SingleResponse/{}", input.zone_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::Web3SingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for Web3ApiResponseSingleId.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Web3HostnameDeleteWeb3HostnameArgs> for Web3ApiResponseSingleId {
+    fn generate_resource_id(&self, input: &Web3HostnameDeleteWeb3HostnameArgs) -> String {
+        format!(
+            "cloudflare::Web3ApiResponseSingleId/{}/{}",
+            input.identifier, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::Web3ApiResponseSingleId"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for Web3ContentListDetailsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Web3HostnameIpfsUniversalPathGatewayContentListDetailsArgs>
+    for Web3ContentListDetailsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Web3HostnameIpfsUniversalPathGatewayContentListDetailsArgs,
+    ) -> String {
+        format!(
+            "cloudflare::Web3ContentListDetailsResponse/{}/{}",
+            input.identifier, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::Web3ContentListDetailsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for Web3ContentListEntryCollectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Web3HostnameListIpfsUniversalPathGatewayContentListEntriesArgs>
+    for Web3ContentListEntryCollectionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Web3HostnameListIpfsUniversalPathGatewayContentListEntriesArgs,
+    ) -> String {
+        format!(
+            "cloudflare::Web3ContentListEntryCollectionResponse/{}/{}",
+            input.identifier, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::Web3ContentListEntryCollectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
+}
+
+/// ResourceIdentifier implementation for Web3ContentListEntrySingleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<Web3HostnameCreateIpfsUniversalPathGatewayContentListEntryArgs>
+    for Web3ContentListEntrySingleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &Web3HostnameCreateIpfsUniversalPathGatewayContentListEntryArgs,
+    ) -> String {
+        format!(
+            "cloudflare::Web3ContentListEntrySingleResponse/{}/{}",
+            input.identifier, input.zone_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "cloudflare::Web3ContentListEntrySingleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "cloudflare"
+    }
 }

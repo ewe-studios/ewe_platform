@@ -698,3 +698,239 @@ pub struct GetVersionOperationMetadataSbomInfo {
     #[serde(default, rename = "targetComponentVersions")]
     pub target_component_versions: ::core::option::Option<serde_json::Value>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsCancelPreviewArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &DeploymentmanagerDeploymentsCancelPreviewArgs,
+    ) -> String {
+        format!("gcp::Operation/{}/{}", input.project, input.deployment)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Deployment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsGetArgs> for Deployment {
+    fn generate_resource_id(&self, input: &DeploymentmanagerDeploymentsGetArgs) -> String {
+        format!("gcp::Deployment/{}/{}", input.project, input.deployment)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Deployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &DeploymentmanagerDeploymentsGetIamPolicyArgs) -> String {
+        format!("gcp::Policy/{}/{}", input.project, input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DeploymentsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsListArgs> for DeploymentsListResponse {
+    fn generate_resource_id(&self, input: &DeploymentmanagerDeploymentsListArgs) -> String {
+        format!("gcp::DeploymentsListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DeploymentsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerDeploymentsTestIamPermissionsArgs>
+    for TestPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DeploymentmanagerDeploymentsTestIamPermissionsArgs,
+    ) -> String {
+        format!(
+            "gcp::TestPermissionsResponse/{}/{}",
+            input.project, input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Manifest.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerManifestsGetArgs> for Manifest {
+    fn generate_resource_id(&self, input: &DeploymentmanagerManifestsGetArgs) -> String {
+        format!(
+            "gcp::Manifest/{}/{}/{}",
+            input.project, input.deployment, input.manifest
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Manifest"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ManifestsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerManifestsListArgs> for ManifestsListResponse {
+    fn generate_resource_id(&self, input: &DeploymentmanagerManifestsListArgs) -> String {
+        format!(
+            "gcp::ManifestsListResponse/{}/{}",
+            input.project, input.deployment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ManifestsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for OperationsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerOperationsListArgs> for OperationsListResponse {
+    fn generate_resource_id(&self, input: &DeploymentmanagerOperationsListArgs) -> String {
+        format!("gcp::OperationsListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::OperationsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Resource.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerResourcesGetArgs> for Resource {
+    fn generate_resource_id(&self, input: &DeploymentmanagerResourcesGetArgs) -> String {
+        format!(
+            "gcp::Resource/{}/{}/{}",
+            input.project, input.deployment, input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Resource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourcesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerResourcesListArgs> for ResourcesListResponse {
+    fn generate_resource_id(&self, input: &DeploymentmanagerResourcesListArgs) -> String {
+        format!(
+            "gcp::ResourcesListResponse/{}/{}",
+            input.project, input.deployment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResourcesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TypesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DeploymentmanagerTypesListArgs> for TypesListResponse {
+    fn generate_resource_id(&self, input: &DeploymentmanagerTypesListArgs) -> String {
+        format!("gcp::TypesListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TypesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

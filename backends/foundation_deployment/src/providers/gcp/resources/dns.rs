@@ -1026,3 +1026,554 @@ pub struct RRSetRoutingPolicyLoadBalancerTarget {
     #[serde(default)]
     pub region: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Change.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsChangesCreateArgs> for Change {
+    fn generate_resource_id(&self, input: &DnsChangesCreateArgs) -> String {
+        format!("gcp::Change/{}/{}", input.project, input.managed_zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Change"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ChangesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsChangesListArgs> for ChangesListResponse {
+    fn generate_resource_id(&self, input: &DnsChangesListArgs) -> String {
+        format!(
+            "gcp::ChangesListResponse/{}/{}",
+            input.project, input.managed_zone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ChangesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsKey.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsDnsKeysGetArgs> for DnsKey {
+    fn generate_resource_id(&self, input: &DnsDnsKeysGetArgs) -> String {
+        format!(
+            "gcp::DnsKey/{}/{}/{}",
+            input.project, input.managed_zone, input.dns_key_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DnsKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsKeysListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsDnsKeysListArgs> for DnsKeysListResponse {
+    fn generate_resource_id(&self, input: &DnsDnsKeysListArgs) -> String {
+        format!(
+            "gcp::DnsKeysListResponse/{}/{}",
+            input.project, input.managed_zone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DnsKeysListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZoneOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &DnsManagedZoneOperationsGetArgs) -> String {
+        format!(
+            "gcp::Operation/{}/{}/{}",
+            input.project, input.managed_zone, input.operation
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ManagedZoneOperationsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZoneOperationsListArgs> for ManagedZoneOperationsListResponse {
+    fn generate_resource_id(&self, input: &DnsManagedZoneOperationsListArgs) -> String {
+        format!(
+            "gcp::ManagedZoneOperationsListResponse/{}/{}",
+            input.project, input.managed_zone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ManagedZoneOperationsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ManagedZone.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZonesCreateArgs> for ManagedZone {
+    fn generate_resource_id(&self, input: &DnsManagedZonesCreateArgs) -> String {
+        format!("gcp::ManagedZone/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ManagedZone"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZonesGetIamPolicyArgs> for GoogleIamV1Policy {
+    fn generate_resource_id(&self, input: &DnsManagedZonesGetIamPolicyArgs) -> String {
+        format!("gcp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ManagedZonesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZonesListArgs> for ManagedZonesListResponse {
+    fn generate_resource_id(&self, input: &DnsManagedZonesListArgs) -> String {
+        format!("gcp::ManagedZonesListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ManagedZonesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsManagedZonesTestIamPermissionsArgs>
+    for GoogleIamV1TestIamPermissionsResponse
+{
+    fn generate_resource_id(&self, input: &DnsManagedZonesTestIamPermissionsArgs) -> String {
+        format!(
+            "gcp::GoogleIamV1TestIamPermissionsResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV1TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsPoliciesCreateArgs> for Policy {
+    fn generate_resource_id(&self, input: &DnsPoliciesCreateArgs) -> String {
+        format!("gcp::Policy/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PoliciesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsPoliciesListArgs> for PoliciesListResponse {
+    fn generate_resource_id(&self, input: &DnsPoliciesListArgs) -> String {
+        format!("gcp::PoliciesListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PoliciesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PoliciesPatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsPoliciesPatchArgs> for PoliciesPatchResponse {
+    fn generate_resource_id(&self, input: &DnsPoliciesPatchArgs) -> String {
+        format!(
+            "gcp::PoliciesPatchResponse/{}/{}",
+            input.project, input.policy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PoliciesPatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PoliciesUpdateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsPoliciesUpdateArgs> for PoliciesUpdateResponse {
+    fn generate_resource_id(&self, input: &DnsPoliciesUpdateArgs) -> String {
+        format!(
+            "gcp::PoliciesUpdateResponse/{}/{}",
+            input.project, input.policy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PoliciesUpdateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Project.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsProjectsGetArgs> for Project {
+    fn generate_resource_id(&self, input: &DnsProjectsGetArgs) -> String {
+        format!("gcp::Project/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Project"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourceRecordSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResourceRecordSetsCreateArgs> for ResourceRecordSet {
+    fn generate_resource_id(&self, input: &DnsResourceRecordSetsCreateArgs) -> String {
+        format!(
+            "gcp::ResourceRecordSet/{}/{}",
+            input.project, input.managed_zone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResourceRecordSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourceRecordSetsDeleteResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResourceRecordSetsDeleteArgs> for ResourceRecordSetsDeleteResponse {
+    fn generate_resource_id(&self, input: &DnsResourceRecordSetsDeleteArgs) -> String {
+        format!(
+            "gcp::ResourceRecordSetsDeleteResponse/{}/{}/{}/{}",
+            input.project, input.managed_zone, input.name, input.type_
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResourceRecordSetsDeleteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourceRecordSetsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResourceRecordSetsListArgs> for ResourceRecordSetsListResponse {
+    fn generate_resource_id(&self, input: &DnsResourceRecordSetsListArgs) -> String {
+        format!(
+            "gcp::ResourceRecordSetsListResponse/{}/{}",
+            input.project, input.managed_zone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResourceRecordSetsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResponsePolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePoliciesCreateArgs> for ResponsePolicy {
+    fn generate_resource_id(&self, input: &DnsResponsePoliciesCreateArgs) -> String {
+        format!("gcp::ResponsePolicy/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResponsePolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResponsePoliciesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePoliciesListArgs> for ResponsePoliciesListResponse {
+    fn generate_resource_id(&self, input: &DnsResponsePoliciesListArgs) -> String {
+        format!("gcp::ResponsePoliciesListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResponsePoliciesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResponsePoliciesPatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePoliciesPatchArgs> for ResponsePoliciesPatchResponse {
+    fn generate_resource_id(&self, input: &DnsResponsePoliciesPatchArgs) -> String {
+        format!(
+            "gcp::ResponsePoliciesPatchResponse/{}/{}",
+            input.project, input.response_policy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResponsePoliciesPatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResponsePoliciesUpdateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePoliciesUpdateArgs> for ResponsePoliciesUpdateResponse {
+    fn generate_resource_id(&self, input: &DnsResponsePoliciesUpdateArgs) -> String {
+        format!(
+            "gcp::ResponsePoliciesUpdateResponse/{}/{}",
+            input.project, input.response_policy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResponsePoliciesUpdateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResponsePolicyRule.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePolicyRulesCreateArgs> for ResponsePolicyRule {
+    fn generate_resource_id(&self, input: &DnsResponsePolicyRulesCreateArgs) -> String {
+        format!(
+            "gcp::ResponsePolicyRule/{}/{}",
+            input.project, input.response_policy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResponsePolicyRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResponsePolicyRulesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePolicyRulesListArgs> for ResponsePolicyRulesListResponse {
+    fn generate_resource_id(&self, input: &DnsResponsePolicyRulesListArgs) -> String {
+        format!(
+            "gcp::ResponsePolicyRulesListResponse/{}/{}",
+            input.project, input.response_policy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResponsePolicyRulesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResponsePolicyRulesPatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePolicyRulesPatchArgs> for ResponsePolicyRulesPatchResponse {
+    fn generate_resource_id(&self, input: &DnsResponsePolicyRulesPatchArgs) -> String {
+        format!(
+            "gcp::ResponsePolicyRulesPatchResponse/{}/{}/{}",
+            input.project, input.response_policy, input.response_policy_rule
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResponsePolicyRulesPatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResponsePolicyRulesUpdateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DnsResponsePolicyRulesUpdateArgs> for ResponsePolicyRulesUpdateResponse {
+    fn generate_resource_id(&self, input: &DnsResponsePolicyRulesUpdateArgs) -> String {
+        format!(
+            "gcp::ResponsePolicyRulesUpdateResponse/{}/{}/{}",
+            input.project, input.response_policy, input.response_policy_rule
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResponsePolicyRulesUpdateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

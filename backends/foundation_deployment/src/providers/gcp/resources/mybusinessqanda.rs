@@ -118,3 +118,108 @@ pub struct Author {
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Question.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessqandaLocationsQuestionsCreateArgs> for Question {
+    fn generate_resource_id(&self, input: &MybusinessqandaLocationsQuestionsCreateArgs) -> String {
+        format!("gcp::Question/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Question"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessqandaLocationsQuestionsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &MybusinessqandaLocationsQuestionsDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListQuestionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessqandaLocationsQuestionsListArgs> for ListQuestionsResponse {
+    fn generate_resource_id(&self, input: &MybusinessqandaLocationsQuestionsListArgs) -> String {
+        format!("gcp::ListQuestionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListQuestionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAnswersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessqandaLocationsQuestionsAnswersListArgs> for ListAnswersResponse {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessqandaLocationsQuestionsAnswersListArgs,
+    ) -> String {
+        format!("gcp::ListAnswersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAnswersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Answer.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessqandaLocationsQuestionsAnswersUpsertArgs> for Answer {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessqandaLocationsQuestionsAnswersUpsertArgs,
+    ) -> String {
+        format!("gcp::Answer/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Answer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

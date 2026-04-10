@@ -1220,3 +1220,336 @@ pub struct AddressInfo {
     #[serde(default, rename = "regionCode")]
     pub region_code: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for RetrieveInsightsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsInsightsRetrieveArgs>
+    for RetrieveInsightsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsInsightsRetrieveArgs,
+    ) -> String {
+        format!("gcp::RetrieveInsightsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetrieveInsightsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PartnerLink.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsPartnerLinksCreateArgs> for PartnerLink {
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsPartnerLinksCreateArgs,
+    ) -> String {
+        format!("gcp::PartnerLink/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PartnerLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsPartnerLinksDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsPartnerLinksDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchPartnerLinksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsPartnerLinksSearchArgs>
+    for SearchPartnerLinksResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsPartnerLinksSearchArgs,
+    ) -> String {
+        format!("gcp::SearchPartnerLinksResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchPartnerLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserListDirectLicense.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListDirectLicensesCreateArgs>
+    for UserListDirectLicense
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListDirectLicensesCreateArgs,
+    ) -> String {
+        format!("gcp::UserListDirectLicense/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserListDirectLicense"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUserListDirectLicensesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListDirectLicensesListArgs>
+    for ListUserListDirectLicensesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListDirectLicensesListArgs,
+    ) -> String {
+        format!("gcp::ListUserListDirectLicensesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUserListDirectLicensesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserListGlobalLicense.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListGlobalLicensesCreateArgs>
+    for UserListGlobalLicense
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListGlobalLicensesCreateArgs,
+    ) -> String {
+        format!("gcp::UserListGlobalLicense/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserListGlobalLicense"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUserListGlobalLicensesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListGlobalLicensesListArgs>
+    for ListUserListGlobalLicensesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListGlobalLicensesListArgs,
+    ) -> String {
+        format!("gcp::ListUserListGlobalLicensesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUserListGlobalLicensesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUserListGlobalLicenseCustomerInfosResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListGlobalLicensesUserListGlobalLicenseCustomerInfosListArgs> for ListUserListGlobalLicenseCustomerInfosResponse {
+    fn generate_resource_id(&self, input: &DatamanagerAccountTypesAccountsUserListGlobalLicensesUserListGlobalLicenseCustomerInfosListArgs) -> String {
+        format!("gcp::ListUserListGlobalLicenseCustomerInfosResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUserListGlobalLicenseCustomerInfosResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListsCreateArgs> for UserList {
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListsCreateArgs,
+    ) -> String {
+        format!("gcp::UserList/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUserListsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAccountTypesAccountsUserListsListArgs>
+    for ListUserListsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatamanagerAccountTypesAccountsUserListsListArgs,
+    ) -> String {
+        format!("gcp::ListUserListsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUserListsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IngestAudienceMembersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAudienceMembersIngestArgs> for IngestAudienceMembersResponse {
+    fn generate_resource_id(&self, input: &DatamanagerAudienceMembersIngestArgs) -> String {
+        "gcp::IngestAudienceMembersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IngestAudienceMembersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RemoveAudienceMembersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerAudienceMembersRemoveArgs> for RemoveAudienceMembersResponse {
+    fn generate_resource_id(&self, input: &DatamanagerAudienceMembersRemoveArgs) -> String {
+        "gcp::RemoveAudienceMembersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RemoveAudienceMembersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IngestEventsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerEventsIngestArgs> for IngestEventsResponse {
+    fn generate_resource_id(&self, input: &DatamanagerEventsIngestArgs) -> String {
+        "gcp::IngestEventsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IngestEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RetrieveRequestStatusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatamanagerRequestStatusRetrieveArgs> for RetrieveRequestStatusResponse {
+    fn generate_resource_id(&self, input: &DatamanagerRequestStatusRetrieveArgs) -> String {
+        "gcp::RetrieveRequestStatusResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetrieveRequestStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

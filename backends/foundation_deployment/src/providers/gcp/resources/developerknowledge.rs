@@ -10,3 +10,7 @@
 use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================

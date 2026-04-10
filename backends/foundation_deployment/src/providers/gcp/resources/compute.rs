@@ -216,6 +216,29 @@ pub struct AutoscalingPolicyScalingSchedule {
     pub time_zone: ::core::option::Option<String>,
 }
 
+/// BackendBucketAggregatedList resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendBucketAggregatedList {
+    /// [Output Only] Unique identifier for the resource; defined by the server.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// A list of BackendBucketsScopedList resources.
+    #[serde(default)]
+    pub items: ::core::option::Option<serde_json::Value>,
+    /// Output only. Type of resource.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// [Output Only] This token allows you to get the next page of results for
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Output only. [Output Only] Server-defined URL for this resource.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// [Output Only] Informational warning message.
+    #[serde(default)]
+    pub warning: ::core::option::Option<serde_json::Value>,
+}
+
 /// Contains a list of BackendBucket resources.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendBucketList {
@@ -235,6 +258,40 @@ pub struct BackendBucketList {
     #[serde(default, rename = "selfLink")]
     pub self_link: ::core::option::Option<String>,
     /// [Output Only] Informational warning message.
+    #[serde(default)]
+    pub warning: ::core::option::Option<serde_json::Value>,
+}
+
+/// BackendBucketListUsable resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendBucketListUsable {
+    /// [Output Only] Unique identifier for the resource; defined by the server.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// A list of BackendBucket resources.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<BackendBucket>>,
+    /// Output only. [Output Only] Type of resource. Alwayscompute#usableBackendBucketList for lists of usable backend
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// [Output Only] This token allows you to get the next page of results for
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Output only. [Output Only] Server-defined URL for this resource.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// [Output Only] Informational warning message.
+    #[serde(default)]
+    pub warning: ::core::option::Option<serde_json::Value>,
+}
+
+/// BackendBucketsScopedList resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackendBucketsScopedList {
+    /// A list of BackendBuckets contained in this scope.
+    #[serde(default, rename = "backendBuckets")]
+    pub backend_buckets: ::core::option::Option<::std::vec::Vec<BackendBucket>>,
+    /// Informational warning which replaces the list of
     #[serde(default)]
     pub warning: ::core::option::Option<serde_json::Value>,
 }
@@ -341,6 +398,12 @@ pub struct BackendServicesScopedList {
 /// requests and is not persisted.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkInsertDiskResource {
+    /// The parameters for the instant snapshot group.
+    #[serde(default, rename = "instantSnapshotGroupParameters")]
+    pub instant_snapshot_group_parameters: ::core::option::Option<InstantSnapshotGroupParameters>,
+    /// The parameters for the snapshot group. The usage of snapshot group feature
+    #[serde(default, rename = "snapshotGroupParameters")]
+    pub snapshot_group_parameters: ::core::option::Option<SnapshotGroupParameters>,
     /// The URL of the DiskConsistencyGroupPolicy for the group of disks to clone.
     #[serde(default, rename = "sourceConsistencyGroupPolicy")]
     pub source_consistency_group_policy: ::core::option::Option<String>,
@@ -534,6 +597,22 @@ pub struct CompositeHealthCheckAggregatedList {
     pub warning: ::core::option::Option<serde_json::Value>,
 }
 
+/// Response message for RegionCompositeHealthChecks.GetHealth
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CompositeHealthCheckHealth {
+    /// Health sources and their corresponding health states.
+    #[serde(default, rename = "healthSources")]
+    pub health_sources: ::core::option::Option<
+        ::std::vec::Vec<CompositeHealthChecksGetHealthResponseHealthSourceHealth>,
+    >,
+    /// Health state of the CompositeHealthCheck. // TODO: enum values: ["HEALTHY", "UNHEALTHY", "UNKNOWN"]
+    #[serde(default, rename = "healthState")]
+    pub health_state: ::core::option::Option<String>,
+    /// Output only. [Output Only] Type of resource. Alwayscompute#compositeHealthCheckHealth for the health of
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
 /// CompositeHealthCheckList resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompositeHealthCheckList {
@@ -721,6 +800,14 @@ pub struct DiskTypesScopedList {
     /// [Output Only] Informational warning which replaces the list of disk types
     #[serde(default)]
     pub warning: ::core::option::Option<serde_json::Value>,
+}
+
+/// DiskUpdateKmsKeyRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DiskUpdateKmsKeyRequest {
+    /// Optional. The new KMS key to replace the current one on the disk. If empty, the disk
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
 }
 
 /// DisksAddResourcePoliciesRequest resource type.
@@ -1407,6 +1494,20 @@ pub struct HealthSourceAggregatedList {
     /// [Output Only] Informational warning message.
     #[serde(default)]
     pub warning: ::core::option::Option<serde_json::Value>,
+}
+
+/// Response message for RegionHealthSources.GetHealth
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HealthSourceHealth {
+    /// Health state of the HealthSource. // TODO: enum values: ["HEALTHY", "UNHEALTHY", "UNKNOWN"]
+    #[serde(default, rename = "healthState")]
+    pub health_state: ::core::option::Option<String>,
+    /// Output only. [Output Only] Type of resource. Alwayscompute#healthSourceHealth for the health of health sources.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Health state details of the sources.
+    #[serde(default)]
+    pub sources: ::core::option::Option<::std::vec::Vec<HealthSourcesGetHealthResponseSourceInfo>>,
 }
 
 /// HealthSourceList resource type.
@@ -2594,6 +2695,34 @@ pub struct LicensesListResponse {
     pub warning: ::core::option::Option<serde_json::Value>,
 }
 
+/// Contains a list of InstantSnapshotGroup resources.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ListInstantSnapshotGroups {
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// [Output Only] Unique identifier for the resource; defined by the server.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// A list of InstantSnapshotGroup resources.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<InstantSnapshotGroup>>,
+    /// Output only. Type of resource.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// [Output Only] This token allows you to get the next page of results for
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Output only. [Output Only] Server-defined URL for this resource.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Output only. [Output Only] Unreachable resources.
+    #[serde(default)]
+    pub unreachables: ::core::option::Option<::std::vec::Vec<String>>,
+    /// [Output Only] Informational warning message.
+    #[serde(default)]
+    pub warning: ::core::option::Option<serde_json::Value>,
+}
+
 /// Provides a localized error message that is safe to return to the user
 /// which can be attached to an RPC error.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -3741,6 +3870,14 @@ pub struct RegionDiskTypeList {
     pub warning: ::core::option::Option<serde_json::Value>,
 }
 
+/// RegionDiskUpdateKmsKeyRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionDiskUpdateKmsKeyRequest {
+    /// Optional. The new KMS key to replace the current one on the disk. If empty, the disk
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
+}
+
 /// RegionDisksAddResourcePoliciesRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionDisksAddResourcePoliciesRequest {
@@ -3833,6 +3970,34 @@ pub struct RegionInstanceGroupManagerPatchInstanceConfigReq {
     /// The list of per-instance configurations to insert or patch on this managed
     #[serde(default, rename = "perInstanceConfigs")]
     pub per_instance_configs: ::core::option::Option<::std::vec::Vec<PerInstanceConfig>>,
+}
+
+/// RegionInstanceGroupManagerResizeRequestsListResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionInstanceGroupManagerResizeRequestsListResponse {
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Output only. [Output Only] Unique identifier for the resource; defined by the server.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// A list of Resize Request resources.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<InstanceGroupManagerResizeRequest>>,
+    /// Output only. [Output Only] Type of the resource. Alwayscompute#regionInstanceGroupManagerResizeRequestList for
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Output only. [Output Only] This token allows you to get the next page of results for
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Output only. [Output Only] Server-defined URL for this resource.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Output only. [Output Only] Unreachable resources.
+    #[serde(default)]
+    pub unreachables: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. [Output Only] Informational warning message.
+    #[serde(default)]
+    pub warning: ::core::option::Option<serde_json::Value>,
 }
 
 /// RegionInstanceGroupManagers.updatePerInstanceConfigs
@@ -4110,6 +4275,14 @@ pub struct RegionSetPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the ''resource''. The size of
     #[serde(default)]
     pub policy: ::core::option::Option<Policy>,
+}
+
+/// RegionSnapshotUpdateKmsKeyRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionSnapshotUpdateKmsKeyRequest {
+    /// Optional. The new KMS key to replace the current one on the snapshot. If empty, the
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
 }
 
 /// RegionTargetHttpsProxiesSetSslCertificatesRequest resource type.
@@ -4823,9 +4996,20 @@ pub struct SnapshotList {
 /// SnapshotSettings resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SnapshotSettings {
+    /// (Regional snapshots use only)Policy of which location is allowed to access
+    #[serde(default, rename = "accessLocation")]
+    pub access_location: ::core::option::Option<SnapshotSettingsAccessLocation>,
     /// Policy of which storage location is going to be resolved, and additional
     #[serde(default, rename = "storageLocation")]
     pub storage_location: ::core::option::Option<SnapshotSettingsStorageLocationSettings>,
+}
+
+/// A structure for specifying an allowed target region.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SnapshotSettingsAccessLocationAccessLocationPreference {
+    /// Accessible region name
+    #[serde(default)]
+    pub region: ::core::option::Option<String>,
 }
 
 /// A structure for specifying storage locations.
@@ -4834,6 +5018,14 @@ pub struct SnapshotSettingsStorageLocationSettingsStorageLocationPreference {
     /// Name of the location. It should be one of the Cloud Storage buckets.
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+}
+
+/// SnapshotUpdateKmsKeyRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SnapshotUpdateKmsKeyRequest {
+    /// Optional. The new KMS key to replace the current one on the snapshot. If empty, the
+    #[serde(default, rename = "kmsKeyName")]
+    pub kms_key_name: ::core::option::Option<String>,
 }
 
 /// SslCertificateAggregatedList resource type.
@@ -5893,6 +6085,46 @@ pub struct VmEndpointNatMappingsList {
     pub warning: ::core::option::Option<serde_json::Value>,
 }
 
+/// Configuration for a specific VM extension.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmExtensionPolicyExtensionPolicy {
+    /// Optional. The specific version of the extension to install. If not set, the latest
+    #[serde(default, rename = "pinnedVersion")]
+    pub pinned_version: ::core::option::Option<String>,
+    /// Optional. String-based configuration data for the extension.
+    #[serde(default, rename = "stringConfig")]
+    pub string_config: ::core::option::Option<String>,
+}
+
+/// VmExtensionPolicyList resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmExtensionPolicyList {
+    /// Output only. [Output Only] Fingerprint of this resource. A hash of the contents stored
+    #[serde(default)]
+    pub etag: ::core::option::Option<String>,
+    /// Output only. [Output Only] Unique identifier for the resource; defined by the server.
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Output only. [Output Only] A list of VM extension policy resources.
+    #[serde(default)]
+    pub items: ::core::option::Option<::std::vec::Vec<VmExtensionPolicy>>,
+    /// Output only. Type of resource.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Output only. [Output Only] This token allows you to get the next page of results for
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// Output only. [Output Only] Server-defined URL for this resource.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Output only. [Output Only] Unreachable resources.
+    #[serde(default)]
+    pub unreachables: ::core::option::Option<::std::vec::Vec<String>>,
+    /// Output only. [Output Only] Informational warning message.
+    #[serde(default)]
+    pub warning: ::core::option::Option<serde_json::Value>,
+}
+
 /// VpnGatewayAggregatedList resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGatewayAggregatedList {
@@ -6313,6 +6545,9 @@ pub struct BackendBucket {
     /// Input only. [Input Only] Additional params passed with the request, but not persisted
     #[serde(default)]
     pub params: ::core::option::Option<BackendBucketParams>,
+    /// Output only. [Output Only] URL of the region where the regional backend bucket
+    #[serde(default)]
+    pub region: ::core::option::Option<String>,
     /// [Output Only] Server-defined URL for the resource.
     #[serde(default, rename = "selfLink")]
     pub self_link: ::core::option::Option<String>,
@@ -6500,6 +6735,28 @@ pub struct BackendService {
     pub used_by: ::core::option::Option<::std::vec::Vec<BackendServiceUsedBy>>,
 }
 
+/// InstantSnapshotGroupParameters resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstantSnapshotGroupParameters {
+    /// The source instant snapshot group used to create disks. You can provide
+    #[serde(default, rename = "sourceInstantSnapshotGroup")]
+    pub source_instant_snapshot_group: ::core::option::Option<String>,
+}
+
+/// SnapshotGroupParameters resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SnapshotGroupParameters {
+    /// URLs of the zones where disks should be replicated to. Only applicable
+    #[serde(default, rename = "replicaZones")]
+    pub replica_zones: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The source snapshot group used to create disks. You can provide this as a
+    #[serde(default, rename = "sourceSnapshotGroup")]
+    pub source_snapshot_group: ::core::option::Option<String>,
+    /// URL of the disk type resource describing which disk type to use to create
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
 /// A flexible specification of machine types for instances to create.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceFlexibilityPolicy {
@@ -6588,6 +6845,9 @@ pub struct Commitment {
     /// Name of the commitment. You must specify a name when you purchase the
     #[serde(default)]
     pub name: ::core::option::Option<String>,
+    /// Input only. Additional params passed with the request, but not persisted
+    #[serde(default)]
+    pub params: ::core::option::Option<CommitmentParams>,
     /// The minimum time duration that you commit to purchasing resources.
     #[serde(default)]
     pub plan: ::core::option::Option<String>,
@@ -6621,6 +6881,17 @@ pub struct Commitment {
     /// The type of commitment; specifies the
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+/// CompositeHealthChecksGetHealthResponseHealthSourceHealth resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CompositeHealthChecksGetHealthResponseHealthSourceHealth {
+    /// Health state of the associated HealthSource resource. // TODO: enum values: ["HEALTHY", "UNHEALTHY", "UNKNOWN"]
+    #[serde(default, rename = "healthState")]
+    pub health_state: ::core::option::Option<String>,
+    /// Fully qualified URL of the associated HealthSource resource.
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
 }
 
 /// Represents a composite health check.
@@ -7143,6 +7414,9 @@ pub struct FutureReservation {
     /// If not present, then FR will not deliver a new commitment or update an
     #[serde(default, rename = "commitmentInfo")]
     pub commitment_info: ::core::option::Option<FutureReservationCommitmentInfo>,
+    /// TODO: enum values: ["CONFIDENTIAL_COMPUTE_TYPE_TDX", "CONFIDENTIAL_COMPUTE_TYPE_UNSPECIFIED"]
+    #[serde(default, rename = "confidentialComputeType")]
+    pub confidential_compute_type: ::core::option::Option<String>,
     /// Output only. [Output Only] The creation timestamp for this future reservation inRFC3339
     #[serde(default, rename = "creationTimestamp")]
     pub creation_timestamp: ::core::option::Option<String>,
@@ -7167,6 +7441,9 @@ pub struct FutureReservation {
     /// Name prefix for the reservations to be created at the time of
     #[serde(default, rename = "namePrefix")]
     pub name_prefix: ::core::option::Option<String>,
+    /// Input only. Additional params passed with the request, but not persisted
+    #[serde(default)]
+    pub params: ::core::option::Option<FutureReservationParams>,
     /// Planning state before being submitted for evaluation // TODO: enum values: ["DRAFT", "PLANNING_STATUS_UNSPECIFIED", "SUBMITTED"]
     #[serde(default, rename = "planningStatus")]
     pub planning_status: ::core::option::Option<String>,
@@ -7416,6 +7693,22 @@ pub struct HealthCheck {
     /// A so-far healthy instance will be marked unhealthy after this many
     #[serde(default, rename = "unhealthyThreshold")]
     pub unhealthy_threshold: ::core::option::Option<i32>,
+}
+
+/// HealthSourcesGetHealthResponseSourceInfo resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HealthSourcesGetHealthResponseSourceInfo {
+    /// Represents an instance group or network endpoint group behind the source
+    #[serde(default)]
+    pub backends: ::core::option::Option<
+        ::std::vec::Vec<HealthSourcesGetHealthResponseSourceInfoBackendInfo>,
+    >,
+    /// Fully qualified URL of the forwarding rule associated with the source
+    #[serde(default, rename = "forwardingRule")]
+    pub forwarding_rule: ::core::option::Option<String>,
+    /// Fully qualified URL of the associated source resource. This is always a
+    #[serde(default)]
+    pub source: ::core::option::Option<String>,
 }
 
 /// Represents a health source.
@@ -7690,51 +7983,6 @@ pub struct Image {
     /// Cloud Storage bucket storage location of the image (regional or
     #[serde(default, rename = "storageLocations")]
     pub storage_locations: ::core::option::Option<::std::vec::Vec<String>>,
-}
-
-/// InstanceGroupManagerResizeRequest represents a request to create
-/// a number of VMs: either immediately or by queuing the request for the
-/// specified time. This resize request is nested under InstanceGroupManager
-/// and the VMs created by this request are added to the owning
-/// InstanceGroupManager.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerResizeRequest {
-    /// Output only. [Output Only] The creation timestamp for this resize request inRFC3339
-    #[serde(default, rename = "creationTimestamp")]
-    pub creation_timestamp: ::core::option::Option<String>,
-    /// An optional description of this resource.
-    #[serde(default)]
-    pub description: ::core::option::Option<String>,
-    /// Output only. [Output Only] A unique identifier for this resource type. The server
-    #[serde(default)]
-    pub id: ::core::option::Option<String>,
-    /// Output only. [Output Only] The resource type, which is alwayscompute#instanceGroupManagerResizeRequest for
-    #[serde(default)]
-    pub kind: ::core::option::Option<String>,
-    /// The name of this resize request. The name must be 1-63 characters
-    #[serde(default)]
-    pub name: ::core::option::Option<String>,
-    /// Requested run duration for instances that will be created by this request.
-    #[serde(default, rename = "requestedRunDuration")]
-    pub requested_run_duration: ::core::option::Option<Duration>,
-    /// The number of instances to be created by this resize request. The group''s
-    #[serde(default, rename = "resizeBy")]
-    pub resize_by: ::core::option::Option<i32>,
-    /// Output only. [Output Only] The URL for this resize request. The server defines
-    #[serde(default, rename = "selfLink")]
-    pub self_link: ::core::option::Option<String>,
-    /// Output only. [Output Only] Server-defined URL for this resource with the resource id.
-    #[serde(default, rename = "selfLinkWithId")]
-    pub self_link_with_id: ::core::option::Option<String>,
-    /// Output only. [Output only] Current state of the request. // TODO: enum values: ["ACCEPTED", "CANCELLED", "CREATING", "FAILED", "STATE_UNSPECIFIED", "SUCCEEDED"]
-    #[serde(default)]
-    pub state: ::core::option::Option<String>,
-    /// Output only. [Output only] Status of the request.
-    #[serde(default)]
-    pub status: ::core::option::Option<InstanceGroupManagerResizeRequestStatus>,
-    /// Output only. [Output Only] The URL of azone
-    #[serde(default)]
-    pub zone: ::core::option::Option<String>,
 }
 
 /// Represents a reference to a resource.
@@ -8065,6 +8313,12 @@ pub struct InstantSnapshot {
     /// Output only. [Output Only] The ID value of the disk used to create this InstantSnapshot.
     #[serde(default, rename = "sourceDiskId")]
     pub source_disk_id: ::core::option::Option<String>,
+    /// Output only. [Output Only] URL of the source instant snapshot this instant snapshot is
+    #[serde(default, rename = "sourceInstantSnapshotGroup")]
+    pub source_instant_snapshot_group: ::core::option::Option<String>,
+    /// Output only. [Output Only] The ID value of the source instant snapshot group this
+    #[serde(default, rename = "sourceInstantSnapshotGroupId")]
+    pub source_instant_snapshot_group_id: ::core::option::Option<String>,
     /// Output only. [Output Only] The status of the instantSnapshot. This can beCREATING, DELETING, FAILED, orREADY. // TODO: enum values: ["CREATING", "DELETING", "FAILED", "READY", "UNAVAILABLE"]
     #[serde(default)]
     pub status: ::core::option::Option<String>,
@@ -8724,6 +8978,48 @@ pub struct License {
     /// Output only. [Output Only] Last update timestamp inRFC3339
     #[serde(default, rename = "updateTimestamp")]
     pub update_timestamp: ::core::option::Option<String>,
+}
+
+/// Represents an InstantSnapshotGroup resource.
+///
+/// An instant snapshot group is a set of instant snapshots that represents a
+/// point in time state of a consistency group.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstantSnapshotGroup {
+    /// Output only. [Output Only] Creation timestamp inRFC3339
+    #[serde(default, rename = "creationTimestamp")]
+    pub creation_timestamp: ::core::option::Option<String>,
+    /// Optional. An optional description of this resource. Provide this property when you
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. [Output Only] The unique identifier for the resource. This identifier is
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Output only. [Output Only] Type of the resource. Alwayscompute#instantSnapshotGroup for InstantSnapshotGroup
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Identifier. Name of the resource; provided by the client when the resource is created.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. [Output Only] URL of the region where the instant snapshot group resides.
+    #[serde(default)]
+    pub region: ::core::option::Option<String>,
+    #[serde(default, rename = "resourceStatus")]
+    pub resource_status: ::core::option::Option<InstantSnapshotGroupResourceStatus>,
+    /// Output only. [Output Only] Server-defined URL for the resource.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Output only. [Output Only] Server-defined URL for this resource''s resource id.
+    #[serde(default, rename = "selfLinkWithId")]
+    pub self_link_with_id: ::core::option::Option<String>,
+    #[serde(default, rename = "sourceConsistencyGroup")]
+    pub source_consistency_group: ::core::option::Option<String>,
+    /// Output only. [Output Only] // TODO: enum values: ["CREATING", "DELETING", "FAILED", "INVALID", "READY", "UNKNOWN"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    /// Output only. [Output Only] URL of the zone where the instant snapshot group resides.
+    #[serde(default)]
+    pub zone: ::core::option::Option<String>,
 }
 
 /// Per-zone constraints on location policy for this zone.
@@ -9960,10 +10256,10 @@ pub struct InstanceGroupManager {
     /// The base instance name is a prefix that you want to attach to the names of
     #[serde(default, rename = "baseInstanceName")]
     pub base_instance_name: ::core::option::Option<String>,
-    /// Output only. [Output Only] The creation timestamp for this managed instance group inRFC3339
+    /// Output only. The creation timestamp for this managed instance group inRFC3339
     #[serde(default, rename = "creationTimestamp")]
     pub creation_timestamp: ::core::option::Option<String>,
-    /// Output only. [Output Only] The list of instance actions and the number of instances
+    /// Output only. The list of instance actions and the number of instances
     #[serde(default, rename = "currentActions")]
     pub current_actions: ::core::option::Option<InstanceGroupManagerActionsSummary>,
     /// An optional description of this resource.
@@ -9975,14 +10271,14 @@ pub struct InstanceGroupManager {
     /// Fingerprint of this resource. This field may be used in optimistic locking.
     #[serde(default)]
     pub fingerprint: ::core::option::Option<String>,
-    /// Output only. [Output Only] A unique identifier for this resource type. The server
+    /// Output only. A unique identifier for this resource type. The server
     #[serde(default)]
     pub id: ::core::option::Option<String>,
     /// Instance flexibility allowing MIG to create VMs from multiple
     #[serde(default, rename = "instanceFlexibilityPolicy")]
     pub instance_flexibility_policy:
         ::core::option::Option<InstanceGroupManagerInstanceFlexibilityPolicy>,
-    /// Output only. [Output Only] The URL of the Instance Group resource.
+    /// Output only. The URL of the Instance Group resource.
     #[serde(default, rename = "instanceGroup")]
     pub instance_group: ::core::option::Option<String>,
     /// The repair policy for this managed instance group.
@@ -9992,7 +10288,7 @@ pub struct InstanceGroupManager {
     /// The URL of the instance template that is specified for this managed
     #[serde(default, rename = "instanceTemplate")]
     pub instance_template: ::core::option::Option<String>,
-    /// Output only. [Output Only] The resource type, which is alwayscompute#instanceGroupManager for managed instance groups.
+    /// Output only. The resource type, which is alwayscompute#instanceGroupManager for managed instance groups.
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
     /// Pagination behavior of the listManagedInstances API method for
@@ -10010,13 +10306,13 @@ pub struct InstanceGroupManager {
     /// Resource policies for this managed instance group.
     #[serde(default, rename = "resourcePolicies")]
     pub resource_policies: ::core::option::Option<InstanceGroupManagerResourcePolicies>,
-    /// Output only. [Output Only] Reserved for future use.
+    /// Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzi")]
     pub satisfies_pzi: ::core::option::Option<bool>,
-    /// Output only. [Output Only] Reserved for future use.
+    /// Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzs")]
     pub satisfies_pzs: ::core::option::Option<bool>,
-    /// Output only. [Output Only] The URL for this managed instance group. The server defines
+    /// Output only. The URL for this managed instance group. The server defines
     #[serde(default, rename = "selfLink")]
     pub self_link: ::core::option::Option<String>,
     /// Standby policy for stopped and suspended instances.
@@ -10025,7 +10321,7 @@ pub struct InstanceGroupManager {
     /// Stateful configuration for this Instanced Group Manager
     #[serde(default, rename = "statefulPolicy")]
     pub stateful_policy: ::core::option::Option<StatefulPolicy>,
-    /// Output only. [Output Only] The status of this managed instance group.
+    /// Output only. The status of this managed instance group.
     #[serde(default)]
     pub status: ::core::option::Option<InstanceGroupManagerStatus>,
     /// The URLs for all TargetPool resources to which instances in theinstanceGroup field are added. The target pools automatically
@@ -10049,7 +10345,55 @@ pub struct InstanceGroupManager {
     /// Specifies the instance templates used by this managed instance group to
     #[serde(default)]
     pub versions: ::core::option::Option<::std::vec::Vec<InstanceGroupManagerVersion>>,
-    /// Output only. [Output Only] The URL of azone
+    /// Output only. The URL of azone
+    #[serde(default)]
+    pub zone: ::core::option::Option<String>,
+}
+
+/// InstanceGroupManagerResizeRequest represents a request to create
+/// a number of VMs: either immediately or by queuing the request for the
+/// specified time. This resize request is nested under InstanceGroupManager
+/// and the VMs created by this request are added to the owning
+/// InstanceGroupManager.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerResizeRequest {
+    /// Output only. The creation timestamp for this resize request inRFC3339
+    #[serde(default, rename = "creationTimestamp")]
+    pub creation_timestamp: ::core::option::Option<String>,
+    /// An optional description of this resource.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Output only. A unique identifier for this resource type. The server generates this
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Output only. The resource type, which is alwayscompute#instanceGroupManagerResizeRequest for resize requests.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// The name of this resize request. The name must be 1-63 characters
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Output only. The URL of a region
+    #[serde(default)]
+    pub region: ::core::option::Option<String>,
+    /// Requested run duration for instances that will be created by this request.
+    #[serde(default, rename = "requestedRunDuration")]
+    pub requested_run_duration: ::core::option::Option<Duration>,
+    /// The number of instances to be created by this resize request. The group''s
+    #[serde(default, rename = "resizeBy")]
+    pub resize_by: ::core::option::Option<i32>,
+    /// Output only. The URL for this resize request. The server defines this URL.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Output only. Server-defined URL for this resource with the resource id.
+    #[serde(default, rename = "selfLinkWithId")]
+    pub self_link_with_id: ::core::option::Option<String>,
+    /// Output only. Current state of the request. // TODO: enum values: ["ACCEPTED", "CANCELLED", "CREATING", "FAILED", "STATE_UNSPECIFIED", "SUCCEEDED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. Status of the request.
+    #[serde(default)]
+    pub status: ::core::option::Option<InstanceGroupManagerResizeRequestStatus>,
+    /// Output only. The URL of a zone
     #[serde(default)]
     pub zone: ::core::option::Option<String>,
 }
@@ -10834,6 +11178,9 @@ pub struct Snapshot {
     /// Input only. [Input Only] Additional params passed with the request, but not persisted
     #[serde(default)]
     pub params: ::core::option::Option<SnapshotParams>,
+    /// Output only. [Output Only] URL of the region where the snapshot resides. Only applicable
+    #[serde(default)]
+    pub region: ::core::option::Option<String>,
     /// Output only. Reserved for future use.
     #[serde(default, rename = "satisfiesPzi")]
     pub satisfies_pzi: ::core::option::Option<bool>,
@@ -10846,6 +11193,12 @@ pub struct Snapshot {
     /// Encrypts the snapshot using acustomer-supplied
     #[serde(default, rename = "snapshotEncryptionKey")]
     pub snapshot_encryption_key: ::core::option::Option<CustomerEncryptionKey>,
+    /// Output only. [Output Only] The unique ID of the snapshot group that this snapshot
+    #[serde(default, rename = "snapshotGroupId")]
+    pub snapshot_group_id: ::core::option::Option<String>,
+    /// Output only. [Output only] The snapshot group that this snapshot belongs to. The usage
+    #[serde(default, rename = "snapshotGroupName")]
+    pub snapshot_group_name: ::core::option::Option<String>,
     /// Indicates the type of the snapshot. // TODO: enum values: ["ARCHIVE", "STANDARD"]
     #[serde(default, rename = "snapshotType")]
     pub snapshot_type: ::core::option::Option<String>,
@@ -10888,6 +11241,17 @@ pub struct Snapshot {
     /// Cloud Storage bucket storage location of the snapshot (regional or
     #[serde(default, rename = "storageLocations")]
     pub storage_locations: ::core::option::Option<::std::vec::Vec<String>>,
+}
+
+/// SnapshotSettingsAccessLocation resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SnapshotSettingsAccessLocation {
+    /// List of regions that can restore a regional
+    #[serde(default)]
+    pub locations: ::core::option::Option<serde_json::Value>,
+    /// Policy of which location is allowed to access snapshot. // TODO: enum values: ["ALL_REGIONS", "POLICY_UNSPECIFIED", "SPECIFIC_REGIONS"]
+    #[serde(default)]
+    pub policy: ::core::option::Option<String>,
 }
 
 /// SnapshotSettingsStorageLocationSettings resource type.
@@ -11902,6 +12266,54 @@ pub struct VmEndpointNatMappings {
         ::core::option::Option<::std::vec::Vec<VmEndpointNatMappingsInterfaceNatMappings>>,
 }
 
+/// Represents a VM extension policy.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmExtensionPolicy {
+    /// Output only. [Output Only] Creation timestamp inRFC3339
+    #[serde(default, rename = "creationTimestamp")]
+    pub creation_timestamp: ::core::option::Option<String>,
+    /// An optional description of this resource.
+    #[serde(default)]
+    pub description: ::core::option::Option<String>,
+    /// Required. A map of extension names (for example, "ops-agent") to their corresponding
+    #[serde(default, rename = "extensionPolicies")]
+    pub extension_policies: ::core::option::Option<serde_json::Value>,
+    /// Optional. Output only. [Output Only] Link to the global policy that manages this zone policy, if
+    #[serde(default, rename = "globalResourceLink")]
+    pub global_resource_link: ::core::option::Option<String>,
+    /// Output only. [Output Only] The unique identifier for the resource. This identifier is
+    #[serde(default)]
+    pub id: ::core::option::Option<String>,
+    /// Optional. Selectors to target VMs for this policy. VMs are selected if they match
+    #[serde(default, rename = "instanceSelectors")]
+    pub instance_selectors:
+        ::core::option::Option<::std::vec::Vec<VmExtensionPolicyInstanceSelector>>,
+    /// Output only. [Output Only] Type of the resource. Alwayscompute#vmExtensionPolicy.
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+    /// Optional. Output only. [Output Only] Indicates if this policy is managed by a global policy.
+    #[serde(default, rename = "managedByGlobal")]
+    pub managed_by_global: ::core::option::Option<bool>,
+    /// Name of the resource. Provided by the client when the resource is created.
+    #[serde(default)]
+    pub name: ::core::option::Option<String>,
+    /// Optional. Priority of this policy. Used to resolve conflicts when multiple policies
+    #[serde(default)]
+    pub priority: ::core::option::Option<i32>,
+    /// Output only. [Output Only] Server-defined fully-qualified URL for this resource.
+    #[serde(default, rename = "selfLink")]
+    pub self_link: ::core::option::Option<String>,
+    /// Output only. [Output Only] Server-defined URL for this resource''s resource id.
+    #[serde(default, rename = "selfLinkWithId")]
+    pub self_link_with_id: ::core::option::Option<String>,
+    /// Optional. Output only. [Output Only] Current state of the policy: ACTIVE or DELETING. // TODO: enum values: ["ACTIVE", "DELETING", "STATE_UNSPECIFIED"]
+    #[serde(default)]
+    pub state: ::core::option::Option<String>,
+    /// Output only. [Output Only] Update timestamp inRFC3339
+    #[serde(default, rename = "updateTimestamp")]
+    pub update_timestamp: ::core::option::Option<String>,
+}
+
 /// VpnGatewayStatus resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGatewayStatus {
@@ -12362,6 +12774,15 @@ pub struct Backend {
     /// Defines a target maximum number of simultaneous connections.
     #[serde(default, rename = "maxConnectionsPerInstance")]
     pub max_connections_per_instance: ::core::option::Option<i32>,
+    /// Defines a maximum number of in-flight requests for the whole NEG or
+    #[serde(default, rename = "maxInFlightRequests")]
+    pub max_in_flight_requests: ::core::option::Option<i32>,
+    /// Defines a maximum number of in-flight requests for a single endpoint.
+    #[serde(default, rename = "maxInFlightRequestsPerEndpoint")]
+    pub max_in_flight_requests_per_endpoint: ::core::option::Option<i32>,
+    /// Defines a maximum number of in-flight requests for a single VM.
+    #[serde(default, rename = "maxInFlightRequestsPerInstance")]
+    pub max_in_flight_requests_per_instance: ::core::option::Option<i32>,
     /// Defines a maximum number of HTTP requests per second (RPS). For
     #[serde(default, rename = "maxRate")]
     pub max_rate: ::core::option::Option<i32>,
@@ -12380,6 +12801,9 @@ pub struct Backend {
     /// This field indicates whether this backend should be fully utilized before
     #[serde(default)]
     pub preference: ::core::option::Option<String>,
+    /// TODO: enum values: ["LONG", "SHORT", "TRAFFIC_DURATION_UNSPECIFIED"]
+    #[serde(default, rename = "trafficDuration")]
+    pub traffic_duration: ::core::option::Option<String>,
 }
 
 /// Message containing Cloud CDN configuration for a backend service.
@@ -12729,6 +13153,14 @@ pub struct LicenseResourceCommitment {
     pub license: ::core::option::Option<String>,
 }
 
+/// Additional commitment params.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct CommitmentParams {
+    /// Input only. Resource manager tags to be bound to the commitment. Tag keys and
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
+}
+
 /// Represents a reservation resource.  A reservation ensures that capacity is
 /// held in a specific zone even if the reserved VMs are not running. For more
 /// information, read  Reserving zonal
@@ -12744,6 +13176,9 @@ pub struct Reservation {
     /// Output only. [Output Only] Full or partial URL to a parent commitment. This field
     #[serde(default)]
     pub commitment: ::core::option::Option<String>,
+    /// TODO: enum values: ["CONFIDENTIAL_COMPUTE_TYPE_TDX", "CONFIDENTIAL_COMPUTE_TYPE_UNSPECIFIED"]
+    #[serde(default, rename = "confidentialComputeType")]
+    pub confidential_compute_type: ::core::option::Option<String>,
     /// Output only. [Output Only] Creation timestamp inRFC3339
     #[serde(default, rename = "creationTimestamp")]
     pub creation_timestamp: ::core::option::Option<String>,
@@ -12946,6 +13381,14 @@ pub struct FutureReservationCommitmentInfo {
     /// Only applicable if FR is delivering to the same reservation. If set, all
     #[serde(default, rename = "previousCommitmentTerms")]
     pub previous_commitment_terms: ::core::option::Option<String>,
+}
+
+/// Additional future reservation params.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FutureReservationParams {
+    /// Input only. Resource manager tags to be bound to the future reservation. Tag keys and
+    #[serde(default, rename = "resourceManagerTags")]
+    pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
 }
 
 /// [Output only] Represents status related to the future reservation.
@@ -13185,23 +13628,26 @@ pub struct TCPHealthCheck {
     pub response: ::core::option::Option<String>,
 }
 
+/// HealthSourcesGetHealthResponseSourceInfoBackendInfo resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct HealthSourcesGetHealthResponseSourceInfoBackendInfo {
+    /// Total number of endpoints when determining the health of the
+    #[serde(default, rename = "endpointCount")]
+    pub endpoint_count: ::core::option::Option<i32>,
+    /// Fully qualified URL of an instance group or network endpoint group
+    #[serde(default)]
+    pub group: ::core::option::Option<String>,
+    /// Number of endpoints considered healthy when determining health of the
+    #[serde(default, rename = "healthyEndpointCount")]
+    pub healthy_endpoint_count: ::core::option::Option<i32>,
+}
+
 /// Additional image params.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageParams {
     /// Input only. Resource manager tags to be bound to the image. Tag keys and values have
     #[serde(default, rename = "resourceManagerTags")]
     pub resource_manager_tags: ::core::option::Option<serde_json::Value>,
-}
-
-/// InstanceGroupManagerResizeRequestStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerResizeRequestStatus {
-    /// Output only. [Output only] Fatal errors encountered during the queueing or
-    #[serde(default)]
-    pub error: ::core::option::Option<serde_json::Value>,
-    /// Output only. [Output only] Information about the last attempt to fulfill the request.
-    #[serde(default, rename = "lastAttempt")]
-    pub last_attempt: ::core::option::Option<InstanceGroupManagerResizeRequestStatusLastAttempt>,
 }
 
 /// A specification of the parameters to use when creating the instance template
@@ -13648,6 +14094,17 @@ pub struct LicenseResourceRequirements {
     pub min_memory_mb: ::core::option::Option<i32>,
 }
 
+/// InstantSnapshotGroupResourceStatus resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstantSnapshotGroupResourceStatus {
+    /// Output only. [Output Only]
+    #[serde(default, rename = "consistencyMembershipResolutionTime")]
+    pub consistency_membership_resolution_time: ::core::option::Option<String>,
+    /// Output only. [Output Only]
+    #[serde(default, rename = "sourceInfo")]
+    pub source_info: ::core::option::Option<InstantSnapshotGroupSourceInfo>,
+}
+
 /// InstanceProperties resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceProperties {
@@ -13848,6 +14305,9 @@ pub struct NetworkAttachmentConnectedEndpoint {
     /// Alias IP ranges from the same subnetwork.
     #[serde(default, rename = "secondaryIpCidrRanges")]
     pub secondary_ip_cidr_ranges: ::core::option::Option<::std::vec::Vec<String>>,
+    /// The service class id of the producer service to which the IP was
+    #[serde(default, rename = "serviceClassId")]
+    pub service_class_id: ::core::option::Option<String>,
     /// The status of a connected endpoint to this network attachment. // TODO: enum values: ["ACCEPTED", "CLOSED", "NEEDS_ATTENTION", "PENDING", "REJECTED", "STATUS_UNSPECIFIED"]
     #[serde(default)]
     pub status: ::core::option::Option<String>,
@@ -14524,43 +14984,43 @@ pub struct InstanceGroupManagerAutoHealingPolicy {
 /// InstanceGroupManagerActionsSummary resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerActionsSummary {
-    /// Output only. [Output Only] The total number of instances in the managed instance group
+    /// Output only. The total number of instances in the managed instance group
     #[serde(default)]
     pub abandoning: ::core::option::Option<i32>,
-    /// Output only. [Output Only] The number of instances in the managed instance group that
+    /// Output only. The number of instances in the managed instance group that
     #[serde(default)]
     pub creating: ::core::option::Option<i32>,
-    /// Output only. [Output Only] The number of instances that the managed instance group
+    /// Output only. The number of instances that the managed instance group
     #[serde(default, rename = "creatingWithoutRetries")]
     pub creating_without_retries: ::core::option::Option<i32>,
-    /// Output only. [Output Only] The number of instances in the managed instance group that
+    /// Output only. The number of instances in the managed instance group that
     #[serde(default)]
     pub deleting: ::core::option::Option<i32>,
-    /// Output only. [Output Only] The number of instances in the managed instance group that
+    /// Output only. The number of instances in the managed instance group that
     #[serde(default)]
     pub none: ::core::option::Option<i32>,
-    /// Output only. [Output Only] The number of instances in the managed instance group that
+    /// Output only. The number of instances in the managed instance group that
     #[serde(default)]
     pub recreating: ::core::option::Option<i32>,
-    /// Output only. [Output Only] The number of instances in the managed instance group that
+    /// Output only. The number of instances in the managed instance group that
     #[serde(default)]
     pub refreshing: ::core::option::Option<i32>,
-    /// Output only. [Output Only] The number of instances in the managed instance group that
+    /// Output only. The number of instances in the managed instance group that
     #[serde(default)]
     pub restarting: ::core::option::Option<i32>,
-    /// Output only. [Output Only] The number of instances in the managed instance group that
+    /// Output only. The number of instances in the managed instance group that
     #[serde(default)]
     pub resuming: ::core::option::Option<i32>,
-    /// Output only. [Output Only] The number of instances in the managed instance group that
+    /// Output only. The number of instances in the managed instance group that
     #[serde(default)]
     pub starting: ::core::option::Option<i32>,
-    /// Output only. [Output Only] The number of instances in the managed instance group that
+    /// Output only. The number of instances in the managed instance group that
     #[serde(default)]
     pub stopping: ::core::option::Option<i32>,
-    /// Output only. [Output Only] The number of instances in the managed instance group that
+    /// Output only. The number of instances in the managed instance group that
     #[serde(default)]
     pub suspending: ::core::option::Option<i32>,
-    /// Output only. [Output Only] The number of instances in the managed instance group that
+    /// Output only. The number of instances in the managed instance group that
     #[serde(default)]
     pub verifying: ::core::option::Option<i32>,
 }
@@ -14627,27 +15087,31 @@ pub struct StatefulPolicy {
 /// InstanceGroupManagerStatus resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatus {
-    /// Output only. [Output only] Status of all-instances configuration on the group.
+    /// Output only. Status of all-instances configuration on the group.
     #[serde(default, rename = "allInstancesConfig")]
     pub all_instances_config: ::core::option::Option<InstanceGroupManagerStatusAllInstancesConfig>,
-    /// Output only. [Output Only] The accelerator topology applied to this MIG.
+    /// Output only. The accelerator topology applied to this MIG.
     #[serde(default, rename = "appliedAcceleratorTopologies")]
     pub applied_accelerator_topologies:
         ::core::option::Option<::std::vec::Vec<InstanceGroupManagerStatusAcceleratorTopology>>,
-    /// Output only. [Output Only] The URL of theAutoscaler
+    /// Output only. The URL of theAutoscaler
     #[serde(default)]
     pub autoscaler: ::core::option::Option<String>,
-    /// Output only. [Output Only] The status of bulk instance operation.
+    /// Output only. The status of bulk instance operation.
     #[serde(default, rename = "bulkInstanceOperation")]
     pub bulk_instance_operation:
         ::core::option::Option<InstanceGroupManagerStatusBulkInstanceOperation>,
-    /// Output only. [Output Only] A bit indicating whether the managed instance group is in a
+    /// Output only. The list of instance statuses and the number of instances
+    #[serde(default, rename = "currentInstanceStatuses")]
+    pub current_instance_statuses:
+        ::core::option::Option<InstanceGroupManagerStatusInstanceStatusSummary>,
+    /// Output only. A bit indicating whether the managed instance group is in a
     #[serde(default, rename = "isStable")]
     pub is_stable: ::core::option::Option<bool>,
-    /// Output only. [Output Only] Stateful status of the given Instance Group Manager.
+    /// Output only. Stateful status of the given Instance Group Manager.
     #[serde(default)]
     pub stateful: ::core::option::Option<InstanceGroupManagerStatusStateful>,
-    /// Output only. [Output Only] A status of consistency of Instances'' versions with their
+    /// Output only. A status of consistency of Instances'' versions with their
     #[serde(default, rename = "versionTarget")]
     pub version_target: ::core::option::Option<InstanceGroupManagerStatusVersionTarget>,
 }
@@ -14698,6 +15162,17 @@ pub struct InstanceGroupManagerVersion {
     /// Specifies the intended number of instances to be created from theinstanceTemplate. The final number of instances created
     #[serde(default, rename = "targetSize")]
     pub target_size: ::core::option::Option<FixedOrPercent>,
+}
+
+/// InstanceGroupManagerResizeRequestStatus resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerResizeRequestStatus {
+    /// Output only. Fatal errors encountered during the queueing or provisioning phases of
+    #[serde(default)]
+    pub error: ::core::option::Option<serde_json::Value>,
+    /// Output only. Information about the last attempt to fulfill the request. The value is
+    #[serde(default, rename = "lastAttempt")]
+    pub last_attempt: ::core::option::Option<InstanceGroupManagerResizeRequestStatusLastAttempt>,
 }
 
 /// InstanceManagedByIgmErrorManagedInstanceError resource type.
@@ -15897,6 +16372,14 @@ pub struct VmEndpointNatMappingsInterfaceNatMappings {
     pub source_virtual_ip: ::core::option::Option<String>,
 }
 
+/// Defines how to select VMs to apply a zone VM extension policy.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmExtensionPolicyInstanceSelector {
+    /// Optional. LabelSelector selects VMs based on their labels.
+    #[serde(default, rename = "labelSelector")]
+    pub label_selector: ::core::option::Option<VmExtensionPolicyLabelSelector>,
+}
+
 /// A VPN connection contains all VPN tunnels connected from this VpnGateway
 /// to the same peer gateway. The peer gateway could either be an external VPN
 /// gateway or a Google Cloud VPN gateway.
@@ -16439,14 +16922,6 @@ pub struct FutureResourcesSpecLocalSsdPartition {
     pub disk_size_gb: ::core::option::Option<String>,
 }
 
-/// InstanceGroupManagerResizeRequestStatusLastAttempt resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct InstanceGroupManagerResizeRequestStatusLastAttempt {
-    /// Output only. Errors that prevented the ResizeRequest to be fulfilled.
-    #[serde(default)]
-    pub error: ::core::option::Option<serde_json::Value>,
-}
-
 /// A specification of the desired way to instantiate a disk in the instance
 /// template when its created from a source instance.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -16655,6 +17130,15 @@ pub struct InterconnectRemoteLocationConstraintsSubnetLengthRange {
     pub max: ::core::option::Option<i32>,
     #[serde(default)]
     pub min: ::core::option::Option<i32>,
+}
+
+/// InstantSnapshotGroupSourceInfo resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstantSnapshotGroupSourceInfo {
+    #[serde(default, rename = "consistencyGroup")]
+    pub consistency_group: ::core::option::Option<String>,
+    #[serde(default, rename = "consistencyGroupId")]
+    pub consistency_group_id: ::core::option::Option<String>,
 }
 
 /// Specifies options for controlling advanced machine features.
@@ -16921,6 +17405,9 @@ pub struct NetworkInterface {
     /// The networking queue count that''s specified by users for the network
     #[serde(default, rename = "queueCount")]
     pub queue_count: ::core::option::Option<i32>,
+    /// Optional. Producer Service''s Service class Id for the region of this network
+    #[serde(default, rename = "serviceClassId")]
+    pub service_class_id: ::core::option::Option<String>,
     /// The stack type for this network interface. To assign only IPv4 addresses,
     #[serde(default, rename = "stackType")]
     pub stack_type: ::core::option::Option<String>,
@@ -17230,10 +17717,10 @@ pub struct StatefulPolicyPreservedState {
 /// InstanceGroupManagerStatusAllInstancesConfig resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusAllInstancesConfig {
-    /// Output only. [Output Only] Current all-instances configuration revision.
+    /// Output only. Current all-instances configuration revision.
     #[serde(default, rename = "currentRevision")]
     pub current_revision: ::core::option::Option<String>,
-    /// Output only. [Output Only] A bit indicating whether this configuration has
+    /// Output only. A bit indicating whether this configuration has
     #[serde(default)]
     pub effective: ::core::option::Option<bool>,
 }
@@ -17241,13 +17728,13 @@ pub struct InstanceGroupManagerStatusAllInstancesConfig {
 /// InstanceGroupManagerStatusAcceleratorTopology resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusAcceleratorTopology {
-    /// Output only. [Output Only] Topology in the format of: "16x16", "4x4x4", etc.
+    /// Output only. Topology in the format of: "16x16", "4x4x4", etc.
     #[serde(default, rename = "acceleratorTopology")]
     pub accelerator_topology: ::core::option::Option<String>,
-    /// Output only. [Output Only] The state of the accelerator topology. // TODO: enum values: ["ACTIVATING", "ACTIVE", "DEACTIVATING", "FAILED", "INCOMPLETE", "REACTIVATING"]
+    /// Output only. The state of the accelerator topology. // TODO: enum values: ["ACTIVATING", "ACTIVE", "DEACTIVATING", "FAILED", "INCOMPLETE", "REACTIVATING"]
     #[serde(default)]
     pub state: ::core::option::Option<String>,
-    /// Output only. [Output Only] The result of the latest accelerator topology state
+    /// Output only. The result of the latest accelerator topology state
     #[serde(default, rename = "stateDetails")]
     pub state_details: ::core::option::Option<
         InstanceGroupManagerStatusAcceleratorTopologyAcceleratorTopologyStateDetails,
@@ -17258,22 +17745,69 @@ pub struct InstanceGroupManagerStatusAcceleratorTopology {
 /// targetSizePolicy.mode is set to BULK.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusBulkInstanceOperation {
-    /// Output only. [Output Only] Informs whether bulk instance operation is in progress.
+    /// Output only. Informs whether bulk instance operation is in progress.
     #[serde(default, rename = "inProgress")]
     pub in_progress: ::core::option::Option<bool>,
-    /// Output only. [Output Only] Information from the last progress check of bulk instance
+    /// Output only. Information from the last progress check of bulk instance
     #[serde(default, rename = "lastProgressCheck")]
     pub last_progress_check:
         ::core::option::Option<InstanceGroupManagerStatusBulkInstanceOperationLastProgressCheck>,
 }
 
+/// The list of instance statuses and the number of instances in this managed
+/// instance group that have the status. For more information about how to
+/// interpret each status check the instance lifecycle documentation.
+/// Currently only shown for TPU MIGs.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerStatusInstanceStatusSummary {
+    /// Output only. The number of instances in the managed instance group
+    #[serde(default)]
+    pub deprovisioning: ::core::option::Option<i32>,
+    /// Output only. The number of instances that have not been created yet or
+    #[serde(default, rename = "nonExistent")]
+    pub non_existent: ::core::option::Option<i32>,
+    /// Output only. The number of instances in the managed instance group
+    #[serde(default)]
+    pub pending: ::core::option::Option<i32>,
+    /// Output only. The number of instances in the managed instance group
+    #[serde(default, rename = "pendingStop")]
+    pub pending_stop: ::core::option::Option<i32>,
+    /// Output only. The number of instances in the managed instance group
+    #[serde(default)]
+    pub provisioning: ::core::option::Option<i32>,
+    /// Output only. The number of instances in the managed instance group
+    #[serde(default)]
+    pub repairing: ::core::option::Option<i32>,
+    /// Output only. The number of instances in the managed instance group
+    #[serde(default)]
+    pub running: ::core::option::Option<i32>,
+    /// Output only. The number of instances in the managed instance group
+    #[serde(default)]
+    pub staging: ::core::option::Option<i32>,
+    /// Output only. The number of instances in the managed instance group
+    #[serde(default)]
+    pub stopped: ::core::option::Option<i32>,
+    /// Output only. The number of instances in the managed instance group
+    #[serde(default)]
+    pub stopping: ::core::option::Option<i32>,
+    /// Output only. The number of instances in the managed instance group
+    #[serde(default)]
+    pub suspended: ::core::option::Option<i32>,
+    /// Output only. The number of instances in the managed instance group
+    #[serde(default)]
+    pub suspending: ::core::option::Option<i32>,
+    /// Output only. The number of instances in the managed instance group
+    #[serde(default)]
+    pub terminated: ::core::option::Option<i32>,
+}
+
 /// InstanceGroupManagerStatusStateful resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusStateful {
-    /// Output only. [Output Only] A bit indicating whether the managed instance group
+    /// Output only. A bit indicating whether the managed instance group
     #[serde(default, rename = "hasStatefulConfig")]
     pub has_stateful_config: ::core::option::Option<bool>,
-    /// Output only. [Output Only] Status of per-instance configurations on the instances.
+    /// Output only. Status of per-instance configurations on the instances.
     #[serde(default, rename = "perInstanceConfigs")]
     pub per_instance_configs:
         ::core::option::Option<InstanceGroupManagerStatusStatefulPerInstanceConfigs>,
@@ -17282,9 +17816,17 @@ pub struct InstanceGroupManagerStatusStateful {
 /// InstanceGroupManagerStatusVersionTarget resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusVersionTarget {
-    /// Output only. [Output Only] A bit indicating whether version target has been reached
+    /// Output only. A bit indicating whether version target has been reached
     #[serde(default, rename = "isReached")]
     pub is_reached: ::core::option::Option<bool>,
+}
+
+/// InstanceGroupManagerResizeRequestStatusLastAttempt resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct InstanceGroupManagerResizeRequestStatusLastAttempt {
+    /// Output only. Errors that prevented the ResizeRequest to be fulfilled.
+    #[serde(default)]
+    pub error: ::core::option::Option<serde_json::Value>,
 }
 
 /// ManagedInstanceVersion resource type.
@@ -17937,6 +18479,15 @@ pub struct VmEndpointNatMappingsInterfaceNatMappingsNatRuleMappings {
     pub rule_number: ::core::option::Option<i32>,
 }
 
+/// A LabelSelector is applied to a VM only if it matches all the specified
+/// labels.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VmExtensionPolicyLabelSelector {
+    /// Optional. A map of key-value pairs representing VM labels.
+    #[serde(default, rename = "inclusionLabels")]
+    pub inclusion_labels: ::core::option::Option<serde_json::Value>,
+}
+
 /// Describes the high availability requirement state for the VPN connection
 /// between this Cloud VPN gateway and a peer gateway.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
@@ -18514,10 +19065,10 @@ pub struct FixedOrPercent {
 /// InstanceGroupManagerStatusAcceleratorTopologyAcceleratorTopologyStateDetails resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusAcceleratorTopologyAcceleratorTopologyStateDetails {
-    /// Output only. [Output Only] Encountered errors.
+    /// Output only. Encountered errors.
     #[serde(default)]
     pub error: ::core::option::Option<serde_json::Value>,
-    /// Output only. [Output Only] Timestamp is shown only if there is an error. The field
+    /// Output only. Timestamp is shown only if there is an error. The field
     #[serde(default)]
     pub timestamp: ::core::option::Option<String>,
 }
@@ -18525,10 +19076,10 @@ pub struct InstanceGroupManagerStatusAcceleratorTopologyAcceleratorTopologyState
 /// InstanceGroupManagerStatusBulkInstanceOperationLastProgressCheck resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceGroupManagerStatusBulkInstanceOperationLastProgressCheck {
-    /// Output only. [Output Only] Errors encountered during bulk instance operation.
+    /// Output only. Errors encountered during bulk instance operation.
     #[serde(default)]
     pub error: ::core::option::Option<serde_json::Value>,
-    /// Output only. [Output Only] Timestamp of the last progress check of bulk instance
+    /// Output only. Timestamp of the last progress check of bulk instance
     #[serde(default)]
     pub timestamp: ::core::option::Option<String>,
 }
@@ -19621,4 +20172,5915 @@ pub struct HttpHeaderOption {
     /// If false, headerValue is appended to any values
     #[serde(default)]
     pub replace: ::core::option::Option<bool>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for AcceleratorTypeAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeAcceleratorTypesAggregatedListArgs>
+    for AcceleratorTypeAggregatedList
+{
+    fn generate_resource_id(&self, input: &ComputeAcceleratorTypesAggregatedListArgs) -> String {
+        format!("gcp::AcceleratorTypeAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AcceleratorTypeAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AcceleratorType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeAcceleratorTypesGetArgs> for AcceleratorType {
+    fn generate_resource_id(&self, input: &ComputeAcceleratorTypesGetArgs) -> String {
+        format!(
+            "gcp::AcceleratorType/{}/{}/{}",
+            input.project, input.zone, input.accelerator_type
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AcceleratorType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AcceleratorTypeList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeAcceleratorTypesListArgs> for AcceleratorTypeList {
+    fn generate_resource_id(&self, input: &ComputeAcceleratorTypesListArgs) -> String {
+        format!("gcp::AcceleratorTypeList/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AcceleratorTypeList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeAddressesAggregatedListArgs> for AddressAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeAddressesAggregatedListArgs) -> String {
+        format!("gcp::AddressAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AddressAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeAddressesDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &ComputeAddressesDeleteArgs) -> String {
+        format!(
+            "gcp::Operation/{}/{}/{}",
+            input.project, input.region, input.address
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Address.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeAddressesGetArgs> for Address {
+    fn generate_resource_id(&self, input: &ComputeAddressesGetArgs) -> String {
+        format!(
+            "gcp::Address/{}/{}/{}",
+            input.project, input.region, input.address
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Address"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AddressList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeAddressesListArgs> for AddressList {
+    fn generate_resource_id(&self, input: &ComputeAddressesListArgs) -> String {
+        format!("gcp::AddressList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AddressList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeAddressesTestIamPermissionsArgs> for TestPermissionsResponse {
+    fn generate_resource_id(&self, input: &ComputeAddressesTestIamPermissionsArgs) -> String {
+        format!(
+            "gcp::TestPermissionsResponse/{}/{}/{}",
+            input.project, input.region, input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CalendarModeAdviceResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeAdviceCalendarModeArgs> for CalendarModeAdviceResponse {
+    fn generate_resource_id(&self, input: &ComputeAdviceCalendarModeArgs) -> String {
+        format!(
+            "gcp::CalendarModeAdviceResponse/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CalendarModeAdviceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AutoscalerAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeAutoscalersAggregatedListArgs> for AutoscalerAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeAutoscalersAggregatedListArgs) -> String {
+        format!("gcp::AutoscalerAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AutoscalerAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Autoscaler.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeAutoscalersGetArgs> for Autoscaler {
+    fn generate_resource_id(&self, input: &ComputeAutoscalersGetArgs) -> String {
+        format!(
+            "gcp::Autoscaler/{}/{}/{}",
+            input.project, input.zone, input.autoscaler
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Autoscaler"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AutoscalerList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeAutoscalersListArgs> for AutoscalerList {
+    fn generate_resource_id(&self, input: &ComputeAutoscalersListArgs) -> String {
+        format!("gcp::AutoscalerList/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AutoscalerList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackendBucketAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeBackendBucketsAggregatedListArgs> for BackendBucketAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeBackendBucketsAggregatedListArgs) -> String {
+        format!("gcp::BackendBucketAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackendBucketAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackendBucket.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeBackendBucketsGetArgs> for BackendBucket {
+    fn generate_resource_id(&self, input: &ComputeBackendBucketsGetArgs) -> String {
+        format!(
+            "gcp::BackendBucket/{}/{}",
+            input.project, input.backend_bucket
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackendBucket"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeBackendBucketsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &ComputeBackendBucketsGetIamPolicyArgs) -> String {
+        format!("gcp::Policy/{}/{}", input.project, input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackendBucketList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeBackendBucketsListArgs> for BackendBucketList {
+    fn generate_resource_id(&self, input: &ComputeBackendBucketsListArgs) -> String {
+        format!("gcp::BackendBucketList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackendBucketList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackendBucketListUsable.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeBackendBucketsListUsableArgs> for BackendBucketListUsable {
+    fn generate_resource_id(&self, input: &ComputeBackendBucketsListUsableArgs) -> String {
+        format!("gcp::BackendBucketListUsable/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackendBucketListUsable"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackendServiceAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeBackendServicesAggregatedListArgs> for BackendServiceAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeBackendServicesAggregatedListArgs) -> String {
+        format!("gcp::BackendServiceAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackendServiceAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackendService.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeBackendServicesGetArgs> for BackendService {
+    fn generate_resource_id(&self, input: &ComputeBackendServicesGetArgs) -> String {
+        format!(
+            "gcp::BackendService/{}/{}",
+            input.project, input.backend_service
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackendService"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackendServiceGroupHealth.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeBackendServicesGetHealthArgs> for BackendServiceGroupHealth {
+    fn generate_resource_id(&self, input: &ComputeBackendServicesGetHealthArgs) -> String {
+        format!(
+            "gcp::BackendServiceGroupHealth/{}/{}",
+            input.project, input.backend_service
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackendServiceGroupHealth"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackendServiceList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeBackendServicesListArgs> for BackendServiceList {
+    fn generate_resource_id(&self, input: &ComputeBackendServicesListArgs) -> String {
+        format!("gcp::BackendServiceList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackendServiceList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackendServiceListUsable.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeBackendServicesListUsableArgs> for BackendServiceListUsable {
+    fn generate_resource_id(&self, input: &ComputeBackendServicesListUsableArgs) -> String {
+        format!("gcp::BackendServiceListUsable/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackendServiceListUsable"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CrossSiteNetwork.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeCrossSiteNetworksGetArgs> for CrossSiteNetwork {
+    fn generate_resource_id(&self, input: &ComputeCrossSiteNetworksGetArgs) -> String {
+        format!(
+            "gcp::CrossSiteNetwork/{}/{}",
+            input.project, input.cross_site_network
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CrossSiteNetwork"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CrossSiteNetworkList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeCrossSiteNetworksListArgs> for CrossSiteNetworkList {
+    fn generate_resource_id(&self, input: &ComputeCrossSiteNetworksListArgs) -> String {
+        format!("gcp::CrossSiteNetworkList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CrossSiteNetworkList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DiskTypeAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeDiskTypesAggregatedListArgs> for DiskTypeAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeDiskTypesAggregatedListArgs) -> String {
+        format!("gcp::DiskTypeAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DiskTypeAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DiskType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeDiskTypesGetArgs> for DiskType {
+    fn generate_resource_id(&self, input: &ComputeDiskTypesGetArgs) -> String {
+        format!(
+            "gcp::DiskType/{}/{}/{}",
+            input.project, input.zone, input.disk_type
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DiskType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DiskTypeList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeDiskTypesListArgs> for DiskTypeList {
+    fn generate_resource_id(&self, input: &ComputeDiskTypesListArgs) -> String {
+        format!("gcp::DiskTypeList/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DiskTypeList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DiskAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeDisksAggregatedListArgs> for DiskAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeDisksAggregatedListArgs) -> String {
+        format!("gcp::DiskAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DiskAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Disk.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeDisksGetArgs> for Disk {
+    fn generate_resource_id(&self, input: &ComputeDisksGetArgs) -> String {
+        format!("gcp::Disk/{}/{}/{}", input.project, input.zone, input.disk)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Disk"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DiskList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeDisksListArgs> for DiskList {
+    fn generate_resource_id(&self, input: &ComputeDisksListArgs) -> String {
+        format!("gcp::DiskList/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DiskList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExternalVpnGateway.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeExternalVpnGatewaysGetArgs> for ExternalVpnGateway {
+    fn generate_resource_id(&self, input: &ComputeExternalVpnGatewaysGetArgs) -> String {
+        format!(
+            "gcp::ExternalVpnGateway/{}/{}",
+            input.project, input.external_vpn_gateway
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExternalVpnGateway"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExternalVpnGatewayList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeExternalVpnGatewaysListArgs> for ExternalVpnGatewayList {
+    fn generate_resource_id(&self, input: &ComputeExternalVpnGatewaysListArgs) -> String {
+        format!("gcp::ExternalVpnGatewayList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExternalVpnGatewayList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeFirewallPoliciesGetArgs> for FirewallPolicy {
+    fn generate_resource_id(&self, input: &ComputeFirewallPoliciesGetArgs) -> String {
+        format!("gcp::FirewallPolicy/{}", input.firewall_policy)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FirewallPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallPolicyAssociation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeFirewallPoliciesGetAssociationArgs> for FirewallPolicyAssociation {
+    fn generate_resource_id(&self, input: &ComputeFirewallPoliciesGetAssociationArgs) -> String {
+        format!("gcp::FirewallPolicyAssociation/{}", input.firewall_policy)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FirewallPolicyAssociation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallPolicyRule.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeFirewallPoliciesGetRuleArgs> for FirewallPolicyRule {
+    fn generate_resource_id(&self, input: &ComputeFirewallPoliciesGetRuleArgs) -> String {
+        format!("gcp::FirewallPolicyRule/{}", input.firewall_policy)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FirewallPolicyRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallPolicyList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeFirewallPoliciesListArgs> for FirewallPolicyList {
+    fn generate_resource_id(&self, input: &ComputeFirewallPoliciesListArgs) -> String {
+        "gcp::FirewallPolicyList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FirewallPolicyList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallPoliciesListAssociationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeFirewallPoliciesListAssociationsArgs>
+    for FirewallPoliciesListAssociationsResponse
+{
+    fn generate_resource_id(&self, input: &ComputeFirewallPoliciesListAssociationsArgs) -> String {
+        "gcp::FirewallPoliciesListAssociationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FirewallPoliciesListAssociationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Firewall.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeFirewallsGetArgs> for Firewall {
+    fn generate_resource_id(&self, input: &ComputeFirewallsGetArgs) -> String {
+        format!("gcp::Firewall/{}/{}", input.project, input.firewall)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Firewall"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FirewallList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeFirewallsListArgs> for FirewallList {
+    fn generate_resource_id(&self, input: &ComputeFirewallsListArgs) -> String {
+        format!("gcp::FirewallList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FirewallList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ForwardingRuleAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeForwardingRulesAggregatedListArgs> for ForwardingRuleAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeForwardingRulesAggregatedListArgs) -> String {
+        format!("gcp::ForwardingRuleAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ForwardingRuleAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ForwardingRule.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeForwardingRulesGetArgs> for ForwardingRule {
+    fn generate_resource_id(&self, input: &ComputeForwardingRulesGetArgs) -> String {
+        format!(
+            "gcp::ForwardingRule/{}/{}/{}",
+            input.project, input.region, input.forwarding_rule
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ForwardingRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ForwardingRuleList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeForwardingRulesListArgs> for ForwardingRuleList {
+    fn generate_resource_id(&self, input: &ComputeForwardingRulesListArgs) -> String {
+        format!("gcp::ForwardingRuleList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ForwardingRuleList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FutureReservationsAggregatedListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeFutureReservationsAggregatedListArgs>
+    for FutureReservationsAggregatedListResponse
+{
+    fn generate_resource_id(&self, input: &ComputeFutureReservationsAggregatedListArgs) -> String {
+        format!(
+            "gcp::FutureReservationsAggregatedListResponse/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FutureReservationsAggregatedListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FutureReservation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeFutureReservationsGetArgs> for FutureReservation {
+    fn generate_resource_id(&self, input: &ComputeFutureReservationsGetArgs) -> String {
+        format!(
+            "gcp::FutureReservation/{}/{}/{}",
+            input.project, input.zone, input.future_reservation
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FutureReservation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FutureReservationsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeFutureReservationsListArgs> for FutureReservationsListResponse {
+    fn generate_resource_id(&self, input: &ComputeFutureReservationsListArgs) -> String {
+        format!(
+            "gcp::FutureReservationsListResponse/{}/{}",
+            input.project, input.zone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FutureReservationsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NetworkEndpointGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeGlobalNetworkEndpointGroupsGetArgs> for NetworkEndpointGroup {
+    fn generate_resource_id(&self, input: &ComputeGlobalNetworkEndpointGroupsGetArgs) -> String {
+        format!(
+            "gcp::NetworkEndpointGroup/{}/{}",
+            input.project, input.network_endpoint_group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NetworkEndpointGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NetworkEndpointGroupList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeGlobalNetworkEndpointGroupsListArgs> for NetworkEndpointGroupList {
+    fn generate_resource_id(&self, input: &ComputeGlobalNetworkEndpointGroupsListArgs) -> String {
+        format!("gcp::NetworkEndpointGroupList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NetworkEndpointGroupList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NetworkEndpointGroupsListNetworkEndpoints.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeGlobalNetworkEndpointGroupsListNetworkEndpointsArgs>
+    for NetworkEndpointGroupsListNetworkEndpoints
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeGlobalNetworkEndpointGroupsListNetworkEndpointsArgs,
+    ) -> String {
+        format!(
+            "gcp::NetworkEndpointGroupsListNetworkEndpoints/{}/{}",
+            input.project, input.network_endpoint_group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NetworkEndpointGroupsListNetworkEndpoints"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for OperationAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeGlobalOperationsAggregatedListArgs> for OperationAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeGlobalOperationsAggregatedListArgs) -> String {
+        format!("gcp::OperationAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::OperationAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for OperationList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeGlobalOperationsListArgs> for OperationList {
+    fn generate_resource_id(&self, input: &ComputeGlobalOperationsListArgs) -> String {
+        format!("gcp::OperationList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::OperationList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PublicDelegatedPrefix.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeGlobalPublicDelegatedPrefixesGetArgs> for PublicDelegatedPrefix {
+    fn generate_resource_id(&self, input: &ComputeGlobalPublicDelegatedPrefixesGetArgs) -> String {
+        format!(
+            "gcp::PublicDelegatedPrefix/{}/{}",
+            input.project, input.public_delegated_prefix
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PublicDelegatedPrefix"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PublicDelegatedPrefixList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeGlobalPublicDelegatedPrefixesListArgs>
+    for PublicDelegatedPrefixList
+{
+    fn generate_resource_id(&self, input: &ComputeGlobalPublicDelegatedPrefixesListArgs) -> String {
+        format!("gcp::PublicDelegatedPrefixList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PublicDelegatedPrefixList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthChecksAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeHealthChecksAggregatedListArgs> for HealthChecksAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeHealthChecksAggregatedListArgs) -> String {
+        format!("gcp::HealthChecksAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HealthChecksAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthCheck.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeHealthChecksGetArgs> for HealthCheck {
+    fn generate_resource_id(&self, input: &ComputeHealthChecksGetArgs) -> String {
+        format!("gcp::HealthCheck/{}/{}", input.project, input.health_check)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HealthCheck"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthCheckList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeHealthChecksListArgs> for HealthCheckList {
+    fn generate_resource_id(&self, input: &ComputeHealthChecksListArgs) -> String {
+        format!("gcp::HealthCheckList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HealthCheckList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HttpHealthCheck.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeHttpHealthChecksGetArgs> for HttpHealthCheck {
+    fn generate_resource_id(&self, input: &ComputeHttpHealthChecksGetArgs) -> String {
+        format!(
+            "gcp::HttpHealthCheck/{}/{}",
+            input.project, input.http_health_check
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HttpHealthCheck"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HttpHealthCheckList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeHttpHealthChecksListArgs> for HttpHealthCheckList {
+    fn generate_resource_id(&self, input: &ComputeHttpHealthChecksListArgs) -> String {
+        format!("gcp::HttpHealthCheckList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HttpHealthCheckList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HttpsHealthCheck.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeHttpsHealthChecksGetArgs> for HttpsHealthCheck {
+    fn generate_resource_id(&self, input: &ComputeHttpsHealthChecksGetArgs) -> String {
+        format!(
+            "gcp::HttpsHealthCheck/{}/{}",
+            input.project, input.https_health_check
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HttpsHealthCheck"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HttpsHealthCheckList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeHttpsHealthChecksListArgs> for HttpsHealthCheckList {
+    fn generate_resource_id(&self, input: &ComputeHttpsHealthChecksListArgs) -> String {
+        format!("gcp::HttpsHealthCheckList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HttpsHealthCheckList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ImageFamilyView.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeImageFamilyViewsGetArgs> for ImageFamilyView {
+    fn generate_resource_id(&self, input: &ComputeImageFamilyViewsGetArgs) -> String {
+        format!(
+            "gcp::ImageFamilyView/{}/{}/{}",
+            input.project, input.zone, input.family
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ImageFamilyView"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Image.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeImagesGetArgs> for Image {
+    fn generate_resource_id(&self, input: &ComputeImagesGetArgs) -> String {
+        format!("gcp::Image/{}/{}", input.project, input.image)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Image"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ImageList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeImagesListArgs> for ImageList {
+    fn generate_resource_id(&self, input: &ComputeImagesListArgs) -> String {
+        format!("gcp::ImageList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ImageList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceGroupManagerResizeRequest.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceGroupManagerResizeRequestsGetArgs>
+    for InstanceGroupManagerResizeRequest
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeInstanceGroupManagerResizeRequestsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::InstanceGroupManagerResizeRequest/{}/{}/{}/{}",
+            input.project, input.zone, input.instance_group_manager, input.resize_request
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceGroupManagerResizeRequest"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceGroupManagerResizeRequestsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceGroupManagerResizeRequestsListArgs>
+    for InstanceGroupManagerResizeRequestsListResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeInstanceGroupManagerResizeRequestsListArgs,
+    ) -> String {
+        format!(
+            "gcp::InstanceGroupManagerResizeRequestsListResponse/{}/{}/{}",
+            input.project, input.zone, input.instance_group_manager
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceGroupManagerResizeRequestsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceGroupManagerAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceGroupManagersAggregatedListArgs>
+    for InstanceGroupManagerAggregatedList
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeInstanceGroupManagersAggregatedListArgs,
+    ) -> String {
+        format!("gcp::InstanceGroupManagerAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceGroupManagerAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceGroupManager.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceGroupManagersGetArgs> for InstanceGroupManager {
+    fn generate_resource_id(&self, input: &ComputeInstanceGroupManagersGetArgs) -> String {
+        format!(
+            "gcp::InstanceGroupManager/{}/{}/{}",
+            input.project, input.zone, input.instance_group_manager
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceGroupManager"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceGroupManagerList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceGroupManagersListArgs> for InstanceGroupManagerList {
+    fn generate_resource_id(&self, input: &ComputeInstanceGroupManagersListArgs) -> String {
+        format!(
+            "gcp::InstanceGroupManagerList/{}/{}",
+            input.project, input.zone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceGroupManagerList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceGroupManagersListErrorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceGroupManagersListErrorsArgs>
+    for InstanceGroupManagersListErrorsResponse
+{
+    fn generate_resource_id(&self, input: &ComputeInstanceGroupManagersListErrorsArgs) -> String {
+        format!(
+            "gcp::InstanceGroupManagersListErrorsResponse/{}/{}/{}",
+            input.project, input.zone, input.instance_group_manager
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceGroupManagersListErrorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceGroupManagersListManagedInstancesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceGroupManagersListManagedInstancesArgs>
+    for InstanceGroupManagersListManagedInstancesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeInstanceGroupManagersListManagedInstancesArgs,
+    ) -> String {
+        format!(
+            "gcp::InstanceGroupManagersListManagedInstancesResponse/{}/{}/{}",
+            input.project, input.zone, input.instance_group_manager
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceGroupManagersListManagedInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceGroupManagersListPerInstanceConfigsResp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceGroupManagersListPerInstanceConfigsArgs>
+    for InstanceGroupManagersListPerInstanceConfigsResp
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeInstanceGroupManagersListPerInstanceConfigsArgs,
+    ) -> String {
+        format!(
+            "gcp::InstanceGroupManagersListPerInstanceConfigsResp/{}/{}/{}",
+            input.project, input.zone, input.instance_group_manager
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceGroupManagersListPerInstanceConfigsResp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceGroupAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceGroupsAggregatedListArgs> for InstanceGroupAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeInstanceGroupsAggregatedListArgs) -> String {
+        format!("gcp::InstanceGroupAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceGroupAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceGroupsGetArgs> for InstanceGroup {
+    fn generate_resource_id(&self, input: &ComputeInstanceGroupsGetArgs) -> String {
+        format!(
+            "gcp::InstanceGroup/{}/{}/{}",
+            input.project, input.zone, input.instance_group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceGroupList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceGroupsListArgs> for InstanceGroupList {
+    fn generate_resource_id(&self, input: &ComputeInstanceGroupsListArgs) -> String {
+        format!("gcp::InstanceGroupList/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceGroupList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceGroupsListInstances.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceGroupsListInstancesArgs> for InstanceGroupsListInstances {
+    fn generate_resource_id(&self, input: &ComputeInstanceGroupsListInstancesArgs) -> String {
+        format!(
+            "gcp::InstanceGroupsListInstances/{}/{}/{}",
+            input.project, input.zone, input.instance_group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceGroupsListInstances"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceSettingsGetArgs> for InstanceSettings {
+    fn generate_resource_id(&self, input: &ComputeInstanceSettingsGetArgs) -> String {
+        format!("gcp::InstanceSettings/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceTemplateAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceTemplatesAggregatedListArgs>
+    for InstanceTemplateAggregatedList
+{
+    fn generate_resource_id(&self, input: &ComputeInstanceTemplatesAggregatedListArgs) -> String {
+        format!("gcp::InstanceTemplateAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceTemplateAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceTemplate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceTemplatesGetArgs> for InstanceTemplate {
+    fn generate_resource_id(&self, input: &ComputeInstanceTemplatesGetArgs) -> String {
+        format!(
+            "gcp::InstanceTemplate/{}/{}",
+            input.project, input.instance_template
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceTemplateList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstanceTemplatesListArgs> for InstanceTemplateList {
+    fn generate_resource_id(&self, input: &ComputeInstanceTemplatesListArgs) -> String {
+        format!("gcp::InstanceTemplateList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceTemplateList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstancesAggregatedListArgs> for InstanceAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeInstancesAggregatedListArgs) -> String {
+        format!("gcp::InstanceAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Instance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstancesGetArgs> for Instance {
+    fn generate_resource_id(&self, input: &ComputeInstancesGetArgs) -> String {
+        format!(
+            "gcp::Instance/{}/{}/{}",
+            input.project, input.zone, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Instance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstancesGetEffectiveFirewallsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstancesGetEffectiveFirewallsArgs>
+    for InstancesGetEffectiveFirewallsResponse
+{
+    fn generate_resource_id(&self, input: &ComputeInstancesGetEffectiveFirewallsArgs) -> String {
+        format!(
+            "gcp::InstancesGetEffectiveFirewallsResponse/{}/{}/{}",
+            input.project, input.zone, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstancesGetEffectiveFirewallsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GuestAttributes.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstancesGetGuestAttributesArgs> for GuestAttributes {
+    fn generate_resource_id(&self, input: &ComputeInstancesGetGuestAttributesArgs) -> String {
+        format!(
+            "gcp::GuestAttributes/{}/{}/{}",
+            input.project, input.zone, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GuestAttributes"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Screenshot.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstancesGetScreenshotArgs> for Screenshot {
+    fn generate_resource_id(&self, input: &ComputeInstancesGetScreenshotArgs) -> String {
+        format!(
+            "gcp::Screenshot/{}/{}/{}",
+            input.project, input.zone, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Screenshot"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SerialPortOutput.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstancesGetSerialPortOutputArgs> for SerialPortOutput {
+    fn generate_resource_id(&self, input: &ComputeInstancesGetSerialPortOutputArgs) -> String {
+        format!(
+            "gcp::SerialPortOutput/{}/{}/{}",
+            input.project, input.zone, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SerialPortOutput"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ShieldedInstanceIdentity.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstancesGetShieldedInstanceIdentityArgs>
+    for ShieldedInstanceIdentity
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeInstancesGetShieldedInstanceIdentityArgs,
+    ) -> String {
+        format!(
+            "gcp::ShieldedInstanceIdentity/{}/{}/{}",
+            input.project, input.zone, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ShieldedInstanceIdentity"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstancesListArgs> for InstanceList {
+    fn generate_resource_id(&self, input: &ComputeInstancesListArgs) -> String {
+        format!("gcp::InstanceList/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceListReferrers.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstancesListReferrersArgs> for InstanceListReferrers {
+    fn generate_resource_id(&self, input: &ComputeInstancesListReferrersArgs) -> String {
+        format!(
+            "gcp::InstanceListReferrers/{}/{}/{}",
+            input.project, input.zone, input.instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceListReferrers"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstantSnapshotGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstantSnapshotGroupsGetArgs> for InstantSnapshotGroup {
+    fn generate_resource_id(&self, input: &ComputeInstantSnapshotGroupsGetArgs) -> String {
+        format!(
+            "gcp::InstantSnapshotGroup/{}/{}/{}",
+            input.project, input.zone, input.instant_snapshot_group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstantSnapshotGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInstantSnapshotGroups.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstantSnapshotGroupsListArgs> for ListInstantSnapshotGroups {
+    fn generate_resource_id(&self, input: &ComputeInstantSnapshotGroupsListArgs) -> String {
+        format!(
+            "gcp::ListInstantSnapshotGroups/{}/{}",
+            input.project, input.zone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInstantSnapshotGroups"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstantSnapshotAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstantSnapshotsAggregatedListArgs>
+    for InstantSnapshotAggregatedList
+{
+    fn generate_resource_id(&self, input: &ComputeInstantSnapshotsAggregatedListArgs) -> String {
+        format!("gcp::InstantSnapshotAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstantSnapshotAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstantSnapshot.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstantSnapshotsGetArgs> for InstantSnapshot {
+    fn generate_resource_id(&self, input: &ComputeInstantSnapshotsGetArgs) -> String {
+        format!(
+            "gcp::InstantSnapshot/{}/{}/{}",
+            input.project, input.zone, input.instant_snapshot
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstantSnapshot"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstantSnapshotList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInstantSnapshotsListArgs> for InstantSnapshotList {
+    fn generate_resource_id(&self, input: &ComputeInstantSnapshotsListArgs) -> String {
+        format!("gcp::InstantSnapshotList/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstantSnapshotList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectAttachmentGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectAttachmentGroupsGetArgs>
+    for InterconnectAttachmentGroup
+{
+    fn generate_resource_id(&self, input: &ComputeInterconnectAttachmentGroupsGetArgs) -> String {
+        format!(
+            "gcp::InterconnectAttachmentGroup/{}/{}",
+            input.project, input.interconnect_attachment_group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectAttachmentGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectAttachmentGroupsGetOperationalStatusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectAttachmentGroupsGetOperationalStatusArgs>
+    for InterconnectAttachmentGroupsGetOperationalStatusResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeInterconnectAttachmentGroupsGetOperationalStatusArgs,
+    ) -> String {
+        format!(
+            "gcp::InterconnectAttachmentGroupsGetOperationalStatusResponse/{}/{}",
+            input.project, input.interconnect_attachment_group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectAttachmentGroupsGetOperationalStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectAttachmentGroupsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectAttachmentGroupsListArgs>
+    for InterconnectAttachmentGroupsListResponse
+{
+    fn generate_resource_id(&self, input: &ComputeInterconnectAttachmentGroupsListArgs) -> String {
+        format!(
+            "gcp::InterconnectAttachmentGroupsListResponse/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectAttachmentGroupsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectAttachmentAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectAttachmentsAggregatedListArgs>
+    for InterconnectAttachmentAggregatedList
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeInterconnectAttachmentsAggregatedListArgs,
+    ) -> String {
+        format!(
+            "gcp::InterconnectAttachmentAggregatedList/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectAttachmentAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectAttachment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectAttachmentsGetArgs> for InterconnectAttachment {
+    fn generate_resource_id(&self, input: &ComputeInterconnectAttachmentsGetArgs) -> String {
+        format!(
+            "gcp::InterconnectAttachment/{}/{}/{}",
+            input.project, input.region, input.interconnect_attachment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectAttachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectAttachmentList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectAttachmentsListArgs> for InterconnectAttachmentList {
+    fn generate_resource_id(&self, input: &ComputeInterconnectAttachmentsListArgs) -> String {
+        format!(
+            "gcp::InterconnectAttachmentList/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectAttachmentList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectGroupsGetArgs> for InterconnectGroup {
+    fn generate_resource_id(&self, input: &ComputeInterconnectGroupsGetArgs) -> String {
+        format!(
+            "gcp::InterconnectGroup/{}/{}",
+            input.project, input.interconnect_group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectGroupsGetOperationalStatusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectGroupsGetOperationalStatusArgs>
+    for InterconnectGroupsGetOperationalStatusResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeInterconnectGroupsGetOperationalStatusArgs,
+    ) -> String {
+        format!(
+            "gcp::InterconnectGroupsGetOperationalStatusResponse/{}/{}",
+            input.project, input.interconnect_group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectGroupsGetOperationalStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectGroupsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectGroupsListArgs> for InterconnectGroupsListResponse {
+    fn generate_resource_id(&self, input: &ComputeInterconnectGroupsListArgs) -> String {
+        format!("gcp::InterconnectGroupsListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectGroupsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectLocation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectLocationsGetArgs> for InterconnectLocation {
+    fn generate_resource_id(&self, input: &ComputeInterconnectLocationsGetArgs) -> String {
+        format!(
+            "gcp::InterconnectLocation/{}/{}",
+            input.project, input.interconnect_location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectLocationList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectLocationsListArgs> for InterconnectLocationList {
+    fn generate_resource_id(&self, input: &ComputeInterconnectLocationsListArgs) -> String {
+        format!("gcp::InterconnectLocationList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectLocationList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectRemoteLocation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectRemoteLocationsGetArgs> for InterconnectRemoteLocation {
+    fn generate_resource_id(&self, input: &ComputeInterconnectRemoteLocationsGetArgs) -> String {
+        format!(
+            "gcp::InterconnectRemoteLocation/{}/{}",
+            input.project, input.interconnect_remote_location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectRemoteLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectRemoteLocationList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectRemoteLocationsListArgs>
+    for InterconnectRemoteLocationList
+{
+    fn generate_resource_id(&self, input: &ComputeInterconnectRemoteLocationsListArgs) -> String {
+        format!("gcp::InterconnectRemoteLocationList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectRemoteLocationList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Interconnect.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectsGetArgs> for Interconnect {
+    fn generate_resource_id(&self, input: &ComputeInterconnectsGetArgs) -> String {
+        format!("gcp::Interconnect/{}/{}", input.project, input.interconnect)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Interconnect"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectsGetDiagnosticsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectsGetDiagnosticsArgs>
+    for InterconnectsGetDiagnosticsResponse
+{
+    fn generate_resource_id(&self, input: &ComputeInterconnectsGetDiagnosticsArgs) -> String {
+        format!(
+            "gcp::InterconnectsGetDiagnosticsResponse/{}/{}",
+            input.project, input.interconnect
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectsGetDiagnosticsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectsGetMacsecConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectsGetMacsecConfigArgs>
+    for InterconnectsGetMacsecConfigResponse
+{
+    fn generate_resource_id(&self, input: &ComputeInterconnectsGetMacsecConfigArgs) -> String {
+        format!(
+            "gcp::InterconnectsGetMacsecConfigResponse/{}/{}",
+            input.project, input.interconnect
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectsGetMacsecConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InterconnectList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeInterconnectsListArgs> for InterconnectList {
+    fn generate_resource_id(&self, input: &ComputeInterconnectsListArgs) -> String {
+        format!("gcp::InterconnectList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InterconnectList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LicenseCode.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeLicenseCodesGetArgs> for LicenseCode {
+    fn generate_resource_id(&self, input: &ComputeLicenseCodesGetArgs) -> String {
+        format!("gcp::LicenseCode/{}/{}", input.project, input.license_code)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LicenseCode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for License.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeLicensesGetArgs> for License {
+    fn generate_resource_id(&self, input: &ComputeLicensesGetArgs) -> String {
+        format!("gcp::License/{}/{}", input.project, input.license)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::License"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LicensesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeLicensesListArgs> for LicensesListResponse {
+    fn generate_resource_id(&self, input: &ComputeLicensesListArgs) -> String {
+        format!("gcp::LicensesListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LicensesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MachineImage.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeMachineImagesGetArgs> for MachineImage {
+    fn generate_resource_id(&self, input: &ComputeMachineImagesGetArgs) -> String {
+        format!(
+            "gcp::MachineImage/{}/{}",
+            input.project, input.machine_image
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MachineImage"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MachineImageList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeMachineImagesListArgs> for MachineImageList {
+    fn generate_resource_id(&self, input: &ComputeMachineImagesListArgs) -> String {
+        format!("gcp::MachineImageList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MachineImageList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MachineTypeAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeMachineTypesAggregatedListArgs> for MachineTypeAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeMachineTypesAggregatedListArgs) -> String {
+        format!("gcp::MachineTypeAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MachineTypeAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MachineType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeMachineTypesGetArgs> for MachineType {
+    fn generate_resource_id(&self, input: &ComputeMachineTypesGetArgs) -> String {
+        format!(
+            "gcp::MachineType/{}/{}/{}",
+            input.project, input.zone, input.machine_type
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MachineType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MachineTypeList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeMachineTypesListArgs> for MachineTypeList {
+    fn generate_resource_id(&self, input: &ComputeMachineTypesListArgs) -> String {
+        format!("gcp::MachineTypeList/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MachineTypeList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NetworkAttachmentAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNetworkAttachmentsAggregatedListArgs>
+    for NetworkAttachmentAggregatedList
+{
+    fn generate_resource_id(&self, input: &ComputeNetworkAttachmentsAggregatedListArgs) -> String {
+        format!("gcp::NetworkAttachmentAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NetworkAttachmentAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NetworkAttachment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNetworkAttachmentsGetArgs> for NetworkAttachment {
+    fn generate_resource_id(&self, input: &ComputeNetworkAttachmentsGetArgs) -> String {
+        format!(
+            "gcp::NetworkAttachment/{}/{}/{}",
+            input.project, input.region, input.network_attachment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NetworkAttachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NetworkAttachmentList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNetworkAttachmentsListArgs> for NetworkAttachmentList {
+    fn generate_resource_id(&self, input: &ComputeNetworkAttachmentsListArgs) -> String {
+        format!(
+            "gcp::NetworkAttachmentList/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NetworkAttachmentList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NetworkEdgeSecurityServiceAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNetworkEdgeSecurityServicesAggregatedListArgs>
+    for NetworkEdgeSecurityServiceAggregatedList
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeNetworkEdgeSecurityServicesAggregatedListArgs,
+    ) -> String {
+        format!(
+            "gcp::NetworkEdgeSecurityServiceAggregatedList/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NetworkEdgeSecurityServiceAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NetworkEdgeSecurityService.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNetworkEdgeSecurityServicesGetArgs> for NetworkEdgeSecurityService {
+    fn generate_resource_id(&self, input: &ComputeNetworkEdgeSecurityServicesGetArgs) -> String {
+        format!(
+            "gcp::NetworkEdgeSecurityService/{}/{}/{}",
+            input.project, input.region, input.network_edge_security_service
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NetworkEdgeSecurityService"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NetworkEndpointGroupAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNetworkEndpointGroupsAggregatedListArgs>
+    for NetworkEndpointGroupAggregatedList
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeNetworkEndpointGroupsAggregatedListArgs,
+    ) -> String {
+        format!("gcp::NetworkEndpointGroupAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NetworkEndpointGroupAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NetworkFirewallPolicyAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNetworkFirewallPoliciesAggregatedListArgs>
+    for NetworkFirewallPolicyAggregatedList
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeNetworkFirewallPoliciesAggregatedListArgs,
+    ) -> String {
+        format!("gcp::NetworkFirewallPolicyAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NetworkFirewallPolicyAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NetworkProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNetworkProfilesGetArgs> for NetworkProfile {
+    fn generate_resource_id(&self, input: &ComputeNetworkProfilesGetArgs) -> String {
+        format!(
+            "gcp::NetworkProfile/{}/{}",
+            input.project, input.network_profile
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NetworkProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NetworkProfilesListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNetworkProfilesListArgs> for NetworkProfilesListResponse {
+    fn generate_resource_id(&self, input: &ComputeNetworkProfilesListArgs) -> String {
+        format!("gcp::NetworkProfilesListResponse/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NetworkProfilesListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Network.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNetworksGetArgs> for Network {
+    fn generate_resource_id(&self, input: &ComputeNetworksGetArgs) -> String {
+        format!("gcp::Network/{}/{}", input.project, input.network)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Network"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NetworksGetEffectiveFirewallsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNetworksGetEffectiveFirewallsArgs>
+    for NetworksGetEffectiveFirewallsResponse
+{
+    fn generate_resource_id(&self, input: &ComputeNetworksGetEffectiveFirewallsArgs) -> String {
+        format!(
+            "gcp::NetworksGetEffectiveFirewallsResponse/{}/{}",
+            input.project, input.network
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NetworksGetEffectiveFirewallsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NetworkList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNetworksListArgs> for NetworkList {
+    fn generate_resource_id(&self, input: &ComputeNetworksListArgs) -> String {
+        format!("gcp::NetworkList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NetworkList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExchangedPeeringRoutesList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNetworksListPeeringRoutesArgs> for ExchangedPeeringRoutesList {
+    fn generate_resource_id(&self, input: &ComputeNetworksListPeeringRoutesArgs) -> String {
+        format!(
+            "gcp::ExchangedPeeringRoutesList/{}/{}",
+            input.project, input.network
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExchangedPeeringRoutesList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NodeGroupAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNodeGroupsAggregatedListArgs> for NodeGroupAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeNodeGroupsAggregatedListArgs) -> String {
+        format!("gcp::NodeGroupAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NodeGroupAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NodeGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNodeGroupsGetArgs> for NodeGroup {
+    fn generate_resource_id(&self, input: &ComputeNodeGroupsGetArgs) -> String {
+        format!(
+            "gcp::NodeGroup/{}/{}/{}",
+            input.project, input.zone, input.node_group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NodeGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NodeGroupList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNodeGroupsListArgs> for NodeGroupList {
+    fn generate_resource_id(&self, input: &ComputeNodeGroupsListArgs) -> String {
+        format!("gcp::NodeGroupList/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NodeGroupList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NodeGroupsListNodes.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNodeGroupsListNodesArgs> for NodeGroupsListNodes {
+    fn generate_resource_id(&self, input: &ComputeNodeGroupsListNodesArgs) -> String {
+        format!(
+            "gcp::NodeGroupsListNodes/{}/{}/{}",
+            input.project, input.zone, input.node_group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NodeGroupsListNodes"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NodeTemplateAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNodeTemplatesAggregatedListArgs> for NodeTemplateAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeNodeTemplatesAggregatedListArgs) -> String {
+        format!("gcp::NodeTemplateAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NodeTemplateAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NodeTemplate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNodeTemplatesGetArgs> for NodeTemplate {
+    fn generate_resource_id(&self, input: &ComputeNodeTemplatesGetArgs) -> String {
+        format!(
+            "gcp::NodeTemplate/{}/{}/{}",
+            input.project, input.region, input.node_template
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NodeTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NodeTemplateList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNodeTemplatesListArgs> for NodeTemplateList {
+    fn generate_resource_id(&self, input: &ComputeNodeTemplatesListArgs) -> String {
+        format!("gcp::NodeTemplateList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NodeTemplateList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NodeTypeAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNodeTypesAggregatedListArgs> for NodeTypeAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeNodeTypesAggregatedListArgs) -> String {
+        format!("gcp::NodeTypeAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NodeTypeAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NodeType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNodeTypesGetArgs> for NodeType {
+    fn generate_resource_id(&self, input: &ComputeNodeTypesGetArgs) -> String {
+        format!(
+            "gcp::NodeType/{}/{}/{}",
+            input.project, input.zone, input.node_type
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NodeType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NodeTypeList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeNodeTypesListArgs> for NodeTypeList {
+    fn generate_resource_id(&self, input: &ComputeNodeTypesListArgs) -> String {
+        format!("gcp::NodeTypeList/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NodeTypeList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SecurityPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeOrganizationSecurityPoliciesGetArgs> for SecurityPolicy {
+    fn generate_resource_id(&self, input: &ComputeOrganizationSecurityPoliciesGetArgs) -> String {
+        format!("gcp::SecurityPolicy/{}", input.security_policy)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SecurityPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SecurityPolicyAssociation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeOrganizationSecurityPoliciesGetAssociationArgs>
+    for SecurityPolicyAssociation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeOrganizationSecurityPoliciesGetAssociationArgs,
+    ) -> String {
+        format!("gcp::SecurityPolicyAssociation/{}", input.security_policy)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SecurityPolicyAssociation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SecurityPolicyRule.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeOrganizationSecurityPoliciesGetRuleArgs> for SecurityPolicyRule {
+    fn generate_resource_id(
+        &self,
+        input: &ComputeOrganizationSecurityPoliciesGetRuleArgs,
+    ) -> String {
+        format!("gcp::SecurityPolicyRule/{}", input.security_policy)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SecurityPolicyRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SecurityPolicyList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeOrganizationSecurityPoliciesListArgs> for SecurityPolicyList {
+    fn generate_resource_id(&self, input: &ComputeOrganizationSecurityPoliciesListArgs) -> String {
+        "gcp::SecurityPolicyList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SecurityPolicyList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for OrganizationSecurityPoliciesListAssociationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeOrganizationSecurityPoliciesListAssociationsArgs>
+    for OrganizationSecurityPoliciesListAssociationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeOrganizationSecurityPoliciesListAssociationsArgs,
+    ) -> String {
+        "gcp::OrganizationSecurityPoliciesListAssociationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::OrganizationSecurityPoliciesListAssociationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SecurityPoliciesListPreconfiguredExpressionSetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeOrganizationSecurityPoliciesListPreconfiguredExpressionSetsArgs>
+    for SecurityPoliciesListPreconfiguredExpressionSetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeOrganizationSecurityPoliciesListPreconfiguredExpressionSetsArgs,
+    ) -> String {
+        "gcp::SecurityPoliciesListPreconfiguredExpressionSetsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SecurityPoliciesListPreconfiguredExpressionSetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PacketMirroringAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputePacketMirroringsAggregatedListArgs>
+    for PacketMirroringAggregatedList
+{
+    fn generate_resource_id(&self, input: &ComputePacketMirroringsAggregatedListArgs) -> String {
+        format!("gcp::PacketMirroringAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PacketMirroringAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PacketMirroring.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputePacketMirroringsGetArgs> for PacketMirroring {
+    fn generate_resource_id(&self, input: &ComputePacketMirroringsGetArgs) -> String {
+        format!(
+            "gcp::PacketMirroring/{}/{}/{}",
+            input.project, input.region, input.packet_mirroring
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PacketMirroring"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PacketMirroringList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputePacketMirroringsListArgs> for PacketMirroringList {
+    fn generate_resource_id(&self, input: &ComputePacketMirroringsListArgs) -> String {
+        format!(
+            "gcp::PacketMirroringList/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PacketMirroringList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PreviewFeature.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputePreviewFeaturesGetArgs> for PreviewFeature {
+    fn generate_resource_id(&self, input: &ComputePreviewFeaturesGetArgs) -> String {
+        format!(
+            "gcp::PreviewFeature/{}/{}",
+            input.project, input.preview_feature
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PreviewFeature"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PreviewFeatureList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputePreviewFeaturesListArgs> for PreviewFeatureList {
+    fn generate_resource_id(&self, input: &ComputePreviewFeaturesListArgs) -> String {
+        format!("gcp::PreviewFeatureList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PreviewFeatureList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Project.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeProjectsGetArgs> for Project {
+    fn generate_resource_id(&self, input: &ComputeProjectsGetArgs) -> String {
+        format!("gcp::Project/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Project"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ProjectsGetXpnResources.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeProjectsGetXpnResourcesArgs> for ProjectsGetXpnResources {
+    fn generate_resource_id(&self, input: &ComputeProjectsGetXpnResourcesArgs) -> String {
+        format!("gcp::ProjectsGetXpnResources/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProjectsGetXpnResources"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for XpnHostList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeProjectsListXpnHostsArgs> for XpnHostList {
+    fn generate_resource_id(&self, input: &ComputeProjectsListXpnHostsArgs) -> String {
+        format!("gcp::XpnHostList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::XpnHostList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PublicAdvertisedPrefix.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputePublicAdvertisedPrefixesGetArgs> for PublicAdvertisedPrefix {
+    fn generate_resource_id(&self, input: &ComputePublicAdvertisedPrefixesGetArgs) -> String {
+        format!(
+            "gcp::PublicAdvertisedPrefix/{}/{}",
+            input.project, input.public_advertised_prefix
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PublicAdvertisedPrefix"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PublicAdvertisedPrefixList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputePublicAdvertisedPrefixesListArgs> for PublicAdvertisedPrefixList {
+    fn generate_resource_id(&self, input: &ComputePublicAdvertisedPrefixesListArgs) -> String {
+        format!("gcp::PublicAdvertisedPrefixList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PublicAdvertisedPrefixList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PublicDelegatedPrefixAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputePublicDelegatedPrefixesAggregatedListArgs>
+    for PublicDelegatedPrefixAggregatedList
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputePublicDelegatedPrefixesAggregatedListArgs,
+    ) -> String {
+        format!("gcp::PublicDelegatedPrefixAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PublicDelegatedPrefixAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RegionAutoscalerList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionAutoscalersListArgs> for RegionAutoscalerList {
+    fn generate_resource_id(&self, input: &ComputeRegionAutoscalersListArgs) -> String {
+        format!(
+            "gcp::RegionAutoscalerList/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RegionAutoscalerList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CommitmentAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionCommitmentsAggregatedListArgs> for CommitmentAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeRegionCommitmentsAggregatedListArgs) -> String {
+        format!("gcp::CommitmentAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CommitmentAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Commitment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionCommitmentsGetArgs> for Commitment {
+    fn generate_resource_id(&self, input: &ComputeRegionCommitmentsGetArgs) -> String {
+        format!(
+            "gcp::Commitment/{}/{}/{}",
+            input.project, input.region, input.commitment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Commitment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CommitmentList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionCommitmentsListArgs> for CommitmentList {
+    fn generate_resource_id(&self, input: &ComputeRegionCommitmentsListArgs) -> String {
+        format!("gcp::CommitmentList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CommitmentList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CompositeHealthCheckAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionCompositeHealthChecksAggregatedListArgs>
+    for CompositeHealthCheckAggregatedList
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeRegionCompositeHealthChecksAggregatedListArgs,
+    ) -> String {
+        format!("gcp::CompositeHealthCheckAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CompositeHealthCheckAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CompositeHealthCheck.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionCompositeHealthChecksGetArgs> for CompositeHealthCheck {
+    fn generate_resource_id(&self, input: &ComputeRegionCompositeHealthChecksGetArgs) -> String {
+        format!(
+            "gcp::CompositeHealthCheck/{}/{}/{}",
+            input.project, input.region, input.composite_health_check
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CompositeHealthCheck"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CompositeHealthCheckHealth.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionCompositeHealthChecksGetHealthArgs>
+    for CompositeHealthCheckHealth
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeRegionCompositeHealthChecksGetHealthArgs,
+    ) -> String {
+        format!(
+            "gcp::CompositeHealthCheckHealth/{}/{}/{}",
+            input.project, input.region, input.composite_health_check
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CompositeHealthCheckHealth"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CompositeHealthCheckList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionCompositeHealthChecksListArgs> for CompositeHealthCheckList {
+    fn generate_resource_id(&self, input: &ComputeRegionCompositeHealthChecksListArgs) -> String {
+        format!(
+            "gcp::CompositeHealthCheckList/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CompositeHealthCheckList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RegionDiskTypeList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionDiskTypesListArgs> for RegionDiskTypeList {
+    fn generate_resource_id(&self, input: &ComputeRegionDiskTypesListArgs) -> String {
+        format!("gcp::RegionDiskTypeList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RegionDiskTypeList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthAggregationPolicyAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionHealthAggregationPoliciesAggregatedListArgs>
+    for HealthAggregationPolicyAggregatedList
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeRegionHealthAggregationPoliciesAggregatedListArgs,
+    ) -> String {
+        format!(
+            "gcp::HealthAggregationPolicyAggregatedList/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HealthAggregationPolicyAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthAggregationPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionHealthAggregationPoliciesGetArgs> for HealthAggregationPolicy {
+    fn generate_resource_id(
+        &self,
+        input: &ComputeRegionHealthAggregationPoliciesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::HealthAggregationPolicy/{}/{}/{}",
+            input.project, input.region, input.health_aggregation_policy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HealthAggregationPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthAggregationPolicyList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionHealthAggregationPoliciesListArgs>
+    for HealthAggregationPolicyList
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeRegionHealthAggregationPoliciesListArgs,
+    ) -> String {
+        format!(
+            "gcp::HealthAggregationPolicyList/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HealthAggregationPolicyList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthCheckServiceAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionHealthCheckServicesAggregatedListArgs>
+    for HealthCheckServiceAggregatedList
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeRegionHealthCheckServicesAggregatedListArgs,
+    ) -> String {
+        format!("gcp::HealthCheckServiceAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HealthCheckServiceAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthCheckService.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionHealthCheckServicesGetArgs> for HealthCheckService {
+    fn generate_resource_id(&self, input: &ComputeRegionHealthCheckServicesGetArgs) -> String {
+        format!(
+            "gcp::HealthCheckService/{}/{}/{}",
+            input.project, input.region, input.health_check_service
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HealthCheckService"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthCheckServicesList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionHealthCheckServicesListArgs> for HealthCheckServicesList {
+    fn generate_resource_id(&self, input: &ComputeRegionHealthCheckServicesListArgs) -> String {
+        format!(
+            "gcp::HealthCheckServicesList/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HealthCheckServicesList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthSourceAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionHealthSourcesAggregatedListArgs>
+    for HealthSourceAggregatedList
+{
+    fn generate_resource_id(&self, input: &ComputeRegionHealthSourcesAggregatedListArgs) -> String {
+        format!("gcp::HealthSourceAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HealthSourceAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthSource.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionHealthSourcesGetArgs> for HealthSource {
+    fn generate_resource_id(&self, input: &ComputeRegionHealthSourcesGetArgs) -> String {
+        format!(
+            "gcp::HealthSource/{}/{}/{}",
+            input.project, input.region, input.health_source
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HealthSource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthSourceHealth.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionHealthSourcesGetHealthArgs> for HealthSourceHealth {
+    fn generate_resource_id(&self, input: &ComputeRegionHealthSourcesGetHealthArgs) -> String {
+        format!(
+            "gcp::HealthSourceHealth/{}/{}/{}",
+            input.project, input.region, input.health_source
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HealthSourceHealth"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HealthSourceList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionHealthSourcesListArgs> for HealthSourceList {
+    fn generate_resource_id(&self, input: &ComputeRegionHealthSourcesListArgs) -> String {
+        format!("gcp::HealthSourceList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HealthSourceList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RegionInstanceGroupManagerResizeRequestsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionInstanceGroupManagerResizeRequestsListArgs>
+    for RegionInstanceGroupManagerResizeRequestsListResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeRegionInstanceGroupManagerResizeRequestsListArgs,
+    ) -> String {
+        format!(
+            "gcp::RegionInstanceGroupManagerResizeRequestsListResponse/{}/{}/{}",
+            input.project, input.region, input.instance_group_manager
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RegionInstanceGroupManagerResizeRequestsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RegionInstanceGroupManagerList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionInstanceGroupManagersListArgs>
+    for RegionInstanceGroupManagerList
+{
+    fn generate_resource_id(&self, input: &ComputeRegionInstanceGroupManagersListArgs) -> String {
+        format!(
+            "gcp::RegionInstanceGroupManagerList/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RegionInstanceGroupManagerList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RegionInstanceGroupManagersListErrorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionInstanceGroupManagersListErrorsArgs>
+    for RegionInstanceGroupManagersListErrorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeRegionInstanceGroupManagersListErrorsArgs,
+    ) -> String {
+        format!(
+            "gcp::RegionInstanceGroupManagersListErrorsResponse/{}/{}/{}",
+            input.project, input.region, input.instance_group_manager
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RegionInstanceGroupManagersListErrorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RegionInstanceGroupManagersListInstancesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionInstanceGroupManagersListManagedInstancesArgs>
+    for RegionInstanceGroupManagersListInstancesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeRegionInstanceGroupManagersListManagedInstancesArgs,
+    ) -> String {
+        format!(
+            "gcp::RegionInstanceGroupManagersListInstancesResponse/{}/{}/{}",
+            input.project, input.region, input.instance_group_manager
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RegionInstanceGroupManagersListInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RegionInstanceGroupManagersListInstanceConfigsResp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionInstanceGroupManagersListPerInstanceConfigsArgs>
+    for RegionInstanceGroupManagersListInstanceConfigsResp
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeRegionInstanceGroupManagersListPerInstanceConfigsArgs,
+    ) -> String {
+        format!(
+            "gcp::RegionInstanceGroupManagersListInstanceConfigsResp/{}/{}/{}",
+            input.project, input.region, input.instance_group_manager
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RegionInstanceGroupManagersListInstanceConfigsResp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RegionInstanceGroupList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionInstanceGroupsListArgs> for RegionInstanceGroupList {
+    fn generate_resource_id(&self, input: &ComputeRegionInstanceGroupsListArgs) -> String {
+        format!(
+            "gcp::RegionInstanceGroupList/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RegionInstanceGroupList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RegionInstanceGroupsListInstances.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionInstanceGroupsListInstancesArgs>
+    for RegionInstanceGroupsListInstances
+{
+    fn generate_resource_id(&self, input: &ComputeRegionInstanceGroupsListInstancesArgs) -> String {
+        format!(
+            "gcp::RegionInstanceGroupsListInstances/{}/{}/{}",
+            input.project, input.region, input.instance_group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RegionInstanceGroupsListInstances"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionNetworkFirewallPoliciesGetEffectiveFirewallsArgs>
+    for RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeRegionNetworkFirewallPoliciesGetEffectiveFirewallsArgs,
+    ) -> String {
+        format!(
+            "gcp::RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponse/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RegionNetworkFirewallPoliciesGetEffectiveFirewallsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NotificationEndpointAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionNotificationEndpointsAggregatedListArgs>
+    for NotificationEndpointAggregatedList
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeRegionNotificationEndpointsAggregatedListArgs,
+    ) -> String {
+        format!("gcp::NotificationEndpointAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NotificationEndpointAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NotificationEndpoint.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionNotificationEndpointsGetArgs> for NotificationEndpoint {
+    fn generate_resource_id(&self, input: &ComputeRegionNotificationEndpointsGetArgs) -> String {
+        format!(
+            "gcp::NotificationEndpoint/{}/{}/{}",
+            input.project, input.region, input.notification_endpoint
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NotificationEndpoint"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NotificationEndpointList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionNotificationEndpointsListArgs> for NotificationEndpointList {
+    fn generate_resource_id(&self, input: &ComputeRegionNotificationEndpointsListArgs) -> String {
+        format!(
+            "gcp::NotificationEndpointList/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NotificationEndpointList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SnapshotSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionSnapshotSettingsGetArgs> for SnapshotSettings {
+    fn generate_resource_id(&self, input: &ComputeRegionSnapshotSettingsGetArgs) -> String {
+        format!("gcp::SnapshotSettings/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SnapshotSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Snapshot.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionSnapshotsGetArgs> for Snapshot {
+    fn generate_resource_id(&self, input: &ComputeRegionSnapshotsGetArgs) -> String {
+        format!(
+            "gcp::Snapshot/{}/{}/{}",
+            input.project, input.region, input.snapshot
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Snapshot"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SnapshotList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionSnapshotsListArgs> for SnapshotList {
+    fn generate_resource_id(&self, input: &ComputeRegionSnapshotsListArgs) -> String {
+        format!("gcp::SnapshotList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SnapshotList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SslCertificate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionSslCertificatesGetArgs> for SslCertificate {
+    fn generate_resource_id(&self, input: &ComputeRegionSslCertificatesGetArgs) -> String {
+        format!(
+            "gcp::SslCertificate/{}/{}/{}",
+            input.project, input.region, input.ssl_certificate
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SslCertificate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SslCertificateList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionSslCertificatesListArgs> for SslCertificateList {
+    fn generate_resource_id(&self, input: &ComputeRegionSslCertificatesListArgs) -> String {
+        format!("gcp::SslCertificateList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SslCertificateList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SslPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionSslPoliciesGetArgs> for SslPolicy {
+    fn generate_resource_id(&self, input: &ComputeRegionSslPoliciesGetArgs) -> String {
+        format!(
+            "gcp::SslPolicy/{}/{}/{}",
+            input.project, input.region, input.ssl_policy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SslPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SslPoliciesList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionSslPoliciesListArgs> for SslPoliciesList {
+    fn generate_resource_id(&self, input: &ComputeRegionSslPoliciesListArgs) -> String {
+        format!("gcp::SslPoliciesList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SslPoliciesList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SslPoliciesListAvailableFeaturesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionSslPoliciesListAvailableFeaturesArgs>
+    for SslPoliciesListAvailableFeaturesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ComputeRegionSslPoliciesListAvailableFeaturesArgs,
+    ) -> String {
+        format!(
+            "gcp::SslPoliciesListAvailableFeaturesResponse/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SslPoliciesListAvailableFeaturesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetHttpProxy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionTargetHttpProxiesGetArgs> for TargetHttpProxy {
+    fn generate_resource_id(&self, input: &ComputeRegionTargetHttpProxiesGetArgs) -> String {
+        format!(
+            "gcp::TargetHttpProxy/{}/{}/{}",
+            input.project, input.region, input.target_http_proxy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetHttpProxy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetHttpProxyList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionTargetHttpProxiesListArgs> for TargetHttpProxyList {
+    fn generate_resource_id(&self, input: &ComputeRegionTargetHttpProxiesListArgs) -> String {
+        format!(
+            "gcp::TargetHttpProxyList/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetHttpProxyList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetHttpsProxy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionTargetHttpsProxiesGetArgs> for TargetHttpsProxy {
+    fn generate_resource_id(&self, input: &ComputeRegionTargetHttpsProxiesGetArgs) -> String {
+        format!(
+            "gcp::TargetHttpsProxy/{}/{}/{}",
+            input.project, input.region, input.target_https_proxy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetHttpsProxy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetHttpsProxyList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionTargetHttpsProxiesListArgs> for TargetHttpsProxyList {
+    fn generate_resource_id(&self, input: &ComputeRegionTargetHttpsProxiesListArgs) -> String {
+        format!(
+            "gcp::TargetHttpsProxyList/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetHttpsProxyList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetTcpProxy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionTargetTcpProxiesGetArgs> for TargetTcpProxy {
+    fn generate_resource_id(&self, input: &ComputeRegionTargetTcpProxiesGetArgs) -> String {
+        format!(
+            "gcp::TargetTcpProxy/{}/{}/{}",
+            input.project, input.region, input.target_tcp_proxy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetTcpProxy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetTcpProxyList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionTargetTcpProxiesListArgs> for TargetTcpProxyList {
+    fn generate_resource_id(&self, input: &ComputeRegionTargetTcpProxiesListArgs) -> String {
+        format!("gcp::TargetTcpProxyList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetTcpProxyList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UrlMap.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionUrlMapsGetArgs> for UrlMap {
+    fn generate_resource_id(&self, input: &ComputeRegionUrlMapsGetArgs) -> String {
+        format!(
+            "gcp::UrlMap/{}/{}/{}",
+            input.project, input.region, input.url_map
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UrlMap"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UrlMapList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionUrlMapsListArgs> for UrlMapList {
+    fn generate_resource_id(&self, input: &ComputeRegionUrlMapsListArgs) -> String {
+        format!("gcp::UrlMapList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UrlMapList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UrlMapsValidateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionUrlMapsValidateArgs> for UrlMapsValidateResponse {
+    fn generate_resource_id(&self, input: &ComputeRegionUrlMapsValidateArgs) -> String {
+        format!(
+            "gcp::UrlMapsValidateResponse/{}/{}/{}",
+            input.project, input.region, input.url_map
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UrlMapsValidateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ZoneList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionZonesListArgs> for ZoneList {
+    fn generate_resource_id(&self, input: &ComputeRegionZonesListArgs) -> String {
+        format!("gcp::ZoneList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ZoneList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Region.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionsGetArgs> for Region {
+    fn generate_resource_id(&self, input: &ComputeRegionsGetArgs) -> String {
+        format!("gcp::Region/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Region"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RegionList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRegionsListArgs> for RegionList {
+    fn generate_resource_id(&self, input: &ComputeRegionsListArgs) -> String {
+        format!("gcp::RegionList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RegionList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReservationBlocksGetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeReservationBlocksGetArgs> for ReservationBlocksGetResponse {
+    fn generate_resource_id(&self, input: &ComputeReservationBlocksGetArgs) -> String {
+        format!(
+            "gcp::ReservationBlocksGetResponse/{}/{}/{}/{}",
+            input.project, input.zone, input.reservation, input.reservation_block
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReservationBlocksGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReservationBlocksListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeReservationBlocksListArgs> for ReservationBlocksListResponse {
+    fn generate_resource_id(&self, input: &ComputeReservationBlocksListArgs) -> String {
+        format!(
+            "gcp::ReservationBlocksListResponse/{}/{}/{}",
+            input.project, input.zone, input.reservation
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReservationBlocksListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReservationSlotsGetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeReservationSlotsGetArgs> for ReservationSlotsGetResponse {
+    fn generate_resource_id(&self, input: &ComputeReservationSlotsGetArgs) -> String {
+        format!(
+            "gcp::ReservationSlotsGetResponse/{}/{}/{}/{}",
+            input.project, input.zone, input.parent_name, input.reservation_slot
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReservationSlotsGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReservationSlotsListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeReservationSlotsListArgs> for ReservationSlotsListResponse {
+    fn generate_resource_id(&self, input: &ComputeReservationSlotsListArgs) -> String {
+        format!(
+            "gcp::ReservationSlotsListResponse/{}/{}/{}",
+            input.project, input.zone, input.parent_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReservationSlotsListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReservationSubBlocksGetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeReservationSubBlocksGetArgs> for ReservationSubBlocksGetResponse {
+    fn generate_resource_id(&self, input: &ComputeReservationSubBlocksGetArgs) -> String {
+        format!(
+            "gcp::ReservationSubBlocksGetResponse/{}/{}/{}/{}",
+            input.project, input.zone, input.parent_name, input.reservation_sub_block
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReservationSubBlocksGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReservationSubBlocksListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeReservationSubBlocksListArgs> for ReservationSubBlocksListResponse {
+    fn generate_resource_id(&self, input: &ComputeReservationSubBlocksListArgs) -> String {
+        format!(
+            "gcp::ReservationSubBlocksListResponse/{}/{}/{}",
+            input.project, input.zone, input.parent_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReservationSubBlocksListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReservationAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeReservationsAggregatedListArgs> for ReservationAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeReservationsAggregatedListArgs) -> String {
+        format!("gcp::ReservationAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReservationAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Reservation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeReservationsGetArgs> for Reservation {
+    fn generate_resource_id(&self, input: &ComputeReservationsGetArgs) -> String {
+        format!(
+            "gcp::Reservation/{}/{}/{}",
+            input.project, input.zone, input.reservation
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Reservation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReservationList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeReservationsListArgs> for ReservationList {
+    fn generate_resource_id(&self, input: &ComputeReservationsListArgs) -> String {
+        format!("gcp::ReservationList/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReservationList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourcePolicyAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeResourcePoliciesAggregatedListArgs>
+    for ResourcePolicyAggregatedList
+{
+    fn generate_resource_id(&self, input: &ComputeResourcePoliciesAggregatedListArgs) -> String {
+        format!("gcp::ResourcePolicyAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResourcePolicyAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourcePolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeResourcePoliciesGetArgs> for ResourcePolicy {
+    fn generate_resource_id(&self, input: &ComputeResourcePoliciesGetArgs) -> String {
+        format!(
+            "gcp::ResourcePolicy/{}/{}/{}",
+            input.project, input.region, input.resource_policy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResourcePolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResourcePolicyList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeResourcePoliciesListArgs> for ResourcePolicyList {
+    fn generate_resource_id(&self, input: &ComputeResourcePoliciesListArgs) -> String {
+        format!("gcp::ResourcePolicyList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResourcePolicyList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RouterAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRoutersAggregatedListArgs> for RouterAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeRoutersAggregatedListArgs) -> String {
+        format!("gcp::RouterAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RouterAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Router.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRoutersGetArgs> for Router {
+    fn generate_resource_id(&self, input: &ComputeRoutersGetArgs) -> String {
+        format!(
+            "gcp::Router/{}/{}/{}",
+            input.project, input.region, input.router
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Router"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NatIpInfoResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRoutersGetNatIpInfoArgs> for NatIpInfoResponse {
+    fn generate_resource_id(&self, input: &ComputeRoutersGetNatIpInfoArgs) -> String {
+        format!(
+            "gcp::NatIpInfoResponse/{}/{}/{}",
+            input.project, input.region, input.router
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NatIpInfoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VmEndpointNatMappingsList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRoutersGetNatMappingInfoArgs> for VmEndpointNatMappingsList {
+    fn generate_resource_id(&self, input: &ComputeRoutersGetNatMappingInfoArgs) -> String {
+        format!(
+            "gcp::VmEndpointNatMappingsList/{}/{}/{}",
+            input.project, input.region, input.router
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VmEndpointNatMappingsList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RoutersGetRoutePolicyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRoutersGetRoutePolicyArgs> for RoutersGetRoutePolicyResponse {
+    fn generate_resource_id(&self, input: &ComputeRoutersGetRoutePolicyArgs) -> String {
+        format!(
+            "gcp::RoutersGetRoutePolicyResponse/{}/{}/{}",
+            input.project, input.region, input.router
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RoutersGetRoutePolicyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RouterStatusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRoutersGetRouterStatusArgs> for RouterStatusResponse {
+    fn generate_resource_id(&self, input: &ComputeRoutersGetRouterStatusArgs) -> String {
+        format!(
+            "gcp::RouterStatusResponse/{}/{}/{}",
+            input.project, input.region, input.router
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RouterStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RouterList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRoutersListArgs> for RouterList {
+    fn generate_resource_id(&self, input: &ComputeRoutersListArgs) -> String {
+        format!("gcp::RouterList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RouterList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RoutersListBgpRoutes.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRoutersListBgpRoutesArgs> for RoutersListBgpRoutes {
+    fn generate_resource_id(&self, input: &ComputeRoutersListBgpRoutesArgs) -> String {
+        format!(
+            "gcp::RoutersListBgpRoutes/{}/{}/{}",
+            input.project, input.region, input.router
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RoutersListBgpRoutes"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RoutersListRoutePolicies.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRoutersListRoutePoliciesArgs> for RoutersListRoutePolicies {
+    fn generate_resource_id(&self, input: &ComputeRoutersListRoutePoliciesArgs) -> String {
+        format!(
+            "gcp::RoutersListRoutePolicies/{}/{}/{}",
+            input.project, input.region, input.router
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RoutersListRoutePolicies"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RoutersPreviewResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRoutersPreviewArgs> for RoutersPreviewResponse {
+    fn generate_resource_id(&self, input: &ComputeRoutersPreviewArgs) -> String {
+        format!(
+            "gcp::RoutersPreviewResponse/{}/{}/{}",
+            input.project, input.region, input.router
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RoutersPreviewResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Route.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRoutesGetArgs> for Route {
+    fn generate_resource_id(&self, input: &ComputeRoutesGetArgs) -> String {
+        format!("gcp::Route/{}/{}", input.project, input.route)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Route"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RouteList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeRoutesListArgs> for RouteList {
+    fn generate_resource_id(&self, input: &ComputeRoutesListArgs) -> String {
+        format!("gcp::RouteList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RouteList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SecurityPoliciesAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeSecurityPoliciesAggregatedListArgs>
+    for SecurityPoliciesAggregatedList
+{
+    fn generate_resource_id(&self, input: &ComputeSecurityPoliciesAggregatedListArgs) -> String {
+        format!("gcp::SecurityPoliciesAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SecurityPoliciesAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ServiceAttachmentAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeServiceAttachmentsAggregatedListArgs>
+    for ServiceAttachmentAggregatedList
+{
+    fn generate_resource_id(&self, input: &ComputeServiceAttachmentsAggregatedListArgs) -> String {
+        format!("gcp::ServiceAttachmentAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ServiceAttachmentAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ServiceAttachment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeServiceAttachmentsGetArgs> for ServiceAttachment {
+    fn generate_resource_id(&self, input: &ComputeServiceAttachmentsGetArgs) -> String {
+        format!(
+            "gcp::ServiceAttachment/{}/{}/{}",
+            input.project, input.region, input.service_attachment
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ServiceAttachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ServiceAttachmentList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeServiceAttachmentsListArgs> for ServiceAttachmentList {
+    fn generate_resource_id(&self, input: &ComputeServiceAttachmentsListArgs) -> String {
+        format!(
+            "gcp::ServiceAttachmentList/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ServiceAttachmentList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SslCertificateAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeSslCertificatesAggregatedListArgs> for SslCertificateAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeSslCertificatesAggregatedListArgs) -> String {
+        format!("gcp::SslCertificateAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SslCertificateAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SslPoliciesAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeSslPoliciesAggregatedListArgs> for SslPoliciesAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeSslPoliciesAggregatedListArgs) -> String {
+        format!("gcp::SslPoliciesAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SslPoliciesAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StoragePoolTypeAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeStoragePoolTypesAggregatedListArgs>
+    for StoragePoolTypeAggregatedList
+{
+    fn generate_resource_id(&self, input: &ComputeStoragePoolTypesAggregatedListArgs) -> String {
+        format!("gcp::StoragePoolTypeAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StoragePoolTypeAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StoragePoolType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeStoragePoolTypesGetArgs> for StoragePoolType {
+    fn generate_resource_id(&self, input: &ComputeStoragePoolTypesGetArgs) -> String {
+        format!(
+            "gcp::StoragePoolType/{}/{}/{}",
+            input.project, input.zone, input.storage_pool_type
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StoragePoolType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StoragePoolTypeList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeStoragePoolTypesListArgs> for StoragePoolTypeList {
+    fn generate_resource_id(&self, input: &ComputeStoragePoolTypesListArgs) -> String {
+        format!("gcp::StoragePoolTypeList/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StoragePoolTypeList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StoragePoolAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeStoragePoolsAggregatedListArgs> for StoragePoolAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeStoragePoolsAggregatedListArgs) -> String {
+        format!("gcp::StoragePoolAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StoragePoolAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StoragePool.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeStoragePoolsGetArgs> for StoragePool {
+    fn generate_resource_id(&self, input: &ComputeStoragePoolsGetArgs) -> String {
+        format!(
+            "gcp::StoragePool/{}/{}/{}",
+            input.project, input.zone, input.storage_pool
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StoragePool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StoragePoolList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeStoragePoolsListArgs> for StoragePoolList {
+    fn generate_resource_id(&self, input: &ComputeStoragePoolsListArgs) -> String {
+        format!("gcp::StoragePoolList/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StoragePoolList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StoragePoolListDisks.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeStoragePoolsListDisksArgs> for StoragePoolListDisks {
+    fn generate_resource_id(&self, input: &ComputeStoragePoolsListDisksArgs) -> String {
+        format!(
+            "gcp::StoragePoolListDisks/{}/{}/{}",
+            input.project, input.zone, input.storage_pool
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StoragePoolListDisks"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SubnetworkAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeSubnetworksAggregatedListArgs> for SubnetworkAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeSubnetworksAggregatedListArgs) -> String {
+        format!("gcp::SubnetworkAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SubnetworkAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Subnetwork.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeSubnetworksGetArgs> for Subnetwork {
+    fn generate_resource_id(&self, input: &ComputeSubnetworksGetArgs) -> String {
+        format!(
+            "gcp::Subnetwork/{}/{}/{}",
+            input.project, input.region, input.subnetwork
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Subnetwork"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SubnetworkList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeSubnetworksListArgs> for SubnetworkList {
+    fn generate_resource_id(&self, input: &ComputeSubnetworksListArgs) -> String {
+        format!("gcp::SubnetworkList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SubnetworkList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UsableSubnetworksAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeSubnetworksListUsableArgs> for UsableSubnetworksAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeSubnetworksListUsableArgs) -> String {
+        format!("gcp::UsableSubnetworksAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UsableSubnetworksAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetGrpcProxy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetGrpcProxiesGetArgs> for TargetGrpcProxy {
+    fn generate_resource_id(&self, input: &ComputeTargetGrpcProxiesGetArgs) -> String {
+        format!(
+            "gcp::TargetGrpcProxy/{}/{}",
+            input.project, input.target_grpc_proxy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetGrpcProxy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetGrpcProxyList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetGrpcProxiesListArgs> for TargetGrpcProxyList {
+    fn generate_resource_id(&self, input: &ComputeTargetGrpcProxiesListArgs) -> String {
+        format!("gcp::TargetGrpcProxyList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetGrpcProxyList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetHttpProxyAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetHttpProxiesAggregatedListArgs>
+    for TargetHttpProxyAggregatedList
+{
+    fn generate_resource_id(&self, input: &ComputeTargetHttpProxiesAggregatedListArgs) -> String {
+        format!("gcp::TargetHttpProxyAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetHttpProxyAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetHttpsProxyAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetHttpsProxiesAggregatedListArgs>
+    for TargetHttpsProxyAggregatedList
+{
+    fn generate_resource_id(&self, input: &ComputeTargetHttpsProxiesAggregatedListArgs) -> String {
+        format!("gcp::TargetHttpsProxyAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetHttpsProxyAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetInstanceAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetInstancesAggregatedListArgs> for TargetInstanceAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeTargetInstancesAggregatedListArgs) -> String {
+        format!("gcp::TargetInstanceAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetInstanceAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetInstance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetInstancesGetArgs> for TargetInstance {
+    fn generate_resource_id(&self, input: &ComputeTargetInstancesGetArgs) -> String {
+        format!(
+            "gcp::TargetInstance/{}/{}/{}",
+            input.project, input.zone, input.target_instance
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetInstance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetInstanceList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetInstancesListArgs> for TargetInstanceList {
+    fn generate_resource_id(&self, input: &ComputeTargetInstancesListArgs) -> String {
+        format!("gcp::TargetInstanceList/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetInstanceList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetPoolAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetPoolsAggregatedListArgs> for TargetPoolAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeTargetPoolsAggregatedListArgs) -> String {
+        format!("gcp::TargetPoolAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetPoolAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetPool.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetPoolsGetArgs> for TargetPool {
+    fn generate_resource_id(&self, input: &ComputeTargetPoolsGetArgs) -> String {
+        format!(
+            "gcp::TargetPool/{}/{}/{}",
+            input.project, input.region, input.target_pool
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetPool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetPoolInstanceHealth.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetPoolsGetHealthArgs> for TargetPoolInstanceHealth {
+    fn generate_resource_id(&self, input: &ComputeTargetPoolsGetHealthArgs) -> String {
+        format!(
+            "gcp::TargetPoolInstanceHealth/{}/{}/{}",
+            input.project, input.region, input.target_pool
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetPoolInstanceHealth"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetPoolList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetPoolsListArgs> for TargetPoolList {
+    fn generate_resource_id(&self, input: &ComputeTargetPoolsListArgs) -> String {
+        format!("gcp::TargetPoolList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetPoolList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetSslProxy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetSslProxiesGetArgs> for TargetSslProxy {
+    fn generate_resource_id(&self, input: &ComputeTargetSslProxiesGetArgs) -> String {
+        format!(
+            "gcp::TargetSslProxy/{}/{}",
+            input.project, input.target_ssl_proxy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetSslProxy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetSslProxyList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetSslProxiesListArgs> for TargetSslProxyList {
+    fn generate_resource_id(&self, input: &ComputeTargetSslProxiesListArgs) -> String {
+        format!("gcp::TargetSslProxyList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetSslProxyList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetTcpProxyAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetTcpProxiesAggregatedListArgs>
+    for TargetTcpProxyAggregatedList
+{
+    fn generate_resource_id(&self, input: &ComputeTargetTcpProxiesAggregatedListArgs) -> String {
+        format!("gcp::TargetTcpProxyAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetTcpProxyAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetVpnGatewayAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetVpnGatewaysAggregatedListArgs>
+    for TargetVpnGatewayAggregatedList
+{
+    fn generate_resource_id(&self, input: &ComputeTargetVpnGatewaysAggregatedListArgs) -> String {
+        format!("gcp::TargetVpnGatewayAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetVpnGatewayAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetVpnGateway.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetVpnGatewaysGetArgs> for TargetVpnGateway {
+    fn generate_resource_id(&self, input: &ComputeTargetVpnGatewaysGetArgs) -> String {
+        format!(
+            "gcp::TargetVpnGateway/{}/{}/{}",
+            input.project, input.region, input.target_vpn_gateway
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetVpnGateway"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetVpnGatewayList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeTargetVpnGatewaysListArgs> for TargetVpnGatewayList {
+    fn generate_resource_id(&self, input: &ComputeTargetVpnGatewaysListArgs) -> String {
+        format!(
+            "gcp::TargetVpnGatewayList/{}/{}",
+            input.project, input.region
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetVpnGatewayList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UrlMapsAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeUrlMapsAggregatedListArgs> for UrlMapsAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeUrlMapsAggregatedListArgs) -> String {
+        format!("gcp::UrlMapsAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UrlMapsAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VpnGatewayAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeVpnGatewaysAggregatedListArgs> for VpnGatewayAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeVpnGatewaysAggregatedListArgs) -> String {
+        format!("gcp::VpnGatewayAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VpnGatewayAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VpnGateway.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeVpnGatewaysGetArgs> for VpnGateway {
+    fn generate_resource_id(&self, input: &ComputeVpnGatewaysGetArgs) -> String {
+        format!(
+            "gcp::VpnGateway/{}/{}/{}",
+            input.project, input.region, input.vpn_gateway
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VpnGateway"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VpnGatewaysGetStatusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeVpnGatewaysGetStatusArgs> for VpnGatewaysGetStatusResponse {
+    fn generate_resource_id(&self, input: &ComputeVpnGatewaysGetStatusArgs) -> String {
+        format!(
+            "gcp::VpnGatewaysGetStatusResponse/{}/{}/{}",
+            input.project, input.region, input.vpn_gateway
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VpnGatewaysGetStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VpnGatewayList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeVpnGatewaysListArgs> for VpnGatewayList {
+    fn generate_resource_id(&self, input: &ComputeVpnGatewaysListArgs) -> String {
+        format!("gcp::VpnGatewayList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VpnGatewayList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VpnTunnelAggregatedList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeVpnTunnelsAggregatedListArgs> for VpnTunnelAggregatedList {
+    fn generate_resource_id(&self, input: &ComputeVpnTunnelsAggregatedListArgs) -> String {
+        format!("gcp::VpnTunnelAggregatedList/{}", input.project)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VpnTunnelAggregatedList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VpnTunnel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeVpnTunnelsGetArgs> for VpnTunnel {
+    fn generate_resource_id(&self, input: &ComputeVpnTunnelsGetArgs) -> String {
+        format!(
+            "gcp::VpnTunnel/{}/{}/{}",
+            input.project, input.region, input.vpn_tunnel
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VpnTunnel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VpnTunnelList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeVpnTunnelsListArgs> for VpnTunnelList {
+    fn generate_resource_id(&self, input: &ComputeVpnTunnelsListArgs) -> String {
+        format!("gcp::VpnTunnelList/{}/{}", input.project, input.region)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VpnTunnelList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WireGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeWireGroupsGetArgs> for WireGroup {
+    fn generate_resource_id(&self, input: &ComputeWireGroupsGetArgs) -> String {
+        format!(
+            "gcp::WireGroup/{}/{}/{}",
+            input.project, input.cross_site_network, input.wire_group
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WireGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WireGroupList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeWireGroupsListArgs> for WireGroupList {
+    fn generate_resource_id(&self, input: &ComputeWireGroupsListArgs) -> String {
+        format!(
+            "gcp::WireGroupList/{}/{}",
+            input.project, input.cross_site_network
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WireGroupList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VmExtensionPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeZoneVmExtensionPoliciesGetArgs> for VmExtensionPolicy {
+    fn generate_resource_id(&self, input: &ComputeZoneVmExtensionPoliciesGetArgs) -> String {
+        format!(
+            "gcp::VmExtensionPolicy/{}/{}/{}",
+            input.project, input.zone, input.vm_extension_policy
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VmExtensionPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VmExtensionPolicyList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeZoneVmExtensionPoliciesListArgs> for VmExtensionPolicyList {
+    fn generate_resource_id(&self, input: &ComputeZoneVmExtensionPoliciesListArgs) -> String {
+        format!(
+            "gcp::VmExtensionPolicyList/{}/{}",
+            input.project, input.zone
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VmExtensionPolicyList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Zone.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ComputeZonesGetArgs> for Zone {
+    fn generate_resource_id(&self, input: &ComputeZonesGetArgs) -> String {
+        format!("gcp::Zone/{}/{}", input.project, input.zone)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Zone"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

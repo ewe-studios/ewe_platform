@@ -1122,3 +1122,427 @@ pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettingsActionSettings {
     #[serde(default, rename = "scoreThreshold")]
     pub score_threshold: ::core::option::Option<f32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsAssessmentsAnnotateArgs>
+    for GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsAssessmentsAnnotateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Assessment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsAssessmentsCreateArgs>
+    for GoogleCloudRecaptchaenterpriseV1Assessment
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsAssessmentsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecaptchaenterpriseV1Assessment/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1Assessment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1FirewallPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsFirewallpoliciesCreateArgs>
+    for GoogleCloudRecaptchaenterpriseV1FirewallPolicy
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsFirewallpoliciesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecaptchaenterpriseV1FirewallPolicy/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1FirewallPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsFirewallpoliciesDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsFirewallpoliciesDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsFirewallpoliciesListArgs>
+    for GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsFirewallpoliciesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsFirewallpoliciesReorderArgs>
+    for GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsFirewallpoliciesReorderArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysAddIpOverrideArgs>
+    for GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsKeysAddIpOverrideArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Key.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysCreateArgs>
+    for GoogleCloudRecaptchaenterpriseV1Key
+{
+    fn generate_resource_id(&self, input: &RecaptchaenterpriseProjectsKeysCreateArgs) -> String {
+        format!("gcp::GoogleCloudRecaptchaenterpriseV1Key/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1Key"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1Metrics.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysGetMetricsArgs>
+    for GoogleCloudRecaptchaenterpriseV1Metrics
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsKeysGetMetricsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecaptchaenterpriseV1Metrics/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1Metrics"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListKeysResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysListArgs>
+    for GoogleCloudRecaptchaenterpriseV1ListKeysResponse
+{
+    fn generate_resource_id(&self, input: &RecaptchaenterpriseProjectsKeysListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudRecaptchaenterpriseV1ListKeysResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1ListKeysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysListIpOverridesArgs>
+    for GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsKeysListIpOverridesArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysRemoveIpOverrideArgs>
+    for GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsKeysRemoveIpOverrideArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsKeysRetrieveLegacySecretKeyArgs>
+    for GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsKeysRetrieveLegacySecretKeyArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse/{}",
+            input.key
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsRelatedaccountgroupmembershipsSearchArgs>
+    for GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsRelatedaccountgroupmembershipsSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsResponse/{}",
+            input.project
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsRelatedaccountgroupsListArgs>
+    for GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsRelatedaccountgroupsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RecaptchaenterpriseProjectsRelatedaccountgroupsMembershipsListArgs>
+    for GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RecaptchaenterpriseProjectsRelatedaccountgroupsMembershipsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

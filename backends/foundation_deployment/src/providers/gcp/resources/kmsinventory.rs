@@ -260,3 +260,87 @@ pub struct GoogleCloudKmsV1KeyOperationAttestationCertificateChains {
     #[serde(default, rename = "googlePartitionCerts")]
     pub google_partition_certs: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KmsinventoryOrganizationsProtectedResourcesSearchArgs>
+    for GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &KmsinventoryOrganizationsProtectedResourcesSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse/{}",
+            input.scope
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudKmsInventoryV1SearchProtectedResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudKmsInventoryV1ListCryptoKeysResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<KmsinventoryProjectsCryptoKeysListArgs>
+    for GoogleCloudKmsInventoryV1ListCryptoKeysResponse
+{
+    fn generate_resource_id(&self, input: &KmsinventoryProjectsCryptoKeysListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudKmsInventoryV1ListCryptoKeysResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudKmsInventoryV1ListCryptoKeysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudKmsInventoryV1ProtectedResourcesSummary.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        KmsinventoryProjectsLocationsKeyRingsCryptoKeysGetProtectedResourcesSummaryArgs,
+    > for GoogleCloudKmsInventoryV1ProtectedResourcesSummary
+{
+    fn generate_resource_id(
+        &self,
+        input: &KmsinventoryProjectsLocationsKeyRingsCryptoKeysGetProtectedResourcesSummaryArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudKmsInventoryV1ProtectedResourcesSummary/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudKmsInventoryV1ProtectedResourcesSummary"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

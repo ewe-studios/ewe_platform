@@ -147,3 +147,64 @@ pub struct CertificateInfo {
     #[serde(default, rename = "sha256Fingerprint")]
     pub sha256_fingerprint: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BulkCheckResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DigitalassetlinksAssetlinksBulkCheckArgs> for BulkCheckResponse {
+    fn generate_resource_id(&self, input: &DigitalassetlinksAssetlinksBulkCheckArgs) -> String {
+        "gcp::BulkCheckResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkCheckResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CheckResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DigitalassetlinksAssetlinksCheckArgs> for CheckResponse {
+    fn generate_resource_id(&self, input: &DigitalassetlinksAssetlinksCheckArgs) -> String {
+        "gcp::CheckResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CheckResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DigitalassetlinksStatementsListArgs> for ListResponse {
+    fn generate_resource_id(&self, input: &DigitalassetlinksStatementsListArgs) -> String {
+        "gcp::ListResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

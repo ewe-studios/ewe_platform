@@ -1933,3 +1933,472 @@ pub struct OperationError {
     #[serde(default)]
     pub message: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &RedisProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SharedRegionalCertificateAuthority.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsGetSharedRegionalCertificateAuthorityArgs>
+    for SharedRegionalCertificateAuthority
+{
+    fn generate_resource_id(
+        &self,
+        input: &RedisProjectsLocationsGetSharedRegionalCertificateAuthorityArgs,
+    ) -> String {
+        format!("gcp::SharedRegionalCertificateAuthority/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SharedRegionalCertificateAuthority"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &RedisProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AclPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsAclPoliciesCreateArgs> for AclPolicy {
+    fn generate_resource_id(&self, input: &RedisProjectsLocationsAclPoliciesCreateArgs) -> String {
+        format!("gcp::AclPolicy/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AclPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsAclPoliciesDeleteArgs> for Operation {
+    fn generate_resource_id(&self, input: &RedisProjectsLocationsAclPoliciesDeleteArgs) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAclPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsAclPoliciesListArgs> for ListAclPoliciesResponse {
+    fn generate_resource_id(&self, input: &RedisProjectsLocationsAclPoliciesListArgs) -> String {
+        format!("gcp::ListAclPoliciesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAclPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackupCollection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsBackupCollectionsGetArgs> for BackupCollection {
+    fn generate_resource_id(
+        &self,
+        input: &RedisProjectsLocationsBackupCollectionsGetArgs,
+    ) -> String {
+        format!("gcp::BackupCollection/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackupCollection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBackupCollectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsBackupCollectionsListArgs>
+    for ListBackupCollectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RedisProjectsLocationsBackupCollectionsListArgs,
+    ) -> String {
+        format!("gcp::ListBackupCollectionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBackupCollectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Backup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsBackupCollectionsBackupsGetArgs> for Backup {
+    fn generate_resource_id(
+        &self,
+        input: &RedisProjectsLocationsBackupCollectionsBackupsGetArgs,
+    ) -> String {
+        format!("gcp::Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBackupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsBackupCollectionsBackupsListArgs>
+    for ListBackupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RedisProjectsLocationsBackupCollectionsBackupsListArgs,
+    ) -> String {
+        format!("gcp::ListBackupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Cluster.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsClustersGetArgs> for Cluster {
+    fn generate_resource_id(&self, input: &RedisProjectsLocationsClustersGetArgs) -> String {
+        format!("gcp::Cluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Cluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CertificateAuthority.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsClustersGetCertificateAuthorityArgs>
+    for CertificateAuthority
+{
+    fn generate_resource_id(
+        &self,
+        input: &RedisProjectsLocationsClustersGetCertificateAuthorityArgs,
+    ) -> String {
+        format!("gcp::CertificateAuthority/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CertificateAuthority"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListClustersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsClustersListArgs> for ListClustersResponse {
+    fn generate_resource_id(&self, input: &RedisProjectsLocationsClustersListArgs) -> String {
+        format!("gcp::ListClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TokenAuthUser.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsClustersTokenAuthUsersGetArgs> for TokenAuthUser {
+    fn generate_resource_id(
+        &self,
+        input: &RedisProjectsLocationsClustersTokenAuthUsersGetArgs,
+    ) -> String {
+        format!("gcp::TokenAuthUser/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TokenAuthUser"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTokenAuthUsersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsClustersTokenAuthUsersListArgs>
+    for ListTokenAuthUsersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RedisProjectsLocationsClustersTokenAuthUsersListArgs,
+    ) -> String {
+        format!("gcp::ListTokenAuthUsersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTokenAuthUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AuthToken.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsClustersTokenAuthUsersAuthTokensGetArgs>
+    for AuthToken
+{
+    fn generate_resource_id(
+        &self,
+        input: &RedisProjectsLocationsClustersTokenAuthUsersAuthTokensGetArgs,
+    ) -> String {
+        format!("gcp::AuthToken/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AuthToken"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAuthTokensResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsClustersTokenAuthUsersAuthTokensListArgs>
+    for ListAuthTokensResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RedisProjectsLocationsClustersTokenAuthUsersAuthTokensListArgs,
+    ) -> String {
+        format!("gcp::ListAuthTokensResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAuthTokensResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Instance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsInstancesGetArgs> for Instance {
+    fn generate_resource_id(&self, input: &RedisProjectsLocationsInstancesGetArgs) -> String {
+        format!("gcp::Instance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Instance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InstanceAuthString.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsInstancesGetAuthStringArgs> for InstanceAuthString {
+    fn generate_resource_id(
+        &self,
+        input: &RedisProjectsLocationsInstancesGetAuthStringArgs,
+    ) -> String {
+        format!("gcp::InstanceAuthString/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InstanceAuthString"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInstancesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsInstancesListArgs> for ListInstancesResponse {
+    fn generate_resource_id(&self, input: &RedisProjectsLocationsInstancesListArgs) -> String {
+        format!("gcp::ListInstancesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &RedisProjectsLocationsOperationsCancelArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RedisProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &RedisProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -929,3 +929,405 @@ pub struct UrlDownloadSize {
     #[serde(default, rename = "normalizedUrl")]
     pub normalized_url: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Bidder.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBiddersGetArgs> for Bidder {
+    fn generate_resource_id(&self, input: &RealtimebiddingBiddersGetArgs) -> String {
+        format!("gcp::Bidder/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Bidder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBiddersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBiddersListArgs> for ListBiddersResponse {
+    fn generate_resource_id(&self, input: &RealtimebiddingBiddersListArgs) -> String {
+        "gcp::ListBiddersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBiddersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCreativesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBiddersCreativesListArgs> for ListCreativesResponse {
+    fn generate_resource_id(&self, input: &RealtimebiddingBiddersCreativesListArgs) -> String {
+        format!("gcp::ListCreativesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCreativesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WatchCreativesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBiddersCreativesWatchArgs> for WatchCreativesResponse {
+    fn generate_resource_id(&self, input: &RealtimebiddingBiddersCreativesWatchArgs) -> String {
+        format!("gcp::WatchCreativesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WatchCreativesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Endpoint.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBiddersEndpointsGetArgs> for Endpoint {
+    fn generate_resource_id(&self, input: &RealtimebiddingBiddersEndpointsGetArgs) -> String {
+        format!("gcp::Endpoint/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Endpoint"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListEndpointsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBiddersEndpointsListArgs> for ListEndpointsResponse {
+    fn generate_resource_id(&self, input: &RealtimebiddingBiddersEndpointsListArgs) -> String {
+        format!("gcp::ListEndpointsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListEndpointsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PretargetingConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBiddersPretargetingConfigsActivateArgs>
+    for PretargetingConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &RealtimebiddingBiddersPretargetingConfigsActivateArgs,
+    ) -> String {
+        format!("gcp::PretargetingConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PretargetingConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBiddersPretargetingConfigsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &RealtimebiddingBiddersPretargetingConfigsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPretargetingConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBiddersPretargetingConfigsListArgs>
+    for ListPretargetingConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RealtimebiddingBiddersPretargetingConfigsListArgs,
+    ) -> String {
+        format!("gcp::ListPretargetingConfigsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPretargetingConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchApprovePublisherConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBiddersPublisherConnectionsBatchApproveArgs>
+    for BatchApprovePublisherConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RealtimebiddingBiddersPublisherConnectionsBatchApproveArgs,
+    ) -> String {
+        format!(
+            "gcp::BatchApprovePublisherConnectionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchApprovePublisherConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchRejectPublisherConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBiddersPublisherConnectionsBatchRejectArgs>
+    for BatchRejectPublisherConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RealtimebiddingBiddersPublisherConnectionsBatchRejectArgs,
+    ) -> String {
+        format!(
+            "gcp::BatchRejectPublisherConnectionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchRejectPublisherConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PublisherConnection.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBiddersPublisherConnectionsGetArgs> for PublisherConnection {
+    fn generate_resource_id(
+        &self,
+        input: &RealtimebiddingBiddersPublisherConnectionsGetArgs,
+    ) -> String {
+        format!("gcp::PublisherConnection/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PublisherConnection"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPublisherConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBiddersPublisherConnectionsListArgs>
+    for ListPublisherConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RealtimebiddingBiddersPublisherConnectionsListArgs,
+    ) -> String {
+        format!("gcp::ListPublisherConnectionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPublisherConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Buyer.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBuyersGetArgs> for Buyer {
+    fn generate_resource_id(&self, input: &RealtimebiddingBuyersGetArgs) -> String {
+        format!("gcp::Buyer/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Buyer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetRemarketingTagResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBuyersGetRemarketingTagArgs> for GetRemarketingTagResponse {
+    fn generate_resource_id(&self, input: &RealtimebiddingBuyersGetRemarketingTagArgs) -> String {
+        format!("gcp::GetRemarketingTagResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetRemarketingTagResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBuyersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBuyersListArgs> for ListBuyersResponse {
+    fn generate_resource_id(&self, input: &RealtimebiddingBuyersListArgs) -> String {
+        "gcp::ListBuyersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBuyersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Creative.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBuyersCreativesCreateArgs> for Creative {
+    fn generate_resource_id(&self, input: &RealtimebiddingBuyersCreativesCreateArgs) -> String {
+        format!("gcp::Creative/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Creative"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBuyersUserListsCloseArgs> for UserList {
+    fn generate_resource_id(&self, input: &RealtimebiddingBuyersUserListsCloseArgs) -> String {
+        format!("gcp::UserList/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUserListsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RealtimebiddingBuyersUserListsListArgs> for ListUserListsResponse {
+    fn generate_resource_id(&self, input: &RealtimebiddingBuyersUserListsListArgs) -> String {
+        format!("gcp::ListUserListsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUserListsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

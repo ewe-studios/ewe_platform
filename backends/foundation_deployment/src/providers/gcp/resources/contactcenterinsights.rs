@@ -10275,3 +10275,1448 @@ pub struct GoogleCloudContactcenterinsightsV1Widget {
     #[serde(default)]
     pub filter: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsBulkDeleteFeedbackLabelsArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsBulkDeleteFeedbackLabelsArgs,
+    ) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1CorrelationConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsGetCorrelationConfigArgs>
+    for GoogleCloudContactcenterinsightsV1CorrelationConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsGetCorrelationConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1CorrelationConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1CorrelationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1EncryptionSpec.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsGetEncryptionSpecArgs>
+    for GoogleCloudContactcenterinsightsV1EncryptionSpec
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsGetEncryptionSpecArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1EncryptionSpec/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1EncryptionSpec"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1Settings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsGetSettingsArgs>
+    for GoogleCloudContactcenterinsightsV1Settings
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsGetSettingsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1Settings/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1Settings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListAllFeedbackLabelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsListAllFeedbackLabelsArgs>
+    for GoogleCloudContactcenterinsightsV1ListAllFeedbackLabelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsListAllFeedbackLabelsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListAllFeedbackLabelsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListAllFeedbackLabelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1AnalysisRule.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAnalysisRulesCreateArgs>
+    for GoogleCloudContactcenterinsightsV1AnalysisRule
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAnalysisRulesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1AnalysisRule/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1AnalysisRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAnalysisRulesDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAnalysisRulesDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListAnalysisRulesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAnalysisRulesListArgs>
+    for GoogleCloudContactcenterinsightsV1ListAnalysisRulesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAnalysisRulesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListAnalysisRulesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListAnalysisRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1AssessmentRule.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAssessmentRulesCreateArgs>
+    for GoogleCloudContactcenterinsightsV1AssessmentRule
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAssessmentRulesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1AssessmentRule/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1AssessmentRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListAssessmentRulesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAssessmentRulesListArgs>
+    for GoogleCloudContactcenterinsightsV1ListAssessmentRulesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAssessmentRulesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListAssessmentRulesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListAssessmentRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1AuthorizedViewSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAuthorizedViewSetsCreateArgs>
+    for GoogleCloudContactcenterinsightsV1AuthorizedViewSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1AuthorizedViewSet/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1AuthorizedViewSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListAuthorizedViewSetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAuthorizedViewSetsListArgs>
+    for GoogleCloudContactcenterinsightsV1ListAuthorizedViewSetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListAuthorizedViewSetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListAuthorizedViewSetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1AuthorizedView.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsCreateArgs,
+    > for GoogleCloudContactcenterinsightsV1AuthorizedView
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1AuthorizedView/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1AuthorizedView"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV1Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsGetIamPolicyArgs,
+    > for GoogleIamV1Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::GoogleIamV1Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV1Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListAuthorizedViewsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsListArgs,
+    > for GoogleCloudContactcenterinsightsV1ListAuthorizedViewsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListAuthorizedViewsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListAuthorizedViewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1SearchAuthorizedViewsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsSearchArgs,
+    > for GoogleCloudContactcenterinsightsV1SearchAuthorizedViewsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1SearchAuthorizedViewsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1SearchAuthorizedViewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleIamV1TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsTestIamPermissionsArgs> for GoogleIamV1TestIamPermissionsResponse {
+    fn generate_resource_id(&self, input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsTestIamPermissionsArgs) -> String {
+        format!("gcp::GoogleIamV1TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleIamV1TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1CalculateStatsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsCalculateStatsArgs> for GoogleCloudContactcenterinsightsV1CalculateStatsResponse {
+    fn generate_resource_id(&self, input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsCalculateStatsArgs) -> String {
+        format!("gcp::GoogleCloudContactcenterinsightsV1CalculateStatsResponse/{}", input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1CalculateStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1GenerateConversationSignedAudioResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsGenerateSignedAudioArgs> for GoogleCloudContactcenterinsightsV1GenerateConversationSignedAudioResponse {
+    fn generate_resource_id(&self, input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsGenerateSignedAudioArgs) -> String {
+        format!("gcp::GoogleCloudContactcenterinsightsV1GenerateConversationSignedAudioResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1GenerateConversationSignedAudioResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1Conversation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsGetArgs,
+    > for GoogleCloudContactcenterinsightsV1Conversation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1Conversation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1Conversation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListConversationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsListArgs> for GoogleCloudContactcenterinsightsV1ListConversationsResponse {
+    fn generate_resource_id(&self, input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsListArgs) -> String {
+        format!("gcp::GoogleCloudContactcenterinsightsV1ListConversationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListConversationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1Assessment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsAppealArgs> for GoogleCloudContactcenterinsightsV1Assessment {
+    fn generate_resource_id(&self, input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsAppealArgs) -> String {
+        format!("gcp::GoogleCloudContactcenterinsightsV1Assessment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1Assessment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListAssessmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsListArgs> for GoogleCloudContactcenterinsightsV1ListAssessmentsResponse {
+    fn generate_resource_id(&self, input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsListArgs) -> String {
+        format!("gcp::GoogleCloudContactcenterinsightsV1ListAssessmentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListAssessmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1Note.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsNotesCreateArgs> for GoogleCloudContactcenterinsightsV1Note {
+    fn generate_resource_id(&self, input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsNotesCreateArgs) -> String {
+        format!("gcp::GoogleCloudContactcenterinsightsV1Note/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1Note"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListNotesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsNotesListArgs> for GoogleCloudContactcenterinsightsV1ListNotesResponse {
+    fn generate_resource_id(&self, input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsAssessmentsNotesListArgs) -> String {
+        format!("gcp::GoogleCloudContactcenterinsightsV1ListNotesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListNotesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1FeedbackLabel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsFeedbackLabelsCreateArgs> for GoogleCloudContactcenterinsightsV1FeedbackLabel {
+    fn generate_resource_id(&self, input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsFeedbackLabelsCreateArgs) -> String {
+        format!("gcp::GoogleCloudContactcenterinsightsV1FeedbackLabel/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1FeedbackLabel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListFeedbackLabelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsFeedbackLabelsListArgs> for GoogleCloudContactcenterinsightsV1ListFeedbackLabelsResponse {
+    fn generate_resource_id(&self, input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsConversationsFeedbackLabelsListArgs) -> String {
+        format!("gcp::GoogleCloudContactcenterinsightsV1ListFeedbackLabelsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListFeedbackLabelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsOperationsListArgs,
+    > for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAuthorizedViewSetsAuthorizedViewsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1AutoLabelingRule.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAutoLabelingRulesCreateArgs>
+    for GoogleCloudContactcenterinsightsV1AutoLabelingRule
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAutoLabelingRulesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1AutoLabelingRule/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1AutoLabelingRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListAutoLabelingRulesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAutoLabelingRulesListArgs>
+    for GoogleCloudContactcenterinsightsV1ListAutoLabelingRulesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAutoLabelingRulesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListAutoLabelingRulesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListAutoLabelingRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1TestAutoLabelingRuleResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsAutoLabelingRulesTestArgs>
+    for GoogleCloudContactcenterinsightsV1TestAutoLabelingRuleResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsAutoLabelingRulesTestArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1TestAutoLabelingRuleResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1TestAutoLabelingRuleResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1Analysis.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsConversationsAnalysesGetArgs>
+    for GoogleCloudContactcenterinsightsV1Analysis
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsConversationsAnalysesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1Analysis/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1Analysis"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListAnalysesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsConversationsAnalysesListArgs>
+    for GoogleCloudContactcenterinsightsV1ListAnalysesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsConversationsAnalysesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListAnalysesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListAnalysesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1Dashboard.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsDashboardsCreateArgs>
+    for GoogleCloudContactcenterinsightsV1Dashboard
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsDashboardsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1Dashboard/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1Dashboard"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListDashboardsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsDashboardsListArgs>
+    for GoogleCloudContactcenterinsightsV1ListDashboardsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsDashboardsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListDashboardsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListDashboardsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1Chart.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsDashboardsChartsCreateArgs>
+    for GoogleCloudContactcenterinsightsV1Chart
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsDashboardsChartsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1Chart/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1Chart"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListChartsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsDashboardsChartsListArgs>
+    for GoogleCloudContactcenterinsightsV1ListChartsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsDashboardsChartsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListChartsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListChartsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1Dataset.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsDatasetsCreateArgs>
+    for GoogleCloudContactcenterinsightsV1Dataset
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsDatasetsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1Dataset/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1Dataset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListDatasetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsDatasetsListArgs>
+    for GoogleCloudContactcenterinsightsV1ListDatasetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsDatasetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListDatasetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListDatasetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1CalculateIssueModelStatsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ContactcenterinsightsProjectsLocationsIssueModelsCalculateIssueModelStatsArgs,
+    > for GoogleCloudContactcenterinsightsV1CalculateIssueModelStatsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsIssueModelsCalculateIssueModelStatsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1CalculateIssueModelStatsResponse/{}",
+            input.issue_model
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1CalculateIssueModelStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1IssueModel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsIssueModelsGetArgs>
+    for GoogleCloudContactcenterinsightsV1IssueModel
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsIssueModelsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1IssueModel/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1IssueModel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListIssueModelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsIssueModelsListArgs>
+    for GoogleCloudContactcenterinsightsV1ListIssueModelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsIssueModelsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListIssueModelsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListIssueModelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1Issue.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsIssueModelsIssuesGetArgs>
+    for GoogleCloudContactcenterinsightsV1Issue
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsIssueModelsIssuesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1Issue/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1Issue"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListIssuesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsIssueModelsIssuesListArgs>
+    for GoogleCloudContactcenterinsightsV1ListIssuesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsIssueModelsIssuesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListIssuesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListIssuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1PhraseMatcher.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsPhraseMatchersCreateArgs>
+    for GoogleCloudContactcenterinsightsV1PhraseMatcher
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsPhraseMatchersCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1PhraseMatcher/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1PhraseMatcher"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListPhraseMatchersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsPhraseMatchersListArgs>
+    for GoogleCloudContactcenterinsightsV1ListPhraseMatchersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsPhraseMatchersListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListPhraseMatchersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListPhraseMatchersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1QaQuestionTag.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsQaQuestionTagsCreateArgs>
+    for GoogleCloudContactcenterinsightsV1QaQuestionTag
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsQaQuestionTagsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1QaQuestionTag/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1QaQuestionTag"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListQaQuestionTagsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsQaQuestionTagsListArgs>
+    for GoogleCloudContactcenterinsightsV1ListQaQuestionTagsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsQaQuestionTagsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListQaQuestionTagsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListQaQuestionTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1QaScorecard.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsQaScorecardsCreateArgs>
+    for GoogleCloudContactcenterinsightsV1QaScorecard
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsQaScorecardsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1QaScorecard/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1QaScorecard"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListQaScorecardsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsQaScorecardsListArgs>
+    for GoogleCloudContactcenterinsightsV1ListQaScorecardsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsQaScorecardsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListQaScorecardsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListQaScorecardsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1QaScorecardRevision.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsCreateArgs>
+    for GoogleCloudContactcenterinsightsV1QaScorecardRevision
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1QaScorecardRevision/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1QaScorecardRevision"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListQaScorecardRevisionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsListArgs>
+    for GoogleCloudContactcenterinsightsV1ListQaScorecardRevisionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListQaScorecardRevisionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListQaScorecardRevisionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1QaQuestion.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestionsCreateArgs,
+    > for GoogleCloudContactcenterinsightsV1QaQuestion
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1QaQuestion/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1QaQuestion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListQaQuestionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestionsListArgs,
+    > for GoogleCloudContactcenterinsightsV1ListQaQuestionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsQaScorecardsRevisionsQaQuestionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListQaQuestionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListQaQuestionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1View.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsViewsCreateArgs>
+    for GoogleCloudContactcenterinsightsV1View
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsViewsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1View/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1View"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContactcenterinsightsV1ListViewsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContactcenterinsightsProjectsLocationsViewsListArgs>
+    for GoogleCloudContactcenterinsightsV1ListViewsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContactcenterinsightsProjectsLocationsViewsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContactcenterinsightsV1ListViewsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContactcenterinsightsV1ListViewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

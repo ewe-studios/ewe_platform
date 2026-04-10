@@ -312,7 +312,7 @@ pub struct TransferMessage {
     pub severity: ::core::option::Option<String>,
 }
 
-/// Resource(table/partition) that is being transferred.
+/// Resource (table/partition) that is being transferred.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferResource {
     /// Optional. Resource destination. // TODO: enum values: ["RESOURCE_DESTINATION_UNSPECIFIED", "RESOURCE_DESTINATION_BIGQUERY", "RESOURCE_DESTINATION_DATAPROC_METASTORE", "RESOURCE_DESTINATION_BIGLAKE_METASTORE", "RESOURCE_DESTINATION_BIGLAKE_REST_CATALOG", "RESOURCE_DESTINATION_BIGLAKE_HIVE_CATALOG"]
@@ -516,7 +516,7 @@ pub struct HierarchyDetail {
 /// Basic information about a transfer run.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferRunBrief {
-    /// Optional. Run URI. Format projects/{project}/locations/{location}/transferConfigs/{config}/run/{run}
+    /// Optional. Run URI. The format must be: projects/{project}/locations/{location}/transferConfigs/{transfer_config}/run/{run}
     #[serde(default)]
     pub run: ::core::option::Option<String>,
     /// Optional. Start time of the transfer run.
@@ -636,4 +636,361 @@ pub struct TransferStatusMetric {
     /// Optional. Unit for measuring progress (e.g., BYTES). // TODO: enum values: ["TRANSFER_STATUS_UNIT_UNSPECIFIED", "TRANSFER_STATUS_UNIT_BYTES", "TRANSFER_STATUS_UNIT_OBJECTS"]
     #[serde(default)]
     pub unit: ::core::option::Option<String>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsEnrollDataSourcesArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsEnrollDataSourcesArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CheckValidCredsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsDataSourcesCheckValidCredsArgs>
+    for CheckValidCredsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsDataSourcesCheckValidCredsArgs,
+    ) -> String {
+        format!("gcp::CheckValidCredsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CheckValidCredsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DataSource.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsDataSourcesGetArgs> for DataSource {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsDataSourcesGetArgs,
+    ) -> String {
+        format!("gcp::DataSource/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DataSource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDataSourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsDataSourcesListArgs>
+    for ListDataSourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsDataSourcesListArgs,
+    ) -> String {
+        format!("gcp::ListDataSourcesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDataSourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &BigquerydatatransferProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsListArgs,
+    ) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TransferConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsCreateArgs>
+    for TransferConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsCreateArgs,
+    ) -> String {
+        format!("gcp::TransferConfig/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TransferConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTransferConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsListArgs>
+    for ListTransferConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsListArgs,
+    ) -> String {
+        format!("gcp::ListTransferConfigsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTransferConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ScheduleTransferRunsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsScheduleRunsArgs>
+    for ScheduleTransferRunsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsScheduleRunsArgs,
+    ) -> String {
+        format!("gcp::ScheduleTransferRunsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ScheduleTransferRunsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StartManualTransferRunsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsStartManualRunsArgs>
+    for StartManualTransferRunsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsStartManualRunsArgs,
+    ) -> String {
+        format!("gcp::StartManualTransferRunsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StartManualTransferRunsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TransferRun.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsRunsGetArgs>
+    for TransferRun
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsRunsGetArgs,
+    ) -> String {
+        format!("gcp::TransferRun/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TransferRun"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTransferRunsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsRunsListArgs>
+    for ListTransferRunsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsRunsListArgs,
+    ) -> String {
+        format!("gcp::ListTransferRunsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTransferRunsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTransferLogsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsRunsTransferLogsListArgs>
+    for ListTransferLogsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsRunsTransferLogsListArgs,
+    ) -> String {
+        format!("gcp::ListTransferLogsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTransferLogsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TransferResource.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesGetArgs>
+    for TransferResource
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesGetArgs,
+    ) -> String {
+        format!("gcp::TransferResource/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TransferResource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTransferResourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesListArgs,
+    > for ListTransferResourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &BigquerydatatransferProjectsLocationsTransferConfigsTransferResourcesListArgs,
+    ) -> String {
+        format!("gcp::ListTransferResourcesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTransferResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

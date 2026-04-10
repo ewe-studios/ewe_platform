@@ -1407,3 +1407,104 @@ pub struct GoogleTypeDate {
     #[serde(default)]
     pub year: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleMapsPlacesV1AutocompletePlacesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlacesPlacesAutocompleteArgs>
+    for GoogleMapsPlacesV1AutocompletePlacesResponse
+{
+    fn generate_resource_id(&self, input: &PlacesPlacesAutocompleteArgs) -> String {
+        "gcp::GoogleMapsPlacesV1AutocompletePlacesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleMapsPlacesV1AutocompletePlacesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleMapsPlacesV1Place.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlacesPlacesGetArgs> for GoogleMapsPlacesV1Place {
+    fn generate_resource_id(&self, input: &PlacesPlacesGetArgs) -> String {
+        format!("gcp::GoogleMapsPlacesV1Place/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleMapsPlacesV1Place"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleMapsPlacesV1SearchNearbyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlacesPlacesSearchNearbyArgs> for GoogleMapsPlacesV1SearchNearbyResponse {
+    fn generate_resource_id(&self, input: &PlacesPlacesSearchNearbyArgs) -> String {
+        "gcp::GoogleMapsPlacesV1SearchNearbyResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleMapsPlacesV1SearchNearbyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleMapsPlacesV1SearchTextResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlacesPlacesSearchTextArgs> for GoogleMapsPlacesV1SearchTextResponse {
+    fn generate_resource_id(&self, input: &PlacesPlacesSearchTextArgs) -> String {
+        "gcp::GoogleMapsPlacesV1SearchTextResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleMapsPlacesV1SearchTextResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleMapsPlacesV1PhotoMedia.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlacesPlacesPhotosGetMediaArgs> for GoogleMapsPlacesV1PhotoMedia {
+    fn generate_resource_id(&self, input: &PlacesPlacesPhotosGetMediaArgs) -> String {
+        format!("gcp::GoogleMapsPlacesV1PhotoMedia/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleMapsPlacesV1PhotoMedia"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

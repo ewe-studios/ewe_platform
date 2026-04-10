@@ -826,3 +826,774 @@ pub struct ConnectNetworkConfig {
     #[serde(default, rename = "primarySubnet")]
     pub primary_subnet: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &ManagedkafkaProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &ManagedkafkaProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Cluster.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersGetArgs> for Cluster {
+    fn generate_resource_id(&self, input: &ManagedkafkaProjectsLocationsClustersGetArgs) -> String {
+        format!("gcp::Cluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Cluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListClustersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersListArgs> for ListClustersResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersListArgs,
+    ) -> String {
+        format!("gcp::ListClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AddAclEntryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersAclsAddAclEntryArgs>
+    for AddAclEntryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersAclsAddAclEntryArgs,
+    ) -> String {
+        format!("gcp::AddAclEntryResponse/{}", input.acl)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AddAclEntryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Acl.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersAclsCreateArgs> for Acl {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersAclsCreateArgs,
+    ) -> String {
+        format!("gcp::Acl/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Acl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersAclsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersAclsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAclsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersAclsListArgs> for ListAclsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersAclsListArgs,
+    ) -> String {
+        format!("gcp::ListAclsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAclsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RemoveAclEntryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersAclsRemoveAclEntryArgs>
+    for RemoveAclEntryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersAclsRemoveAclEntryArgs,
+    ) -> String {
+        format!("gcp::RemoveAclEntryResponse/{}", input.acl)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RemoveAclEntryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ConsumerGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersConsumerGroupsGetArgs>
+    for ConsumerGroup
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersConsumerGroupsGetArgs,
+    ) -> String {
+        format!("gcp::ConsumerGroup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ConsumerGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConsumerGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersConsumerGroupsListArgs>
+    for ListConsumerGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersConsumerGroupsListArgs,
+    ) -> String {
+        format!("gcp::ListConsumerGroupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConsumerGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Topic.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersTopicsCreateArgs> for Topic {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersTopicsCreateArgs,
+    ) -> String {
+        format!("gcp::Topic/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Topic"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTopicsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsClustersTopicsListArgs>
+    for ListTopicsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsClustersTopicsListArgs,
+    ) -> String {
+        format!("gcp::ListTopicsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTopicsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ConnectCluster.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersGetArgs> for ConnectCluster {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersGetArgs,
+    ) -> String {
+        format!("gcp::ConnectCluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ConnectCluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConnectClustersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersListArgs>
+    for ListConnectClustersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersListArgs,
+    ) -> String {
+        format!("gcp::ListConnectClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConnectClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Connector.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsCreateArgs>
+    for Connector
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsCreateArgs,
+    ) -> String {
+        format!("gcp::Connector/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Connector"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConnectorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsListArgs>
+    for ListConnectorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsListArgs,
+    ) -> String {
+        format!("gcp::ListConnectorsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConnectorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PauseConnectorResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsPauseArgs>
+    for PauseConnectorResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsPauseArgs,
+    ) -> String {
+        format!("gcp::PauseConnectorResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PauseConnectorResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RestartConnectorResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsRestartArgs>
+    for RestartConnectorResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsRestartArgs,
+    ) -> String {
+        format!("gcp::RestartConnectorResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RestartConnectorResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResumeConnectorResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsResumeArgs>
+    for ResumeConnectorResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsResumeArgs,
+    ) -> String {
+        format!("gcp::ResumeConnectorResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResumeConnectorResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StopConnectorResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsConnectClustersConnectorsStopArgs>
+    for StopConnectorResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsConnectClustersConnectorsStopArgs,
+    ) -> String {
+        format!("gcp::StopConnectorResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StopConnectorResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SchemaRegistry.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesCreateArgs>
+    for SchemaRegistry
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesCreateArgs,
+    ) -> String {
+        format!("gcp::SchemaRegistry/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SchemaRegistry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSchemaRegistriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesListArgs>
+    for ListSchemaRegistriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesListArgs,
+    ) -> String {
+        format!("gcp::ListSchemaRegistriesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSchemaRegistriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CheckCompatibilityResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ManagedkafkaProjectsLocationsSchemaRegistriesCompatibilityCheckCompatibilityArgs,
+    > for CheckCompatibilityResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesCompatibilityCheckCompatibilityArgs,
+    ) -> String {
+        format!("gcp::CheckCompatibilityResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CheckCompatibilityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SchemaConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesConfigDeleteArgs>
+    for SchemaConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesConfigDeleteArgs,
+    ) -> String {
+        format!("gcp::SchemaConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SchemaConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Context.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsGetArgs> for Context {
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsGetArgs,
+    ) -> String {
+        format!("gcp::Context/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Context"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HttpBody.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsListArgs>
+    for HttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsListArgs,
+    ) -> String {
+        format!("gcp::HttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SchemaMode.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeDeleteArgs>
+    for SchemaMode
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsModeDeleteArgs,
+    ) -> String {
+        format!("gcp::SchemaMode/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SchemaMode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Schema.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetArgs>
+    for Schema
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSchemasGetArgs,
+    ) -> String {
+        format!("gcp::Schema/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Schema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SchemaVersion.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsLookupVersionArgs,
+    > for SchemaVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsLookupVersionArgs,
+    ) -> String {
+        format!("gcp::SchemaVersion/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SchemaVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CreateVersionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsCreateArgs,
+    > for CreateVersionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ManagedkafkaProjectsLocationsSchemaRegistriesContextsSubjectsVersionsCreateArgs,
+    ) -> String {
+        format!("gcp::CreateVersionResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreateVersionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

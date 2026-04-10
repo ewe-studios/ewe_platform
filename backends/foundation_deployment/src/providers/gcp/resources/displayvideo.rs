@@ -103,11 +103,11 @@ pub struct BulkEditAdGroupAssignedTargetingOptionsResponse {
 /// Request message for BulkEditAdvertiserAssignedTargetingOptions.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkEditAdvertiserAssignedTargetingOptionsRequest {
-    /// The assigned targeting options to create in batch, specified as a list of CreateAssignedTargetingOptionsRequest. Supported targeting types: * TARGETING_TYPE_CHANNEL * TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION * TARGETING_TYPE_OMID * TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION * TARGETING_TYPE_KEYWORD * TARGETING_TYPE_INVENTORY_MODE
+    /// The assigned targeting options to create in batch, specified as a list of CreateAssignedTargetingOptionsRequest. Supported targeting types: * TARGETING_TYPE_CHANNEL * TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION * TARGETING_TYPE_OMID * TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION * TARGETING_TYPE_KEYWORD
     #[serde(default, rename = "createRequests")]
     pub create_requests:
         ::core::option::Option<::std::vec::Vec<CreateAssignedTargetingOptionsRequest>>,
-    /// The assigned targeting options to delete in batch, specified as a list of DeleteAssignedTargetingOptionsRequest. Supported targeting types: * TARGETING_TYPE_CHANNEL * TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION * TARGETING_TYPE_OMID * TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION * TARGETING_TYPE_KEYWORD * TARGETING_TYPE_INVENTORY_MODE
+    /// The assigned targeting options to delete in batch, specified as a list of DeleteAssignedTargetingOptionsRequest. Supported targeting types: * TARGETING_TYPE_CHANNEL * TARGETING_TYPE_DIGITAL_CONTENT_LABEL_EXCLUSION * TARGETING_TYPE_OMID * TARGETING_TYPE_SENSITIVE_CATEGORY_EXCLUSION * TARGETING_TYPE_KEYWORD
     #[serde(default, rename = "deleteRequests")]
     pub delete_requests:
         ::core::option::Option<::std::vec::Vec<DeleteAssignedTargetingOptionsRequest>>,
@@ -1239,16 +1239,16 @@ pub struct AdGroupAd {
     /// Optional. The DCM tracking ad info. Only valid for Demand Gen ads. To remove the DCM tracking ad info, please leave this field empty. Retrieval and management of Demand Gen resources is currently in beta. This field is only available to allowlisted users.
     #[serde(default, rename = "dcmTrackingInfo")]
     pub dcm_tracking_info: ::core::option::Option<DcmTrackingInfo>,
-    /// Details of a [Demand Gen carousel ad](//support.google.com/displayvideo/answer/15598924?&sjid=11207068802760924844-NC#CarouselAd).
+    /// Details of a [Demand Gen carousel ad](//support.google.com/displayvideo/answer/15598924?&sjid=11207068802760924844-NC#CarouselAd). Retrieval and management of Demand Gen resources is currently in beta. This field is only available to allowlisted users.
     #[serde(default, rename = "demandGenCarouselAd")]
     pub demand_gen_carousel_ad: ::core::option::Option<DemandGenCarouselAd>,
-    /// Details of a [Demand Gen image ad](//support.google.com/displayvideo/answer/15598924?&sjid=11207068802760924844-NC#ImageAd).
+    /// Details of a [Demand Gen image ad](//support.google.com/displayvideo/answer/15598924?&sjid=11207068802760924844-NC#ImageAd). Retrieval and management of Demand Gen resources is currently in beta. This field is only available to allowlisted users.
     #[serde(default, rename = "demandGenImageAd")]
     pub demand_gen_image_ad: ::core::option::Option<DemandGenImageAd>,
-    /// Details of a [Demand Gen product ad](//support.google.com/displayvideo/answer/15598924?&sjid=11207068802760924844-NC#Product-onlyAd).
+    /// Details of a [Demand Gen product ad](//support.google.com/displayvideo/answer/15598924?&sjid=11207068802760924844-NC#Product-onlyAd). Retrieval and management of Demand Gen resources is currently in beta. This field is only available to allowlisted users.
     #[serde(default, rename = "demandGenProductAd")]
     pub demand_gen_product_ad: ::core::option::Option<DemandGenProductAd>,
-    /// Details of a [Demand Gen video ad](//support.google.com/displayvideo/answer/15598924?&sjid=11207068802760924844-NC#VideoAd).
+    /// Details of a [Demand Gen video ad](//support.google.com/displayvideo/answer/15598924?&sjid=11207068802760924844-NC#VideoAd). Retrieval and management of Demand Gen resources is currently in beta. This field is only available to allowlisted users.
     #[serde(default, rename = "demandGenVideoAd")]
     pub demand_gen_video_ad: ::core::option::Option<DemandGenVideoAd>,
     /// Required. The display name of the ad. Must be UTF-8 encoded with a maximum size of 255 bytes.
@@ -1289,7 +1289,7 @@ pub struct AdGroup {
     /// Output only. The unique ID of the ad group. Assigned by the system.
     #[serde(default, rename = "adGroupId")]
     pub ad_group_id: ::core::option::Option<String>,
-    /// Optional. Specifies the inventory control of the ad group. This field is required for Demand Gen ad groups.
+    /// Optional. Required for Demand Gen ad groups. Specifies the inventory control of the ad group.
     #[serde(default, rename = "adGroupInventoryControl")]
     pub ad_group_inventory_control: ::core::option::Option<AdGroupInventoryControl>,
     /// Output only. The unique ID of the advertiser the ad group belongs to.
@@ -1946,7 +1946,7 @@ pub struct InventorySourceGroup {
     pub name: ::core::option::Option<String>,
 }
 
-/// An inventory source. Next ID: 22
+/// An inventory source.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InventorySource {
     /// Whether the inventory source has a guaranteed or non-guaranteed delivery. // TODO: enum values: ["INVENTORY_SOURCE_COMMITMENT_UNSPECIFIED", "INVENTORY_SOURCE_COMMITMENT_GUARANTEED", "INVENTORY_SOURCE_COMMITMENT_NON_GUARANTEED"]
@@ -2112,7 +2112,7 @@ pub struct LineItem {
     /// Required. The start and end time of the line item''s flight.
     #[serde(default)]
     pub flight: ::core::option::Option<LineItemFlight>,
-    /// Optional. The impression frequency cap settings of the line item. The max_impressions field in this settings object must be used if assigning a limited cap. This field is REQUIRED for all line item types excluding LINE_ITEM_TYPE_DEMAND_GEN.
+    /// Optional. Required if the line item type is not LINE_ITEM_TYPE_DEMAND_GEN. The impression frequency cap settings of the line item. The max_impressions field in this settings object must be used if assigning a limited cap.
     #[serde(default, rename = "frequencyCap")]
     pub frequency_cap: ::core::option::Option<FrequencyCap>,
     /// Required. Immutable. The unique ID of the insertion order that the line item belongs to.
@@ -2754,7 +2754,7 @@ pub struct DemandGenCarouselAd {
     /// Required. The list of cards shown on the ad.
     #[serde(default)]
     pub cards: ::core::option::Option<::std::vec::Vec<CarouselCard>>,
-    /// Optional. The custom parameters to pass custom values to tracking URL template.
+    /// Optional. The custom parameters and accompanying values to add to the tracking URL.
     #[serde(default, rename = "customParameters")]
     pub custom_parameters: ::core::option::Option<serde_json::Value>,
     /// Required. The description of the ad.
@@ -2789,7 +2789,7 @@ pub struct DemandGenImageAd {
     /// Required. The call-to-action button shown on the ad.
     #[serde(default, rename = "callToAction")]
     pub call_to_action: ::core::option::Option<String>,
-    /// Optional. The custom parameters to pass custom values to tracking URL template.
+    /// Optional. The custom parameters and accompanying values to add to the tracking URL.
     #[serde(default, rename = "customParameters")]
     pub custom_parameters: ::core::option::Option<serde_json::Value>,
     /// Required. The list of descriptions shown on the ad.
@@ -2836,7 +2836,7 @@ pub struct DemandGenProductAd {
     /// Required. The call-to-action button shown on the ad. The supported values are: * AUTOMATED * APPLY_NOW * BOOK_NOW * CONTACT_US * DOWNLOAD * GET_QUOTE * LEARN_MORE * SHOP_NOW * SIGN_UP * SUBSCRIBE // TODO: enum values: ["CALL_TO_ACTION_UNSPECIFIED", "AUTOMATED", "LEARN_MORE", "GET_QUOTE", "APPLY_NOW", "SIGN_UP", "CONTACT_US", "SUBSCRIBE", "DOWNLOAD", "BOOK_NOW", "SHOP_NOW", "BUY_NOW", "DONATE_NOW", "ORDER_NOW", "PLAY_NOW", "SEE_MORE", "START_NOW", "VISIT_SITE", "WATCH_NOW"]
     #[serde(default, rename = "callToAction")]
     pub call_to_action: ::core::option::Option<String>,
-    /// Optional. The custom parameters to pass custom values to tracking URL template.
+    /// Optional. The custom parameters and accompanying values to add to the tracking URL.
     #[serde(default, rename = "customParameters")]
     pub custom_parameters: ::core::option::Option<serde_json::Value>,
     /// Required. The description of the ad.
@@ -2880,7 +2880,7 @@ pub struct DemandGenVideoAd {
     /// Optional. The companion banner used by this ad.
     #[serde(default, rename = "companionBanner")]
     pub companion_banner: ::core::option::Option<ImageAsset>,
-    /// Optional. The custom parameters to pass custom values to tracking URL template.
+    /// Optional. The custom parameters and accompanying values to add to the tracking URL.
     #[serde(default, rename = "customParameters")]
     pub custom_parameters: ::core::option::Option<serde_json::Value>,
     /// Required. The list of descriptions shown on the ad.
@@ -2907,7 +2907,7 @@ pub struct DemandGenVideoAd {
     /// Required. The logo image used by this ad.
     #[serde(default)]
     pub logo: ::core::option::Option<ImageAsset>,
-    /// Required. The list of lone headlines shown on the ad.
+    /// Required. The list of long headlines shown on the ad.
     #[serde(default, rename = "longHeadlines")]
     pub long_headlines: ::core::option::Option<::std::vec::Vec<String>>,
     /// Output only. The URL address loaded in the background for tracking purposes.
@@ -2935,7 +2935,7 @@ pub struct InStreamAd {
     /// Common ad attributes.
     #[serde(default, rename = "commonInStreamAttribute")]
     pub common_in_stream_attribute: ::core::option::Option<CommonInStreamAttribute>,
-    /// The custom parameters to pass custom values to tracking URL template.
+    /// The custom parameters and accompanying values to add to the tracking URL.
     #[serde(default, rename = "customParameters")]
     pub custom_parameters: ::core::option::Option<serde_json::Value>,
 }
@@ -2984,7 +2984,7 @@ pub struct NonSkippableAd {
     /// Common ad attributes.
     #[serde(default, rename = "commonInStreamAttribute")]
     pub common_in_stream_attribute: ::core::option::Option<CommonInStreamAttribute>,
-    /// The custom parameters to pass custom values to tracking URL template.
+    /// The custom parameters and accompanying values to add to the tracking URL.
     #[serde(default, rename = "customParameters")]
     pub custom_parameters: ::core::option::Option<serde_json::Value>,
 }
@@ -3018,7 +3018,7 @@ pub struct VideoPerformanceAd {
     /// The list of companion banners used by this ad.
     #[serde(default, rename = "companionBanners")]
     pub companion_banners: ::core::option::Option<::std::vec::Vec<ImageAsset>>,
-    /// The custom parameters to pass custom values to tracking URL template.
+    /// The custom parameters and accompanying values to add to the tracking URL.
     #[serde(default, rename = "customParameters")]
     pub custom_parameters: ::core::option::Option<serde_json::Value>,
     /// The list of descriptions shown on the call-to-action banner.
@@ -3039,7 +3039,7 @@ pub struct VideoPerformanceAd {
     /// The list of headlines shown on the call-to-action banner.
     #[serde(default)]
     pub headlines: ::core::option::Option<::std::vec::Vec<String>>,
-    /// The list of lone headlines shown on the call-to-action banner.
+    /// The list of long headlines shown on the call-to-action banner.
     #[serde(default, rename = "longHeadlines")]
     pub long_headlines: ::core::option::Option<::std::vec::Vec<String>>,
     /// The URL address loaded in the background for tracking purposes.
@@ -3622,7 +3622,7 @@ pub struct BiddingStrategy {
 /// Settings that control how budget is allocated.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LineItemBudget {
-    /// Required. The type of the budget allocation. LINE_ITEM_BUDGET_ALLOCATION_TYPE_AUTOMATIC is only applicable when automatic budget allocation is enabled for the parent insertion order. For demand gen line items, budget allocation type must be LINE_ITEM_BUDGET_ALLOCATION_TYPE_FIXED. Demand Gen line items do not support other budget allocation types. // TODO: enum values: ["LINE_ITEM_BUDGET_ALLOCATION_TYPE_UNSPECIFIED", "LINE_ITEM_BUDGET_ALLOCATION_TYPE_AUTOMATIC", "LINE_ITEM_BUDGET_ALLOCATION_TYPE_FIXED", "LINE_ITEM_BUDGET_ALLOCATION_TYPE_UNLIMITED"]
+    /// Required. The type of the budget allocation. LINE_ITEM_BUDGET_ALLOCATION_TYPE_AUTOMATIC is only applicable when automatic budget allocation is enabled for the parent insertion order. This field must be set to LINE_ITEM_BUDGET_ALLOCATION_TYPE_FIXED for Demand Gen line items. // TODO: enum values: ["LINE_ITEM_BUDGET_ALLOCATION_TYPE_UNSPECIFIED", "LINE_ITEM_BUDGET_ALLOCATION_TYPE_AUTOMATIC", "LINE_ITEM_BUDGET_ALLOCATION_TYPE_FIXED", "LINE_ITEM_BUDGET_ALLOCATION_TYPE_UNLIMITED"]
     #[serde(default, rename = "budgetAllocationType")]
     pub budget_allocation_type: ::core::option::Option<String>,
     /// Output only. The budget unit specifies whether the budget is currency based or impression based. This value is inherited from the parent insertion order. // TODO: enum values: ["BUDGET_UNIT_UNSPECIFIED", "BUDGET_UNIT_CURRENCY", "BUDGET_UNIT_IMPRESSIONS"]
@@ -3643,7 +3643,7 @@ pub struct ConversionCountingConfig {
     /// The percentage of post-view conversions to count, in millis (1/1000 of a percent). Must be between 0 and 100000 inclusive. For example, to track 50% of the post-click conversions, set a value of 50000.
     #[serde(default, rename = "postViewCountPercentageMillis")]
     pub post_view_count_percentage_millis: ::core::option::Option<String>,
-    /// Optional. The attribution model to use for conversion measurement. This attribution model will determine how conversions are counted. The Primary model can be set by you for a floodlight config or group. More details [here](https://support.google.com/displayvideo/answer/7409983). Only applicable to Demand Gen line items.
+    /// Optional. The attribution model to use for conversion measurement. This attribution model will determine how conversions are counted. The Primary model can be set by you for a floodlight config or group. More details [here](https://support.google.com/displayvideo/answer/7409983). Only applicable to Demand Gen line items. Retrieval and management of Demand Gen resources is currently in beta. This field is only available to allowlisted users.
     #[serde(default, rename = "primaryAttributionModelId")]
     pub primary_attribution_model_id: ::core::option::Option<String>,
 }
@@ -3651,10 +3651,10 @@ pub struct ConversionCountingConfig {
 /// Settings for Demand Gen line items.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DemandGenSettings {
-    /// Optional. Immutable. Whether location and language targeting can be set at the line item level. Otherwise, relevant targeting types must be assigned directly to the ad groups.
+    /// Optional. Immutable. Whether location and language targeting can be set at the line item level. Otherwise, relevant targeting types must be assigned directly to ad groups.
     #[serde(default, rename = "geoLanguageTargetingEnabled")]
     pub geo_language_targeting_enabled: ::core::option::Option<bool>,
-    /// Optional. The ID of the merchant which is linked to the line item for product feed.
+    /// Optional. The ID of the Merchant Center account used to provide a product feed. This Merchant Center account must already be linked to the advertiser.
     #[serde(default, rename = "linkedMerchantId")]
     pub linked_merchant_id: ::core::option::Option<String>,
     /// Optional. The third party measurement settings for the Demand Gen line item.
@@ -3744,7 +3744,7 @@ pub struct PartnerRevenueModel {
     /// Required. The markup amount of the partner revenue model. Must be greater than or equal to 0. * When the markup_type is set to be PARTNER_REVENUE_MODEL_MARKUP_TYPE_CPM, this field represents the CPM markup in micros of advertiser''s currency. For example, 1500000 represents 1.5 standard units of the currency. * When the markup_type is set to be PARTNER_REVENUE_MODEL_MARKUP_TYPE_MEDIA_COST_MARKUP, this field represents the media cost percent markup in millis. For example, 100 represents 0.1% (decimal 0.001). * When the markup_type is set to be PARTNER_REVENUE_MODEL_MARKUP_TYPE_TOTAL_MEDIA_COST_MARKUP, this field represents the total media cost percent markup in millis. For example, 100 represents 0.1% (decimal 0.001).
     #[serde(default, rename = "markupAmount")]
     pub markup_amount: ::core::option::Option<String>,
-    /// Required. The markup type of the partner revenue model. Demand Gen line items only support PARTNER_REVENUE_MODEL_MARKUP_TYPE_TOTAL_MEDIA_COST_MARKUP. // TODO: enum values: ["PARTNER_REVENUE_MODEL_MARKUP_TYPE_UNSPECIFIED", "PARTNER_REVENUE_MODEL_MARKUP_TYPE_CPM", "PARTNER_REVENUE_MODEL_MARKUP_TYPE_MEDIA_COST_MARKUP", "PARTNER_REVENUE_MODEL_MARKUP_TYPE_TOTAL_MEDIA_COST_MARKUP"]
+    /// Required. The markup type of the partner revenue model. This field must be set to PARTNER_REVENUE_MODEL_MARKUP_TYPE_TOTAL_MEDIA_COST_MARKUP for Demand Gen line items. // TODO: enum values: ["PARTNER_REVENUE_MODEL_MARKUP_TYPE_UNSPECIFIED", "PARTNER_REVENUE_MODEL_MARKUP_TYPE_CPM", "PARTNER_REVENUE_MODEL_MARKUP_TYPE_MEDIA_COST_MARKUP", "PARTNER_REVENUE_MODEL_MARKUP_TYPE_TOTAL_MEDIA_COST_MARKUP"]
     #[serde(default, rename = "markupType")]
     pub markup_type: ::core::option::Option<String>,
 }
@@ -3761,7 +3761,7 @@ pub struct TargetingExpansionConfig {
     /// Required. Whether to enable Optimized Targeting for the line item. Optimized targeting is not compatible with all bid strategies. Attempting to set this field to true for a line item using the BiddingStrategy field fixed_bid or one of the following combinations of BiddingStrategy fields and BiddingStrategyPerformanceGoalType will result in an error: maximize_auto_spend_bid: * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_CIVA * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_IVO_TEN * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_AV_VIEWED performance_goal_auto_bid: * BIDDING_STRATEGY_PERFORMANCE_GOAL_TYPE_VIEWABLE_CPM This also applies if the line item inherits one of the above bid strategies from the parent insertion order. Bid strategies set at the insertion order-level will be inherited by their line items if the InsertionOrder budget field automationType is set to INSERTION_ORDER_AUTOMATION_TYPE_BUDGET or INSERTION_ORDER_AUTOMATION_TYPE_BID_BUDGET.
     #[serde(default, rename = "enableOptimizedTargeting")]
     pub enable_optimized_targeting: ::core::option::Option<bool>,
-    /// Optional. Whether to exclude demographic expansion for Optimized Targeting. This field only applies to Demand Gen ad groups.
+    /// Optional. Whether to exclude demographic expansion for Optimized Targeting. This field can only be set for Demand Gen ad groups. Retrieval and management of Demand Gen resources is currently in beta. This field is only available to allowlisted users.
     #[serde(default, rename = "excludeDemographicExpansion")]
     pub exclude_demographic_expansion: ::core::option::Option<bool>,
 }
@@ -3781,7 +3781,7 @@ pub struct YoutubeAndPartnersSettings {
     /// Optional. The ID of the form to generate leads.
     #[serde(default, rename = "leadFormId")]
     pub lead_form_id: ::core::option::Option<String>,
-    /// Optional. The ID of the merchant which is linked to the line item for product feed.
+    /// Optional. The ID of the Merchant Center account used to provide a product feed. This Merchant Center account must already be linked to the advertiser.
     #[serde(default, rename = "linkedMerchantId")]
     pub linked_merchant_id: ::core::option::Option<String>,
     /// Optional. The IDs of the videos appear below the primary video ad when the ad is playing in the YouTube app on mobile devices.
@@ -4425,7 +4425,7 @@ pub struct DayAndTimeAssignedTargetingOptionDetails {
     /// Required. The start hour for day and time targeting. Must be between 0 (start of day) and 23 (1 hour before end of day).
     #[serde(default, rename = "startHour")]
     pub start_hour: ::core::option::Option<i32>,
-    /// Required. The mechanism used to determine which timezone to use for this day and time targeting setting. For demand gen line items, this field is always TIME_ZONE_RESOLUTION_ADVERTISER. // TODO: enum values: ["TIME_ZONE_RESOLUTION_UNSPECIFIED", "TIME_ZONE_RESOLUTION_END_USER", "TIME_ZONE_RESOLUTION_ADVERTISER"]
+    /// Required. The mechanism used to determine which timezone to use for this day and time targeting setting. For Demand Gen line items, this field is always TIME_ZONE_RESOLUTION_ADVERTISER. // TODO: enum values: ["TIME_ZONE_RESOLUTION_UNSPECIFIED", "TIME_ZONE_RESOLUTION_END_USER", "TIME_ZONE_RESOLUTION_ADVERTISER"]
     #[serde(default, rename = "timeZoneResolution")]
     pub time_zone_resolution: ::core::option::Option<String>,
 }
@@ -4531,7 +4531,7 @@ pub struct InventorySourceGroupAssignedTargetingOptionDetails {
 /// Details for assigned keyword targeting option. This will be populated in the details field of an AssignedTargetingOption when targeting_type is TARGETING_TYPE_KEYWORD.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeywordAssignedTargetingOptionDetails {
-    /// Optional. The policy names to exempt the keyword from. This field is only applicable for Demand Gen keywords, which are positively targeted.
+    /// Optional. The policy names to exempt the keyword from. When attempting to target a keyword that violates a policy, the error returned will include the name of the relevant policy. Use that name in this field to exempt the targeted keyword from the policy. This field is only applicable for positively-targeted keywords assigned to Demand Gen resources. Retrieval and management of Demand Gen resources is currently in beta. This field is only available to allowlisted users.
     #[serde(default, rename = "exemptedPolicyNames")]
     pub exempted_policy_names: ::core::option::Option<::std::vec::Vec<String>>,
     /// Required. The keyword, for example car insurance. Positive keyword cannot be offensive word. Must be UTF-8 encoded with a maximum size of 255 bytes. Maximum number of characters is 80. Maximum number of words is 10.
@@ -4800,7 +4800,7 @@ pub struct AdPolicyTopicEntry {
 /// Details for a Demand Gen carousel card.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CarouselCard {
-    /// Required. The call-to-action button shown on the card. Must use 10 characters or less.
+    /// Required. The text on the call-to-action button shown on the card. Must use 10 characters or less.
     #[serde(default, rename = "callToAction")]
     pub call_to_action: ::core::option::Option<String>,
     /// Optional. The URL address of the webpage that people reach after they click the card on a mobile device.
@@ -4867,7 +4867,7 @@ pub struct SelectedInventories {
     /// Whether the ad group is opted-in to YouTube shorts inventory.
     #[serde(default, rename = "allowYoutubeShorts")]
     pub allow_youtube_shorts: ::core::option::Option<bool>,
-    /// Whether the ad group is opted-in to YouTube in-stream.
+    /// Whether the ad group is opted-in to YouTube in-stream inventory.
     #[serde(default, rename = "allowYoutubeStream")]
     pub allow_youtube_stream: ::core::option::Option<bool>,
 }
@@ -5081,16 +5081,16 @@ pub struct InventorySourceAccessorsPartnerAccessor {
 /// Settings that control the bid strategy for Demand Gen resources.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DemandGenBiddingStrategy {
-    /// Output only. If AG doesn''t set value for tCPA or tROAS, line item bidding value will be the effective_bidding_value, if the bidding strategy type is not tCPA or tROAS, effective_bidding_value is always 0. For line item, it will be the same as the value field.
+    /// Output only. The value effectively used by the bidding strategy. This field will be the same as value if set. If value is not set and the strategy is assigned to an ad group, this field will be inherited from the line item''s bidding strategy. If type is not DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPA or DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_ROAS, this field will be 0.
     #[serde(default, rename = "effectiveBiddingValue")]
     pub effective_bidding_value: ::core::option::Option<String>,
     /// Output only. Source of the effective bidding value. // TODO: enum values: ["BIDDING_SOURCE_UNSPECIFIED", "BIDDING_SOURCE_LINE_ITEM", "BIDDING_SOURCE_AD_GROUP"]
     #[serde(default, rename = "effectiveBiddingValueSource")]
     pub effective_bidding_value_source: ::core::option::Option<String>,
-    /// Optional. The type of the bidding strategy. This can only be set at the line item level. // TODO: enum values: ["DEMAND_GEN_BIDDING_STRATEGY_TYPE_UNSPECIFIED", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPA", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_ROAS", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_MAXIMIZE_CONVERSIONS", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_MAXIMIZE_CONVERSION_VALUE", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_MAXIMIZE_CLICKS"]
+    /// Optional. The type of the bidding strategy. This can only be set when assigned to a line item. Ad groups will inherit this value from their line item. // TODO: enum values: ["DEMAND_GEN_BIDDING_STRATEGY_TYPE_UNSPECIFIED", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPA", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_ROAS", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_MAXIMIZE_CONVERSIONS", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_MAXIMIZE_CONVERSION_VALUE", "DEMAND_GEN_BIDDING_STRATEGY_TYPE_MAXIMIZE_CLICKS"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
-    /// Optional. The value used by the bidding strategy. This can be set at the line item and ad group level. This field is only applicable for the following strategy types: * DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPA * DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPC * DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_ROAS Value of this field is in micros of the advertiser''s currency or ROAS value. For example, 1000000 represents 1.0 standard units of the currency or 100% ROAS value. If not using an applicable strategy, the value of this field will be 0.
+    /// Optional. The value used by the bidding strategy. This can be set when assigned to line items or ad groups. This field is only applicable for the following strategy types: * DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPA * DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_CPC * DEMAND_GEN_BIDDING_STRATEGY_TYPE_TARGET_ROAS Value of this field is in micros of the advertiser''s currency or ROAS value. For example, 1000000 represents 1.0 standard units of the currency or 100% ROAS value. If not using an applicable strategy, the value of this field will be 0.
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
@@ -5202,7 +5202,7 @@ pub struct ThirdPartyMeasurementConfigs {
     /// Optional. The third-party vendors measuring brand lift. The following third-party vendors are applicable: * THIRD_PARTY_VENDOR_DYNATA * THIRD_PARTY_VENDOR_KANTAR * THIRD_PARTY_VENDOR_INTAGE * THIRD_PARTY_VENDOR_NIELSEN * THIRD_PARTY_VENDOR_MACROMILL
     #[serde(default, rename = "brandLiftVendorConfigs")]
     pub brand_lift_vendor_configs: ::core::option::Option<::std::vec::Vec<ThirdPartyVendorConfig>>,
-    /// Optional. The third-party vendors measuring brand safety. The following third-party vendors are applicable: * THIRD_PARTY_VENDOR_DOUBLE_VERIFY * THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE * THIRD_PARTY_VENDOR_ZEFR
+    /// Optional. The third-party vendors measuring brand safety. The following third-party vendors are applicable: * THIRD_PARTY_VENDOR_ZEFR * THIRD_PARTY_VENDOR_DOUBLE_VERIFY * THIRD_PARTY_VENDOR_INTEGRAL_AD_SCIENCE
     #[serde(default, rename = "brandSafetyVendorConfigs")]
     pub brand_safety_vendor_configs:
         ::core::option::Option<::std::vec::Vec<ThirdPartyVendorConfig>>,
@@ -5629,7 +5629,7 @@ pub struct YoutubeVideoDetails {
     /// The reason why the video data is not available. // TODO: enum values: ["VIDEO_UNAVAILABLE_REASON_UNSPECIFIED", "VIDEO_UNAVAILABLE_REASON_PRIVATE", "VIDEO_UNAVAILABLE_REASON_DELETED"]
     #[serde(default, rename = "unavailableReason")]
     pub unavailable_reason: ::core::option::Option<String>,
-    /// Required. The YouTube video asset id. This is ad_asset.ad_asset_id.
+    /// Required. The YouTube video asset id. This is the adAssetId of an AdAsset resource.
     #[serde(default, rename = "videoAssetId")]
     pub video_asset_id: ::core::option::Option<String>,
 }
@@ -6117,4 +6117,2251 @@ pub struct AdPolicyCriterionRestriction {
     /// Localized name for the country. May be empty.
     #[serde(default, rename = "countryLabel")]
     pub country_label: ::core::option::Option<String>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for AuditAdvertiserResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAuditArgs> for AuditAdvertiserResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAuditArgs) -> String {
+        format!("gcp::AuditAdvertiserResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AuditAdvertiserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Advertiser.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCreateArgs> for Advertiser {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCreateArgs) -> String {
+        "gcp::Advertiser".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Advertiser"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BulkEditAdvertiserAssignedTargetingOptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersEditAssignedTargetingOptionsArgs>
+    for BulkEditAdvertiserAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersEditAssignedTargetingOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::BulkEditAdvertiserAssignedTargetingOptionsResponse/{}",
+            input.advertiser_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkEditAdvertiserAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAdvertisersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersListArgs> for ListAdvertisersResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersListArgs) -> String {
+        "gcp::ListAdvertisersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAdvertisersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BulkListAdvertiserAssignedTargetingOptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersListAssignedTargetingOptionsArgs>
+    for BulkListAdvertiserAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersListAssignedTargetingOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::BulkListAdvertiserAssignedTargetingOptionsResponse/{}",
+            input.advertiser_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkListAdvertiserAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BulkCreateAdAssetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdAssetsBulkCreateArgs>
+    for BulkCreateAdAssetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdAssetsBulkCreateArgs,
+    ) -> String {
+        format!("gcp::BulkCreateAdAssetsResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkCreateAdAssetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdAsset.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdAssetsCreateArgs> for AdAsset {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdAssetsCreateArgs) -> String {
+        format!("gcp::AdAsset/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdAsset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAdAssetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdAssetsListArgs> for ListAdAssetsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdAssetsListArgs) -> String {
+        format!("gcp::ListAdAssetsResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAdAssetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UploadAdAssetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdAssetsUploadArgs> for UploadAdAssetResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdAssetsUploadArgs) -> String {
+        format!("gcp::UploadAdAssetResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UploadAdAssetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdGroupAd.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupAdsCreateArgs> for AdGroupAd {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdGroupAdsCreateArgs) -> String {
+        format!("gcp::AdGroupAd/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdGroupAd"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAdGroupAdsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupAdsListArgs> for ListAdGroupAdsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdGroupAdsListArgs) -> String {
+        format!("gcp::ListAdGroupAdsResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAdGroupAdsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BulkEditAdGroupAssignedTargetingOptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupsBulkEditAssignedTargetingOptionsArgs>
+    for BulkEditAdGroupAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsBulkEditAssignedTargetingOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::BulkEditAdGroupAssignedTargetingOptionsResponse/{}",
+            input.advertiser_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkEditAdGroupAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BulkListAdGroupAssignedTargetingOptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupsBulkListAssignedTargetingOptionsArgs>
+    for BulkListAdGroupAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsBulkListAssignedTargetingOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::BulkListAdGroupAssignedTargetingOptionsResponse/{}",
+            input.advertiser_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkListAdGroupAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AdGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupsCreateArgs> for AdGroup {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdGroupsCreateArgs) -> String {
+        format!("gcp::AdGroup/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AdGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAdGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAdGroupsListArgs> for ListAdGroupsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAdGroupsListArgs) -> String {
+        format!("gcp::ListAdGroupsResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAdGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AssignedTargetingOption.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsCreateArgs,
+    > for AssignedTargetingOption
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::AssignedTargetingOption/{}/{}/{}",
+            input.advertiser_id, input.ad_group_id, input.targeting_type
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AssignedTargetingOption"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAdGroupAssignedTargetingOptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsListArgs,
+    > for ListAdGroupAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsTargetingTypesAssignedTargetingOptionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListAdGroupAssignedTargetingOptionsResponse/{}/{}/{}",
+            input.advertiser_id, input.ad_group_id, input.targeting_type
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAdGroupAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for YoutubeAssetAssociation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsCreateArgs,
+    > for YoutubeAssetAssociation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::YoutubeAssetAssociation/{}/{}/{}",
+            input.advertiser_id, input.ad_group_id, input.youtube_asset_type
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::YoutubeAssetAssociation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListYoutubeAssetAssociationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsListArgs,
+    > for ListYoutubeAssetAssociationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersAdGroupsYoutubeAssetTypesYoutubeAssetAssociationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListYoutubeAssetAssociationsResponse/{}/{}/{}",
+            input.advertiser_id, input.ad_group_id, input.youtube_asset_type
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListYoutubeAssetAssociationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CreateAssetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersAssetsUploadArgs> for CreateAssetResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersAssetsUploadArgs) -> String {
+        format!("gcp::CreateAssetResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreateAssetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Campaign.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCampaignsCreateArgs> for Campaign {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCampaignsCreateArgs) -> String {
+        format!("gcp::Campaign/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Campaign"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCampaignsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCampaignsListArgs> for ListCampaignsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCampaignsListArgs) -> String {
+        format!("gcp::ListCampaignsResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCampaignsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Channel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsCreateArgs> for Channel {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersChannelsCreateArgs) -> String {
+        format!("gcp::Channel/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListChannelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsListArgs> for ListChannelsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersChannelsListArgs) -> String {
+        format!("gcp::ListChannelsResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BulkEditSitesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsSitesBulkEditArgs>
+    for BulkEditSitesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersChannelsSitesBulkEditArgs,
+    ) -> String {
+        format!(
+            "gcp::BulkEditSitesResponse/{}/{}",
+            input.advertiser_id, input.channel_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkEditSitesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Site.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsSitesCreateArgs> for Site {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersChannelsSitesCreateArgs,
+    ) -> String {
+        format!("gcp::Site/{}/{}", input.advertiser_id, input.channel_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Site"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSitesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsSitesListArgs> for ListSitesResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersChannelsSitesListArgs) -> String {
+        format!(
+            "gcp::ListSitesResponse/{}/{}",
+            input.advertiser_id, input.channel_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSitesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReplaceSitesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersChannelsSitesReplaceArgs> for ReplaceSitesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersChannelsSitesReplaceArgs,
+    ) -> String {
+        format!(
+            "gcp::ReplaceSitesResponse/{}/{}",
+            input.advertiser_id, input.channel_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReplaceSitesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Creative.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCreativesCreateArgs> for Creative {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCreativesCreateArgs) -> String {
+        format!("gcp::Creative/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Creative"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCreativesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersCreativesListArgs> for ListCreativesResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersCreativesListArgs) -> String {
+        format!("gcp::ListCreativesResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCreativesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InsertionOrder.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersInsertionOrdersCreateArgs> for InsertionOrder {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersInsertionOrdersCreateArgs,
+    ) -> String {
+        format!("gcp::InsertionOrder/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InsertionOrder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInsertionOrdersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersInsertionOrdersListArgs>
+    for ListInsertionOrdersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersInsertionOrdersListArgs,
+    ) -> String {
+        format!("gcp::ListInsertionOrdersResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInsertionOrdersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInvoicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersInvoicesListArgs> for ListInvoicesResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersInvoicesListArgs) -> String {
+        format!("gcp::ListInvoicesResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInvoicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LookupInvoiceCurrencyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersInvoicesLookupInvoiceCurrencyArgs>
+    for LookupInvoiceCurrencyResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersInvoicesLookupInvoiceCurrencyArgs,
+    ) -> String {
+        format!("gcp::LookupInvoiceCurrencyResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LookupInvoiceCurrencyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BulkEditAssignedTargetingOptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsBulkEditAssignedTargetingOptionsArgs>
+    for BulkEditAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsBulkEditAssignedTargetingOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::BulkEditAssignedTargetingOptionsResponse/{}",
+            input.advertiser_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkEditAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BulkListAssignedTargetingOptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsBulkListAssignedTargetingOptionsArgs>
+    for BulkListAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsBulkListAssignedTargetingOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::BulkListAssignedTargetingOptionsResponse/{}",
+            input.advertiser_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkListAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BulkUpdateLineItemsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsBulkUpdateArgs>
+    for BulkUpdateLineItemsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsBulkUpdateArgs,
+    ) -> String {
+        format!("gcp::BulkUpdateLineItemsResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkUpdateLineItemsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LineItem.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsCreateArgs> for LineItem {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersLineItemsCreateArgs) -> String {
+        format!("gcp::LineItem/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LineItem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DuplicateLineItemResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsDuplicateArgs>
+    for DuplicateLineItemResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsDuplicateArgs,
+    ) -> String {
+        format!(
+            "gcp::DuplicateLineItemResponse/{}/{}",
+            input.advertiser_id, input.line_item_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DuplicateLineItemResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLineItemsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLineItemsListArgs> for ListLineItemsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersLineItemsListArgs) -> String {
+        format!("gcp::ListLineItemsResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLineItemsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLineItemAssignedTargetingOptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsListArgs,
+    > for ListLineItemAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLineItemsTargetingTypesAssignedTargetingOptionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListLineItemAssignedTargetingOptionsResponse/{}/{}/{}",
+            input.advertiser_id, input.line_item_id, input.targeting_type
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLineItemAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LocationList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLocationListsCreateArgs> for LocationList {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLocationListsCreateArgs,
+    ) -> String {
+        format!("gcp::LocationList/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LocationList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationListsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLocationListsListArgs>
+    for ListLocationListsResponse
+{
+    fn generate_resource_id(&self, input: &DisplayvideoAdvertisersLocationListsListArgs) -> String {
+        format!("gcp::ListLocationListsResponse/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationListsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BulkEditAssignedLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLocationListsAssignedLocationsBulkEditArgs>
+    for BulkEditAssignedLocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLocationListsAssignedLocationsBulkEditArgs,
+    ) -> String {
+        format!(
+            "gcp::BulkEditAssignedLocationsResponse/{}/{}",
+            input.advertiser_id, input.location_list_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkEditAssignedLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AssignedLocation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLocationListsAssignedLocationsCreateArgs>
+    for AssignedLocation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLocationListsAssignedLocationsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::AssignedLocation/{}/{}",
+            input.advertiser_id, input.location_list_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AssignedLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAssignedLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersLocationListsAssignedLocationsListArgs>
+    for ListAssignedLocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersLocationListsAssignedLocationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListAssignedLocationsResponse/{}/{}",
+            input.advertiser_id, input.location_list_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAssignedLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NegativeKeywordList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsCreateArgs>
+    for NegativeKeywordList
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsCreateArgs,
+    ) -> String {
+        format!("gcp::NegativeKeywordList/{}", input.advertiser_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NegativeKeywordList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListNegativeKeywordListsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsListArgs>
+    for ListNegativeKeywordListsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListNegativeKeywordListsResponse/{}",
+            input.advertiser_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListNegativeKeywordListsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BulkEditNegativeKeywordsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsBulkEditArgs>
+    for BulkEditNegativeKeywordsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsBulkEditArgs,
+    ) -> String {
+        format!(
+            "gcp::BulkEditNegativeKeywordsResponse/{}/{}",
+            input.advertiser_id, input.negative_keyword_list_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkEditNegativeKeywordsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NegativeKeyword.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsCreateArgs>
+    for NegativeKeyword
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::NegativeKeyword/{}/{}",
+            input.advertiser_id, input.negative_keyword_list_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NegativeKeyword"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListNegativeKeywordsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsListArgs>
+    for ListNegativeKeywordsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListNegativeKeywordsResponse/{}/{}",
+            input.advertiser_id, input.negative_keyword_list_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListNegativeKeywordsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReplaceNegativeKeywordsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsReplaceArgs>
+    for ReplaceNegativeKeywordsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersNegativeKeywordListsNegativeKeywordsReplaceArgs,
+    ) -> String {
+        format!(
+            "gcp::ReplaceNegativeKeywordsResponse/{}/{}",
+            input.advertiser_id, input.negative_keyword_list_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReplaceNegativeKeywordsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAdvertiserAssignedTargetingOptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsListArgs>
+    for ListAdvertiserAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoAdvertisersTargetingTypesAssignedTargetingOptionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListAdvertiserAssignedTargetingOptionsResponse/{}/{}",
+            input.advertiser_id, input.targeting_type
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAdvertiserAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CombinedAudience.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCombinedAudiencesGetArgs> for CombinedAudience {
+    fn generate_resource_id(&self, input: &DisplayvideoCombinedAudiencesGetArgs) -> String {
+        format!("gcp::CombinedAudience/{}", input.combined_audience_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CombinedAudience"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCombinedAudiencesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCombinedAudiencesListArgs> for ListCombinedAudiencesResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoCombinedAudiencesListArgs) -> String {
+        "gcp::ListCombinedAudiencesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCombinedAudiencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomBiddingAlgorithm.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsCreateArgs> for CustomBiddingAlgorithm {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsCreateArgs,
+    ) -> String {
+        "gcp::CustomBiddingAlgorithm".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomBiddingAlgorithm"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCustomBiddingAlgorithmsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsListArgs>
+    for ListCustomBiddingAlgorithmsResponse
+{
+    fn generate_resource_id(&self, input: &DisplayvideoCustomBiddingAlgorithmsListArgs) -> String {
+        "gcp::ListCustomBiddingAlgorithmsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCustomBiddingAlgorithmsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomBiddingAlgorithmRulesRef.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsUploadRulesArgs>
+    for CustomBiddingAlgorithmRulesRef
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsUploadRulesArgs,
+    ) -> String {
+        format!(
+            "gcp::CustomBiddingAlgorithmRulesRef/{}",
+            input.custom_bidding_algorithm_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomBiddingAlgorithmRulesRef"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomBiddingScriptRef.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsUploadScriptArgs>
+    for CustomBiddingScriptRef
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsUploadScriptArgs,
+    ) -> String {
+        format!(
+            "gcp::CustomBiddingScriptRef/{}",
+            input.custom_bidding_algorithm_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomBiddingScriptRef"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomBiddingAlgorithmRules.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsRulesCreateArgs>
+    for CustomBiddingAlgorithmRules
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsRulesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::CustomBiddingAlgorithmRules/{}",
+            input.custom_bidding_algorithm_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomBiddingAlgorithmRules"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCustomBiddingAlgorithmRulesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsRulesListArgs>
+    for ListCustomBiddingAlgorithmRulesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsRulesListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListCustomBiddingAlgorithmRulesResponse/{}",
+            input.custom_bidding_algorithm_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCustomBiddingAlgorithmRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomBiddingScript.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsScriptsCreateArgs>
+    for CustomBiddingScript
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsScriptsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::CustomBiddingScript/{}",
+            input.custom_bidding_algorithm_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomBiddingScript"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCustomBiddingScriptsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomBiddingAlgorithmsScriptsListArgs>
+    for ListCustomBiddingScriptsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoCustomBiddingAlgorithmsScriptsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListCustomBiddingScriptsResponse/{}",
+            input.custom_bidding_algorithm_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCustomBiddingScriptsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomListsGetArgs> for CustomList {
+    fn generate_resource_id(&self, input: &DisplayvideoCustomListsGetArgs) -> String {
+        format!("gcp::CustomList/{}", input.custom_list_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCustomListsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoCustomListsListArgs> for ListCustomListsResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoCustomListsListArgs) -> String {
+        "gcp::ListCustomListsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCustomListsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FirstPartyAndPartnerAudience.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFirstPartyAndPartnerAudiencesCreateArgs>
+    for FirstPartyAndPartnerAudience
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoFirstPartyAndPartnerAudiencesCreateArgs,
+    ) -> String {
+        "gcp::FirstPartyAndPartnerAudience".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FirstPartyAndPartnerAudience"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EditCustomerMatchMembersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFirstPartyAndPartnerAudiencesEditCustomerMatchMembersArgs>
+    for EditCustomerMatchMembersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoFirstPartyAndPartnerAudiencesEditCustomerMatchMembersArgs,
+    ) -> String {
+        format!(
+            "gcp::EditCustomerMatchMembersResponse/{}",
+            input.first_party_and_partner_audience_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EditCustomerMatchMembersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListFirstPartyAndPartnerAudiencesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFirstPartyAndPartnerAudiencesListArgs>
+    for ListFirstPartyAndPartnerAudiencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoFirstPartyAndPartnerAudiencesListArgs,
+    ) -> String {
+        "gcp::ListFirstPartyAndPartnerAudiencesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListFirstPartyAndPartnerAudiencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FloodlightGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFloodlightGroupsGetArgs> for FloodlightGroup {
+    fn generate_resource_id(&self, input: &DisplayvideoFloodlightGroupsGetArgs) -> String {
+        format!("gcp::FloodlightGroup/{}", input.floodlight_group_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FloodlightGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FloodlightActivity.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFloodlightGroupsFloodlightActivitiesGetArgs>
+    for FloodlightActivity
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoFloodlightGroupsFloodlightActivitiesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::FloodlightActivity/{}/{}",
+            input.floodlight_group_id, input.floodlight_activity_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FloodlightActivity"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListFloodlightActivitiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoFloodlightGroupsFloodlightActivitiesListArgs>
+    for ListFloodlightActivitiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoFloodlightGroupsFloodlightActivitiesListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListFloodlightActivitiesResponse/{}",
+            input.floodlight_group_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListFloodlightActivitiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAudience.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoGoogleAudiencesGetArgs> for GoogleAudience {
+    fn generate_resource_id(&self, input: &DisplayvideoGoogleAudiencesGetArgs) -> String {
+        format!("gcp::GoogleAudience/{}", input.google_audience_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAudience"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListGoogleAudiencesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoGoogleAudiencesListArgs> for ListGoogleAudiencesResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoGoogleAudiencesListArgs) -> String {
+        "gcp::ListGoogleAudiencesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListGoogleAudiencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GuaranteedOrder.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoGuaranteedOrdersCreateArgs> for GuaranteedOrder {
+    fn generate_resource_id(&self, input: &DisplayvideoGuaranteedOrdersCreateArgs) -> String {
+        "gcp::GuaranteedOrder".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GuaranteedOrder"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EditGuaranteedOrderReadAccessorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoGuaranteedOrdersEditGuaranteedOrderReadAccessorsArgs>
+    for EditGuaranteedOrderReadAccessorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoGuaranteedOrdersEditGuaranteedOrderReadAccessorsArgs,
+    ) -> String {
+        format!(
+            "gcp::EditGuaranteedOrderReadAccessorsResponse/{}",
+            input.guaranteed_order_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EditGuaranteedOrderReadAccessorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListGuaranteedOrdersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoGuaranteedOrdersListArgs> for ListGuaranteedOrdersResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoGuaranteedOrdersListArgs) -> String {
+        "gcp::ListGuaranteedOrdersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListGuaranteedOrdersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InventorySourceGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourceGroupsCreateArgs> for InventorySourceGroup {
+    fn generate_resource_id(&self, input: &DisplayvideoInventorySourceGroupsCreateArgs) -> String {
+        "gcp::InventorySourceGroup".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InventorySourceGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInventorySourceGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourceGroupsListArgs>
+    for ListInventorySourceGroupsResponse
+{
+    fn generate_resource_id(&self, input: &DisplayvideoInventorySourceGroupsListArgs) -> String {
+        "gcp::ListInventorySourceGroupsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInventorySourceGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BulkEditAssignedInventorySourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourceGroupsAssignedInventorySourcesBulkEditArgs>
+    for BulkEditAssignedInventorySourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoInventorySourceGroupsAssignedInventorySourcesBulkEditArgs,
+    ) -> String {
+        format!(
+            "gcp::BulkEditAssignedInventorySourcesResponse/{}",
+            input.inventory_source_group_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkEditAssignedInventorySourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AssignedInventorySource.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourceGroupsAssignedInventorySourcesCreateArgs>
+    for AssignedInventorySource
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoInventorySourceGroupsAssignedInventorySourcesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::AssignedInventorySource/{}",
+            input.inventory_source_group_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AssignedInventorySource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAssignedInventorySourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourceGroupsAssignedInventorySourcesListArgs>
+    for ListAssignedInventorySourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoInventorySourceGroupsAssignedInventorySourcesListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListAssignedInventorySourcesResponse/{}",
+            input.inventory_source_group_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAssignedInventorySourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InventorySource.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourcesCreateArgs> for InventorySource {
+    fn generate_resource_id(&self, input: &DisplayvideoInventorySourcesCreateArgs) -> String {
+        "gcp::InventorySource".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InventorySource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InventorySourceAccessors.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourcesEditInventorySourceReadWriteAccessorsArgs>
+    for InventorySourceAccessors
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoInventorySourcesEditInventorySourceReadWriteAccessorsArgs,
+    ) -> String {
+        format!(
+            "gcp::InventorySourceAccessors/{}",
+            input.inventory_source_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InventorySourceAccessors"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInventorySourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoInventorySourcesListArgs> for ListInventorySourcesResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoInventorySourcesListArgs) -> String {
+        "gcp::ListInventorySourcesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInventorySourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleBytestreamMedia.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoMediaDownloadArgs> for GoogleBytestreamMedia {
+    fn generate_resource_id(&self, input: &DisplayvideoMediaDownloadArgs) -> String {
+        format!("gcp::GoogleBytestreamMedia/{}", input.resource_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleBytestreamMedia"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BulkEditPartnerAssignedTargetingOptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersEditAssignedTargetingOptionsArgs>
+    for BulkEditPartnerAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoPartnersEditAssignedTargetingOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::BulkEditPartnerAssignedTargetingOptionsResponse/{}",
+            input.partner_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkEditPartnerAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Partner.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersGetArgs> for Partner {
+    fn generate_resource_id(&self, input: &DisplayvideoPartnersGetArgs) -> String {
+        format!("gcp::Partner/{}", input.partner_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Partner"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPartnersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersListArgs> for ListPartnersResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoPartnersListArgs) -> String {
+        "gcp::ListPartnersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPartnersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPartnerAssignedTargetingOptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsListArgs>
+    for ListPartnerAssignedTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoPartnersTargetingTypesAssignedTargetingOptionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListPartnerAssignedTargetingOptionsResponse/{}/{}",
+            input.partner_id, input.targeting_type
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPartnerAssignedTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoSdfdownloadtasksCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &DisplayvideoSdfdownloadtasksCreateArgs) -> String {
+        "gcp::Operation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TargetingOption.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoTargetingTypesTargetingOptionsGetArgs> for TargetingOption {
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoTargetingTypesTargetingOptionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::TargetingOption/{}/{}",
+            input.targeting_type, input.targeting_option_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TargetingOption"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTargetingOptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoTargetingTypesTargetingOptionsListArgs>
+    for ListTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoTargetingTypesTargetingOptionsListArgs,
+    ) -> String {
+        format!("gcp::ListTargetingOptionsResponse/{}", input.targeting_type)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchTargetingOptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoTargetingTypesTargetingOptionsSearchArgs>
+    for SearchTargetingOptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoTargetingTypesTargetingOptionsSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::SearchTargetingOptionsResponse/{}",
+            input.targeting_type
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchTargetingOptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BulkEditAssignedUserRolesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoUsersBulkEditAssignedUserRolesArgs>
+    for BulkEditAssignedUserRolesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DisplayvideoUsersBulkEditAssignedUserRolesArgs,
+    ) -> String {
+        format!("gcp::BulkEditAssignedUserRolesResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BulkEditAssignedUserRolesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for User.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoUsersCreateArgs> for User {
+    fn generate_resource_id(&self, input: &DisplayvideoUsersCreateArgs) -> String {
+        "gcp::User".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::User"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUsersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DisplayvideoUsersListArgs> for ListUsersResponse {
+    fn generate_resource_id(&self, input: &DisplayvideoUsersListArgs) -> String {
+        "gcp::ListUsersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

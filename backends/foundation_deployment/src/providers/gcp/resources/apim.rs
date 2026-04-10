@@ -454,3 +454,354 @@ pub struct GclbObservationSourcePscNetworkConfig {
     #[serde(default)]
     pub subnetwork: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &ApimProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Entitlement.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsGetEntitlementArgs> for Entitlement {
+    fn generate_resource_id(&self, input: &ApimProjectsLocationsGetEntitlementArgs) -> String {
+        format!("gcp::Entitlement/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Entitlement"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &ApimProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListApiObservationTagsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsListApiObservationTagsArgs>
+    for ListApiObservationTagsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApimProjectsLocationsListApiObservationTagsArgs,
+    ) -> String {
+        format!("gcp::ListApiObservationTagsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListApiObservationTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsObservationJobsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &ApimProjectsLocationsObservationJobsCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ObservationJob.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsObservationJobsGetArgs> for ObservationJob {
+    fn generate_resource_id(&self, input: &ApimProjectsLocationsObservationJobsGetArgs) -> String {
+        format!("gcp::ObservationJob/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ObservationJob"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListObservationJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsObservationJobsListArgs>
+    for ListObservationJobsResponse
+{
+    fn generate_resource_id(&self, input: &ApimProjectsLocationsObservationJobsListArgs) -> String {
+        format!("gcp::ListObservationJobsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListObservationJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchEditTagsApiObservationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsObservationJobsApiObservationsBatchEditTagsArgs>
+    for BatchEditTagsApiObservationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApimProjectsLocationsObservationJobsApiObservationsBatchEditTagsArgs,
+    ) -> String {
+        format!("gcp::BatchEditTagsApiObservationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchEditTagsApiObservationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiObservation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsObservationJobsApiObservationsGetArgs>
+    for ApiObservation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApimProjectsLocationsObservationJobsApiObservationsGetArgs,
+    ) -> String {
+        format!("gcp::ApiObservation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApiObservation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListApiObservationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsObservationJobsApiObservationsListArgs>
+    for ListApiObservationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApimProjectsLocationsObservationJobsApiObservationsListArgs,
+    ) -> String {
+        format!("gcp::ListApiObservationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListApiObservationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApiOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsObservationJobsApiObservationsApiOperationsGetArgs>
+    for ApiOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApimProjectsLocationsObservationJobsApiObservationsApiOperationsGetArgs,
+    ) -> String {
+        format!("gcp::ApiOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApiOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListApiOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsObservationJobsApiObservationsApiOperationsListArgs>
+    for ListApiOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApimProjectsLocationsObservationJobsApiObservationsApiOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListApiOperationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListApiOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ObservationSource.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsObservationSourcesGetArgs> for ObservationSource {
+    fn generate_resource_id(
+        &self,
+        input: &ApimProjectsLocationsObservationSourcesGetArgs,
+    ) -> String {
+        format!("gcp::ObservationSource/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ObservationSource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListObservationSourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsObservationSourcesListArgs>
+    for ListObservationSourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApimProjectsLocationsObservationSourcesListArgs,
+    ) -> String {
+        format!("gcp::ListObservationSourcesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListObservationSourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &ApimProjectsLocationsOperationsCancelArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApimProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &ApimProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

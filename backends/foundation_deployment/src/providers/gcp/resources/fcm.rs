@@ -291,3 +291,26 @@ pub struct Color {
     #[serde(default)]
     pub red: ::core::option::Option<f32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Message.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FcmProjectsMessagesSendArgs> for Message {
+    fn generate_resource_id(&self, input: &FcmProjectsMessagesSendArgs) -> String {
+        format!("gcp::Message/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Message"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -384,3 +384,341 @@ pub struct GoogleCloudDatacatalogLineageV1EntityReference {
     #[serde(default, rename = "fullyQualifiedName")]
     pub fully_qualified_name: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogLineageConfigmanagementV1Config.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalineageFoldersLocationsConfigGetArgs>
+    for GoogleCloudDatacatalogLineageConfigmanagementV1Config
+{
+    fn generate_resource_id(&self, input: &DatalineageFoldersLocationsConfigGetArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogLineageConfigmanagementV1Config/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogLineageConfigmanagementV1Config"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalineageProjectsLocationsBatchSearchLinkProcessesArgs>
+    for GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalineageProjectsLocationsBatchSearchLinkProcessesArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalineageProjectsLocationsProcessOpenLineageRunEventArgs>
+    for GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalineageProjectsLocationsProcessOpenLineageRunEventArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogLineageV1SearchLinksResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalineageProjectsLocationsSearchLinksArgs>
+    for GoogleCloudDatacatalogLineageV1SearchLinksResponse
+{
+    fn generate_resource_id(&self, input: &DatalineageProjectsLocationsSearchLinksArgs) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogLineageV1SearchLinksResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogLineageV1SearchLinksResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalineageProjectsLocationsOperationsCancelArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &DatalineageProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalineageProjectsLocationsOperationsGetArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalineageProjectsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalineageProjectsLocationsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalineageProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogLineageV1Process.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalineageProjectsLocationsProcessesCreateArgs>
+    for GoogleCloudDatacatalogLineageV1Process
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalineageProjectsLocationsProcessesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogLineageV1Process/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogLineageV1Process"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogLineageV1ListProcessesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalineageProjectsLocationsProcessesListArgs>
+    for GoogleCloudDatacatalogLineageV1ListProcessesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalineageProjectsLocationsProcessesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogLineageV1ListProcessesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogLineageV1ListProcessesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogLineageV1Run.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalineageProjectsLocationsProcessesRunsCreateArgs>
+    for GoogleCloudDatacatalogLineageV1Run
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalineageProjectsLocationsProcessesRunsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudDatacatalogLineageV1Run/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogLineageV1Run"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogLineageV1ListRunsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalineageProjectsLocationsProcessesRunsListArgs>
+    for GoogleCloudDatacatalogLineageV1ListRunsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalineageProjectsLocationsProcessesRunsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogLineageV1ListRunsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogLineageV1ListRunsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogLineageV1LineageEvent.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalineageProjectsLocationsProcessesRunsLineageEventsCreateArgs>
+    for GoogleCloudDatacatalogLineageV1LineageEvent
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalineageProjectsLocationsProcessesRunsLineageEventsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogLineageV1LineageEvent/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogLineageV1LineageEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudDatacatalogLineageV1ListLineageEventsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DatalineageProjectsLocationsProcessesRunsLineageEventsListArgs>
+    for GoogleCloudDatacatalogLineageV1ListLineageEventsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DatalineageProjectsLocationsProcessesRunsLineageEventsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudDatacatalogLineageV1ListLineageEventsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudDatacatalogLineageV1ListLineageEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

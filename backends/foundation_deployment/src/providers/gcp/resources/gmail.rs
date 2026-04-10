@@ -803,3 +803,613 @@ pub struct MessagePartHeader {
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Profile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersGetProfileArgs> for Profile {
+    fn generate_resource_id(&self, input: &GmailUsersGetProfileArgs) -> String {
+        format!("gcp::Profile/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Profile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersWatchArgs> for WatchResponse {
+    fn generate_resource_id(&self, input: &GmailUsersWatchArgs) -> String {
+        format!("gcp::WatchResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Draft.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersDraftsCreateArgs> for Draft {
+    fn generate_resource_id(&self, input: &GmailUsersDraftsCreateArgs) -> String {
+        format!("gcp::Draft/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Draft"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDraftsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersDraftsListArgs> for ListDraftsResponse {
+    fn generate_resource_id(&self, input: &GmailUsersDraftsListArgs) -> String {
+        format!("gcp::ListDraftsResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDraftsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Message.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersDraftsSendArgs> for Message {
+    fn generate_resource_id(&self, input: &GmailUsersDraftsSendArgs) -> String {
+        format!("gcp::Message/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Message"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListHistoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersHistoryListArgs> for ListHistoryResponse {
+    fn generate_resource_id(&self, input: &GmailUsersHistoryListArgs) -> String {
+        format!("gcp::ListHistoryResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListHistoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Label.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersLabelsCreateArgs> for Label {
+    fn generate_resource_id(&self, input: &GmailUsersLabelsCreateArgs) -> String {
+        format!("gcp::Label/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Label"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLabelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersLabelsListArgs> for ListLabelsResponse {
+    fn generate_resource_id(&self, input: &GmailUsersLabelsListArgs) -> String {
+        format!("gcp::ListLabelsResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLabelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMessagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersMessagesListArgs> for ListMessagesResponse {
+    fn generate_resource_id(&self, input: &GmailUsersMessagesListArgs) -> String {
+        format!("gcp::ListMessagesResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMessagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MessagePartBody.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersMessagesAttachmentsGetArgs> for MessagePartBody {
+    fn generate_resource_id(&self, input: &GmailUsersMessagesAttachmentsGetArgs) -> String {
+        format!(
+            "gcp::MessagePartBody/{}/{}/{}",
+            input.user_id, input.message_id, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MessagePartBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AutoForwarding.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsGetAutoForwardingArgs> for AutoForwarding {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsGetAutoForwardingArgs) -> String {
+        format!("gcp::AutoForwarding/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AutoForwarding"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ImapSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsGetImapArgs> for ImapSettings {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsGetImapArgs) -> String {
+        format!("gcp::ImapSettings/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ImapSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LanguageSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsGetLanguageArgs> for LanguageSettings {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsGetLanguageArgs) -> String {
+        format!("gcp::LanguageSettings/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LanguageSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PopSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsGetPopArgs> for PopSettings {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsGetPopArgs) -> String {
+        format!("gcp::PopSettings/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PopSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VacationSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsGetVacationArgs> for VacationSettings {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsGetVacationArgs) -> String {
+        format!("gcp::VacationSettings/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VacationSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CseIdentity.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsCseIdentitiesCreateArgs> for CseIdentity {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsCseIdentitiesCreateArgs) -> String {
+        format!("gcp::CseIdentity/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CseIdentity"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCseIdentitiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsCseIdentitiesListArgs> for ListCseIdentitiesResponse {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsCseIdentitiesListArgs) -> String {
+        format!("gcp::ListCseIdentitiesResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCseIdentitiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CseKeyPair.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsCseKeypairsCreateArgs> for CseKeyPair {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsCseKeypairsCreateArgs) -> String {
+        format!("gcp::CseKeyPair/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CseKeyPair"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCseKeyPairsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsCseKeypairsListArgs> for ListCseKeyPairsResponse {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsCseKeypairsListArgs) -> String {
+        format!("gcp::ListCseKeyPairsResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCseKeyPairsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Delegate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsDelegatesCreateArgs> for Delegate {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsDelegatesCreateArgs) -> String {
+        format!("gcp::Delegate/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Delegate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDelegatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsDelegatesListArgs> for ListDelegatesResponse {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsDelegatesListArgs) -> String {
+        format!("gcp::ListDelegatesResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDelegatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Filter.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsFiltersCreateArgs> for Filter {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsFiltersCreateArgs) -> String {
+        format!("gcp::Filter/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Filter"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListFiltersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsFiltersListArgs> for ListFiltersResponse {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsFiltersListArgs) -> String {
+        format!("gcp::ListFiltersResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListFiltersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ForwardingAddress.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsForwardingAddressesCreateArgs> for ForwardingAddress {
+    fn generate_resource_id(
+        &self,
+        input: &GmailUsersSettingsForwardingAddressesCreateArgs,
+    ) -> String {
+        format!("gcp::ForwardingAddress/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ForwardingAddress"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListForwardingAddressesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsForwardingAddressesListArgs>
+    for ListForwardingAddressesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GmailUsersSettingsForwardingAddressesListArgs,
+    ) -> String {
+        format!("gcp::ListForwardingAddressesResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListForwardingAddressesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SendAs.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsSendAsCreateArgs> for SendAs {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsSendAsCreateArgs) -> String {
+        format!("gcp::SendAs/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SendAs"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSendAsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsSendAsListArgs> for ListSendAsResponse {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsSendAsListArgs) -> String {
+        format!("gcp::ListSendAsResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSendAsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SmimeInfo.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsSendAsSmimeInfoGetArgs> for SmimeInfo {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsSendAsSmimeInfoGetArgs) -> String {
+        format!(
+            "gcp::SmimeInfo/{}/{}/{}",
+            input.user_id, input.send_as_email, input.id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SmimeInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSmimeInfoResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersSettingsSendAsSmimeInfoListArgs> for ListSmimeInfoResponse {
+    fn generate_resource_id(&self, input: &GmailUsersSettingsSendAsSmimeInfoListArgs) -> String {
+        format!(
+            "gcp::ListSmimeInfoResponse/{}/{}",
+            input.user_id, input.send_as_email
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSmimeInfoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Thread.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersThreadsGetArgs> for Thread {
+    fn generate_resource_id(&self, input: &GmailUsersThreadsGetArgs) -> String {
+        format!("gcp::Thread/{}/{}", input.user_id, input.id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Thread"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListThreadsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GmailUsersThreadsListArgs> for ListThreadsResponse {
+    fn generate_resource_id(&self, input: &GmailUsersThreadsListArgs) -> String {
+        format!("gcp::ListThreadsResponse/{}", input.user_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListThreadsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

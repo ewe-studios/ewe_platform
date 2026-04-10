@@ -257,3 +257,120 @@ pub struct SignatureInfo {
     #[serde(default)]
     pub signature: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessapprovalFoldersDeleteAccessApprovalSettingsArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &AccessapprovalFoldersDeleteAccessApprovalSettingsArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessApprovalSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessapprovalFoldersGetAccessApprovalSettingsArgs>
+    for AccessApprovalSettings
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessapprovalFoldersGetAccessApprovalSettingsArgs,
+    ) -> String {
+        format!("gcp::AccessApprovalSettings/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessApprovalSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessApprovalServiceAccount.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessapprovalFoldersGetServiceAccountArgs>
+    for AccessApprovalServiceAccount
+{
+    fn generate_resource_id(&self, input: &AccessapprovalFoldersGetServiceAccountArgs) -> String {
+        format!("gcp::AccessApprovalServiceAccount/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessApprovalServiceAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApprovalRequest.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessapprovalFoldersApprovalRequestsApproveArgs> for ApprovalRequest {
+    fn generate_resource_id(
+        &self,
+        input: &AccessapprovalFoldersApprovalRequestsApproveArgs,
+    ) -> String {
+        format!("gcp::ApprovalRequest/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApprovalRequest"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListApprovalRequestsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AccessapprovalFoldersApprovalRequestsListArgs>
+    for ListApprovalRequestsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AccessapprovalFoldersApprovalRequestsListArgs,
+    ) -> String {
+        format!("gcp::ListApprovalRequestsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListApprovalRequestsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

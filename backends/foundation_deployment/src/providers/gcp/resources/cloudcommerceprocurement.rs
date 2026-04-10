@@ -252,3 +252,121 @@ pub struct Consumer {
     #[serde(default)]
     pub project: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudcommerceprocurementProvidersAccountsApproveArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &CloudcommerceprocurementProvidersAccountsApproveArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Account.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudcommerceprocurementProvidersAccountsGetArgs> for Account {
+    fn generate_resource_id(
+        &self,
+        input: &CloudcommerceprocurementProvidersAccountsGetArgs,
+    ) -> String {
+        format!("gcp::Account/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Account"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAccountsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudcommerceprocurementProvidersAccountsListArgs>
+    for ListAccountsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudcommerceprocurementProvidersAccountsListArgs,
+    ) -> String {
+        format!("gcp::ListAccountsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Entitlement.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudcommerceprocurementProvidersEntitlementsGetArgs> for Entitlement {
+    fn generate_resource_id(
+        &self,
+        input: &CloudcommerceprocurementProvidersEntitlementsGetArgs,
+    ) -> String {
+        format!("gcp::Entitlement/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Entitlement"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListEntitlementsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudcommerceprocurementProvidersEntitlementsListArgs>
+    for ListEntitlementsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudcommerceprocurementProvidersEntitlementsListArgs,
+    ) -> String {
+        format!("gcp::ListEntitlementsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListEntitlementsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -3154,3 +3154,475 @@ pub struct Date {
     #[serde(default)]
     pub year: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Enterprise.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesCreateArgs> for Enterprise {
+    fn generate_resource_id(&self, input: &AndroidmanagementEnterprisesCreateArgs) -> String {
+        "gcp::Enterprise".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Enterprise"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &AndroidmanagementEnterprisesDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateEnterpriseUpgradeUrlResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesGenerateEnterpriseUpgradeUrlArgs>
+    for GenerateEnterpriseUpgradeUrlResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidmanagementEnterprisesGenerateEnterpriseUpgradeUrlArgs,
+    ) -> String {
+        format!("gcp::GenerateEnterpriseUpgradeUrlResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateEnterpriseUpgradeUrlResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListEnterprisesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesListArgs> for ListEnterprisesResponse {
+    fn generate_resource_id(&self, input: &AndroidmanagementEnterprisesListArgs) -> String {
+        "gcp::ListEnterprisesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListEnterprisesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Application.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesApplicationsGetArgs> for Application {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidmanagementEnterprisesApplicationsGetArgs,
+    ) -> String {
+        format!("gcp::Application/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Application"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Device.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesDevicesGetArgs> for Device {
+    fn generate_resource_id(&self, input: &AndroidmanagementEnterprisesDevicesGetArgs) -> String {
+        format!("gcp::Device/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Device"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesDevicesIssueCommandArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidmanagementEnterprisesDevicesIssueCommandArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDevicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesDevicesListArgs> for ListDevicesResponse {
+    fn generate_resource_id(&self, input: &AndroidmanagementEnterprisesDevicesListArgs) -> String {
+        format!("gcp::ListDevicesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesDevicesOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidmanagementEnterprisesDevicesOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EnrollmentToken.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesEnrollmentTokensCreateArgs>
+    for EnrollmentToken
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidmanagementEnterprisesEnrollmentTokensCreateArgs,
+    ) -> String {
+        format!("gcp::EnrollmentToken/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EnrollmentToken"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListEnrollmentTokensResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesEnrollmentTokensListArgs>
+    for ListEnrollmentTokensResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidmanagementEnterprisesEnrollmentTokensListArgs,
+    ) -> String {
+        format!("gcp::ListEnrollmentTokensResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListEnrollmentTokensResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MigrationToken.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesMigrationTokensCreateArgs> for MigrationToken {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidmanagementEnterprisesMigrationTokensCreateArgs,
+    ) -> String {
+        format!("gcp::MigrationToken/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MigrationToken"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMigrationTokensResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesMigrationTokensListArgs>
+    for ListMigrationTokensResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidmanagementEnterprisesMigrationTokensListArgs,
+    ) -> String {
+        format!("gcp::ListMigrationTokensResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMigrationTokensResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesPoliciesGetArgs> for Policy {
+    fn generate_resource_id(&self, input: &AndroidmanagementEnterprisesPoliciesGetArgs) -> String {
+        format!("gcp::Policy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesPoliciesListArgs> for ListPoliciesResponse {
+    fn generate_resource_id(&self, input: &AndroidmanagementEnterprisesPoliciesListArgs) -> String {
+        format!("gcp::ListPoliciesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ModifyPolicyApplicationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesPoliciesModifyPolicyApplicationsArgs>
+    for ModifyPolicyApplicationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidmanagementEnterprisesPoliciesModifyPolicyApplicationsArgs,
+    ) -> String {
+        format!("gcp::ModifyPolicyApplicationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ModifyPolicyApplicationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RemovePolicyApplicationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesPoliciesRemovePolicyApplicationsArgs>
+    for RemovePolicyApplicationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroidmanagementEnterprisesPoliciesRemovePolicyApplicationsArgs,
+    ) -> String {
+        format!("gcp::RemovePolicyApplicationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RemovePolicyApplicationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WebApp.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesWebAppsCreateArgs> for WebApp {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidmanagementEnterprisesWebAppsCreateArgs,
+    ) -> String {
+        format!("gcp::WebApp/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WebApp"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListWebAppsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesWebAppsListArgs> for ListWebAppsResponse {
+    fn generate_resource_id(&self, input: &AndroidmanagementEnterprisesWebAppsListArgs) -> String {
+        format!("gcp::ListWebAppsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListWebAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WebToken.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementEnterprisesWebTokensCreateArgs> for WebToken {
+    fn generate_resource_id(
+        &self,
+        input: &AndroidmanagementEnterprisesWebTokensCreateArgs,
+    ) -> String {
+        format!("gcp::WebToken/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WebToken"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ProvisioningInfo.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementProvisioningInfoGetArgs> for ProvisioningInfo {
+    fn generate_resource_id(&self, input: &AndroidmanagementProvisioningInfoGetArgs) -> String {
+        format!("gcp::ProvisioningInfo/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProvisioningInfo"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SignupUrl.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroidmanagementSignupUrlsCreateArgs> for SignupUrl {
+    fn generate_resource_id(&self, input: &AndroidmanagementSignupUrlsCreateArgs) -> String {
+        "gcp::SignupUrl".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SignupUrl"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

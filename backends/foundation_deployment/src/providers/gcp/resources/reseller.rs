@@ -228,3 +228,107 @@ pub struct Seats {
     #[serde(default, rename = "numberOfSeats")]
     pub number_of_seats: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Customer.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerCustomersGetArgs> for Customer {
+    fn generate_resource_id(&self, input: &ResellerCustomersGetArgs) -> String {
+        format!("gcp::Customer/{}", input.customer_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Customer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResellernotifyGetwatchdetailsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerResellernotifyGetwatchdetailsArgs>
+    for ResellernotifyGetwatchdetailsResponse
+{
+    fn generate_resource_id(&self, input: &ResellerResellernotifyGetwatchdetailsArgs) -> String {
+        "gcp::ResellernotifyGetwatchdetailsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResellernotifyGetwatchdetailsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResellernotifyResource.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerResellernotifyRegisterArgs> for ResellernotifyResource {
+    fn generate_resource_id(&self, input: &ResellerResellernotifyRegisterArgs) -> String {
+        "gcp::ResellernotifyResource".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResellernotifyResource"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Subscription.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerSubscriptionsActivateArgs> for Subscription {
+    fn generate_resource_id(&self, input: &ResellerSubscriptionsActivateArgs) -> String {
+        format!(
+            "gcp::Subscription/{}/{}",
+            input.customer_id, input.subscription_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Subscriptions.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ResellerSubscriptionsListArgs> for Subscriptions {
+    fn generate_resource_id(&self, input: &ResellerSubscriptionsListArgs) -> String {
+        "gcp::Subscriptions".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Subscriptions"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

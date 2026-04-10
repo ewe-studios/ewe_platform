@@ -3017,3 +3017,475 @@ pub struct GoogleTypeTimeZone {
     #[serde(default)]
     pub version: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1FetchAclResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsFetchAclArgs>
+    for GoogleCloudContentwarehouseV1FetchAclResponse
+{
+    fn generate_resource_id(&self, input: &ContentwarehouseProjectsFetchAclArgs) -> String {
+        format!(
+            "gcp::GoogleCloudContentwarehouseV1FetchAclResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1FetchAclResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SetAclResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsSetAclArgs>
+    for GoogleCloudContentwarehouseV1SetAclResponse
+{
+    fn generate_resource_id(&self, input: &ContentwarehouseProjectsSetAclArgs) -> String {
+        format!(
+            "gcp::GoogleCloudContentwarehouseV1SetAclResponse/{}",
+            input.resource
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1SetAclResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ProjectStatus.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsGetStatusArgs>
+    for GoogleCloudContentwarehouseV1ProjectStatus
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsGetStatusArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContentwarehouseV1ProjectStatus/{}",
+            input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1ProjectStatus"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsInitializeArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsInitializeArgs,
+    ) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1DocumentSchema.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentSchemasCreateArgs>
+    for GoogleCloudContentwarehouseV1DocumentSchema
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentSchemasCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContentwarehouseV1DocumentSchema/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1DocumentSchema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentSchemasDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentSchemasDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListDocumentSchemasResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentSchemasListArgs>
+    for GoogleCloudContentwarehouseV1ListDocumentSchemasResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentSchemasListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContentwarehouseV1ListDocumentSchemasResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1ListDocumentSchemasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1CreateDocumentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsCreateArgs>
+    for GoogleCloudContentwarehouseV1CreateDocumentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContentwarehouseV1CreateDocumentResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1CreateDocumentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1Document.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsGetArgs>
+    for GoogleCloudContentwarehouseV1Document
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudContentwarehouseV1Document/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1Document"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListLinkedSourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsLinkedSourcesArgs>
+    for GoogleCloudContentwarehouseV1ListLinkedSourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsLinkedSourcesArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContentwarehouseV1ListLinkedSourcesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1ListLinkedSourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListLinkedTargetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsLinkedTargetsArgs>
+    for GoogleCloudContentwarehouseV1ListLinkedTargetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsLinkedTargetsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContentwarehouseV1ListLinkedTargetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1ListLinkedTargetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1UpdateDocumentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsPatchArgs>
+    for GoogleCloudContentwarehouseV1UpdateDocumentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsPatchArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContentwarehouseV1UpdateDocumentResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1UpdateDocumentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SearchDocumentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsSearchArgs>
+    for GoogleCloudContentwarehouseV1SearchDocumentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContentwarehouseV1SearchDocumentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1SearchDocumentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1DocumentLink.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsDocumentsDocumentLinksCreateArgs>
+    for GoogleCloudContentwarehouseV1DocumentLink
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsDocumentsDocumentLinksCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContentwarehouseV1DocumentLink/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1DocumentLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1RuleSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsRuleSetsCreateArgs>
+    for GoogleCloudContentwarehouseV1RuleSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsRuleSetsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudContentwarehouseV1RuleSet/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1RuleSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListRuleSetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsRuleSetsListArgs>
+    for GoogleCloudContentwarehouseV1ListRuleSetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsRuleSetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContentwarehouseV1ListRuleSetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1ListRuleSetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1SynonymSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsSynonymSetsCreateArgs>
+    for GoogleCloudContentwarehouseV1SynonymSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsSynonymSetsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContentwarehouseV1SynonymSet/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1SynonymSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudContentwarehouseV1ListSynonymSetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContentwarehouseProjectsLocationsSynonymSetsListArgs>
+    for GoogleCloudContentwarehouseV1ListSynonymSetsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContentwarehouseProjectsLocationsSynonymSetsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudContentwarehouseV1ListSynonymSetsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudContentwarehouseV1ListSynonymSetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -60,3 +60,53 @@ pub struct Tag {
     #[serde(default, rename = "timeValue")]
     pub time_value: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for VerifyTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaygroupingAppsTokensVerifyArgs> for VerifyTokenResponse {
+    fn generate_resource_id(&self, input: &PlaygroupingAppsTokensVerifyArgs) -> String {
+        format!(
+            "gcp::VerifyTokenResponse/{}/{}",
+            input.app_package, input.token
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VerifyTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CreateOrUpdateTagsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaygroupingAppsTokensTagsCreateOrUpdateArgs>
+    for CreateOrUpdateTagsResponse
+{
+    fn generate_resource_id(&self, input: &PlaygroupingAppsTokensTagsCreateOrUpdateArgs) -> String {
+        format!(
+            "gcp::CreateOrUpdateTagsResponse/{}/{}",
+            input.app_package, input.token
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreateOrUpdateTagsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

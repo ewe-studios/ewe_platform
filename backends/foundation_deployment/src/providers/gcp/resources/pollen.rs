@@ -175,3 +175,51 @@ pub struct Color {
     #[serde(default)]
     pub red: ::core::option::Option<f32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for LookupForecastResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PollenForecastLookupArgs> for LookupForecastResponse {
+    fn generate_resource_id(&self, input: &PollenForecastLookupArgs) -> String {
+        "gcp::LookupForecastResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LookupForecastResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HttpBody.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PollenMapTypesHeatmapTilesLookupHeatmapTileArgs> for HttpBody {
+    fn generate_resource_id(
+        &self,
+        input: &PollenMapTypesHeatmapTilesLookupHeatmapTileArgs,
+    ) -> String {
+        format!(
+            "gcp::HttpBody/{}/{}/{}/{}",
+            input.map_type, input.zoom, input.x, input.y
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -652,3 +652,401 @@ pub struct DeviceMetadata {
     #[serde(default)]
     pub entries: ::core::option::Option<serde_json::Value>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomerListCustomersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersListArgs>
+    for CustomerListCustomersResponse
+{
+    fn generate_resource_id(&self, input: &AndroiddeviceprovisioningCustomersListArgs) -> String {
+        "gcp::CustomerListCustomersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomerListCustomersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Configuration.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersConfigurationsCreateArgs>
+    for Configuration
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersConfigurationsCreateArgs,
+    ) -> String {
+        format!("gcp::Configuration/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Configuration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersConfigurationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersConfigurationsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomerListConfigurationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersConfigurationsListArgs>
+    for CustomerListConfigurationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersConfigurationsListArgs,
+    ) -> String {
+        format!("gcp::CustomerListConfigurationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomerListConfigurationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Device.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersDevicesGetArgs> for Device {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersDevicesGetArgs,
+    ) -> String {
+        format!("gcp::Device/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Device"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomerListDevicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersDevicesListArgs>
+    for CustomerListDevicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersDevicesListArgs,
+    ) -> String {
+        format!("gcp::CustomerListDevicesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomerListDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomerListDpcsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningCustomersDpcsListArgs>
+    for CustomerListDpcsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningCustomersDpcsListArgs,
+    ) -> String {
+        format!("gcp::CustomerListDpcsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomerListDpcsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &AndroiddeviceprovisioningOperationsGetArgs) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Company.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersCustomersCreateArgs> for Company {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersCustomersCreateArgs,
+    ) -> String {
+        format!("gcp::Company/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Company"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCustomersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersCustomersListArgs>
+    for ListCustomersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersCustomersListArgs,
+    ) -> String {
+        format!("gcp::ListCustomersResponse/{}", input.partner_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCustomersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ClaimDeviceResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesClaimArgs> for ClaimDeviceResponse {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesClaimArgs,
+    ) -> String {
+        format!("gcp::ClaimDeviceResponse/{}", input.partner_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ClaimDeviceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FindDevicesByDeviceIdentifierResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesFindByIdentifierArgs>
+    for FindDevicesByDeviceIdentifierResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesFindByIdentifierArgs,
+    ) -> String {
+        format!(
+            "gcp::FindDevicesByDeviceIdentifierResponse/{}",
+            input.partner_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FindDevicesByDeviceIdentifierResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FindDevicesByOwnerResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesFindByOwnerArgs>
+    for FindDevicesByOwnerResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesFindByOwnerArgs,
+    ) -> String {
+        format!("gcp::FindDevicesByOwnerResponse/{}", input.partner_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FindDevicesByOwnerResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetDeviceSimLockStateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesGetSimLockStateArgs>
+    for GetDeviceSimLockStateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesGetSimLockStateArgs,
+    ) -> String {
+        format!("gcp::GetDeviceSimLockStateResponse/{}", input.partner_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetDeviceSimLockStateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DeviceMetadata.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersDevicesMetadataArgs> for DeviceMetadata {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersDevicesMetadataArgs,
+    ) -> String {
+        format!(
+            "gcp::DeviceMetadata/{}/{}",
+            input.metadata_owner_id, input.device_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DeviceMetadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListVendorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersVendorsListArgs> for ListVendorsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersVendorsListArgs,
+    ) -> String {
+        format!("gcp::ListVendorsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListVendorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListVendorCustomersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AndroiddeviceprovisioningPartnersVendorsCustomersListArgs>
+    for ListVendorCustomersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AndroiddeviceprovisioningPartnersVendorsCustomersListArgs,
+    ) -> String {
+        format!("gcp::ListVendorCustomersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListVendorCustomersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -395,3 +395,123 @@ pub struct Date {
     #[serde(default)]
     pub year: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for PublisherAccount.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdmobAccountsGetArgs> for PublisherAccount {
+    fn generate_resource_id(&self, input: &AdmobAccountsGetArgs) -> String {
+        format!("gcp::PublisherAccount/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PublisherAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPublisherAccountsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdmobAccountsListArgs> for ListPublisherAccountsResponse {
+    fn generate_resource_id(&self, input: &AdmobAccountsListArgs) -> String {
+        "gcp::ListPublisherAccountsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPublisherAccountsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAdUnitsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdmobAccountsAdUnitsListArgs> for ListAdUnitsResponse {
+    fn generate_resource_id(&self, input: &AdmobAccountsAdUnitsListArgs) -> String {
+        format!("gcp::ListAdUnitsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAdUnitsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAppsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdmobAccountsAppsListArgs> for ListAppsResponse {
+    fn generate_resource_id(&self, input: &AdmobAccountsAppsListArgs) -> String {
+        format!("gcp::ListAppsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateMediationReportResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdmobAccountsMediationReportGenerateArgs>
+    for GenerateMediationReportResponse
+{
+    fn generate_resource_id(&self, input: &AdmobAccountsMediationReportGenerateArgs) -> String {
+        format!("gcp::GenerateMediationReportResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateMediationReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateNetworkReportResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdmobAccountsNetworkReportGenerateArgs> for GenerateNetworkReportResponse {
+    fn generate_resource_id(&self, input: &AdmobAccountsNetworkReportGenerateArgs) -> String {
+        format!("gcp::GenerateNetworkReportResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateNetworkReportResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

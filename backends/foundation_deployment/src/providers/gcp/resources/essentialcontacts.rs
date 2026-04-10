@@ -72,3 +72,98 @@ pub struct GoogleCloudEssentialcontactsV1Contact {
     #[serde(default, rename = "validationState")]
     pub validation_state: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudEssentialcontactsV1ComputeContactsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EssentialcontactsFoldersContactsComputeArgs>
+    for GoogleCloudEssentialcontactsV1ComputeContactsResponse
+{
+    fn generate_resource_id(&self, input: &EssentialcontactsFoldersContactsComputeArgs) -> String {
+        format!(
+            "gcp::GoogleCloudEssentialcontactsV1ComputeContactsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudEssentialcontactsV1ComputeContactsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudEssentialcontactsV1Contact.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EssentialcontactsFoldersContactsCreateArgs>
+    for GoogleCloudEssentialcontactsV1Contact
+{
+    fn generate_resource_id(&self, input: &EssentialcontactsFoldersContactsCreateArgs) -> String {
+        format!(
+            "gcp::GoogleCloudEssentialcontactsV1Contact/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudEssentialcontactsV1Contact"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EssentialcontactsFoldersContactsDeleteArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &EssentialcontactsFoldersContactsDeleteArgs) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudEssentialcontactsV1ListContactsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<EssentialcontactsFoldersContactsListArgs>
+    for GoogleCloudEssentialcontactsV1ListContactsResponse
+{
+    fn generate_resource_id(&self, input: &EssentialcontactsFoldersContactsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudEssentialcontactsV1ListContactsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudEssentialcontactsV1ListContactsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

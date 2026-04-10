@@ -137,3 +137,171 @@ pub struct WorkloadIdentityPoolAllowedLocations {
     #[serde(default)]
     pub locations: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for WorkforcePoolAllowedLocations.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IamcredentialsLocationsWorkforcePoolsGetAllowedLocationsArgs>
+    for WorkforcePoolAllowedLocations
+{
+    fn generate_resource_id(
+        &self,
+        input: &IamcredentialsLocationsWorkforcePoolsGetAllowedLocationsArgs,
+    ) -> String {
+        format!("gcp::WorkforcePoolAllowedLocations/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WorkforcePoolAllowedLocations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for WorkloadIdentityPoolAllowedLocations.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IamcredentialsProjectsLocationsWorkloadIdentityPoolsGetAllowedLocationsArgs>
+    for WorkloadIdentityPoolAllowedLocations
+{
+    fn generate_resource_id(
+        &self,
+        input: &IamcredentialsProjectsLocationsWorkloadIdentityPoolsGetAllowedLocationsArgs,
+    ) -> String {
+        format!("gcp::WorkloadIdentityPoolAllowedLocations/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::WorkloadIdentityPoolAllowedLocations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateAccessTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IamcredentialsProjectsServiceAccountsGenerateAccessTokenArgs>
+    for GenerateAccessTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IamcredentialsProjectsServiceAccountsGenerateAccessTokenArgs,
+    ) -> String {
+        format!("gcp::GenerateAccessTokenResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateAccessTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateIdTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IamcredentialsProjectsServiceAccountsGenerateIdTokenArgs>
+    for GenerateIdTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IamcredentialsProjectsServiceAccountsGenerateIdTokenArgs,
+    ) -> String {
+        format!("gcp::GenerateIdTokenResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateIdTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ServiceAccountAllowedLocations.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IamcredentialsProjectsServiceAccountsGetAllowedLocationsArgs>
+    for ServiceAccountAllowedLocations
+{
+    fn generate_resource_id(
+        &self,
+        input: &IamcredentialsProjectsServiceAccountsGetAllowedLocationsArgs,
+    ) -> String {
+        format!("gcp::ServiceAccountAllowedLocations/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ServiceAccountAllowedLocations"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SignBlobResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IamcredentialsProjectsServiceAccountsSignBlobArgs> for SignBlobResponse {
+    fn generate_resource_id(
+        &self,
+        input: &IamcredentialsProjectsServiceAccountsSignBlobArgs,
+    ) -> String {
+        format!("gcp::SignBlobResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SignBlobResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SignJwtResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IamcredentialsProjectsServiceAccountsSignJwtArgs> for SignJwtResponse {
+    fn generate_resource_id(
+        &self,
+        input: &IamcredentialsProjectsServiceAccountsSignJwtArgs,
+    ) -> String {
+        format!("gcp::SignJwtResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SignJwtResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

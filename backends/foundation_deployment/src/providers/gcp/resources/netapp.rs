@@ -1538,3 +1538,681 @@ pub struct CachePrePopulate {
     #[serde(default)]
     pub recursion: ::core::option::Option<bool>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsActiveDirectoriesCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsActiveDirectoriesCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ActiveDirectory.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsActiveDirectoriesGetArgs> for ActiveDirectory {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsActiveDirectoriesGetArgs,
+    ) -> String {
+        format!("gcp::ActiveDirectory/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ActiveDirectory"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListActiveDirectoriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsActiveDirectoriesListArgs>
+    for ListActiveDirectoriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsActiveDirectoriesListArgs,
+    ) -> String {
+        format!("gcp::ListActiveDirectoriesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListActiveDirectoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackupPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupPoliciesGetArgs> for BackupPolicy {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsBackupPoliciesGetArgs) -> String {
+        format!("gcp::BackupPolicy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackupPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBackupPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupPoliciesListArgs>
+    for ListBackupPoliciesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsBackupPoliciesListArgs,
+    ) -> String {
+        format!("gcp::ListBackupPoliciesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBackupPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BackupVault.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupVaultsGetArgs> for BackupVault {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsBackupVaultsGetArgs) -> String {
+        format!("gcp::BackupVault/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BackupVault"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBackupVaultsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupVaultsListArgs> for ListBackupVaultsResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsBackupVaultsListArgs) -> String {
+        format!("gcp::ListBackupVaultsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBackupVaultsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Backup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupVaultsBackupsGetArgs> for Backup {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsBackupVaultsBackupsGetArgs,
+    ) -> String {
+        format!("gcp::Backup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Backup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBackupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsBackupVaultsBackupsListArgs>
+    for ListBackupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsBackupVaultsBackupsListArgs,
+    ) -> String {
+        format!("gcp::ListBackupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBackupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HostGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsHostGroupsGetArgs> for HostGroup {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsHostGroupsGetArgs) -> String {
+        format!("gcp::HostGroup/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HostGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListHostGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsHostGroupsListArgs> for ListHostGroupsResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsHostGroupsListArgs) -> String {
+        format!("gcp::ListHostGroupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListHostGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for KmsConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsKmsConfigsGetArgs> for KmsConfig {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsKmsConfigsGetArgs) -> String {
+        format!("gcp::KmsConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::KmsConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListKmsConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsKmsConfigsListArgs> for ListKmsConfigsResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsKmsConfigsListArgs) -> String {
+        format!("gcp::ListKmsConfigsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListKmsConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VerifyKmsConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsKmsConfigsVerifyArgs> for VerifyKmsConfigResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsKmsConfigsVerifyArgs) -> String {
+        format!("gcp::VerifyKmsConfigResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VerifyKmsConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsOperationsCancelArgs> for GoogleProtobufEmpty {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsOperationsCancelArgs) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StoragePool.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsGetArgs> for StoragePool {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsStoragePoolsGetArgs) -> String {
+        format!("gcp::StoragePool/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StoragePool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListStoragePoolsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsListArgs> for ListStoragePoolsResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsStoragePoolsListArgs) -> String {
+        format!("gcp::ListStoragePoolsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListStoragePoolsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExecuteOntapDeleteResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsOntapExecuteOntapDeleteArgs>
+    for ExecuteOntapDeleteResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapDeleteArgs,
+    ) -> String {
+        format!("gcp::ExecuteOntapDeleteResponse/{}", input.ontap_path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExecuteOntapDeleteResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExecuteOntapGetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsOntapExecuteOntapGetArgs>
+    for ExecuteOntapGetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapGetArgs,
+    ) -> String {
+        format!("gcp::ExecuteOntapGetResponse/{}", input.ontap_path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExecuteOntapGetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExecuteOntapPatchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsOntapExecuteOntapPatchArgs>
+    for ExecuteOntapPatchResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapPatchArgs,
+    ) -> String {
+        format!("gcp::ExecuteOntapPatchResponse/{}", input.ontap_path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExecuteOntapPatchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExecuteOntapPostResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsStoragePoolsOntapExecuteOntapPostArgs>
+    for ExecuteOntapPostResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsStoragePoolsOntapExecuteOntapPostArgs,
+    ) -> String {
+        format!("gcp::ExecuteOntapPostResponse/{}", input.ontap_path)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExecuteOntapPostResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Volume.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesGetArgs> for Volume {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsVolumesGetArgs) -> String {
+        format!("gcp::Volume/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Volume"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListVolumesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesListArgs> for ListVolumesResponse {
+    fn generate_resource_id(&self, input: &NetappProjectsLocationsVolumesListArgs) -> String {
+        format!("gcp::ListVolumesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListVolumesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QuotaRule.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesQuotaRulesGetArgs> for QuotaRule {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesQuotaRulesGetArgs,
+    ) -> String {
+        format!("gcp::QuotaRule/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QuotaRule"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListQuotaRulesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesQuotaRulesListArgs>
+    for ListQuotaRulesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesQuotaRulesListArgs,
+    ) -> String {
+        format!("gcp::ListQuotaRulesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListQuotaRulesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Replication.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesReplicationsGetArgs> for Replication {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesReplicationsGetArgs,
+    ) -> String {
+        format!("gcp::Replication/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Replication"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListReplicationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesReplicationsListArgs>
+    for ListReplicationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesReplicationsListArgs,
+    ) -> String {
+        format!("gcp::ListReplicationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListReplicationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Snapshot.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesSnapshotsGetArgs> for Snapshot {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesSnapshotsGetArgs,
+    ) -> String {
+        format!("gcp::Snapshot/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Snapshot"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSnapshotsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<NetappProjectsLocationsVolumesSnapshotsListArgs> for ListSnapshotsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &NetappProjectsLocationsVolumesSnapshotsListArgs,
+    ) -> String {
+        format!("gcp::ListSnapshotsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSnapshotsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

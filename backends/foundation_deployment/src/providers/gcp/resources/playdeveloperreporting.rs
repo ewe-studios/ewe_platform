@@ -801,3 +801,547 @@ pub struct GoogleTypeTimeZone {
     #[serde(default)]
     pub version: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingAnomaliesListArgs>
+    for GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse
+{
+    fn generate_resource_id(&self, input: &PlaydeveloperreportingAnomaliesListArgs) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingAppsFetchReleaseFilterOptionsArgs>
+    for GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingAppsFetchReleaseFilterOptionsArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingAppsSearchArgs>
+    for GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse
+{
+    fn generate_resource_id(&self, input: &PlaydeveloperreportingAppsSearchArgs) -> String {
+        "gcp::GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1AnrRateMetricSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsAnrrateGetArgs>
+    for GooglePlayDeveloperReportingV1beta1AnrRateMetricSet
+{
+    fn generate_resource_id(&self, input: &PlaydeveloperreportingVitalsAnrrateGetArgs) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1AnrRateMetricSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1AnrRateMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsAnrrateQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetResponse
+{
+    fn generate_resource_id(&self, input: &PlaydeveloperreportingVitalsAnrrateQueryArgs) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1CrashRateMetricSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsCrashrateGetArgs>
+    for GooglePlayDeveloperReportingV1beta1CrashRateMetricSet
+{
+    fn generate_resource_id(&self, input: &PlaydeveloperreportingVitalsCrashrateGetArgs) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1CrashRateMetricSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1CrashRateMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsCrashrateQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsCrashrateQueryArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsErrorsCountsGetArgs>
+    for GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsErrorsCountsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsErrorsCountsQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsErrorsCountsQueryArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsErrorsIssuesSearchArgs>
+    for GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsErrorsIssuesSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsErrorsReportsSearchArgs>
+    for GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsErrorsReportsSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsExcessivewakeuprateGetArgs>
+    for GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsExcessivewakeuprateGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsExcessivewakeuprateQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsExcessivewakeuprateQueryArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1LmkRateMetricSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsLmkrateGetArgs>
+    for GooglePlayDeveloperReportingV1beta1LmkRateMetricSet
+{
+    fn generate_resource_id(&self, input: &PlaydeveloperreportingVitalsLmkrateGetArgs) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1LmkRateMetricSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1LmkRateMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsLmkrateQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetResponse
+{
+    fn generate_resource_id(&self, input: &PlaydeveloperreportingVitalsLmkrateQueryArgs) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsSlowrenderingrateGetArgs>
+    for GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsSlowrenderingrateGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsSlowrenderingrateQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsSlowrenderingrateQueryArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsSlowstartrateGetArgs>
+    for GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsSlowstartrateGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsSlowstartrateQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsSlowstartrateQueryArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsStuckbackgroundwakelockrateGetArgs>
+    for GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsStuckbackgroundwakelockrateGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PlaydeveloperreportingVitalsStuckbackgroundwakelockrateQueryArgs>
+    for GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PlaydeveloperreportingVitalsStuckbackgroundwakelockrateQueryArgs,
+    ) -> String {
+        format!("gcp::GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

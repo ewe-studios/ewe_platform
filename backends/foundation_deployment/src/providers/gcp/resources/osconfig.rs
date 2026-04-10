@@ -851,3 +851,121 @@ pub struct OSPolicyResourceFileRemote {
     #[serde(default)]
     pub uri: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigFoldersLocationsGlobalPolicyOrchestratorsCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudOsconfigV2PolicyOrchestrator.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigFoldersLocationsGlobalPolicyOrchestratorsGetArgs>
+    for GoogleCloudOsconfigV2PolicyOrchestrator
+{
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudOsconfigV2PolicyOrchestrator/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudOsconfigV2PolicyOrchestrator"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigFoldersLocationsGlobalPolicyOrchestratorsListArgs>
+    for GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &OsconfigFoldersLocationsGlobalPolicyOrchestratorsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigFoldersLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &OsconfigFoldersLocationsOperationsCancelArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsconfigFoldersLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &OsconfigFoldersLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

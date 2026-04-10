@@ -3754,3 +3754,692 @@ pub struct GoogleCloudRetailV2Interval {
     #[serde(default)]
     pub minimum: ::core::option::Option<f64>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2CompleteQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsCompleteQueryArgs>
+    for GoogleCloudRetailV2CompleteQueryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsCompleteQueryArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2CompleteQueryResponse/{}",
+            input.catalog
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2CompleteQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsExportAnalyticsMetricsArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsExportAnalyticsMetricsArgs,
+    ) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.catalog)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2AttributesConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsGetAttributesConfigArgs>
+    for GoogleCloudRetailV2AttributesConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsGetAttributesConfigArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudRetailV2AttributesConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2AttributesConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2CompletionConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsGetCompletionConfigArgs>
+    for GoogleCloudRetailV2CompletionConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsGetCompletionConfigArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudRetailV2CompletionConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2CompletionConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2ConversationalSearchCustomizationConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        RetailProjectsLocationsCatalogsGetConversationalSearchCustomizationConfigArgs,
+    > for GoogleCloudRetailV2ConversationalSearchCustomizationConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsGetConversationalSearchCustomizationConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2ConversationalSearchCustomizationConfig/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2ConversationalSearchCustomizationConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2GetDefaultBranchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsGetDefaultBranchArgs>
+    for GoogleCloudRetailV2GetDefaultBranchResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsGetDefaultBranchArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2GetDefaultBranchResponse/{}",
+            input.catalog
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2GetDefaultBranchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2GenerativeQuestionsFeatureConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsGetGenerativeQuestionFeatureArgs>
+    for GoogleCloudRetailV2GenerativeQuestionsFeatureConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsGetGenerativeQuestionFeatureArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2GenerativeQuestionsFeatureConfig/{}",
+            input.catalog
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2GenerativeQuestionsFeatureConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2ListCatalogsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsListArgs>
+    for GoogleCloudRetailV2ListCatalogsResponse
+{
+    fn generate_resource_id(&self, input: &RetailProjectsLocationsCatalogsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2ListCatalogsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2ListCatalogsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2Catalog.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsPatchArgs> for GoogleCloudRetailV2Catalog {
+    fn generate_resource_id(&self, input: &RetailProjectsLocationsCatalogsPatchArgs) -> String {
+        format!("gcp::GoogleCloudRetailV2Catalog/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2Catalog"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsSetDefaultBranchArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsSetDefaultBranchArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.catalog)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2GenerativeQuestionConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsUpdateGenerativeQuestionArgs>
+    for GoogleCloudRetailV2GenerativeQuestionConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsUpdateGenerativeQuestionArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2GenerativeQuestionConfig/{}",
+            input.catalog
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2GenerativeQuestionConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2Product.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsBranchesProductsCreateArgs>
+    for GoogleCloudRetailV2Product
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsBranchesProductsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudRetailV2Product/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2Product"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2ListProductsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsBranchesProductsListArgs>
+    for GoogleCloudRetailV2ListProductsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsBranchesProductsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2ListProductsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2ListProductsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2Control.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsControlsCreateArgs>
+    for GoogleCloudRetailV2Control
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsControlsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudRetailV2Control/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2Control"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2ListControlsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsControlsListArgs>
+    for GoogleCloudRetailV2ListControlsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsControlsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2ListControlsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2ListControlsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2BatchUpdateGenerativeQuestionConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsGenerativeQuestionBatchUpdateArgs>
+    for GoogleCloudRetailV2BatchUpdateGenerativeQuestionConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsGenerativeQuestionBatchUpdateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2BatchUpdateGenerativeQuestionConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2BatchUpdateGenerativeQuestionConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2ListGenerativeQuestionConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsGenerativeQuestionsListArgs>
+    for GoogleCloudRetailV2ListGenerativeQuestionConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsGenerativeQuestionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2ListGenerativeQuestionConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2ListGenerativeQuestionConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2Model.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsModelsGetArgs> for GoogleCloudRetailV2Model {
+    fn generate_resource_id(&self, input: &RetailProjectsLocationsCatalogsModelsGetArgs) -> String {
+        format!("gcp::GoogleCloudRetailV2Model/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2Model"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2ListModelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsModelsListArgs>
+    for GoogleCloudRetailV2ListModelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsModelsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2ListModelsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2ListModelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2ConversationalSearchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsPlacementsConversationalSearchArgs>
+    for GoogleCloudRetailV2ConversationalSearchResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsPlacementsConversationalSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2ConversationalSearchResponse/{}",
+            input.placement
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2ConversationalSearchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2PredictResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsPlacementsPredictArgs>
+    for GoogleCloudRetailV2PredictResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsPlacementsPredictArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2PredictResponse/{}",
+            input.placement
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2PredictResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2SearchResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsPlacementsSearchArgs>
+    for GoogleCloudRetailV2SearchResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsPlacementsSearchArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudRetailV2SearchResponse/{}", input.placement)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2SearchResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2ServingConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsServingConfigsAddControlArgs>
+    for GoogleCloudRetailV2ServingConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsServingConfigsAddControlArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2ServingConfig/{}",
+            input.serving_config
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2ServingConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2ListServingConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsServingConfigsListArgs>
+    for GoogleCloudRetailV2ListServingConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsServingConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudRetailV2ListServingConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2ListServingConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleApiHttpBody.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsUserEventsCollectArgs>
+    for GoogleApiHttpBody
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsUserEventsCollectArgs,
+    ) -> String {
+        format!("gcp::GoogleApiHttpBody/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleApiHttpBody"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudRetailV2UserEvent.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<RetailProjectsLocationsCatalogsUserEventsWriteArgs>
+    for GoogleCloudRetailV2UserEvent
+{
+    fn generate_resource_id(
+        &self,
+        input: &RetailProjectsLocationsCatalogsUserEventsWriteArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudRetailV2UserEvent/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudRetailV2UserEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

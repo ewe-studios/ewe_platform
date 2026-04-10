@@ -2417,3 +2417,520 @@ pub struct Version {
     #[serde(default)]
     pub version: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &GkeonpremProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &GkeonpremProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsBareMetalAdminClustersCreateArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsBareMetalAdminClustersCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BareMetalAdminCluster.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsBareMetalAdminClustersGetArgs>
+    for BareMetalAdminCluster
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsBareMetalAdminClustersGetArgs,
+    ) -> String {
+        format!("gcp::BareMetalAdminCluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BareMetalAdminCluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsBareMetalAdminClustersGetIamPolicyArgs>
+    for Policy
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsBareMetalAdminClustersGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBareMetalAdminClustersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsBareMetalAdminClustersListArgs>
+    for ListBareMetalAdminClustersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsBareMetalAdminClustersListArgs,
+    ) -> String {
+        format!("gcp::ListBareMetalAdminClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBareMetalAdminClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryBareMetalAdminVersionConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsBareMetalAdminClustersQueryVersionConfigArgs>
+    for QueryBareMetalAdminVersionConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsBareMetalAdminClustersQueryVersionConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::QueryBareMetalAdminVersionConfigResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryBareMetalAdminVersionConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsBareMetalAdminClustersTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsBareMetalAdminClustersTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsBareMetalAdminClustersOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsBareMetalAdminClustersOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BareMetalCluster.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsBareMetalClustersGetArgs> for BareMetalCluster {
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsBareMetalClustersGetArgs,
+    ) -> String {
+        format!("gcp::BareMetalCluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BareMetalCluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBareMetalClustersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsBareMetalClustersListArgs>
+    for ListBareMetalClustersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsBareMetalClustersListArgs,
+    ) -> String {
+        format!("gcp::ListBareMetalClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBareMetalClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryBareMetalVersionConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsBareMetalClustersQueryVersionConfigArgs>
+    for QueryBareMetalVersionConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsBareMetalClustersQueryVersionConfigArgs,
+    ) -> String {
+        format!("gcp::QueryBareMetalVersionConfigResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryBareMetalVersionConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BareMetalNodePool.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsGetArgs>
+    for BareMetalNodePool
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsGetArgs,
+    ) -> String {
+        format!("gcp::BareMetalNodePool/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BareMetalNodePool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBareMetalNodePoolsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsListArgs>
+    for ListBareMetalNodePoolsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsBareMetalClustersBareMetalNodePoolsListArgs,
+    ) -> String {
+        format!("gcp::ListBareMetalNodePoolsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBareMetalNodePoolsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VmwareAdminCluster.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsVmwareAdminClustersGetArgs>
+    for VmwareAdminCluster
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsVmwareAdminClustersGetArgs,
+    ) -> String {
+        format!("gcp::VmwareAdminCluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VmwareAdminCluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListVmwareAdminClustersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsVmwareAdminClustersListArgs>
+    for ListVmwareAdminClustersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsVmwareAdminClustersListArgs,
+    ) -> String {
+        format!("gcp::ListVmwareAdminClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListVmwareAdminClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VmwareCluster.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsVmwareClustersGetArgs> for VmwareCluster {
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsVmwareClustersGetArgs,
+    ) -> String {
+        format!("gcp::VmwareCluster/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VmwareCluster"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListVmwareClustersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsVmwareClustersListArgs>
+    for ListVmwareClustersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsVmwareClustersListArgs,
+    ) -> String {
+        format!("gcp::ListVmwareClustersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListVmwareClustersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryVmwareVersionConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsVmwareClustersQueryVersionConfigArgs>
+    for QueryVmwareVersionConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsVmwareClustersQueryVersionConfigArgs,
+    ) -> String {
+        format!("gcp::QueryVmwareVersionConfigResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryVmwareVersionConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VmwareNodePool.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsGetArgs>
+    for VmwareNodePool
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsGetArgs,
+    ) -> String {
+        format!("gcp::VmwareNodePool/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VmwareNodePool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListVmwareNodePoolsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsListArgs>
+    for ListVmwareNodePoolsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &GkeonpremProjectsLocationsVmwareClustersVmwareNodePoolsListArgs,
+    ) -> String {
+        format!("gcp::ListVmwareNodePoolsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListVmwareNodePoolsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

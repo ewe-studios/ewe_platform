@@ -411,3 +411,277 @@ pub struct Gcloud {
     #[serde(default)]
     pub steps: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Partner.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudcontrolspartnerOrganizationsLocationsGetPartnerArgs> for Partner {
+    fn generate_resource_id(
+        &self,
+        input: &CloudcontrolspartnerOrganizationsLocationsGetPartnerArgs,
+    ) -> String {
+        format!("gcp::Partner/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Partner"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Customer.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudcontrolspartnerOrganizationsLocationsCustomersCreateArgs>
+    for Customer
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudcontrolspartnerOrganizationsLocationsCustomersCreateArgs,
+    ) -> String {
+        format!("gcp::Customer/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Customer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudcontrolspartnerOrganizationsLocationsCustomersDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &CloudcontrolspartnerOrganizationsLocationsCustomersDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCustomersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudcontrolspartnerOrganizationsLocationsCustomersListArgs>
+    for ListCustomersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudcontrolspartnerOrganizationsLocationsCustomersListArgs,
+    ) -> String {
+        format!("gcp::ListCustomersResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCustomersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Workload.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsGetArgs>
+    for Workload
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsGetArgs,
+    ) -> String {
+        format!("gcp::Workload/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Workload"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EkmConnections.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsGetEkmConnectionsArgs,
+    > for EkmConnections
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsGetEkmConnectionsArgs,
+    ) -> String {
+        format!("gcp::EkmConnections/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EkmConnections"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PartnerPermissions.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsGetPartnerPermissionsArgs,
+    > for PartnerPermissions
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsGetPartnerPermissionsArgs,
+    ) -> String {
+        format!("gcp::PartnerPermissions/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PartnerPermissions"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListWorkloadsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsListArgs>
+    for ListWorkloadsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsListArgs,
+    ) -> String {
+        format!("gcp::ListWorkloadsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListWorkloadsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAccessApprovalRequestsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsAccessApprovalRequestsListArgs,
+    > for ListAccessApprovalRequestsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsAccessApprovalRequestsListArgs,
+    ) -> String {
+        format!("gcp::ListAccessApprovalRequestsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAccessApprovalRequestsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Violation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsViolationsGetArgs,
+    > for Violation
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsViolationsGetArgs,
+    ) -> String {
+        format!("gcp::Violation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Violation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListViolationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsViolationsListArgs,
+    > for ListViolationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudcontrolspartnerOrganizationsLocationsCustomersWorkloadsViolationsListArgs,
+    ) -> String {
+        format!("gcp::ListViolationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListViolationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

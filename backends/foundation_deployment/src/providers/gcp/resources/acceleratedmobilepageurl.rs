@@ -60,3 +60,26 @@ pub struct AmpUrlError {
     #[serde(default, rename = "originalUrl")]
     pub original_url: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchGetAmpUrlsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AcceleratedmobilepageurlAmpUrlsBatchGetArgs> for BatchGetAmpUrlsResponse {
+    fn generate_resource_id(&self, input: &AcceleratedmobilepageurlAmpUrlsBatchGetArgs) -> String {
+        "gcp::BatchGetAmpUrlsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchGetAmpUrlsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

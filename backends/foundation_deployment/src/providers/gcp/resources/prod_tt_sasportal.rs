@@ -662,3 +662,368 @@ pub struct SasPortalFrequencyRange {
     #[serde(default, rename = "lowFrequencyMhz")]
     pub low_frequency_mhz: ::core::option::Option<f64>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for SasPortalCustomer.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalCustomersGetArgs> for SasPortalCustomer {
+    fn generate_resource_id(&self, input: &ProdTtSasportalCustomersGetArgs) -> String {
+        format!("gcp::SasPortalCustomer/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalCustomer"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalListCustomersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalCustomersListArgs> for SasPortalListCustomersResponse {
+    fn generate_resource_id(&self, input: &ProdTtSasportalCustomersListArgs) -> String {
+        "gcp::SasPortalListCustomersResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalListCustomersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalListGcpProjectDeploymentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalCustomersListGcpProjectDeploymentsArgs>
+    for SasPortalListGcpProjectDeploymentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ProdTtSasportalCustomersListGcpProjectDeploymentsArgs,
+    ) -> String {
+        "gcp::SasPortalListGcpProjectDeploymentsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalListGcpProjectDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalListLegacyOrganizationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalCustomersListLegacyOrganizationsArgs>
+    for SasPortalListLegacyOrganizationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ProdTtSasportalCustomersListLegacyOrganizationsArgs,
+    ) -> String {
+        "gcp::SasPortalListLegacyOrganizationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalListLegacyOrganizationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalCustomersMigrateOrganizationArgs> for SasPortalOperation {
+    fn generate_resource_id(
+        &self,
+        input: &ProdTtSasportalCustomersMigrateOrganizationArgs,
+    ) -> String {
+        "gcp::SasPortalOperation".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalProvisionDeploymentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalCustomersProvisionDeploymentArgs>
+    for SasPortalProvisionDeploymentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ProdTtSasportalCustomersProvisionDeploymentArgs,
+    ) -> String {
+        "gcp::SasPortalProvisionDeploymentResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalProvisionDeploymentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalDeployment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalCustomersDeploymentsCreateArgs> for SasPortalDeployment {
+    fn generate_resource_id(
+        &self,
+        input: &ProdTtSasportalCustomersDeploymentsCreateArgs,
+    ) -> String {
+        format!("gcp::SasPortalDeployment/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalDeployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalCustomersDeploymentsDeleteArgs> for SasPortalEmpty {
+    fn generate_resource_id(
+        &self,
+        input: &ProdTtSasportalCustomersDeploymentsDeleteArgs,
+    ) -> String {
+        format!("gcp::SasPortalEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalListDeploymentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalCustomersDeploymentsListArgs>
+    for SasPortalListDeploymentsResponse
+{
+    fn generate_resource_id(&self, input: &ProdTtSasportalCustomersDeploymentsListArgs) -> String {
+        format!("gcp::SasPortalListDeploymentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalListDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalDevice.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalCustomersDeploymentsDevicesCreateArgs> for SasPortalDevice {
+    fn generate_resource_id(
+        &self,
+        input: &ProdTtSasportalCustomersDeploymentsDevicesCreateArgs,
+    ) -> String {
+        format!("gcp::SasPortalDevice/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalDevice"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalListDevicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalCustomersDeploymentsDevicesListArgs>
+    for SasPortalListDevicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ProdTtSasportalCustomersDeploymentsDevicesListArgs,
+    ) -> String {
+        format!("gcp::SasPortalListDevicesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalListDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalNode.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalCustomersNodesCreateArgs> for SasPortalNode {
+    fn generate_resource_id(&self, input: &ProdTtSasportalCustomersNodesCreateArgs) -> String {
+        format!("gcp::SasPortalNode/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalNode"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalListNodesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalCustomersNodesListArgs> for SasPortalListNodesResponse {
+    fn generate_resource_id(&self, input: &ProdTtSasportalCustomersNodesListArgs) -> String {
+        format!("gcp::SasPortalListNodesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalListNodesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalGenerateSecretResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalInstallerGenerateSecretArgs>
+    for SasPortalGenerateSecretResponse
+{
+    fn generate_resource_id(&self, input: &ProdTtSasportalInstallerGenerateSecretArgs) -> String {
+        "gcp::SasPortalGenerateSecretResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalGenerateSecretResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalValidateInstallerResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalInstallerValidateArgs>
+    for SasPortalValidateInstallerResponse
+{
+    fn generate_resource_id(&self, input: &ProdTtSasportalInstallerValidateArgs) -> String {
+        "gcp::SasPortalValidateInstallerResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalValidateInstallerResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalPoliciesGetArgs> for SasPortalPolicy {
+    fn generate_resource_id(&self, input: &ProdTtSasportalPoliciesGetArgs) -> String {
+        "gcp::SasPortalPolicy".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SasPortalTestPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ProdTtSasportalPoliciesTestArgs> for SasPortalTestPermissionsResponse {
+    fn generate_resource_id(&self, input: &ProdTtSasportalPoliciesTestArgs) -> String {
+        "gcp::SasPortalTestPermissionsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SasPortalTestPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -2835,3 +2835,603 @@ pub struct DataStoreToolBoostSpecConditionBoostSpecBoostControlSpecControlPoint 
     #[serde(default, rename = "boostAmount")]
     pub boost_amount: ::core::option::Option<f32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsCreateArgs> for Operation {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsCreateArgs) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExecuteToolResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsExecuteToolArgs> for ExecuteToolResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsExecuteToolArgs) -> String {
+        format!("gcp::ExecuteToolResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExecuteToolResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for App.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsGetArgs> for App {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsGetArgs) -> String {
+        format!("gcp::App/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::App"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAppsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsListArgs> for ListAppsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsListArgs) -> String {
+        format!("gcp::ListAppsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAppsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RetrieveToolSchemaResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsRetrieveToolSchemaArgs>
+    for RetrieveToolSchemaResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsRetrieveToolSchemaArgs,
+    ) -> String {
+        format!("gcp::RetrieveToolSchemaResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetrieveToolSchemaResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Agent.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsAgentsCreateArgs> for Agent {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsAgentsCreateArgs) -> String {
+        format!("gcp::Agent/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Agent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsAgentsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsAgentsDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAgentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsAgentsListArgs> for ListAgentsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsAgentsListArgs) -> String {
+        format!("gcp::ListAgentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAgentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Changelog.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsChangelogsGetArgs> for Changelog {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsChangelogsGetArgs) -> String {
+        format!("gcp::Changelog/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Changelog"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListChangelogsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsChangelogsListArgs> for ListChangelogsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsChangelogsListArgs) -> String {
+        format!("gcp::ListChangelogsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListChangelogsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Conversation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsConversationsGetArgs> for Conversation {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsConversationsGetArgs) -> String {
+        format!("gcp::Conversation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Conversation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListConversationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsConversationsListArgs>
+    for ListConversationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsConversationsListArgs,
+    ) -> String {
+        format!("gcp::ListConversationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListConversationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Deployment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsDeploymentsCreateArgs> for Deployment {
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsDeploymentsCreateArgs,
+    ) -> String {
+        format!("gcp::Deployment/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Deployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDeploymentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsDeploymentsListArgs> for ListDeploymentsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsDeploymentsListArgs) -> String {
+        format!("gcp::ListDeploymentsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Example.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsExamplesCreateArgs> for Example {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsExamplesCreateArgs) -> String {
+        format!("gcp::Example/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Example"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListExamplesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsExamplesListArgs> for ListExamplesResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsExamplesListArgs) -> String {
+        format!("gcp::ListExamplesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListExamplesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Guardrail.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsGuardrailsCreateArgs> for Guardrail {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsGuardrailsCreateArgs) -> String {
+        format!("gcp::Guardrail/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Guardrail"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListGuardrailsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsGuardrailsListArgs> for ListGuardrailsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsGuardrailsListArgs) -> String {
+        format!("gcp::ListGuardrailsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListGuardrailsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateChatTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsSessionsGenerateChatTokenArgs>
+    for GenerateChatTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsSessionsGenerateChatTokenArgs,
+    ) -> String {
+        format!("gcp::GenerateChatTokenResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateChatTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RunSessionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsSessionsRunSessionArgs> for RunSessionResponse {
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsSessionsRunSessionArgs,
+    ) -> String {
+        format!("gcp::RunSessionResponse/{}", input.session)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RunSessionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Tool.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsCreateArgs> for Tool {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsToolsCreateArgs) -> String {
+        format!("gcp::Tool/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Tool"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListToolsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsListArgs> for ListToolsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsToolsListArgs) -> String {
+        format!("gcp::ListToolsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListToolsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Toolset.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsetsCreateArgs> for Toolset {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsToolsetsCreateArgs) -> String {
+        format!("gcp::Toolset/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Toolset"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListToolsetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsetsListArgs> for ListToolsetsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsToolsetsListArgs) -> String {
+        format!("gcp::ListToolsetsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListToolsetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RetrieveToolsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsToolsetsRetrieveToolsArgs>
+    for RetrieveToolsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CesProjectsLocationsAppsToolsetsRetrieveToolsArgs,
+    ) -> String {
+        format!("gcp::RetrieveToolsResponse/{}", input.toolset)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RetrieveToolsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AppVersion.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsVersionsCreateArgs> for AppVersion {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsVersionsCreateArgs) -> String {
+        format!("gcp::AppVersion/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AppVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAppVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsAppsVersionsListArgs> for ListAppVersionsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsAppsVersionsListArgs) -> String {
+        format!("gcp::ListAppVersionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAppVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CesProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &CesProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

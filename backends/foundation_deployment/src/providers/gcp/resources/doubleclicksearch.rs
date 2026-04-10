@@ -346,3 +346,116 @@ pub struct ReportApiColumnSpec {
     #[serde(default, rename = "startDate")]
     pub start_date: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ConversionList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DoubleclicksearchConversionGetArgs> for ConversionList {
+    fn generate_resource_id(&self, input: &DoubleclicksearchConversionGetArgs) -> String {
+        format!(
+            "gcp::ConversionList/{}/{}/{}",
+            input.agency_id, input.advertiser_id, input.engine_account_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ConversionList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UpdateAvailabilityResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DoubleclicksearchConversionUpdateAvailabilityArgs>
+    for UpdateAvailabilityResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &DoubleclicksearchConversionUpdateAvailabilityArgs,
+    ) -> String {
+        "gcp::UpdateAvailabilityResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UpdateAvailabilityResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Report.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DoubleclicksearchReportsGenerateArgs> for Report {
+    fn generate_resource_id(&self, input: &DoubleclicksearchReportsGenerateArgs) -> String {
+        "gcp::Report".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Report"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IdMappingFile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DoubleclicksearchReportsGetIdMappingFileArgs> for IdMappingFile {
+    fn generate_resource_id(&self, input: &DoubleclicksearchReportsGetIdMappingFileArgs) -> String {
+        format!(
+            "gcp::IdMappingFile/{}/{}",
+            input.agency_id, input.advertiser_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IdMappingFile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SavedColumnList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DoubleclicksearchSavedColumnsListArgs> for SavedColumnList {
+    fn generate_resource_id(&self, input: &DoubleclicksearchSavedColumnsListArgs) -> String {
+        format!(
+            "gcp::SavedColumnList/{}/{}",
+            input.agency_id, input.advertiser_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SavedColumnList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

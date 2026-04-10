@@ -2290,3 +2290,1163 @@ pub struct GoogleCloudApihubV1Point {
     #[serde(default)]
     pub line: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsCollectApiDataArgs> for GoogleLongrunningOperation {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsCollectApiDataArgs) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.location)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudLocationLocation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsGetArgs> for GoogleCloudLocationLocation {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsGetArgs) -> String {
+        format!("gcp::GoogleCloudLocationLocation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudLocationLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudLocationListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsListArgs>
+    for GoogleCloudLocationListLocationsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudLocationListLocationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudLocationListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsLookupRuntimeProjectAttachmentArgs>
+    for GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsLookupRuntimeProjectAttachmentArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1LookupRuntimeProjectAttachmentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1RetrieveApiViewsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsRetrieveApiViewsArgs>
+    for GoogleCloudApihubV1RetrieveApiViewsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsRetrieveApiViewsArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1RetrieveApiViewsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1RetrieveApiViewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1SearchResourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsSearchResourcesArgs>
+    for GoogleCloudApihubV1SearchResourcesResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsSearchResourcesArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1SearchResourcesResponse/{}",
+            input.location
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1SearchResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Addon.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsAddonsGetArgs> for GoogleCloudApihubV1Addon {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsAddonsGetArgs) -> String {
+        format!("gcp::GoogleCloudApihubV1Addon/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1Addon"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListAddonsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsAddonsListArgs>
+    for GoogleCloudApihubV1ListAddonsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsAddonsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ListAddonsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListAddonsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ApiHubInstance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApiHubInstancesGetArgs>
+    for GoogleCloudApihubV1ApiHubInstance
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApiHubInstancesGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApihubV1ApiHubInstance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ApiHubInstance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1LookupApiHubInstanceResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApiHubInstancesLookupArgs>
+    for GoogleCloudApihubV1LookupApiHubInstanceResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApiHubInstancesLookupArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1LookupApiHubInstanceResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1LookupApiHubInstanceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Api.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisCreateArgs> for GoogleCloudApihubV1Api {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsApisCreateArgs) -> String {
+        format!("gcp::GoogleCloudApihubV1Api/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1Api"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsApisDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListApisResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisListArgs>
+    for GoogleCloudApihubV1ListApisResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsApisListArgs) -> String {
+        format!("gcp::GoogleCloudApihubV1ListApisResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListApisResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Version.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsCreateArgs>
+    for GoogleCloudApihubV1Version
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApihubV1Version/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1Version"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsListArgs>
+    for GoogleCloudApihubV1ListVersionsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsApisVersionsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ListVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Definition.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsDefinitionsGetArgs>
+    for GoogleCloudApihubV1Definition
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsDefinitionsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApihubV1Definition/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1Definition"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ApiOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsOperationsCreateArgs>
+    for GoogleCloudApihubV1ApiOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsOperationsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApihubV1ApiOperation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ApiOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListApiOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsOperationsListArgs>
+    for GoogleCloudApihubV1ListApiOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ListApiOperationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListApiOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Spec.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsSpecsCreateArgs>
+    for GoogleCloudApihubV1Spec
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsSpecsCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApihubV1Spec/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1Spec"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1FetchAdditionalSpecContentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsSpecsFetchAdditionalSpecContentArgs>
+    for GoogleCloudApihubV1FetchAdditionalSpecContentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsSpecsFetchAdditionalSpecContentArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1FetchAdditionalSpecContentResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1FetchAdditionalSpecContentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1SpecContents.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsSpecsGetContentsArgs>
+    for GoogleCloudApihubV1SpecContents
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsSpecsGetContentsArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApihubV1SpecContents/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1SpecContents"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListSpecsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsApisVersionsSpecsListArgs>
+    for GoogleCloudApihubV1ListSpecsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsApisVersionsSpecsListArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApihubV1ListSpecsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListSpecsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Attribute.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsAttributesCreateArgs>
+    for GoogleCloudApihubV1Attribute
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsAttributesCreateArgs) -> String {
+        format!("gcp::GoogleCloudApihubV1Attribute/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1Attribute"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListAttributesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsAttributesListArgs>
+    for GoogleCloudApihubV1ListAttributesResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsAttributesListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ListAttributesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListAttributesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Curation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsCurationsCreateArgs>
+    for GoogleCloudApihubV1Curation
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsCurationsCreateArgs) -> String {
+        format!("gcp::GoogleCloudApihubV1Curation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1Curation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListCurationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsCurationsListArgs>
+    for GoogleCloudApihubV1ListCurationsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsCurationsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ListCurationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListCurationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Dependency.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDependenciesCreateArgs>
+    for GoogleCloudApihubV1Dependency
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsDependenciesCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApihubV1Dependency/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1Dependency"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListDependenciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDependenciesListArgs>
+    for GoogleCloudApihubV1ListDependenciesResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsDependenciesListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ListDependenciesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListDependenciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Deployment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDeploymentsCreateArgs>
+    for GoogleCloudApihubV1Deployment
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsDeploymentsCreateArgs) -> String {
+        format!("gcp::GoogleCloudApihubV1Deployment/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1Deployment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListDeploymentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDeploymentsListArgs>
+    for GoogleCloudApihubV1ListDeploymentsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsDeploymentsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ListDeploymentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListDeploymentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1DiscoveredApiObservation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDiscoveredApiObservationsGetArgs>
+    for GoogleCloudApihubV1DiscoveredApiObservation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsDiscoveredApiObservationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1DiscoveredApiObservation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1DiscoveredApiObservation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListDiscoveredApiObservationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsDiscoveredApiObservationsListArgs>
+    for GoogleCloudApihubV1ListDiscoveredApiObservationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsDiscoveredApiObservationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ListDiscoveredApiObservationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListDiscoveredApiObservationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1DiscoveredApiOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsGetArgs,
+    > for GoogleCloudApihubV1DiscoveredApiOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1DiscoveredApiOperation/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1DiscoveredApiOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListDiscoveredApiOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsListArgs,
+    > for GoogleCloudApihubV1ListDiscoveredApiOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsDiscoveredApiObservationsDiscoveredApiOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ListDiscoveredApiOperationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListDiscoveredApiOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ExternalApi.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsExternalApisCreateArgs>
+    for GoogleCloudApihubV1ExternalApi
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsExternalApisCreateArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApihubV1ExternalApi/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ExternalApi"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListExternalApisResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsExternalApisListArgs>
+    for GoogleCloudApihubV1ListExternalApisResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsExternalApisListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ListExternalApisResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListExternalApisResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1HostProjectRegistration.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsHostProjectRegistrationsCreateArgs>
+    for GoogleCloudApihubV1HostProjectRegistration
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsHostProjectRegistrationsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1HostProjectRegistration/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1HostProjectRegistration"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListHostProjectRegistrationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsHostProjectRegistrationsListArgs>
+    for GoogleCloudApihubV1ListHostProjectRegistrationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsHostProjectRegistrationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ListHostProjectRegistrationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListHostProjectRegistrationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsOperationsListArgs) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1Plugin.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsCreateArgs> for GoogleCloudApihubV1Plugin {
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsPluginsCreateArgs) -> String {
+        format!("gcp::GoogleCloudApihubV1Plugin/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1Plugin"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1StyleGuide.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsGetStyleGuideArgs>
+    for GoogleCloudApihubV1StyleGuide
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsGetStyleGuideArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApihubV1StyleGuide/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1StyleGuide"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListPluginsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsListArgs>
+    for GoogleCloudApihubV1ListPluginsResponse
+{
+    fn generate_resource_id(&self, input: &ApihubProjectsLocationsPluginsListArgs) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ListPluginsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListPluginsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1PluginInstance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsInstancesGetArgs>
+    for GoogleCloudApihubV1PluginInstance
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsInstancesGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApihubV1PluginInstance/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1PluginInstance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListPluginInstancesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsInstancesListArgs>
+    for GoogleCloudApihubV1ListPluginInstancesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsInstancesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ListPluginInstancesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListPluginInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsInstancesManageSourceDataArgs>
+    for GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsInstancesManageSourceDataArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ManagePluginInstanceSourceDataResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1StyleGuideContents.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsPluginsStyleGuideGetContentsArgs>
+    for GoogleCloudApihubV1StyleGuideContents
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsPluginsStyleGuideGetContentsArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudApihubV1StyleGuideContents/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1StyleGuideContents"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1RuntimeProjectAttachment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsRuntimeProjectAttachmentsCreateArgs>
+    for GoogleCloudApihubV1RuntimeProjectAttachment
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsRuntimeProjectAttachmentsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1RuntimeProjectAttachment/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1RuntimeProjectAttachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApihubProjectsLocationsRuntimeProjectAttachmentsListArgs>
+    for GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApihubProjectsLocationsRuntimeProjectAttachmentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudApihubV1ListRuntimeProjectAttachmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

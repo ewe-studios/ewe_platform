@@ -129,3 +129,124 @@ pub struct PosixAccount {
     #[serde(default)]
     pub username: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for SignSshPublicKeyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsloginProjectsLocationsSignSshPublicKeyArgs> for SignSshPublicKeyResponse {
+    fn generate_resource_id(&self, input: &OsloginProjectsLocationsSignSshPublicKeyArgs) -> String {
+        format!("gcp::SignSshPublicKeyResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SignSshPublicKeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LoginProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsloginUsersGetLoginProfileArgs> for LoginProfile {
+    fn generate_resource_id(&self, input: &OsloginUsersGetLoginProfileArgs) -> String {
+        format!("gcp::LoginProfile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LoginProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ImportSshPublicKeyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsloginUsersImportSshPublicKeyArgs> for ImportSshPublicKeyResponse {
+    fn generate_resource_id(&self, input: &OsloginUsersImportSshPublicKeyArgs) -> String {
+        format!("gcp::ImportSshPublicKeyResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ImportSshPublicKeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsloginUsersProjectsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &OsloginUsersProjectsDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PosixAccount.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsloginUsersProjectsProvisionPosixAccountArgs> for PosixAccount {
+    fn generate_resource_id(
+        &self,
+        input: &OsloginUsersProjectsProvisionPosixAccountArgs,
+    ) -> String {
+        format!("gcp::PosixAccount/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PosixAccount"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SshPublicKey.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<OsloginUsersSshPublicKeysCreateArgs> for SshPublicKey {
+    fn generate_resource_id(&self, input: &OsloginUsersSshPublicKeysCreateArgs) -> String {
+        format!("gcp::SshPublicKey/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SshPublicKey"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

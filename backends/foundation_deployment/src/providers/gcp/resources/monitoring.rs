@@ -2034,3 +2034,625 @@ pub struct GoogleMonitoringV3Range {
     #[serde(default)]
     pub min: ::core::option::Option<f64>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListTimeSeriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringFoldersTimeSeriesListArgs> for ListTimeSeriesResponse {
+    fn generate_resource_id(&self, input: &MonitoringFoldersTimeSeriesListArgs) -> String {
+        format!("gcp::ListTimeSeriesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTimeSeriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AlertPolicy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsAlertPoliciesCreateArgs> for AlertPolicy {
+    fn generate_resource_id(&self, input: &MonitoringProjectsAlertPoliciesCreateArgs) -> String {
+        format!("gcp::AlertPolicy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AlertPolicy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsAlertPoliciesDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &MonitoringProjectsAlertPoliciesDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAlertPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsAlertPoliciesListArgs> for ListAlertPoliciesResponse {
+    fn generate_resource_id(&self, input: &MonitoringProjectsAlertPoliciesListArgs) -> String {
+        format!("gcp::ListAlertPoliciesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAlertPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Alert.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsAlertsGetArgs> for Alert {
+    fn generate_resource_id(&self, input: &MonitoringProjectsAlertsGetArgs) -> String {
+        format!("gcp::Alert/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Alert"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAlertsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsAlertsListArgs> for ListAlertsResponse {
+    fn generate_resource_id(&self, input: &MonitoringProjectsAlertsListArgs) -> String {
+        format!("gcp::ListAlertsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAlertsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CreateCollectdTimeSeriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsCollectdTimeSeriesCreateArgs>
+    for CreateCollectdTimeSeriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MonitoringProjectsCollectdTimeSeriesCreateArgs,
+    ) -> String {
+        format!("gcp::CreateCollectdTimeSeriesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreateCollectdTimeSeriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Group.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsGroupsCreateArgs> for Group {
+    fn generate_resource_id(&self, input: &MonitoringProjectsGroupsCreateArgs) -> String {
+        format!("gcp::Group/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Group"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsGroupsListArgs> for ListGroupsResponse {
+    fn generate_resource_id(&self, input: &MonitoringProjectsGroupsListArgs) -> String {
+        format!("gcp::ListGroupsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListGroupMembersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsGroupsMembersListArgs> for ListGroupMembersResponse {
+    fn generate_resource_id(&self, input: &MonitoringProjectsGroupsMembersListArgs) -> String {
+        format!("gcp::ListGroupMembersResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListGroupMembersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MetricDescriptor.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsMetricDescriptorsCreateArgs> for MetricDescriptor {
+    fn generate_resource_id(
+        &self,
+        input: &MonitoringProjectsMetricDescriptorsCreateArgs,
+    ) -> String {
+        format!("gcp::MetricDescriptor/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MetricDescriptor"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMetricDescriptorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsMetricDescriptorsListArgs>
+    for ListMetricDescriptorsResponse
+{
+    fn generate_resource_id(&self, input: &MonitoringProjectsMetricDescriptorsListArgs) -> String {
+        format!("gcp::ListMetricDescriptorsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMetricDescriptorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MonitoredResourceDescriptor.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsMonitoredResourceDescriptorsGetArgs>
+    for MonitoredResourceDescriptor
+{
+    fn generate_resource_id(
+        &self,
+        input: &MonitoringProjectsMonitoredResourceDescriptorsGetArgs,
+    ) -> String {
+        format!("gcp::MonitoredResourceDescriptor/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MonitoredResourceDescriptor"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMonitoredResourceDescriptorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsMonitoredResourceDescriptorsListArgs>
+    for ListMonitoredResourceDescriptorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MonitoringProjectsMonitoredResourceDescriptorsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListMonitoredResourceDescriptorsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMonitoredResourceDescriptorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NotificationChannelDescriptor.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsNotificationChannelDescriptorsGetArgs>
+    for NotificationChannelDescriptor
+{
+    fn generate_resource_id(
+        &self,
+        input: &MonitoringProjectsNotificationChannelDescriptorsGetArgs,
+    ) -> String {
+        format!("gcp::NotificationChannelDescriptor/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NotificationChannelDescriptor"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListNotificationChannelDescriptorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsNotificationChannelDescriptorsListArgs>
+    for ListNotificationChannelDescriptorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MonitoringProjectsNotificationChannelDescriptorsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListNotificationChannelDescriptorsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListNotificationChannelDescriptorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for NotificationChannel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsNotificationChannelsCreateArgs> for NotificationChannel {
+    fn generate_resource_id(
+        &self,
+        input: &MonitoringProjectsNotificationChannelsCreateArgs,
+    ) -> String {
+        format!("gcp::NotificationChannel/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::NotificationChannel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetNotificationChannelVerificationCodeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsNotificationChannelsGetVerificationCodeArgs>
+    for GetNotificationChannelVerificationCodeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MonitoringProjectsNotificationChannelsGetVerificationCodeArgs,
+    ) -> String {
+        format!(
+            "gcp::GetNotificationChannelVerificationCodeResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetNotificationChannelVerificationCodeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListNotificationChannelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsNotificationChannelsListArgs>
+    for ListNotificationChannelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MonitoringProjectsNotificationChannelsListArgs,
+    ) -> String {
+        format!("gcp::ListNotificationChannelsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListNotificationChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Snooze.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsSnoozesCreateArgs> for Snooze {
+    fn generate_resource_id(&self, input: &MonitoringProjectsSnoozesCreateArgs) -> String {
+        format!("gcp::Snooze/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Snooze"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSnoozesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsSnoozesListArgs> for ListSnoozesResponse {
+    fn generate_resource_id(&self, input: &MonitoringProjectsSnoozesListArgs) -> String {
+        format!("gcp::ListSnoozesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSnoozesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryTimeSeriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsTimeSeriesQueryArgs> for QueryTimeSeriesResponse {
+    fn generate_resource_id(&self, input: &MonitoringProjectsTimeSeriesQueryArgs) -> String {
+        format!("gcp::QueryTimeSeriesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryTimeSeriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UptimeCheckConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsUptimeCheckConfigsCreateArgs> for UptimeCheckConfig {
+    fn generate_resource_id(
+        &self,
+        input: &MonitoringProjectsUptimeCheckConfigsCreateArgs,
+    ) -> String {
+        format!("gcp::UptimeCheckConfig/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UptimeCheckConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUptimeCheckConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringProjectsUptimeCheckConfigsListArgs>
+    for ListUptimeCheckConfigsResponse
+{
+    fn generate_resource_id(&self, input: &MonitoringProjectsUptimeCheckConfigsListArgs) -> String {
+        format!("gcp::ListUptimeCheckConfigsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUptimeCheckConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Service.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringServicesCreateArgs> for Service {
+    fn generate_resource_id(&self, input: &MonitoringServicesCreateArgs) -> String {
+        format!("gcp::Service/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Service"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListServicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringServicesListArgs> for ListServicesResponse {
+    fn generate_resource_id(&self, input: &MonitoringServicesListArgs) -> String {
+        format!("gcp::ListServicesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ServiceLevelObjective.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringServicesServiceLevelObjectivesCreateArgs>
+    for ServiceLevelObjective
+{
+    fn generate_resource_id(
+        &self,
+        input: &MonitoringServicesServiceLevelObjectivesCreateArgs,
+    ) -> String {
+        format!("gcp::ServiceLevelObjective/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ServiceLevelObjective"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListServiceLevelObjectivesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringServicesServiceLevelObjectivesListArgs>
+    for ListServiceLevelObjectivesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MonitoringServicesServiceLevelObjectivesListArgs,
+    ) -> String {
+        format!("gcp::ListServiceLevelObjectivesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListServiceLevelObjectivesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUptimeCheckIpsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MonitoringUptimeCheckIpsListArgs> for ListUptimeCheckIpsResponse {
+    fn generate_resource_id(&self, input: &MonitoringUptimeCheckIpsListArgs) -> String {
+        "gcp::ListUptimeCheckIpsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUptimeCheckIpsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

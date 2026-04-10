@@ -731,3 +731,192 @@ pub struct GoogleTypeExpr {
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PolicysimulatorFoldersLocationsAccessPolicySimulationsOperationsGetArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &PolicysimulatorFoldersLocationsAccessPolicySimulationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudPolicysimulatorV1Replay.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PolicysimulatorFoldersLocationsReplaysGetArgs>
+    for GoogleCloudPolicysimulatorV1Replay
+{
+    fn generate_resource_id(
+        &self,
+        input: &PolicysimulatorFoldersLocationsReplaysGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudPolicysimulatorV1Replay/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudPolicysimulatorV1Replay"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PolicysimulatorFoldersLocationsReplaysOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PolicysimulatorFoldersLocationsReplaysOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudPolicysimulatorV1ListReplayResultsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PolicysimulatorFoldersLocationsReplaysResultsListArgs>
+    for GoogleCloudPolicysimulatorV1ListReplayResultsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PolicysimulatorFoldersLocationsReplaysResultsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudPolicysimulatorV1ListReplayResultsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudPolicysimulatorV1ListReplayResultsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreview.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsGetArgs>
+    for GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreview
+{
+    fn generate_resource_id(
+        &self,
+        input: &PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreview/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreview"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsPreviewsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsListArgs>
+    for GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsPreviewsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsPreviewsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsPreviewsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsOrgPolicyViolationsListArgs,
+    > for GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PolicysimulatorOrganizationsLocationsOrgPolicyViolationsPreviewsOrgPolicyViolationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

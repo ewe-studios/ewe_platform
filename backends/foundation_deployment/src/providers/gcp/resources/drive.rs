@@ -183,6 +183,26 @@ pub struct FileList {
     pub next_page_token: ::core::option::Option<String>,
 }
 
+/// JWT and associated metadata used to generate CSE files.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct GenerateCseTokenResponse {
+    /// The current Key ACL Service (KACLS) ID associated with the JWT.
+    #[serde(default, rename = "currentKaclsId")]
+    pub current_kacls_id: ::core::option::Option<String>,
+    /// Name of the KACLs that the returned KACLs ID points to.
+    #[serde(default, rename = "currentKaclsName")]
+    pub current_kacls_name: ::core::option::Option<String>,
+    /// The fileId for which the JWT was generated.
+    #[serde(default, rename = "fileId")]
+    pub file_id: ::core::option::Option<String>,
+    /// The signed JSON Web Token (JWT) for the file.
+    #[serde(default)]
+    pub jwt: ::core::option::Option<String>,
+    /// Output only. Identifies what kind of resource this is. Value: the fixed string "drive#generateCseTokenResponse".
+    #[serde(default)]
+    pub kind: ::core::option::Option<String>,
+}
+
 /// A list of generated file IDs which can be provided in create requests.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeneratedIds {
@@ -773,6 +793,9 @@ pub struct File {
     /// Output only. Capabilities the current user has on this file. Each capability corresponds to a fine-grained action that a user may take. For more information, see [Understand file capabilities](https://developers.google.com/workspace/drive/api/guides/manage-sharing#capabilities).
     #[serde(default)]
     pub capabilities: ::core::option::Option<serde_json::Value>,
+    /// Client Side Encryption related details. Contains details about the encryption state of the file and details regarding the encryption mechanism that clients need to use when decrypting the contents of this item. This will only be present on files and not on folders or shortcuts.
+    #[serde(default, rename = "clientEncryptionDetails")]
+    pub client_encryption_details: ::core::option::Option<ClientEncryptionDetails>,
     /// Additional information about the content of the file. These fields are never populated in responses.
     #[serde(default, rename = "contentHints")]
     pub content_hints: ::core::option::Option<serde_json::Value>,
@@ -926,7 +949,7 @@ pub struct File {
     /// Output only. The thumbnail version for use in thumbnail cache invalidation.
     #[serde(default, rename = "thumbnailVersion")]
     pub thumbnail_version: ::core::option::Option<String>,
-    /// Whether the file has been trashed, either explicitly or from a trashed parent folder. Only the owner may trash a file, and other users cannot see files in the owner''s trash.
+    /// Whether the file has been trashed, either explicitly or from a trashed parent folder. Only the owner may trash a file, but other users can still access the file in the owner''s trash until it''s permanently deleted.
     #[serde(default)]
     pub trashed: ::core::option::Option<bool>,
     /// The time that the item was trashed (RFC 3339 date-time). Only populated for items in shared drives.
@@ -1077,6 +1100,17 @@ pub struct LabelFieldModification {
     pub unset_values: ::core::option::Option<bool>,
 }
 
+/// Details about the client-side encryption applied to the file.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClientEncryptionDetails {
+    /// The metadata used for client-side operations.
+    #[serde(default, rename = "decryptionMetadata")]
+    pub decryption_metadata: ::core::option::Option<DecryptionMetadata>,
+    /// The encryption state of the file. The values expected here are: - encrypted - unencrypted
+    #[serde(default, rename = "encryptionState")]
+    pub encryption_state: ::core::option::Option<String>,
+}
+
 /// A restriction for accessing the content of the file.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentRestriction {
@@ -1167,6 +1201,32 @@ pub struct Permission {
     pub view: ::core::option::Option<String>,
 }
 
+/// Representation of the CSE DecryptionMetadata.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DecryptionMetadata {
+    /// Chunk size used if content was encrypted with the AES 256 GCM Cipher. Possible values are: - default - small
+    #[serde(default, rename = "aes256GcmChunkSize")]
+    pub aes256_gcm_chunk_size: ::core::option::Option<String>,
+    /// The URL-safe Base64 encoded HMAC-SHA256 digest of the resource metadata with its DEK (Data Encryption Key); see https://developers.google.com/workspace/cse/reference
+    #[serde(default, rename = "encryptionResourceKeyHash")]
+    pub encryption_resource_key_hash: ::core::option::Option<String>,
+    /// The signed JSON Web Token (JWT) which can be used to authorize the requesting user with the Key ACL Service (KACLS). The JWT asserts that the requesting user has at least read permissions on the file.
+    #[serde(default)]
+    pub jwt: ::core::option::Option<String>,
+    /// The ID of the KACLS (Key ACL Service) used to encrypt the file.
+    #[serde(default, rename = "kaclsId")]
+    pub kacls_id: ::core::option::Option<String>,
+    /// The name of the KACLS (Key ACL Service) used to encrypt the file.
+    #[serde(default, rename = "kaclsName")]
+    pub kacls_name: ::core::option::Option<String>,
+    /// Key format for the unwrapped key. Must be tinkAesGcmKey.
+    #[serde(default, rename = "keyFormat")]
+    pub key_format: ::core::option::Option<String>,
+    /// The URL-safe Base64 encoded wrapped key used to encrypt the contents of the file.
+    #[serde(default, rename = "wrappedKey")]
+    pub wrapped_key: ::core::option::Option<String>,
+}
+
 /// Information about a Drive user.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
@@ -1199,4 +1259,562 @@ pub struct DownloadRestriction {
     /// Whether download and copy is restricted for writers. If true, download is also restricted for readers.
     #[serde(default, rename = "restrictedForWriters")]
     pub restricted_for_writers: ::core::option::Option<bool>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for About.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveAboutGetArgs> for About {
+    fn generate_resource_id(&self, input: &DriveAboutGetArgs) -> String {
+        "gcp::About".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::About"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccessProposal.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveAccessproposalsGetArgs> for AccessProposal {
+    fn generate_resource_id(&self, input: &DriveAccessproposalsGetArgs) -> String {
+        format!(
+            "gcp::AccessProposal/{}/{}",
+            input.file_id, input.proposal_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccessProposal"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAccessProposalsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveAccessproposalsListArgs> for ListAccessProposalsResponse {
+    fn generate_resource_id(&self, input: &DriveAccessproposalsListArgs) -> String {
+        format!("gcp::ListAccessProposalsResponse/{}", input.file_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAccessProposalsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Approval.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveApprovalsGetArgs> for Approval {
+    fn generate_resource_id(&self, input: &DriveApprovalsGetArgs) -> String {
+        format!("gcp::Approval/{}/{}", input.file_id, input.approval_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Approval"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ApprovalList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveApprovalsListArgs> for ApprovalList {
+    fn generate_resource_id(&self, input: &DriveApprovalsListArgs) -> String {
+        format!("gcp::ApprovalList/{}", input.file_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ApprovalList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for App.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveAppsGetArgs> for App {
+    fn generate_resource_id(&self, input: &DriveAppsGetArgs) -> String {
+        format!("gcp::App/{}", input.app_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::App"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AppList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveAppsListArgs> for AppList {
+    fn generate_resource_id(&self, input: &DriveAppsListArgs) -> String {
+        "gcp::AppList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AppList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for StartPageToken.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveChangesGetStartPageTokenArgs> for StartPageToken {
+    fn generate_resource_id(&self, input: &DriveChangesGetStartPageTokenArgs) -> String {
+        "gcp::StartPageToken".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::StartPageToken"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ChangeList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveChangesListArgs> for ChangeList {
+    fn generate_resource_id(&self, input: &DriveChangesListArgs) -> String {
+        "gcp::ChangeList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ChangeList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Channel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveChangesWatchArgs> for Channel {
+    fn generate_resource_id(&self, input: &DriveChangesWatchArgs) -> String {
+        "gcp::Channel".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Channel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Comment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveCommentsCreateArgs> for Comment {
+    fn generate_resource_id(&self, input: &DriveCommentsCreateArgs) -> String {
+        format!("gcp::Comment/{}", input.file_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Comment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CommentList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveCommentsListArgs> for CommentList {
+    fn generate_resource_id(&self, input: &DriveCommentsListArgs) -> String {
+        format!("gcp::CommentList/{}", input.file_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CommentList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Drive.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveDrivesCreateArgs> for Drive {
+    fn generate_resource_id(&self, input: &DriveDrivesCreateArgs) -> String {
+        "gcp::Drive".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Drive"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DriveList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveDrivesListArgs> for DriveList {
+    fn generate_resource_id(&self, input: &DriveDrivesListArgs) -> String {
+        "gcp::DriveList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DriveList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for File.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesCopyArgs> for File {
+    fn generate_resource_id(&self, input: &DriveFilesCopyArgs) -> String {
+        format!("gcp::File/{}", input.file_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::File"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesDownloadArgs> for Operation {
+    fn generate_resource_id(&self, input: &DriveFilesDownloadArgs) -> String {
+        format!("gcp::Operation/{}", input.file_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateCseTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesGenerateCseTokenArgs> for GenerateCseTokenResponse {
+    fn generate_resource_id(&self, input: &DriveFilesGenerateCseTokenArgs) -> String {
+        "gcp::GenerateCseTokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateCseTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GeneratedIds.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesGenerateIdsArgs> for GeneratedIds {
+    fn generate_resource_id(&self, input: &DriveFilesGenerateIdsArgs) -> String {
+        "gcp::GeneratedIds".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GeneratedIds"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FileList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesListArgs> for FileList {
+    fn generate_resource_id(&self, input: &DriveFilesListArgs) -> String {
+        "gcp::FileList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FileList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LabelList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesListLabelsArgs> for LabelList {
+    fn generate_resource_id(&self, input: &DriveFilesListLabelsArgs) -> String {
+        format!("gcp::LabelList/{}", input.file_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LabelList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ModifyLabelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveFilesModifyLabelsArgs> for ModifyLabelsResponse {
+    fn generate_resource_id(&self, input: &DriveFilesModifyLabelsArgs) -> String {
+        format!("gcp::ModifyLabelsResponse/{}", input.file_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ModifyLabelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Permission.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivePermissionsCreateArgs> for Permission {
+    fn generate_resource_id(&self, input: &DrivePermissionsCreateArgs) -> String {
+        format!("gcp::Permission/{}", input.file_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Permission"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PermissionList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DrivePermissionsListArgs> for PermissionList {
+    fn generate_resource_id(&self, input: &DrivePermissionsListArgs) -> String {
+        format!("gcp::PermissionList/{}", input.file_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PermissionList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Reply.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveRepliesCreateArgs> for Reply {
+    fn generate_resource_id(&self, input: &DriveRepliesCreateArgs) -> String {
+        format!("gcp::Reply/{}/{}", input.file_id, input.comment_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Reply"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ReplyList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveRepliesListArgs> for ReplyList {
+    fn generate_resource_id(&self, input: &DriveRepliesListArgs) -> String {
+        format!("gcp::ReplyList/{}/{}", input.file_id, input.comment_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ReplyList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Revision.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveRevisionsGetArgs> for Revision {
+    fn generate_resource_id(&self, input: &DriveRevisionsGetArgs) -> String {
+        format!("gcp::Revision/{}/{}", input.file_id, input.revision_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Revision"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RevisionList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveRevisionsListArgs> for RevisionList {
+    fn generate_resource_id(&self, input: &DriveRevisionsListArgs) -> String {
+        format!("gcp::RevisionList/{}", input.file_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RevisionList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamDrive.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveTeamdrivesCreateArgs> for TeamDrive {
+    fn generate_resource_id(&self, input: &DriveTeamdrivesCreateArgs) -> String {
+        "gcp::TeamDrive".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TeamDrive"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TeamDriveList.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<DriveTeamdrivesListArgs> for TeamDriveList {
+    fn generate_resource_id(&self, input: &DriveTeamdrivesListArgs) -> String {
+        "gcp::TeamDriveList".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TeamDriveList"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

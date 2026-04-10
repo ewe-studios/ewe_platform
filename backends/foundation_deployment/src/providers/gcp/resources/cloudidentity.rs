@@ -1469,3 +1469,740 @@ pub struct MembershipRoleRestrictionEvaluation {
     #[serde(default)]
     pub state: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityCustomersUserinvitationsCancelArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityCustomersUserinvitationsCancelArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserInvitation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityCustomersUserinvitationsGetArgs> for UserInvitation {
+    fn generate_resource_id(&self, input: &CloudidentityCustomersUserinvitationsGetArgs) -> String {
+        format!("gcp::UserInvitation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserInvitation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IsInvitableUserResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityCustomersUserinvitationsIsInvitableUserArgs>
+    for IsInvitableUserResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityCustomersUserinvitationsIsInvitableUserArgs,
+    ) -> String {
+        format!("gcp::IsInvitableUserResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IsInvitableUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListUserInvitationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityCustomersUserinvitationsListArgs>
+    for ListUserInvitationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityCustomersUserinvitationsListArgs,
+    ) -> String {
+        format!("gcp::ListUserInvitationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListUserInvitationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1Device.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesGetArgs> for GoogleAppsCloudidentityDevicesV1Device {
+    fn generate_resource_id(&self, input: &CloudidentityDevicesGetArgs) -> String {
+        format!("gcp::GoogleAppsCloudidentityDevicesV1Device/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsCloudidentityDevicesV1Device"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1ListDevicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesListArgs>
+    for GoogleAppsCloudidentityDevicesV1ListDevicesResponse
+{
+    fn generate_resource_id(&self, input: &CloudidentityDevicesListArgs) -> String {
+        "gcp::GoogleAppsCloudidentityDevicesV1ListDevicesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsCloudidentityDevicesV1ListDevicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1DeviceUser.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersGetArgs>
+    for GoogleAppsCloudidentityDevicesV1DeviceUser
+{
+    fn generate_resource_id(&self, input: &CloudidentityDevicesDeviceUsersGetArgs) -> String {
+        format!(
+            "gcp::GoogleAppsCloudidentityDevicesV1DeviceUser/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsCloudidentityDevicesV1DeviceUser"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1ListDeviceUsersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersListArgs>
+    for GoogleAppsCloudidentityDevicesV1ListDeviceUsersResponse
+{
+    fn generate_resource_id(&self, input: &CloudidentityDevicesDeviceUsersListArgs) -> String {
+        format!(
+            "gcp::GoogleAppsCloudidentityDevicesV1ListDeviceUsersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsCloudidentityDevicesV1ListDeviceUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersLookupArgs>
+    for GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse
+{
+    fn generate_resource_id(&self, input: &CloudidentityDevicesDeviceUsersLookupArgs) -> String {
+        format!(
+            "gcp::GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsCloudidentityDevicesV1LookupSelfDeviceUsersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1ClientState.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersClientStatesGetArgs>
+    for GoogleAppsCloudidentityDevicesV1ClientState
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityDevicesDeviceUsersClientStatesGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAppsCloudidentityDevicesV1ClientState/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsCloudidentityDevicesV1ClientState"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleAppsCloudidentityDevicesV1ListClientStatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityDevicesDeviceUsersClientStatesListArgs>
+    for GoogleAppsCloudidentityDevicesV1ListClientStatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityDevicesDeviceUsersClientStatesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleAppsCloudidentityDevicesV1ListClientStatesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleAppsCloudidentityDevicesV1ListClientStatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Group.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsGetArgs> for Group {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsGetArgs) -> String {
+        format!("gcp::Group/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Group"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SecuritySettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsGetSecuritySettingsArgs> for SecuritySettings {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsGetSecuritySettingsArgs) -> String {
+        format!("gcp::SecuritySettings/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SecuritySettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsListArgs> for ListGroupsResponse {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsListArgs) -> String {
+        "gcp::ListGroupsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LookupGroupNameResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsLookupArgs> for LookupGroupNameResponse {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsLookupArgs) -> String {
+        "gcp::LookupGroupNameResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LookupGroupNameResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsSearchArgs> for SearchGroupsResponse {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsSearchArgs) -> String {
+        "gcp::SearchGroupsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CheckTransitiveMembershipResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsCheckTransitiveMembershipArgs>
+    for CheckTransitiveMembershipResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityGroupsMembershipsCheckTransitiveMembershipArgs,
+    ) -> String {
+        format!("gcp::CheckTransitiveMembershipResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CheckTransitiveMembershipResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Membership.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsGetArgs> for Membership {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsMembershipsGetArgs) -> String {
+        format!("gcp::Membership/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Membership"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMembershipsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsListArgs> for ListMembershipsResponse {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsMembershipsListArgs) -> String {
+        format!("gcp::ListMembershipsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMembershipsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LookupMembershipNameResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsLookupArgs> for LookupMembershipNameResponse {
+    fn generate_resource_id(&self, input: &CloudidentityGroupsMembershipsLookupArgs) -> String {
+        format!("gcp::LookupMembershipNameResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LookupMembershipNameResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ModifyMembershipRolesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsModifyMembershipRolesArgs>
+    for ModifyMembershipRolesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityGroupsMembershipsModifyMembershipRolesArgs,
+    ) -> String {
+        format!("gcp::ModifyMembershipRolesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ModifyMembershipRolesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchDirectGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsSearchDirectGroupsArgs>
+    for SearchDirectGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityGroupsMembershipsSearchDirectGroupsArgs,
+    ) -> String {
+        format!("gcp::SearchDirectGroupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchDirectGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchTransitiveGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsSearchTransitiveGroupsArgs>
+    for SearchTransitiveGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityGroupsMembershipsSearchTransitiveGroupsArgs,
+    ) -> String {
+        format!("gcp::SearchTransitiveGroupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchTransitiveGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchTransitiveMembershipsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityGroupsMembershipsSearchTransitiveMembershipsArgs>
+    for SearchTransitiveMembershipsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityGroupsMembershipsSearchTransitiveMembershipsArgs,
+    ) -> String {
+        format!("gcp::SearchTransitiveMembershipsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchTransitiveMembershipsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InboundOidcSsoProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundOidcSsoProfilesGetArgs> for InboundOidcSsoProfile {
+    fn generate_resource_id(&self, input: &CloudidentityInboundOidcSsoProfilesGetArgs) -> String {
+        format!("gcp::InboundOidcSsoProfile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InboundOidcSsoProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInboundOidcSsoProfilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundOidcSsoProfilesListArgs>
+    for ListInboundOidcSsoProfilesResponse
+{
+    fn generate_resource_id(&self, input: &CloudidentityInboundOidcSsoProfilesListArgs) -> String {
+        "gcp::ListInboundOidcSsoProfilesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInboundOidcSsoProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InboundSamlSsoProfile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesGetArgs> for InboundSamlSsoProfile {
+    fn generate_resource_id(&self, input: &CloudidentityInboundSamlSsoProfilesGetArgs) -> String {
+        format!("gcp::InboundSamlSsoProfile/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InboundSamlSsoProfile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInboundSamlSsoProfilesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesListArgs>
+    for ListInboundSamlSsoProfilesResponse
+{
+    fn generate_resource_id(&self, input: &CloudidentityInboundSamlSsoProfilesListArgs) -> String {
+        "gcp::ListInboundSamlSsoProfilesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInboundSamlSsoProfilesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IdpCredential.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesIdpCredentialsGetArgs>
+    for IdpCredential
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityInboundSamlSsoProfilesIdpCredentialsGetArgs,
+    ) -> String {
+        format!("gcp::IdpCredential/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IdpCredential"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListIdpCredentialsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSamlSsoProfilesIdpCredentialsListArgs>
+    for ListIdpCredentialsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudidentityInboundSamlSsoProfilesIdpCredentialsListArgs,
+    ) -> String {
+        format!("gcp::ListIdpCredentialsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListIdpCredentialsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for InboundSsoAssignment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSsoAssignmentsGetArgs> for InboundSsoAssignment {
+    fn generate_resource_id(&self, input: &CloudidentityInboundSsoAssignmentsGetArgs) -> String {
+        format!("gcp::InboundSsoAssignment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::InboundSsoAssignment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListInboundSsoAssignmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityInboundSsoAssignmentsListArgs>
+    for ListInboundSsoAssignmentsResponse
+{
+    fn generate_resource_id(&self, input: &CloudidentityInboundSsoAssignmentsListArgs) -> String {
+        "gcp::ListInboundSsoAssignmentsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListInboundSsoAssignmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityPoliciesGetArgs> for Policy {
+    fn generate_resource_id(&self, input: &CloudidentityPoliciesGetArgs) -> String {
+        format!("gcp::Policy/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudidentityPoliciesListArgs> for ListPoliciesResponse {
+    fn generate_resource_id(&self, input: &CloudidentityPoliciesListArgs) -> String {
+        "gcp::ListPoliciesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

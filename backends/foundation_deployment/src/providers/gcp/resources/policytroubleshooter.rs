@@ -532,3 +532,28 @@ pub struct GoogleRpcStatus {
     #[serde(default)]
     pub message: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PolicytroubleshooterIamTroubleshootArgs>
+    for GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse
+{
+    fn generate_resource_id(&self, input: &PolicytroubleshooterIamTroubleshootArgs) -> String {
+        "gcp::GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

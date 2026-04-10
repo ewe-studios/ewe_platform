@@ -2253,3 +2253,345 @@ pub struct GoogleIdentityAccesscontextmanagerV1MethodSelector {
     #[serde(default)]
     pub permission: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListAssetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetAssetsListArgs> for ListAssetsResponse {
+    fn generate_resource_id(&self, input: &CloudassetAssetsListArgs) -> String {
+        format!("gcp::ListAssetsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAssetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchGetEffectiveIamPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetEffectiveIamPoliciesBatchGetArgs>
+    for BatchGetEffectiveIamPoliciesResponse
+{
+    fn generate_resource_id(&self, input: &CloudassetEffectiveIamPoliciesBatchGetArgs) -> String {
+        format!("gcp::BatchGetEffectiveIamPoliciesResponse/{}", input.scope)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchGetEffectiveIamPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Feed.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetFeedsCreateArgs> for Feed {
+    fn generate_resource_id(&self, input: &CloudassetFeedsCreateArgs) -> String {
+        format!("gcp::Feed/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Feed"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetFeedsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &CloudassetFeedsDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListFeedsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetFeedsListArgs> for ListFeedsResponse {
+    fn generate_resource_id(&self, input: &CloudassetFeedsListArgs) -> String {
+        format!("gcp::ListFeedsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListFeedsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &CloudassetOperationsGetArgs) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SavedQuery.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetSavedQueriesCreateArgs> for SavedQuery {
+    fn generate_resource_id(&self, input: &CloudassetSavedQueriesCreateArgs) -> String {
+        format!("gcp::SavedQuery/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SavedQuery"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSavedQueriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetSavedQueriesListArgs> for ListSavedQueriesResponse {
+    fn generate_resource_id(&self, input: &CloudassetSavedQueriesListArgs) -> String {
+        format!("gcp::ListSavedQueriesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSavedQueriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AnalyzeIamPolicyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetAnalyzeIamPolicyArgs> for AnalyzeIamPolicyResponse {
+    fn generate_resource_id(&self, input: &CloudassetAnalyzeIamPolicyArgs) -> String {
+        format!("gcp::AnalyzeIamPolicyResponse/{}", input.scope)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AnalyzeIamPolicyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AnalyzeMoveResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetAnalyzeMoveArgs> for AnalyzeMoveResponse {
+    fn generate_resource_id(&self, input: &CloudassetAnalyzeMoveArgs) -> String {
+        format!("gcp::AnalyzeMoveResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AnalyzeMoveResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AnalyzeOrgPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetAnalyzeOrgPoliciesArgs> for AnalyzeOrgPoliciesResponse {
+    fn generate_resource_id(&self, input: &CloudassetAnalyzeOrgPoliciesArgs) -> String {
+        format!("gcp::AnalyzeOrgPoliciesResponse/{}", input.scope)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AnalyzeOrgPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AnalyzeOrgPolicyGovernedAssetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetAnalyzeOrgPolicyGovernedAssetsArgs>
+    for AnalyzeOrgPolicyGovernedAssetsResponse
+{
+    fn generate_resource_id(&self, input: &CloudassetAnalyzeOrgPolicyGovernedAssetsArgs) -> String {
+        format!(
+            "gcp::AnalyzeOrgPolicyGovernedAssetsResponse/{}",
+            input.scope
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AnalyzeOrgPolicyGovernedAssetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AnalyzeOrgPolicyGovernedContainersResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetAnalyzeOrgPolicyGovernedContainersArgs>
+    for AnalyzeOrgPolicyGovernedContainersResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CloudassetAnalyzeOrgPolicyGovernedContainersArgs,
+    ) -> String {
+        format!(
+            "gcp::AnalyzeOrgPolicyGovernedContainersResponse/{}",
+            input.scope
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AnalyzeOrgPolicyGovernedContainersResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchGetAssetsHistoryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetBatchGetAssetsHistoryArgs> for BatchGetAssetsHistoryResponse {
+    fn generate_resource_id(&self, input: &CloudassetBatchGetAssetsHistoryArgs) -> String {
+        format!("gcp::BatchGetAssetsHistoryResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchGetAssetsHistoryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for QueryAssetsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetQueryAssetsArgs> for QueryAssetsResponse {
+    fn generate_resource_id(&self, input: &CloudassetQueryAssetsArgs) -> String {
+        format!("gcp::QueryAssetsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::QueryAssetsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchAllIamPoliciesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetSearchAllIamPoliciesArgs> for SearchAllIamPoliciesResponse {
+    fn generate_resource_id(&self, input: &CloudassetSearchAllIamPoliciesArgs) -> String {
+        format!("gcp::SearchAllIamPoliciesResponse/{}", input.scope)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchAllIamPoliciesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchAllResourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CloudassetSearchAllResourcesArgs> for SearchAllResourcesResponse {
+    fn generate_resource_id(&self, input: &CloudassetSearchAllResourcesArgs) -> String {
+        format!("gcp::SearchAllResourcesResponse/{}", input.scope)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchAllResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

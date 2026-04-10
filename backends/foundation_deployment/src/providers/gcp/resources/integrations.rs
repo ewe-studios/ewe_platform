@@ -5329,3 +5329,1530 @@ pub struct EnterpriseCrmEventbusProtoTransformExpression {
     pub transformation_functions:
         ::std::vec::Vec<::std::boxed::Box<EnterpriseCrmEventbusProtoFunction>>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaGenerateTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsCallbackGenerateTokenArgs>
+    for GoogleCloudIntegrationsV1alphaGenerateTokenResponse
+{
+    fn generate_resource_id(&self, input: &IntegrationsCallbackGenerateTokenArgs) -> String {
+        "gcp::GoogleCloudIntegrationsV1alphaGenerateTokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaGenerateTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsConnectorPlatformRegionsEnumerateArgs>
+    for GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsConnectorPlatformRegionsEnumerateArgs,
+    ) -> String {
+        "gcp::GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaGetClientMetadataResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsGetClientmetadataArgs>
+    for GoogleCloudIntegrationsV1alphaGetClientMetadataResponse
+{
+    fn generate_resource_id(&self, input: &IntegrationsProjectsGetClientmetadataArgs) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaGetClientMetadataResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaGetClientMetadataResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsGenerateOpenApiSpecArgs>
+    for GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsGenerateOpenApiSpecArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaGetClientResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsGetClientsArgs>
+    for GoogleCloudIntegrationsV1alphaGetClientResponse
+{
+    fn generate_resource_id(&self, input: &IntegrationsProjectsLocationsGetClientsArgs) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaGetClientResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaGetClientResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsAppsScriptProjectsCreateArgs>
+    for GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsAppsScriptProjectsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsAppsScriptProjectsLinkArgs>
+    for GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsAppsScriptProjectsLinkArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaAuthConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsAuthConfigsCreateArgs>
+    for GoogleCloudIntegrationsV1alphaAuthConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsAuthConfigsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaAuthConfig/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaAuthConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsAuthConfigsDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsAuthConfigsDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaListAuthConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsAuthConfigsListArgs>
+    for GoogleCloudIntegrationsV1alphaListAuthConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsAuthConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaListAuthConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaListAuthConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaCertificate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsCertificatesCreateArgs>
+    for GoogleCloudIntegrationsV1alphaCertificate
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsCertificatesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaCertificate/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaCertificate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaListCertificatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsCertificatesListArgs>
+    for GoogleCloudIntegrationsV1alphaListCertificatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsCertificatesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaListCertificatesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaListCertificatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsClientsChangeConfigArgs>
+    for GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsClientsChangeConfigArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsClientsProvisionClientPostProcessorArgs>
+    for GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsClientsProvisionClientPostProcessorArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsCloudFunctionsCreateArgs>
+    for GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsCloudFunctionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsConnectionsGetConnectionSchemaMetadataArgs>
+    for GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsConnectionsGetConnectionSchemaMetadataArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaListConnectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsConnectionsListArgs>
+    for GoogleCloudIntegrationsV1alphaListConnectionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsConnectionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaListConnectionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaListConnectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsConnectionsRuntimeActionSchemasListArgs>
+    for GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsConnectionsRuntimeActionSchemasListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsConnectionsRuntimeEntitySchemasListArgs>
+    for GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsConnectionsRuntimeEntitySchemasListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsExecuteArgs>
+    for GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsExecuteArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaExecuteEventResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsExecuteEventArgs>
+    for GoogleCloudIntegrationsV1alphaExecuteEventResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsExecuteEventArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaExecuteEventResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaExecuteEventResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaListIntegrationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsListArgs>
+    for GoogleCloudIntegrationsV1alphaListIntegrationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaListIntegrationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaListIntegrationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsScheduleArgs>
+    for GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsScheduleArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsSearchArgs>
+    for GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaTestIntegrationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsTestArgs>
+    for GoogleCloudIntegrationsV1alphaTestIntegrationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsTestArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaTestIntegrationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaTestIntegrationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaCancelExecutionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsExecutionsCancelArgs>
+    for GoogleCloudIntegrationsV1alphaCancelExecutionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsExecutionsCancelArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaCancelExecutionResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaCancelExecutionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaDownloadExecutionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsExecutionsDownloadArgs>
+    for GoogleCloudIntegrationsV1alphaDownloadExecutionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsExecutionsDownloadArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaDownloadExecutionResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaDownloadExecutionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaExecution.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsExecutionsGetArgs>
+    for GoogleCloudIntegrationsV1alphaExecution
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsExecutionsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaExecution/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaExecution"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaListExecutionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsExecutionsListArgs>
+    for GoogleCloudIntegrationsV1alphaListExecutionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsExecutionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaListExecutionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaListExecutionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaReplayExecutionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsExecutionsReplayArgs>
+    for GoogleCloudIntegrationsV1alphaReplayExecutionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsExecutionsReplayArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaReplayExecutionResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaReplayExecutionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaLiftSuspensionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsLiftArgs>
+    for GoogleCloudIntegrationsV1alphaLiftSuspensionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsLiftArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaLiftSuspensionResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaLiftSuspensionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaListSuspensionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsListArgs>
+    for GoogleCloudIntegrationsV1alphaListSuspensionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaListSuspensionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaListSuspensionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaResolveSuspensionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsResolveArgs>
+    for GoogleCloudIntegrationsV1alphaResolveSuspensionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsExecutionsSuspensionsResolveArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaResolveSuspensionResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaResolveSuspensionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaIntegrationVersion.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsVersionsCreateArgs>
+    for GoogleCloudIntegrationsV1alphaIntegrationVersion
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsVersionsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaIntegrationVersion/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaIntegrationVersion"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsVersionsDownloadArgs>
+    for GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsVersionsDownloadArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsVersionsDownloadJsonPackageArgs>
+    for GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsVersionsDownloadJsonPackageArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsVersionsListArgs>
+    for GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsVersionsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsVersionsPublishArgs>
+    for GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsVersionsPublishArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaUploadIntegrationVersionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsVersionsUploadArgs>
+    for GoogleCloudIntegrationsV1alphaUploadIntegrationVersionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsVersionsUploadArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaUploadIntegrationVersionResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaUploadIntegrationVersionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaTestCase.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsVersionsTestCasesCreateArgs>
+    for GoogleCloudIntegrationsV1alphaTestCase
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaTestCase/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaTestCase"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsVersionsTestCasesDownloadArgs>
+    for GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesDownloadArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaExecuteTestCasesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsVersionsTestCasesExecuteArgs>
+    for GoogleCloudIntegrationsV1alphaExecuteTestCasesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesExecuteArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaExecuteTestCasesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaExecuteTestCasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsVersionsTestCasesExecuteTestArgs>
+    for GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesExecuteTestArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse/{}",
+            input.test_case_name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaListTestCasesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsVersionsTestCasesListArgs>
+    for GoogleCloudIntegrationsV1alphaListTestCasesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaListTestCasesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaListTestCasesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaUploadTestCaseResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsIntegrationsVersionsTestCasesUploadArgs>
+    for GoogleCloudIntegrationsV1alphaUploadTestCaseResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsIntegrationsVersionsTestCasesUploadArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaUploadTestCaseResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaUploadTestCaseResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        IntegrationsProjectsLocationsProductsIntegrationsVersionsTakeoverEditLockArgs,
+    > for GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsProductsIntegrationsVersionsTakeoverEditLockArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse/{}",
+            input.integration_version
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaSfdcInstance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsProductsSfdcInstancesCreateArgs>
+    for GoogleCloudIntegrationsV1alphaSfdcInstance
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsProductsSfdcInstancesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaSfdcInstance/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaSfdcInstance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsProductsSfdcInstancesListArgs>
+    for GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsProductsSfdcInstancesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaSfdcChannel.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsCreateArgs>
+    for GoogleCloudIntegrationsV1alphaSfdcChannel
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaSfdcChannel/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaSfdcChannel"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsListArgs>
+    for GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsProductsSfdcInstancesSfdcChannelsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaTemplate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsTemplatesCreateArgs>
+    for GoogleCloudIntegrationsV1alphaTemplate
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsTemplatesCreateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaTemplate/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaTemplate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaDownloadTemplateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsTemplatesDownloadArgs>
+    for GoogleCloudIntegrationsV1alphaDownloadTemplateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsTemplatesDownloadArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaDownloadTemplateResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaDownloadTemplateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaImportTemplateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsTemplatesImportArgs>
+    for GoogleCloudIntegrationsV1alphaImportTemplateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsTemplatesImportArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaImportTemplateResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaImportTemplateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaListTemplatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsTemplatesListArgs>
+    for GoogleCloudIntegrationsV1alphaListTemplatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsTemplatesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaListTemplatesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaListTemplatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaSearchTemplatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsTemplatesSearchArgs>
+    for GoogleCloudIntegrationsV1alphaSearchTemplatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsTemplatesSearchArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaSearchTemplatesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaSearchTemplatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaUploadTemplateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsTemplatesUploadArgs>
+    for GoogleCloudIntegrationsV1alphaUploadTemplateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsTemplatesUploadArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaUploadTemplateResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaUploadTemplateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudIntegrationsV1alphaUseTemplateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IntegrationsProjectsLocationsTemplatesUseArgs>
+    for GoogleCloudIntegrationsV1alphaUseTemplateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IntegrationsProjectsLocationsTemplatesUseArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudIntegrationsV1alphaUseTemplateResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudIntegrationsV1alphaUseTemplateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -76,3 +76,51 @@ pub struct Editions {
     #[serde(default, rename = "seatCount")]
     pub seat_count: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomerLicense.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppsmarketCustomerLicenseGetArgs> for CustomerLicense {
+    fn generate_resource_id(&self, input: &AppsmarketCustomerLicenseGetArgs) -> String {
+        format!(
+            "gcp::CustomerLicense/{}/{}",
+            input.application_id, input.customer_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomerLicense"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserLicense.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AppsmarketUserLicenseGetArgs> for UserLicense {
+    fn generate_resource_id(&self, input: &AppsmarketUserLicenseGetArgs) -> String {
+        format!(
+            "gcp::UserLicense/{}/{}",
+            input.application_id, input.user_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserLicense"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

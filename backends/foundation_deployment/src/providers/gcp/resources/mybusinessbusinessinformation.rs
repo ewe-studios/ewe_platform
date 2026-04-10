@@ -716,3 +716,258 @@ pub struct Date {
     #[serde(default)]
     pub year: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationAccountsLocationsCreateArgs> for Location {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationAccountsLocationsCreateArgs,
+    ) -> String {
+        format!("gcp::Location/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationAccountsLocationsListArgs>
+    for ListLocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationAccountsLocationsListArgs,
+    ) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListAttributeMetadataResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationAttributesListArgs>
+    for ListAttributeMetadataResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationAttributesListArgs,
+    ) -> String {
+        "gcp::ListAttributeMetadataResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListAttributeMetadataResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchGetCategoriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationCategoriesBatchGetArgs>
+    for BatchGetCategoriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationCategoriesBatchGetArgs,
+    ) -> String {
+        "gcp::BatchGetCategoriesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchGetCategoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCategoriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationCategoriesListArgs>
+    for ListCategoriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationCategoriesListArgs,
+    ) -> String {
+        "gcp::ListCategoriesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCategoriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Chain.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationChainsGetArgs> for Chain {
+    fn generate_resource_id(&self, input: &MybusinessbusinessinformationChainsGetArgs) -> String {
+        format!("gcp::Chain/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Chain"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchChainsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationChainsSearchArgs> for SearchChainsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationChainsSearchArgs,
+    ) -> String {
+        "gcp::SearchChainsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchChainsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchGoogleLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationGoogleLocationsSearchArgs>
+    for SearchGoogleLocationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationGoogleLocationsSearchArgs,
+    ) -> String {
+        "gcp::SearchGoogleLocationsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchGoogleLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationLocationsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationLocationsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Attributes.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationLocationsGetAttributesArgs> for Attributes {
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationLocationsGetAttributesArgs,
+    ) -> String {
+        format!("gcp::Attributes/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Attributes"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleUpdatedLocation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<MybusinessbusinessinformationLocationsGetGoogleUpdatedArgs>
+    for GoogleUpdatedLocation
+{
+    fn generate_resource_id(
+        &self,
+        input: &MybusinessbusinessinformationLocationsGetGoogleUpdatedArgs,
+    ) -> String {
+        format!("gcp::GoogleUpdatedLocation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleUpdatedLocation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

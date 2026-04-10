@@ -92,6 +92,17 @@ pub struct Empty {
     pub value: serde_json::Value,
 }
 
+/// A response containing group chat spaces with exactly the calling user and the requested users. [Developer Preview](https://developers.google.com/workspace/preview):
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct FindGroupChatsResponse {
+    /// A token that you can send as pageToken to retrieve the next page of results. If empty, there are no subsequent pages.
+    #[serde(default, rename = "nextPageToken")]
+    pub next_page_token: ::core::option::Option<String>,
+    /// List of spaces in the requested (or first) page.
+    #[serde(default)]
+    pub spaces: ::core::option::Option<::std::vec::Vec<Space>>,
+}
+
 /// Types of data that users can [input on cards or dialogs](https://developers.google.com/chat/ui/read-form-data). The input type depends on the type of values that the widget accepts.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Inputs {
@@ -153,7 +164,7 @@ pub struct ListReactionsResponse {
     pub reactions: ::core::option::Option<::std::vec::Vec<Reaction>>,
 }
 
-/// Response message for listing section items. [Developer Preview](https://developers.google.com/workspace/preview).
+/// Response message for listing section items.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSectionItemsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
@@ -164,7 +175,7 @@ pub struct ListSectionItemsResponse {
     pub section_items: ::core::option::Option<::std::vec::Vec<SectionItem>>,
 }
 
-/// Response message for listing sections. [Developer Preview](https://developers.google.com/workspace/preview).
+/// Response message for listing sections.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSectionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
@@ -205,7 +216,7 @@ pub struct Media {
     pub resource_name: ::core::option::Option<String>,
 }
 
-/// Request message for moving a section item across sections. [Developer Preview](https://developers.google.com/workspace/preview).
+/// Request message for moving a section item across sections.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveSectionItemRequest {
     /// Required. The resource name of the section to move the section item to. Format: users/{user}/sections/{section}
@@ -213,7 +224,7 @@ pub struct MoveSectionItemRequest {
     pub target_section: ::core::option::Option<String>,
 }
 
-/// Response message for moving a section item. [Developer Preview](https://developers.google.com/workspace/preview).
+/// Response message for moving a section item.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveSectionItemResponse {
     /// The updated section item.
@@ -221,7 +232,7 @@ pub struct MoveSectionItemResponse {
     pub section_item: ::core::option::Option<SectionItem>,
 }
 
-/// Request message for positioning a section. [Developer Preview](https://developers.google.com/workspace/preview).
+/// Request message for positioning a section.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PositionSectionRequest {
     /// Optional. The relative position of the section in the list of sections. // TODO: enum values: ["POSITION_UNSPECIFIED", "START", "END"]
@@ -232,7 +243,7 @@ pub struct PositionSectionRequest {
     pub sort_order: ::core::option::Option<i32>,
 }
 
-/// Response message for positioning a section. [Developer Preview](https://developers.google.com/workspace/preview).
+/// Response message for positioning a section.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PositionSectionResponse {
     /// The updated section.
@@ -483,7 +494,7 @@ pub struct SpaceEvent {
     pub space_updated_event_data: ::core::option::Option<SpaceUpdatedEventData>,
 }
 
-/// A user''s defined section item. This is used to represent section items, such as spaces, grouped under a section. [Developer Preview](https://developers.google.com/workspace/preview).
+/// A user''s defined section item. This is used to represent section items, such as spaces, grouped under a section.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SectionItem {
     /// Identifier. The resource name of the section item. Format: users/{user}/sections/{section}/items/{item}
@@ -494,7 +505,7 @@ pub struct SectionItem {
     pub space: ::core::option::Option<String>,
 }
 
-/// Represents a [section](https://support.google.com/chat/answer/16059854) in Google Chat. Sections help users organize their spaces. There are two types of sections: 1. **System Sections:** These are predefined sections managed by Google Chat. Their resource names are fixed, and they cannot be created, deleted, or have their display_name modified. Examples include: * users/{user}/sections/default-direct-messages * users/{user}/sections/default-spaces * users/{user}/sections/default-apps 2. **Custom Sections:** These are sections created and managed by the user. Creating a custom section using CreateSection **requires** a display_name. Custom sections can be updated using UpdateSection and deleted using DeleteSection. [Developer Preview](https://developers.google.com/workspace/preview).
+/// Represents a [section](https://support.google.com/chat/answer/16059854) in Google Chat. Sections help users organize their spaces. There are two types of sections: 1. **System Sections:** These are predefined sections managed by Google Chat. Their resource names are fixed, and they cannot be created, deleted, or have their display_name modified. Examples include: * users/{user}/sections/default-direct-messages * users/{user}/sections/default-spaces * users/{user}/sections/default-apps 2. **Custom Sections:** These are sections created and managed by the user. Creating a custom section using CreateSection **requires** a display_name. Custom sections can be updated using UpdateSection and deleted using DeleteSection.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChatV1Section {
     /// Optional. The section''s display name. Only populated for sections of type CUSTOM_SECTION. Supports up to 80 characters. Required when creating a CUSTOM_SECTION.
@@ -2523,4 +2534,526 @@ pub struct WorkflowDataSourceMarkup {
     /// The type of data source. // TODO: enum values: ["UNKNOWN", "USER", "SPACE", "USER_WITH_FREE_FORM"]
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
+}
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for CustomEmoji.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatCustomEmojisCreateArgs> for CustomEmoji {
+    fn generate_resource_id(&self, input: &ChatCustomEmojisCreateArgs) -> String {
+        "gcp::CustomEmoji".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomEmoji"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatCustomEmojisDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &ChatCustomEmojisDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCustomEmojisResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatCustomEmojisListArgs> for ListCustomEmojisResponse {
+    fn generate_resource_id(&self, input: &ChatCustomEmojisListArgs) -> String {
+        "gcp::ListCustomEmojisResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCustomEmojisResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Media.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatMediaDownloadArgs> for Media {
+    fn generate_resource_id(&self, input: &ChatMediaDownloadArgs) -> String {
+        format!("gcp::Media/{}", input.resource_name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Media"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UploadAttachmentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatMediaUploadArgs> for UploadAttachmentResponse {
+    fn generate_resource_id(&self, input: &ChatMediaUploadArgs) -> String {
+        format!("gcp::UploadAttachmentResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UploadAttachmentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CompleteImportSpaceResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatSpacesCompleteImportArgs> for CompleteImportSpaceResponse {
+    fn generate_resource_id(&self, input: &ChatSpacesCompleteImportArgs) -> String {
+        format!("gcp::CompleteImportSpaceResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CompleteImportSpaceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Space.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatSpacesCreateArgs> for Space {
+    fn generate_resource_id(&self, input: &ChatSpacesCreateArgs) -> String {
+        "gcp::Space".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Space"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FindGroupChatsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatSpacesFindGroupChatsArgs> for FindGroupChatsResponse {
+    fn generate_resource_id(&self, input: &ChatSpacesFindGroupChatsArgs) -> String {
+        "gcp::FindGroupChatsResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FindGroupChatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSpacesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatSpacesListArgs> for ListSpacesResponse {
+    fn generate_resource_id(&self, input: &ChatSpacesListArgs) -> String {
+        "gcp::ListSpacesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSpacesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchSpacesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatSpacesSearchArgs> for SearchSpacesResponse {
+    fn generate_resource_id(&self, input: &ChatSpacesSearchArgs) -> String {
+        "gcp::SearchSpacesResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchSpacesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Membership.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatSpacesMembersCreateArgs> for Membership {
+    fn generate_resource_id(&self, input: &ChatSpacesMembersCreateArgs) -> String {
+        format!("gcp::Membership/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Membership"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMembershipsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatSpacesMembersListArgs> for ListMembershipsResponse {
+    fn generate_resource_id(&self, input: &ChatSpacesMembersListArgs) -> String {
+        format!("gcp::ListMembershipsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMembershipsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Message.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatSpacesMessagesCreateArgs> for Message {
+    fn generate_resource_id(&self, input: &ChatSpacesMessagesCreateArgs) -> String {
+        format!("gcp::Message/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Message"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListMessagesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatSpacesMessagesListArgs> for ListMessagesResponse {
+    fn generate_resource_id(&self, input: &ChatSpacesMessagesListArgs) -> String {
+        format!("gcp::ListMessagesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListMessagesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Attachment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatSpacesMessagesAttachmentsGetArgs> for Attachment {
+    fn generate_resource_id(&self, input: &ChatSpacesMessagesAttachmentsGetArgs) -> String {
+        format!("gcp::Attachment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Attachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Reaction.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatSpacesMessagesReactionsCreateArgs> for Reaction {
+    fn generate_resource_id(&self, input: &ChatSpacesMessagesReactionsCreateArgs) -> String {
+        format!("gcp::Reaction/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Reaction"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListReactionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatSpacesMessagesReactionsListArgs> for ListReactionsResponse {
+    fn generate_resource_id(&self, input: &ChatSpacesMessagesReactionsListArgs) -> String {
+        format!("gcp::ListReactionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListReactionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SpaceEvent.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatSpacesSpaceEventsGetArgs> for SpaceEvent {
+    fn generate_resource_id(&self, input: &ChatSpacesSpaceEventsGetArgs) -> String {
+        format!("gcp::SpaceEvent/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SpaceEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSpaceEventsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatSpacesSpaceEventsListArgs> for ListSpaceEventsResponse {
+    fn generate_resource_id(&self, input: &ChatSpacesSpaceEventsListArgs) -> String {
+        format!("gcp::ListSpaceEventsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSpaceEventsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChatV1Section.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatUsersSectionsCreateArgs> for GoogleChatV1Section {
+    fn generate_resource_id(&self, input: &ChatUsersSectionsCreateArgs) -> String {
+        format!("gcp::GoogleChatV1Section/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChatV1Section"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSectionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatUsersSectionsListArgs> for ListSectionsResponse {
+    fn generate_resource_id(&self, input: &ChatUsersSectionsListArgs) -> String {
+        format!("gcp::ListSectionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSectionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for PositionSectionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatUsersSectionsPositionArgs> for PositionSectionResponse {
+    fn generate_resource_id(&self, input: &ChatUsersSectionsPositionArgs) -> String {
+        format!("gcp::PositionSectionResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::PositionSectionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSectionItemsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatUsersSectionsItemsListArgs> for ListSectionItemsResponse {
+    fn generate_resource_id(&self, input: &ChatUsersSectionsItemsListArgs) -> String {
+        format!("gcp::ListSectionItemsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSectionItemsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for MoveSectionItemResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatUsersSectionsItemsMoveArgs> for MoveSectionItemResponse {
+    fn generate_resource_id(&self, input: &ChatUsersSectionsItemsMoveArgs) -> String {
+        format!("gcp::MoveSectionItemResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::MoveSectionItemResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SpaceReadState.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatUsersSpacesGetSpaceReadStateArgs> for SpaceReadState {
+    fn generate_resource_id(&self, input: &ChatUsersSpacesGetSpaceReadStateArgs) -> String {
+        format!("gcp::SpaceReadState/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SpaceReadState"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SpaceNotificationSetting.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatUsersSpacesSpaceNotificationSettingGetArgs>
+    for SpaceNotificationSetting
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChatUsersSpacesSpaceNotificationSettingGetArgs,
+    ) -> String {
+        format!("gcp::SpaceNotificationSetting/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SpaceNotificationSetting"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ThreadReadState.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChatUsersSpacesThreadsGetThreadReadStateArgs> for ThreadReadState {
+    fn generate_resource_id(&self, input: &ChatUsersSpacesThreadsGetThreadReadStateArgs) -> String {
+        format!("gcp::ThreadReadState/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ThreadReadState"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
 }

@@ -751,3 +751,262 @@ pub struct Proto2EnumValueDescriptorProto {
     #[serde(default)]
     pub number: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1ResolveResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesResolveArgs>
+    for GoogleChromePolicyVersionsV1ResolveResponse
+{
+    fn generate_resource_id(&self, input: &ChromepolicyCustomersPoliciesResolveArgs) -> String {
+        format!(
+            "gcp::GoogleChromePolicyVersionsV1ResolveResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromePolicyVersionsV1ResolveResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesGroupsBatchDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesGroupsBatchDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.customer)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1ListGroupPriorityOrderingResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesGroupsListGroupPriorityOrderingArgs>
+    for GoogleChromePolicyVersionsV1ListGroupPriorityOrderingResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesGroupsListGroupPriorityOrderingArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromePolicyVersionsV1ListGroupPriorityOrderingResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromePolicyVersionsV1ListGroupPriorityOrderingResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1DefineCertificateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesNetworksDefineCertificateArgs>
+    for GoogleChromePolicyVersionsV1DefineCertificateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesNetworksDefineCertificateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromePolicyVersionsV1DefineCertificateResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromePolicyVersionsV1DefineCertificateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1DefineNetworkResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesNetworksDefineNetworkArgs>
+    for GoogleChromePolicyVersionsV1DefineNetworkResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesNetworksDefineNetworkArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromePolicyVersionsV1DefineNetworkResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromePolicyVersionsV1DefineNetworkResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1RemoveCertificateResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesNetworksRemoveCertificateArgs>
+    for GoogleChromePolicyVersionsV1RemoveCertificateResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesNetworksRemoveCertificateArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromePolicyVersionsV1RemoveCertificateResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromePolicyVersionsV1RemoveCertificateResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1RemoveNetworkResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPoliciesNetworksRemoveNetworkArgs>
+    for GoogleChromePolicyVersionsV1RemoveNetworkResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ChromepolicyCustomersPoliciesNetworksRemoveNetworkArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleChromePolicyVersionsV1RemoveNetworkResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromePolicyVersionsV1RemoveNetworkResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1PolicySchema.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPolicySchemasGetArgs>
+    for GoogleChromePolicyVersionsV1PolicySchema
+{
+    fn generate_resource_id(&self, input: &ChromepolicyCustomersPolicySchemasGetArgs) -> String {
+        format!(
+            "gcp::GoogleChromePolicyVersionsV1PolicySchema/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromePolicyVersionsV1PolicySchema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1ListPolicySchemasResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyCustomersPolicySchemasListArgs>
+    for GoogleChromePolicyVersionsV1ListPolicySchemasResponse
+{
+    fn generate_resource_id(&self, input: &ChromepolicyCustomersPolicySchemasListArgs) -> String {
+        format!(
+            "gcp::GoogleChromePolicyVersionsV1ListPolicySchemasResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromePolicyVersionsV1ListPolicySchemasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleChromePolicyVersionsV1UploadPolicyFileResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ChromepolicyMediaUploadArgs>
+    for GoogleChromePolicyVersionsV1UploadPolicyFileResponse
+{
+    fn generate_resource_id(&self, input: &ChromepolicyMediaUploadArgs) -> String {
+        format!(
+            "gcp::GoogleChromePolicyVersionsV1UploadPolicyFileResponse/{}",
+            input.customer
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleChromePolicyVersionsV1UploadPolicyFileResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

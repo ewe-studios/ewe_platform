@@ -906,3 +906,216 @@ pub struct Money {
     #[serde(default)]
     pub units: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &JobsProjectsOperationsGetArgs) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CompleteQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsCompleteQueryArgs> for CompleteQueryResponse {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsCompleteQueryArgs) -> String {
+        format!("gcp::CompleteQueryResponse/{}", input.tenant)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CompleteQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Tenant.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsCreateArgs> for Tenant {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsCreateArgs) -> String {
+        format!("gcp::Tenant/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Tenant"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsDeleteArgs> for Empty {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsDeleteArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTenantsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsListArgs> for ListTenantsResponse {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsListArgs) -> String {
+        format!("gcp::ListTenantsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTenantsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ClientEvent.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsClientEventsCreateArgs> for ClientEvent {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsClientEventsCreateArgs) -> String {
+        format!("gcp::ClientEvent/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ClientEvent"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Company.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsCompaniesCreateArgs> for Company {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsCompaniesCreateArgs) -> String {
+        format!("gcp::Company/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Company"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCompaniesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsCompaniesListArgs> for ListCompaniesResponse {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsCompaniesListArgs) -> String {
+        format!("gcp::ListCompaniesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCompaniesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Job.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsJobsCreateArgs> for Job {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsJobsCreateArgs) -> String {
+        format!("gcp::Job/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Job"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsJobsListArgs> for ListJobsResponse {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsJobsListArgs) -> String {
+        format!("gcp::ListJobsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SearchJobsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<JobsProjectsTenantsJobsSearchArgs> for SearchJobsResponse {
+    fn generate_resource_id(&self, input: &JobsProjectsTenantsJobsSearchArgs) -> String {
+        format!("gcp::SearchJobsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SearchJobsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -438,3 +438,52 @@ pub struct GoogleTypeLatLng {
     #[serde(default)]
     pub longitude: ::core::option::Option<f64>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AddressvalidationProvideValidationFeedbackArgs>
+    for GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AddressvalidationProvideValidationFeedbackArgs,
+    ) -> String {
+        "gcp::GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleMapsAddressvalidationV1ValidateAddressResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AddressvalidationValidateAddressArgs>
+    for GoogleMapsAddressvalidationV1ValidateAddressResponse
+{
+    fn generate_resource_id(&self, input: &AddressvalidationValidateAddressArgs) -> String {
+        "gcp::GoogleMapsAddressvalidationV1ValidateAddressResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleMapsAddressvalidationV1ValidateAddressResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -709,3 +709,584 @@ pub struct Expr {
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for DetachServiceProjectAttachmentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsDetachServiceProjectAttachmentArgs>
+    for DetachServiceProjectAttachmentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsDetachServiceProjectAttachmentArgs,
+    ) -> String {
+        format!("gcp::DetachServiceProjectAttachmentResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DetachServiceProjectAttachmentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &ApphubProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Boundary.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsGetBoundaryArgs> for Boundary {
+    fn generate_resource_id(&self, input: &ApphubProjectsLocationsGetBoundaryArgs) -> String {
+        format!("gcp::Boundary/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Boundary"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &ApphubProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LookupServiceProjectAttachmentResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsLookupServiceProjectAttachmentArgs>
+    for LookupServiceProjectAttachmentResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsLookupServiceProjectAttachmentArgs,
+    ) -> String {
+        format!("gcp::LookupServiceProjectAttachmentResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LookupServiceProjectAttachmentResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsUpdateBoundaryArgs> for Operation {
+    fn generate_resource_id(&self, input: &ApphubProjectsLocationsUpdateBoundaryArgs) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Application.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsApplicationsGetArgs> for Application {
+    fn generate_resource_id(&self, input: &ApphubProjectsLocationsApplicationsGetArgs) -> String {
+        format!("gcp::Application/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Application"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsApplicationsGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsApplicationsGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListApplicationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsApplicationsListArgs> for ListApplicationsResponse {
+    fn generate_resource_id(&self, input: &ApphubProjectsLocationsApplicationsListArgs) -> String {
+        format!("gcp::ListApplicationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListApplicationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsApplicationsTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsApplicationsTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Service.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsApplicationsServicesGetArgs> for Service {
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsApplicationsServicesGetArgs,
+    ) -> String {
+        format!("gcp::Service/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Service"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListServicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsApplicationsServicesListArgs>
+    for ListServicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsApplicationsServicesListArgs,
+    ) -> String {
+        format!("gcp::ListServicesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Workload.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsApplicationsWorkloadsGetArgs> for Workload {
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsApplicationsWorkloadsGetArgs,
+    ) -> String {
+        format!("gcp::Workload/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Workload"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListWorkloadsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsApplicationsWorkloadsListArgs>
+    for ListWorkloadsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsApplicationsWorkloadsListArgs,
+    ) -> String {
+        format!("gcp::ListWorkloadsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListWorkloadsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DiscoveredService.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsDiscoveredServicesGetArgs> for DiscoveredService {
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsDiscoveredServicesGetArgs,
+    ) -> String {
+        format!("gcp::DiscoveredService/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DiscoveredService"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDiscoveredServicesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsDiscoveredServicesListArgs>
+    for ListDiscoveredServicesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsDiscoveredServicesListArgs,
+    ) -> String {
+        format!("gcp::ListDiscoveredServicesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDiscoveredServicesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LookupDiscoveredServiceResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsDiscoveredServicesLookupArgs>
+    for LookupDiscoveredServiceResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsDiscoveredServicesLookupArgs,
+    ) -> String {
+        format!("gcp::LookupDiscoveredServiceResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LookupDiscoveredServiceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DiscoveredWorkload.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsDiscoveredWorkloadsGetArgs> for DiscoveredWorkload {
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsDiscoveredWorkloadsGetArgs,
+    ) -> String {
+        format!("gcp::DiscoveredWorkload/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DiscoveredWorkload"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDiscoveredWorkloadsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsDiscoveredWorkloadsListArgs>
+    for ListDiscoveredWorkloadsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsDiscoveredWorkloadsListArgs,
+    ) -> String {
+        format!("gcp::ListDiscoveredWorkloadsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDiscoveredWorkloadsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for LookupDiscoveredWorkloadResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsDiscoveredWorkloadsLookupArgs>
+    for LookupDiscoveredWorkloadResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsDiscoveredWorkloadsLookupArgs,
+    ) -> String {
+        format!("gcp::LookupDiscoveredWorkloadResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::LookupDiscoveredWorkloadResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExtendedMetadataSchema.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsExtendedMetadataSchemasGetArgs>
+    for ExtendedMetadataSchema
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsExtendedMetadataSchemasGetArgs,
+    ) -> String {
+        format!("gcp::ExtendedMetadataSchema/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExtendedMetadataSchema"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListExtendedMetadataSchemasResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsExtendedMetadataSchemasListArgs>
+    for ListExtendedMetadataSchemasResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsExtendedMetadataSchemasListArgs,
+    ) -> String {
+        format!("gcp::ListExtendedMetadataSchemasResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListExtendedMetadataSchemasResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(&self, input: &ApphubProjectsLocationsOperationsCancelArgs) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsOperationsListArgs> for ListOperationsResponse {
+    fn generate_resource_id(&self, input: &ApphubProjectsLocationsOperationsListArgs) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ServiceProjectAttachment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsServiceProjectAttachmentsGetArgs>
+    for ServiceProjectAttachment
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsServiceProjectAttachmentsGetArgs,
+    ) -> String {
+        format!("gcp::ServiceProjectAttachment/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ServiceProjectAttachment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListServiceProjectAttachmentsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApphubProjectsLocationsServiceProjectAttachmentsListArgs>
+    for ListServiceProjectAttachmentsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ApphubProjectsLocationsServiceProjectAttachmentsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListServiceProjectAttachmentsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListServiceProjectAttachmentsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

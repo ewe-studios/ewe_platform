@@ -112,3 +112,26 @@ pub struct Promotion {
     #[serde(default)]
     pub title: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Search.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<SearchCseListArgs> for Search {
+    fn generate_resource_id(&self, input: &SearchCseListArgs) -> String {
+        "gcp::Search".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Search"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

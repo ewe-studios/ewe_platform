@@ -677,3 +677,346 @@ pub struct GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRule {
     pub values:
         ::core::option::Option<GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRuleStringValues>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleLongrunningOperation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AssuredworkloadsOrganizationsLocationsOperationsGetArgs>
+    for GoogleLongrunningOperation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AssuredworkloadsOrganizationsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleLongrunningOperation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningOperation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleLongrunningListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AssuredworkloadsOrganizationsLocationsOperationsListArgs>
+    for GoogleLongrunningListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AssuredworkloadsOrganizationsLocationsOperationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleLongrunningListOperationsResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleLongrunningListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AssuredworkloadsOrganizationsLocationsWorkloadsAnalyzeWorkloadMoveArgs>
+    for GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AssuredworkloadsOrganizationsLocationsWorkloadsAnalyzeWorkloadMoveArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse/{}",
+            input.target
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleProtobufEmpty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AssuredworkloadsOrganizationsLocationsWorkloadsDeleteArgs>
+    for GoogleProtobufEmpty
+{
+    fn generate_resource_id(
+        &self,
+        input: &AssuredworkloadsOrganizationsLocationsWorkloadsDeleteArgs,
+    ) -> String {
+        format!("gcp::GoogleProtobufEmpty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleProtobufEmpty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudAssuredworkloadsV1EnableComplianceUpdatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AssuredworkloadsOrganizationsLocationsWorkloadsEnableComplianceUpdatesArgs>
+    for GoogleCloudAssuredworkloadsV1EnableComplianceUpdatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AssuredworkloadsOrganizationsLocationsWorkloadsEnableComplianceUpdatesArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudAssuredworkloadsV1EnableComplianceUpdatesResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudAssuredworkloadsV1EnableComplianceUpdatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudAssuredworkloadsV1EnableResourceMonitoringResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AssuredworkloadsOrganizationsLocationsWorkloadsEnableResourceMonitoringArgs>
+    for GoogleCloudAssuredworkloadsV1EnableResourceMonitoringResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AssuredworkloadsOrganizationsLocationsWorkloadsEnableResourceMonitoringArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudAssuredworkloadsV1EnableResourceMonitoringResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudAssuredworkloadsV1EnableResourceMonitoringResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudAssuredworkloadsV1Workload.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AssuredworkloadsOrganizationsLocationsWorkloadsGetArgs>
+    for GoogleCloudAssuredworkloadsV1Workload
+{
+    fn generate_resource_id(
+        &self,
+        input: &AssuredworkloadsOrganizationsLocationsWorkloadsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudAssuredworkloadsV1Workload/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudAssuredworkloadsV1Workload"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudAssuredworkloadsV1ListWorkloadsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AssuredworkloadsOrganizationsLocationsWorkloadsListArgs>
+    for GoogleCloudAssuredworkloadsV1ListWorkloadsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AssuredworkloadsOrganizationsLocationsWorkloadsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudAssuredworkloadsV1ListWorkloadsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudAssuredworkloadsV1ListWorkloadsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AssuredworkloadsOrganizationsLocationsWorkloadsRestrictAllowedResourcesArgs>
+    for GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AssuredworkloadsOrganizationsLocationsWorkloadsRestrictAllowedResourcesArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudAssuredworkloadsV1ListWorkloadUpdatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AssuredworkloadsOrganizationsLocationsWorkloadsUpdatesListArgs>
+    for GoogleCloudAssuredworkloadsV1ListWorkloadUpdatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AssuredworkloadsOrganizationsLocationsWorkloadsUpdatesListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudAssuredworkloadsV1ListWorkloadUpdatesResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudAssuredworkloadsV1ListWorkloadUpdatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudAssuredworkloadsV1AcknowledgeViolationResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AssuredworkloadsOrganizationsLocationsWorkloadsViolationsAcknowledgeArgs>
+    for GoogleCloudAssuredworkloadsV1AcknowledgeViolationResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AssuredworkloadsOrganizationsLocationsWorkloadsViolationsAcknowledgeArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudAssuredworkloadsV1AcknowledgeViolationResponse/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudAssuredworkloadsV1AcknowledgeViolationResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudAssuredworkloadsV1Violation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AssuredworkloadsOrganizationsLocationsWorkloadsViolationsGetArgs>
+    for GoogleCloudAssuredworkloadsV1Violation
+{
+    fn generate_resource_id(
+        &self,
+        input: &AssuredworkloadsOrganizationsLocationsWorkloadsViolationsGetArgs,
+    ) -> String {
+        format!("gcp::GoogleCloudAssuredworkloadsV1Violation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudAssuredworkloadsV1Violation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudAssuredworkloadsV1ListViolationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AssuredworkloadsOrganizationsLocationsWorkloadsViolationsListArgs>
+    for GoogleCloudAssuredworkloadsV1ListViolationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AssuredworkloadsOrganizationsLocationsWorkloadsViolationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudAssuredworkloadsV1ListViolationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudAssuredworkloadsV1ListViolationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

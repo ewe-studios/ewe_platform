@@ -1072,7 +1072,9 @@ impl ClientGenerator {
                 .replace('<', "_")
                 .replace('>', "_")
                 .replace('[', "_")
-                .replace(']', "_");
+                .replace(']', "_")
+                .replace('(', "_")
+                .replace(')', "_");
             return self.to_snake_case(&clean_id);
         }
 
@@ -1090,7 +1092,9 @@ impl ClientGenerator {
             .replace('<', "_") // Replace < in path
             .replace('>', "_") // Replace > in path
             .replace('[', "_") // Replace [ in path
-            .replace(']', "_"); // Replace ] in path
+            .replace(']', "_") // Replace ] in path
+            .replace('(', "") // Remove ( from path
+            .replace(')', ""); // Remove ) from path
         format!("{}_{}", endpoint.method.to_lowercase(), path_part)
     }
 
@@ -1104,27 +1108,37 @@ impl ClientGenerator {
             .replace('<', "_")
             .replace('>', "_")
             .replace('[', "_")
-            .replace(']', "_");
+            .replace(']', "_")
+            .replace('(', "_")
+            .replace(')', "_");
 
         let mut result = String::new();
         let mut prev_was_upper = false;
+        let mut prev_was_underscore = false;
 
         for (i, c) in normalized.chars().enumerate() {
             if c.is_uppercase() {
-                if i > 0 && !prev_was_upper {
+                if i > 0 && !prev_was_upper && !prev_was_underscore {
                     result.push('_');
                 }
                 result.push(c.to_lowercase().next().unwrap());
                 prev_was_upper = true;
+                prev_was_underscore = false;
             } else if c.is_numeric() {
                 result.push(c);
                 prev_was_upper = false;
+                prev_was_underscore = false;
             } else if c == '_' {
-                result.push('_');
+                // Skip consecutive underscores
+                if !prev_was_underscore {
+                    result.push('_');
+                }
                 prev_was_upper = false;
+                prev_was_underscore = true;
             } else {
                 result.push(c);
                 prev_was_upper = false;
+                prev_was_underscore = false;
             }
         }
 
@@ -1146,7 +1160,9 @@ impl ClientGenerator {
             .replace('<', "_")
             .replace('>', "_")
             .replace('[', "_")
-            .replace(']', "_");
+            .replace(']', "_")
+            .replace('(', "_")
+            .replace(')', "_");
 
         normalized.split('_')
             .filter(|part| !part.is_empty())

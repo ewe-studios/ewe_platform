@@ -1794,3 +1794,818 @@ pub struct ProfileSummary {
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GaData.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsDataGaGetArgs> for GaData {
+    fn generate_resource_id(&self, input: &AnalyticsDataGaGetArgs) -> String {
+        "gcp::GaData".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GaData"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for McfData.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsDataMcfGetArgs> for McfData {
+    fn generate_resource_id(&self, input: &AnalyticsDataMcfGetArgs) -> String {
+        "gcp::McfData".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::McfData"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RealtimeData.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsDataRealtimeGetArgs> for RealtimeData {
+    fn generate_resource_id(&self, input: &AnalyticsDataRealtimeGetArgs) -> String {
+        "gcp::RealtimeData".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RealtimeData"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountSummaries.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementAccountSummariesListArgs> for AccountSummaries {
+    fn generate_resource_id(&self, input: &AnalyticsManagementAccountSummariesListArgs) -> String {
+        "gcp::AccountSummaries".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountSummaries"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EntityUserLink.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementAccountUserLinksInsertArgs> for EntityUserLink {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsManagementAccountUserLinksInsertArgs,
+    ) -> String {
+        format!("gcp::EntityUserLink/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EntityUserLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EntityUserLinks.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementAccountUserLinksListArgs> for EntityUserLinks {
+    fn generate_resource_id(&self, input: &AnalyticsManagementAccountUserLinksListArgs) -> String {
+        format!("gcp::EntityUserLinks/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EntityUserLinks"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Accounts.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementAccountsListArgs> for Accounts {
+    fn generate_resource_id(&self, input: &AnalyticsManagementAccountsListArgs) -> String {
+        "gcp::Accounts".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Accounts"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for HashClientIdResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementClientIdHashClientIdArgs> for HashClientIdResponse {
+    fn generate_resource_id(&self, input: &AnalyticsManagementClientIdHashClientIdArgs) -> String {
+        "gcp::HashClientIdResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::HashClientIdResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomDataSources.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementCustomDataSourcesListArgs> for CustomDataSources {
+    fn generate_resource_id(&self, input: &AnalyticsManagementCustomDataSourcesListArgs) -> String {
+        format!(
+            "gcp::CustomDataSources/{}/{}",
+            input.account_id, input.web_property_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomDataSources"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomDimension.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementCustomDimensionsGetArgs> for CustomDimension {
+    fn generate_resource_id(&self, input: &AnalyticsManagementCustomDimensionsGetArgs) -> String {
+        format!(
+            "gcp::CustomDimension/{}/{}/{}",
+            input.account_id, input.web_property_id, input.custom_dimension_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomDimension"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomDimensions.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementCustomDimensionsListArgs> for CustomDimensions {
+    fn generate_resource_id(&self, input: &AnalyticsManagementCustomDimensionsListArgs) -> String {
+        format!(
+            "gcp::CustomDimensions/{}/{}",
+            input.account_id, input.web_property_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomDimensions"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomMetric.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementCustomMetricsGetArgs> for CustomMetric {
+    fn generate_resource_id(&self, input: &AnalyticsManagementCustomMetricsGetArgs) -> String {
+        format!(
+            "gcp::CustomMetric/{}/{}/{}",
+            input.account_id, input.web_property_id, input.custom_metric_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomMetric"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CustomMetrics.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementCustomMetricsListArgs> for CustomMetrics {
+    fn generate_resource_id(&self, input: &AnalyticsManagementCustomMetricsListArgs) -> String {
+        format!(
+            "gcp::CustomMetrics/{}/{}",
+            input.account_id, input.web_property_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CustomMetrics"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Experiment.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementExperimentsGetArgs> for Experiment {
+    fn generate_resource_id(&self, input: &AnalyticsManagementExperimentsGetArgs) -> String {
+        format!(
+            "gcp::Experiment/{}/{}/{}/{}",
+            input.account_id, input.web_property_id, input.profile_id, input.experiment_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Experiment"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Experiments.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementExperimentsListArgs> for Experiments {
+    fn generate_resource_id(&self, input: &AnalyticsManagementExperimentsListArgs) -> String {
+        format!(
+            "gcp::Experiments/{}/{}/{}",
+            input.account_id, input.web_property_id, input.profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Experiments"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Filter.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementFiltersDeleteArgs> for Filter {
+    fn generate_resource_id(&self, input: &AnalyticsManagementFiltersDeleteArgs) -> String {
+        format!("gcp::Filter/{}/{}", input.account_id, input.filter_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Filter"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Filters.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementFiltersListArgs> for Filters {
+    fn generate_resource_id(&self, input: &AnalyticsManagementFiltersListArgs) -> String {
+        format!("gcp::Filters/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Filters"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Goal.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementGoalsGetArgs> for Goal {
+    fn generate_resource_id(&self, input: &AnalyticsManagementGoalsGetArgs) -> String {
+        format!(
+            "gcp::Goal/{}/{}/{}/{}",
+            input.account_id, input.web_property_id, input.profile_id, input.goal_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Goal"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Goals.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementGoalsListArgs> for Goals {
+    fn generate_resource_id(&self, input: &AnalyticsManagementGoalsListArgs) -> String {
+        format!(
+            "gcp::Goals/{}/{}/{}",
+            input.account_id, input.web_property_id, input.profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Goals"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ProfileFilterLink.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementProfileFilterLinksGetArgs> for ProfileFilterLink {
+    fn generate_resource_id(&self, input: &AnalyticsManagementProfileFilterLinksGetArgs) -> String {
+        format!(
+            "gcp::ProfileFilterLink/{}/{}/{}/{}",
+            input.account_id, input.web_property_id, input.profile_id, input.link_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProfileFilterLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ProfileFilterLinks.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementProfileFilterLinksListArgs> for ProfileFilterLinks {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsManagementProfileFilterLinksListArgs,
+    ) -> String {
+        format!(
+            "gcp::ProfileFilterLinks/{}/{}/{}",
+            input.account_id, input.web_property_id, input.profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ProfileFilterLinks"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Profile.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementProfilesGetArgs> for Profile {
+    fn generate_resource_id(&self, input: &AnalyticsManagementProfilesGetArgs) -> String {
+        format!(
+            "gcp::Profile/{}/{}/{}",
+            input.account_id, input.web_property_id, input.profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Profile"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Profiles.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementProfilesListArgs> for Profiles {
+    fn generate_resource_id(&self, input: &AnalyticsManagementProfilesListArgs) -> String {
+        format!(
+            "gcp::Profiles/{}/{}",
+            input.account_id, input.web_property_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Profiles"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RemarketingAudience.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementRemarketingAudienceGetArgs> for RemarketingAudience {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsManagementRemarketingAudienceGetArgs,
+    ) -> String {
+        format!(
+            "gcp::RemarketingAudience/{}/{}/{}",
+            input.account_id, input.web_property_id, input.remarketing_audience_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RemarketingAudience"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RemarketingAudiences.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementRemarketingAudienceListArgs> for RemarketingAudiences {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsManagementRemarketingAudienceListArgs,
+    ) -> String {
+        format!(
+            "gcp::RemarketingAudiences/{}/{}",
+            input.account_id, input.web_property_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RemarketingAudiences"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Segments.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementSegmentsListArgs> for Segments {
+    fn generate_resource_id(&self, input: &AnalyticsManagementSegmentsListArgs) -> String {
+        "gcp::Segments".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Segments"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UnsampledReport.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementUnsampledReportsGetArgs> for UnsampledReport {
+    fn generate_resource_id(&self, input: &AnalyticsManagementUnsampledReportsGetArgs) -> String {
+        format!(
+            "gcp::UnsampledReport/{}/{}/{}/{}",
+            input.account_id, input.web_property_id, input.profile_id, input.unsampled_report_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UnsampledReport"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UnsampledReports.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementUnsampledReportsListArgs> for UnsampledReports {
+    fn generate_resource_id(&self, input: &AnalyticsManagementUnsampledReportsListArgs) -> String {
+        format!(
+            "gcp::UnsampledReports/{}/{}/{}",
+            input.account_id, input.web_property_id, input.profile_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UnsampledReports"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Upload.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementUploadsGetArgs> for Upload {
+    fn generate_resource_id(&self, input: &AnalyticsManagementUploadsGetArgs) -> String {
+        format!(
+            "gcp::Upload/{}/{}/{}/{}",
+            input.account_id, input.web_property_id, input.custom_data_source_id, input.upload_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Upload"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Uploads.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementUploadsListArgs> for Uploads {
+    fn generate_resource_id(&self, input: &AnalyticsManagementUploadsListArgs) -> String {
+        format!(
+            "gcp::Uploads/{}/{}/{}",
+            input.account_id, input.web_property_id, input.custom_data_source_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Uploads"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EntityAdWordsLink.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementWebPropertyAdWordsLinksGetArgs> for EntityAdWordsLink {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsManagementWebPropertyAdWordsLinksGetArgs,
+    ) -> String {
+        format!(
+            "gcp::EntityAdWordsLink/{}/{}/{}",
+            input.account_id, input.web_property_id, input.web_property_ad_words_link_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EntityAdWordsLink"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EntityAdWordsLinks.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementWebPropertyAdWordsLinksListArgs> for EntityAdWordsLinks {
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsManagementWebPropertyAdWordsLinksListArgs,
+    ) -> String {
+        format!(
+            "gcp::EntityAdWordsLinks/{}/{}",
+            input.account_id, input.web_property_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EntityAdWordsLinks"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Webproperty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementWebpropertiesGetArgs> for Webproperty {
+    fn generate_resource_id(&self, input: &AnalyticsManagementWebpropertiesGetArgs) -> String {
+        format!(
+            "gcp::Webproperty/{}/{}",
+            input.account_id, input.web_property_id
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Webproperty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Webproperties.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsManagementWebpropertiesListArgs> for Webproperties {
+    fn generate_resource_id(&self, input: &AnalyticsManagementWebpropertiesListArgs) -> String {
+        format!("gcp::Webproperties/{}", input.account_id)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Webproperties"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Columns.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsMetadataColumnsListArgs> for Columns {
+    fn generate_resource_id(&self, input: &AnalyticsMetadataColumnsListArgs) -> String {
+        format!("gcp::Columns/{}", input.report_type)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Columns"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountTicket.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsProvisioningCreateAccountTicketArgs> for AccountTicket {
+    fn generate_resource_id(&self, input: &AnalyticsProvisioningCreateAccountTicketArgs) -> String {
+        "gcp::AccountTicket".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountTicket"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for AccountTreeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsProvisioningCreateAccountTreeArgs> for AccountTreeResponse {
+    fn generate_resource_id(&self, input: &AnalyticsProvisioningCreateAccountTreeArgs) -> String {
+        "gcp::AccountTreeResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::AccountTreeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UserDeletionRequest.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AnalyticsUserDeletionUserDeletionRequestUpsertArgs>
+    for UserDeletionRequest
+{
+    fn generate_resource_id(
+        &self,
+        input: &AnalyticsUserDeletionUserDeletionRequestUpsertArgs,
+    ) -> String {
+        "gcp::UserDeletionRequest".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UserDeletionRequest"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

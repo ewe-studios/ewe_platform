@@ -628,3 +628,406 @@ pub struct IPs {
     #[serde(default, rename = "servingOnAltPorts")]
     pub serving_on_alt_ports: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Location.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsGetArgs> for Location {
+    fn generate_resource_id(&self, input: &CertificatemanagerProjectsLocationsGetArgs) -> String {
+        format!("gcp::Location/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Location"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListLocationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsListArgs> for ListLocationsResponse {
+    fn generate_resource_id(&self, input: &CertificatemanagerProjectsLocationsListArgs) -> String {
+        format!("gcp::ListLocationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListLocationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsCertificateIssuanceConfigsCreateArgs>
+    for Operation
+{
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsCertificateIssuanceConfigsCreateArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CertificateIssuanceConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsCertificateIssuanceConfigsGetArgs>
+    for CertificateIssuanceConfig
+{
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsCertificateIssuanceConfigsGetArgs,
+    ) -> String {
+        format!("gcp::CertificateIssuanceConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CertificateIssuanceConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCertificateIssuanceConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsCertificateIssuanceConfigsListArgs>
+    for ListCertificateIssuanceConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsCertificateIssuanceConfigsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListCertificateIssuanceConfigsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCertificateIssuanceConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CertificateMap.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsCertificateMapsGetArgs>
+    for CertificateMap
+{
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsCertificateMapsGetArgs,
+    ) -> String {
+        format!("gcp::CertificateMap/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CertificateMap"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCertificateMapsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsCertificateMapsListArgs>
+    for ListCertificateMapsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsCertificateMapsListArgs,
+    ) -> String {
+        format!("gcp::ListCertificateMapsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCertificateMapsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CertificateMapEntry.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntriesGetArgs,
+    > for CertificateMapEntry
+{
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntriesGetArgs,
+    ) -> String {
+        format!("gcp::CertificateMapEntry/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CertificateMapEntry"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCertificateMapEntriesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntriesListArgs,
+    > for ListCertificateMapEntriesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsCertificateMapsCertificateMapEntriesListArgs,
+    ) -> String {
+        format!("gcp::ListCertificateMapEntriesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCertificateMapEntriesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Certificate.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsCertificatesGetArgs> for Certificate {
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsCertificatesGetArgs,
+    ) -> String {
+        format!("gcp::Certificate/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Certificate"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCertificatesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsCertificatesListArgs>
+    for ListCertificatesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsCertificatesListArgs,
+    ) -> String {
+        format!("gcp::ListCertificatesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCertificatesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DnsAuthorization.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsDnsAuthorizationsGetArgs>
+    for DnsAuthorization
+{
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsDnsAuthorizationsGetArgs,
+    ) -> String {
+        format!("gcp::DnsAuthorization/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DnsAuthorization"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDnsAuthorizationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsDnsAuthorizationsListArgs>
+    for ListDnsAuthorizationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsDnsAuthorizationsListArgs,
+    ) -> String {
+        format!("gcp::ListDnsAuthorizationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDnsAuthorizationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TrustConfig.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsTrustConfigsGetArgs> for TrustConfig {
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsTrustConfigsGetArgs,
+    ) -> String {
+        format!("gcp::TrustConfig/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TrustConfig"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTrustConfigsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<CertificatemanagerProjectsLocationsTrustConfigsListArgs>
+    for ListTrustConfigsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &CertificatemanagerProjectsLocationsTrustConfigsListArgs,
+    ) -> String {
+        format!("gcp::ListTrustConfigsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTrustConfigsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

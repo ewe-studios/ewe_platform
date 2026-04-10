@@ -1145,3 +1145,450 @@ pub struct UserInfo {
     #[serde(default)]
     pub version: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for CreateAuthUriResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyCreateAuthUriArgs> for CreateAuthUriResponse {
+    fn generate_resource_id(&self, input: &IdentitytoolkitRelyingpartyCreateAuthUriArgs) -> String {
+        "gcp::CreateAuthUriResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CreateAuthUriResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DeleteAccountResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyDeleteAccountArgs> for DeleteAccountResponse {
+    fn generate_resource_id(&self, input: &IdentitytoolkitRelyingpartyDeleteAccountArgs) -> String {
+        "gcp::DeleteAccountResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DeleteAccountResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for DownloadAccountResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyDownloadAccountArgs>
+    for DownloadAccountResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyDownloadAccountArgs,
+    ) -> String {
+        "gcp::DownloadAccountResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DownloadAccountResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EmailLinkSigninResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyEmailLinkSigninArgs>
+    for EmailLinkSigninResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyEmailLinkSigninArgs,
+    ) -> String {
+        "gcp::EmailLinkSigninResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EmailLinkSigninResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetAccountInfoResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyGetAccountInfoArgs> for GetAccountInfoResponse {
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyGetAccountInfoArgs,
+    ) -> String {
+        "gcp::GetAccountInfoResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetAccountInfoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetOobConfirmationCodeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyGetOobConfirmationCodeArgs>
+    for GetOobConfirmationCodeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyGetOobConfirmationCodeArgs,
+    ) -> String {
+        "gcp::GetOobConfirmationCodeResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetOobConfirmationCodeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IdentitytoolkitRelyingpartyGetProjectConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyGetProjectConfigArgs>
+    for IdentitytoolkitRelyingpartyGetProjectConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyGetProjectConfigArgs,
+    ) -> String {
+        "gcp::IdentitytoolkitRelyingpartyGetProjectConfigResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IdentitytoolkitRelyingpartyGetProjectConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IdentitytoolkitRelyingpartyGetPublicKeysResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyGetPublicKeysArgs>
+    for IdentitytoolkitRelyingpartyGetPublicKeysResponse
+{
+    fn generate_resource_id(&self, input: &IdentitytoolkitRelyingpartyGetPublicKeysArgs) -> String {
+        "gcp::IdentitytoolkitRelyingpartyGetPublicKeysResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IdentitytoolkitRelyingpartyGetPublicKeysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetRecaptchaParamResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyGetRecaptchaParamArgs>
+    for GetRecaptchaParamResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyGetRecaptchaParamArgs,
+    ) -> String {
+        "gcp::GetRecaptchaParamResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetRecaptchaParamResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResetPasswordResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyResetPasswordArgs> for ResetPasswordResponse {
+    fn generate_resource_id(&self, input: &IdentitytoolkitRelyingpartyResetPasswordArgs) -> String {
+        "gcp::ResetPasswordResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResetPasswordResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IdentitytoolkitRelyingpartySendVerificationCodeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartySendVerificationCodeArgs>
+    for IdentitytoolkitRelyingpartySendVerificationCodeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartySendVerificationCodeArgs,
+    ) -> String {
+        "gcp::IdentitytoolkitRelyingpartySendVerificationCodeResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IdentitytoolkitRelyingpartySendVerificationCodeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SetAccountInfoResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartySetAccountInfoArgs> for SetAccountInfoResponse {
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartySetAccountInfoArgs,
+    ) -> String {
+        "gcp::SetAccountInfoResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SetAccountInfoResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IdentitytoolkitRelyingpartySetProjectConfigResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartySetProjectConfigArgs>
+    for IdentitytoolkitRelyingpartySetProjectConfigResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartySetProjectConfigArgs,
+    ) -> String {
+        "gcp::IdentitytoolkitRelyingpartySetProjectConfigResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IdentitytoolkitRelyingpartySetProjectConfigResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IdentitytoolkitRelyingpartySignOutUserResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartySignOutUserArgs>
+    for IdentitytoolkitRelyingpartySignOutUserResponse
+{
+    fn generate_resource_id(&self, input: &IdentitytoolkitRelyingpartySignOutUserArgs) -> String {
+        "gcp::IdentitytoolkitRelyingpartySignOutUserResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IdentitytoolkitRelyingpartySignOutUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SignupNewUserResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartySignupNewUserArgs> for SignupNewUserResponse {
+    fn generate_resource_id(&self, input: &IdentitytoolkitRelyingpartySignupNewUserArgs) -> String {
+        "gcp::SignupNewUserResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SignupNewUserResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UploadAccountResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyUploadAccountArgs> for UploadAccountResponse {
+    fn generate_resource_id(&self, input: &IdentitytoolkitRelyingpartyUploadAccountArgs) -> String {
+        "gcp::UploadAccountResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UploadAccountResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VerifyAssertionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyVerifyAssertionArgs>
+    for VerifyAssertionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyVerifyAssertionArgs,
+    ) -> String {
+        "gcp::VerifyAssertionResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VerifyAssertionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VerifyCustomTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyVerifyCustomTokenArgs>
+    for VerifyCustomTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyVerifyCustomTokenArgs,
+    ) -> String {
+        "gcp::VerifyCustomTokenResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VerifyCustomTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VerifyPasswordResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyVerifyPasswordArgs> for VerifyPasswordResponse {
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyVerifyPasswordArgs,
+    ) -> String {
+        "gcp::VerifyPasswordResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VerifyPasswordResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IdentitytoolkitRelyingpartyVerifyPhoneNumberArgs>
+    for IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IdentitytoolkitRelyingpartyVerifyPhoneNumberArgs,
+    ) -> String {
+        "gcp::IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IdentitytoolkitRelyingpartyVerifyPhoneNumberResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

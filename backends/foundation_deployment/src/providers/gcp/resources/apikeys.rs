@@ -192,3 +192,102 @@ pub struct V2AndroidApplication {
     #[serde(default, rename = "sha1Fingerprint")]
     pub sha1_fingerprint: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for V2LookupKeyResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApikeysKeysLookupKeyArgs> for V2LookupKeyResponse {
+    fn generate_resource_id(&self, input: &ApikeysKeysLookupKeyArgs) -> String {
+        "gcp::V2LookupKeyResponse".to_string()
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::V2LookupKeyResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApikeysOperationsGetArgs> for Operation {
+    fn generate_resource_id(&self, input: &ApikeysOperationsGetArgs) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for V2Key.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApikeysProjectsLocationsKeysGetArgs> for V2Key {
+    fn generate_resource_id(&self, input: &ApikeysProjectsLocationsKeysGetArgs) -> String {
+        format!("gcp::V2Key/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::V2Key"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for V2GetKeyStringResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApikeysProjectsLocationsKeysGetKeyStringArgs> for V2GetKeyStringResponse {
+    fn generate_resource_id(&self, input: &ApikeysProjectsLocationsKeysGetKeyStringArgs) -> String {
+        format!("gcp::V2GetKeyStringResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::V2GetKeyStringResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for V2ListKeysResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ApikeysProjectsLocationsKeysListArgs> for V2ListKeysResponse {
+    fn generate_resource_id(&self, input: &ApikeysProjectsLocationsKeysListArgs) -> String {
+        format!("gcp::V2ListKeysResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::V2ListKeysResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -990,3 +990,487 @@ pub struct TimeOfDay {
     #[serde(default)]
     pub seconds: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for CheckReadinessResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsCheckReadinessArgs>
+    for CheckReadinessResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsCheckReadinessArgs,
+    ) -> String {
+        format!("gcp::CheckReadinessResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CheckReadinessResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CheckStatusResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsCheckStatusArgs>
+    for CheckStatusResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsCheckStatusArgs,
+    ) -> String {
+        format!("gcp::CheckStatusResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CheckStatusResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExchangeAuthCodeResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsExchangeAuthCodeArgs>
+    for ExchangeAuthCodeResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsExchangeAuthCodeArgs,
+    ) -> String {
+        format!("gcp::ExchangeAuthCodeResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExchangeAuthCodeResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExecuteSqlQueryResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsExecuteSqlQueryArgs>
+    for ExecuteSqlQueryResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsExecuteSqlQueryArgs,
+    ) -> String {
+        format!("gcp::ExecuteSqlQueryResponse/{}", input.connection)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExecuteSqlQueryResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateCustomToolspecResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<ConnectorsProjectsLocationsConnectionsGenerateConnectionToolspecOverrideArgs>
+    for GenerateCustomToolspecResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsGenerateConnectionToolspecOverrideArgs,
+    ) -> String {
+        format!("gcp::GenerateCustomToolspecResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateCustomToolspecResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListCustomToolNamesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsListCustomToolNamesArgs>
+    for ListCustomToolNamesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsListCustomToolNamesArgs,
+    ) -> String {
+        format!("gcp::ListCustomToolNamesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListCustomToolNamesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for RefreshAccessTokenResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsRefreshAccessTokenArgs>
+    for RefreshAccessTokenResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsRefreshAccessTokenArgs,
+    ) -> String {
+        format!("gcp::RefreshAccessTokenResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::RefreshAccessTokenResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListToolsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsToolsArgs> for ListToolsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsToolsArgs,
+    ) -> String {
+        format!("gcp::ListToolsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListToolsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExecuteActionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsActionsExecuteArgs>
+    for ExecuteActionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsActionsExecuteArgs,
+    ) -> String {
+        format!("gcp::ExecuteActionResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExecuteActionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Action.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsActionsGetArgs> for Action {
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsActionsGetArgs,
+    ) -> String {
+        format!("gcp::Action/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Action"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListActionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsActionsListArgs>
+    for ListActionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsActionsListArgs,
+    ) -> String {
+        format!("gcp::ListActionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListActionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EntityType.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsEntityTypesGetArgs> for EntityType {
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsEntityTypesGetArgs,
+    ) -> String {
+        format!("gcp::EntityType/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EntityType"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListEntityTypesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsEntityTypesListArgs>
+    for ListEntityTypesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsEntityTypesListArgs,
+    ) -> String {
+        format!("gcp::ListEntityTypesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListEntityTypesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Entity.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesCreateArgs>
+    for Entity
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesCreateArgs,
+    ) -> String {
+        format!("gcp::Entity/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Entity"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesDeleteArgs>
+    for Empty
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListEntitiesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesListArgs>
+    for ListEntitiesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesListArgs,
+    ) -> String {
+        format!("gcp::ListEntitiesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListEntitiesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UpdateEntitiesWithConditionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl
+    ResourceIdentifier<
+        ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesUpdateEntitiesWithConditionsArgs,
+    > for UpdateEntitiesWithConditionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsEntityTypesEntitiesUpdateEntitiesWithConditionsArgs,
+    ) -> String {
+        format!(
+            "gcp::UpdateEntitiesWithConditionsResponse/{}",
+            input.entity_type
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UpdateEntitiesWithConditionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GetResourceResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsResourcesGetArgs>
+    for GetResourceResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsResourcesGetArgs,
+    ) -> String {
+        format!("gcp::GetResourceResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GetResourceResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListResourcesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsResourcesListArgs>
+    for ListResourcesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsResourcesListArgs,
+    ) -> String {
+        format!("gcp::ListResourcesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListResourcesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExecuteToolResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ConnectorsProjectsLocationsConnectionsToolsExecuteArgs>
+    for ExecuteToolResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ConnectorsProjectsLocationsConnectionsToolsExecuteArgs,
+    ) -> String {
+        format!("gcp::ExecuteToolResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExecuteToolResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

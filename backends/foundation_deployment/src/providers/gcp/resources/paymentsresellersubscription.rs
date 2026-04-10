@@ -694,3 +694,295 @@ pub struct Amount {
     #[serde(default, rename = "currencyCode")]
     pub currency_code: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for ListProductsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PaymentsresellersubscriptionPartnersProductsListArgs>
+    for ListProductsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PaymentsresellersubscriptionPartnersProductsListArgs,
+    ) -> String {
+        format!("gcp::ListProductsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListProductsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for FindEligiblePromotionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PaymentsresellersubscriptionPartnersPromotionsFindEligibleArgs>
+    for FindEligiblePromotionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PaymentsresellersubscriptionPartnersPromotionsFindEligibleArgs,
+    ) -> String {
+        format!("gcp::FindEligiblePromotionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::FindEligiblePromotionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPromotionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PaymentsresellersubscriptionPartnersPromotionsListArgs>
+    for ListPromotionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PaymentsresellersubscriptionPartnersPromotionsListArgs,
+    ) -> String {
+        format!("gcp::ListPromotionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPromotionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CancelSubscriptionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PaymentsresellersubscriptionPartnersSubscriptionsCancelArgs>
+    for CancelSubscriptionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PaymentsresellersubscriptionPartnersSubscriptionsCancelArgs,
+    ) -> String {
+        format!("gcp::CancelSubscriptionResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CancelSubscriptionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Subscription.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PaymentsresellersubscriptionPartnersSubscriptionsCreateArgs>
+    for Subscription
+{
+    fn generate_resource_id(
+        &self,
+        input: &PaymentsresellersubscriptionPartnersSubscriptionsCreateArgs,
+    ) -> String {
+        format!("gcp::Subscription/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for EntitleSubscriptionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PaymentsresellersubscriptionPartnersSubscriptionsEntitleArgs>
+    for EntitleSubscriptionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PaymentsresellersubscriptionPartnersSubscriptionsEntitleArgs,
+    ) -> String {
+        format!("gcp::EntitleSubscriptionResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::EntitleSubscriptionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExtendSubscriptionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PaymentsresellersubscriptionPartnersSubscriptionsExtendArgs>
+    for ExtendSubscriptionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PaymentsresellersubscriptionPartnersSubscriptionsExtendArgs,
+    ) -> String {
+        format!("gcp::ExtendSubscriptionResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExtendSubscriptionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ResumeSubscriptionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PaymentsresellersubscriptionPartnersSubscriptionsResumeArgs>
+    for ResumeSubscriptionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PaymentsresellersubscriptionPartnersSubscriptionsResumeArgs,
+    ) -> String {
+        format!("gcp::ResumeSubscriptionResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ResumeSubscriptionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SuspendSubscriptionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PaymentsresellersubscriptionPartnersSubscriptionsSuspendArgs>
+    for SuspendSubscriptionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PaymentsresellersubscriptionPartnersSubscriptionsSuspendArgs,
+    ) -> String {
+        format!("gcp::SuspendSubscriptionResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SuspendSubscriptionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for UndoCancelSubscriptionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PaymentsresellersubscriptionPartnersSubscriptionsUndoCancelArgs>
+    for UndoCancelSubscriptionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PaymentsresellersubscriptionPartnersSubscriptionsUndoCancelArgs,
+    ) -> String {
+        format!("gcp::UndoCancelSubscriptionResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::UndoCancelSubscriptionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for SubscriptionLineItem.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PaymentsresellersubscriptionPartnersSubscriptionsLineItemsPatchArgs>
+    for SubscriptionLineItem
+{
+    fn generate_resource_id(
+        &self,
+        input: &PaymentsresellersubscriptionPartnersSubscriptionsLineItemsPatchArgs,
+    ) -> String {
+        format!("gcp::SubscriptionLineItem/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::SubscriptionLineItem"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GenerateUserSessionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PaymentsresellersubscriptionPartnersUserSessionsGenerateArgs>
+    for GenerateUserSessionResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PaymentsresellersubscriptionPartnersUserSessionsGenerateArgs,
+    ) -> String {
+        format!("gcp::GenerateUserSessionResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GenerateUserSessionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

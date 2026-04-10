@@ -3132,3 +3132,285 @@ pub struct ProjectRepoId {
     #[serde(default, rename = "repoName")]
     pub repo_name: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for BatchCreateNotesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesBatchCreateArgs>
+    for BatchCreateNotesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesBatchCreateArgs,
+    ) -> String {
+        format!("gcp::BatchCreateNotesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchCreateNotesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Note.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesCreateArgs> for Note {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesCreateArgs,
+    ) -> String {
+        format!("gcp::Note/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Note"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesGetIamPolicyArgs,
+    ) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListNotesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesListArgs> for ListNotesResponse {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesListArgs,
+    ) -> String {
+        format!("gcp::ListNotesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListNotesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesTestIamPermissionsArgs>
+    for TestIamPermissionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesTestIamPermissionsArgs,
+    ) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListNoteOccurrencesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsNotesOccurrencesListArgs>
+    for ListNoteOccurrencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsNotesOccurrencesListArgs,
+    ) -> String {
+        format!("gcp::ListNoteOccurrencesResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListNoteOccurrencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for BatchCreateOccurrencesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesBatchCreateArgs>
+    for BatchCreateOccurrencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesBatchCreateArgs,
+    ) -> String {
+        format!("gcp::BatchCreateOccurrencesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::BatchCreateOccurrencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Occurrence.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesCreateArgs> for Occurrence {
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesCreateArgs,
+    ) -> String {
+        format!("gcp::Occurrence/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Occurrence"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for VulnerabilityOccurrencesSummary.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesGetVulnerabilitySummaryArgs>
+    for VulnerabilityOccurrencesSummary
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesGetVulnerabilitySummaryArgs,
+    ) -> String {
+        format!("gcp::VulnerabilityOccurrencesSummary/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::VulnerabilityOccurrencesSummary"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOccurrencesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsOccurrencesListArgs>
+    for ListOccurrencesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsOccurrencesListArgs,
+    ) -> String {
+        format!("gcp::ListOccurrencesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOccurrencesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ExportSBOMResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<ContaineranalysisProjectsLocationsResourcesExportSBOMArgs>
+    for ExportSBOMResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &ContaineranalysisProjectsLocationsResourcesExportSBOMArgs,
+    ) -> String {
+        format!("gcp::ExportSBOMResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ExportSBOMResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

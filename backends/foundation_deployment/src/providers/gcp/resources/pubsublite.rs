@@ -413,3 +413,403 @@ pub struct Capacity {
     #[serde(default, rename = "subscribeMibPerSec")]
     pub subscribe_mib_per_sec: ::core::option::Option<i32>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteAdminProjectsLocationsOperationsCancelArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteAdminProjectsLocationsOperationsCancelArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Operation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteAdminProjectsLocationsOperationsGetArgs> for Operation {
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteAdminProjectsLocationsOperationsGetArgs,
+    ) -> String {
+        format!("gcp::Operation/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Operation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListOperationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteAdminProjectsLocationsOperationsListArgs>
+    for ListOperationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteAdminProjectsLocationsOperationsListArgs,
+    ) -> String {
+        format!("gcp::ListOperationsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListOperationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Reservation.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteAdminProjectsLocationsReservationsCreateArgs> for Reservation {
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteAdminProjectsLocationsReservationsCreateArgs,
+    ) -> String {
+        format!("gcp::Reservation/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Reservation"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListReservationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteAdminProjectsLocationsReservationsListArgs>
+    for ListReservationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteAdminProjectsLocationsReservationsListArgs,
+    ) -> String {
+        format!("gcp::ListReservationsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListReservationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListReservationTopicsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteAdminProjectsLocationsReservationsTopicsListArgs>
+    for ListReservationTopicsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteAdminProjectsLocationsReservationsTopicsListArgs,
+    ) -> String {
+        format!("gcp::ListReservationTopicsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListReservationTopicsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Subscription.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteAdminProjectsLocationsSubscriptionsCreateArgs> for Subscription {
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteAdminProjectsLocationsSubscriptionsCreateArgs,
+    ) -> String {
+        format!("gcp::Subscription/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Subscription"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListSubscriptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteAdminProjectsLocationsSubscriptionsListArgs>
+    for ListSubscriptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteAdminProjectsLocationsSubscriptionsListArgs,
+    ) -> String {
+        format!("gcp::ListSubscriptionsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListSubscriptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Topic.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteAdminProjectsLocationsTopicsCreateArgs> for Topic {
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteAdminProjectsLocationsTopicsCreateArgs,
+    ) -> String {
+        format!("gcp::Topic/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Topic"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TopicPartitions.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteAdminProjectsLocationsTopicsGetPartitionsArgs>
+    for TopicPartitions
+{
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteAdminProjectsLocationsTopicsGetPartitionsArgs,
+    ) -> String {
+        format!("gcp::TopicPartitions/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TopicPartitions"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTopicsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteAdminProjectsLocationsTopicsListArgs> for ListTopicsResponse {
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteAdminProjectsLocationsTopicsListArgs,
+    ) -> String {
+        format!("gcp::ListTopicsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTopicsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTopicSubscriptionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteAdminProjectsLocationsTopicsSubscriptionsListArgs>
+    for ListTopicSubscriptionsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteAdminProjectsLocationsTopicsSubscriptionsListArgs,
+    ) -> String {
+        format!("gcp::ListTopicSubscriptionsResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTopicSubscriptionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for CommitCursorResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteCursorProjectsLocationsSubscriptionsCommitCursorArgs>
+    for CommitCursorResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteCursorProjectsLocationsSubscriptionsCommitCursorArgs,
+    ) -> String {
+        format!("gcp::CommitCursorResponse/{}", input.subscription)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::CommitCursorResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListPartitionCursorsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteCursorProjectsLocationsSubscriptionsCursorsListArgs>
+    for ListPartitionCursorsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteCursorProjectsLocationsSubscriptionsCursorsListArgs,
+    ) -> String {
+        format!("gcp::ListPartitionCursorsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListPartitionCursorsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ComputeHeadCursorResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteTopicStatsProjectsLocationsTopicsComputeHeadCursorArgs>
+    for ComputeHeadCursorResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteTopicStatsProjectsLocationsTopicsComputeHeadCursorArgs,
+    ) -> String {
+        format!("gcp::ComputeHeadCursorResponse/{}", input.topic)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ComputeHeadCursorResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ComputeMessageStatsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteTopicStatsProjectsLocationsTopicsComputeMessageStatsArgs>
+    for ComputeMessageStatsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteTopicStatsProjectsLocationsTopicsComputeMessageStatsArgs,
+    ) -> String {
+        format!("gcp::ComputeMessageStatsResponse/{}", input.topic)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ComputeMessageStatsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ComputeTimeCursorResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<PubsubliteTopicStatsProjectsLocationsTopicsComputeTimeCursorArgs>
+    for ComputeTimeCursorResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &PubsubliteTopicStatsProjectsLocationsTopicsComputeTimeCursorArgs,
+    ) -> String {
+        format!("gcp::ComputeTimeCursorResponse/{}", input.topic)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ComputeTimeCursorResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

@@ -59,3 +59,53 @@ pub struct DatabaseInstance {
     #[serde(default, rename = "type")]
     pub type_: ::core::option::Option<String>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for DatabaseInstance.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedatabaseProjectsLocationsInstancesCreateArgs> for DatabaseInstance {
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedatabaseProjectsLocationsInstancesCreateArgs,
+    ) -> String {
+        format!("gcp::DatabaseInstance/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::DatabaseInstance"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListDatabaseInstancesResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<FirebasedatabaseProjectsLocationsInstancesListArgs>
+    for ListDatabaseInstancesResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &FirebasedatabaseProjectsLocationsInstancesListArgs,
+    ) -> String {
+        format!("gcp::ListDatabaseInstancesResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListDatabaseInstancesResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

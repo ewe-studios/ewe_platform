@@ -147,3 +147,88 @@ pub struct GoogleCloudAdvisorynotificationsV1CsvCsvRow {
     #[serde(default)]
     pub entries: ::core::option::Option<::std::vec::Vec<String>>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for GoogleCloudAdvisorynotificationsV1Settings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdvisorynotificationsOrganizationsLocationsGetSettingsArgs>
+    for GoogleCloudAdvisorynotificationsV1Settings
+{
+    fn generate_resource_id(
+        &self,
+        input: &AdvisorynotificationsOrganizationsLocationsGetSettingsArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudAdvisorynotificationsV1Settings/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudAdvisorynotificationsV1Settings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudAdvisorynotificationsV1Notification.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdvisorynotificationsOrganizationsLocationsNotificationsGetArgs>
+    for GoogleCloudAdvisorynotificationsV1Notification
+{
+    fn generate_resource_id(
+        &self,
+        input: &AdvisorynotificationsOrganizationsLocationsNotificationsGetArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudAdvisorynotificationsV1Notification/{}",
+            input.name
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudAdvisorynotificationsV1Notification"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for GoogleCloudAdvisorynotificationsV1ListNotificationsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<AdvisorynotificationsOrganizationsLocationsNotificationsListArgs>
+    for GoogleCloudAdvisorynotificationsV1ListNotificationsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &AdvisorynotificationsOrganizationsLocationsNotificationsListArgs,
+    ) -> String {
+        format!(
+            "gcp::GoogleCloudAdvisorynotificationsV1ListNotificationsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::GoogleCloudAdvisorynotificationsV1ListNotificationsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}

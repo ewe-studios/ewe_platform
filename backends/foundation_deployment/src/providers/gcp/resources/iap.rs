@@ -469,3 +469,242 @@ pub struct TagsPartialState {
     #[serde(default, rename = "tagsToUpsert")]
     pub tags_to_upsert: ::core::option::Option<serde_json::Value>,
 }
+
+// =============================================================================
+// ResourceIdentifier implementations
+// =============================================================================
+
+/// ResourceIdentifier implementation for Brand.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsBrandsCreateArgs> for Brand {
+    fn generate_resource_id(&self, input: &IapProjectsBrandsCreateArgs) -> String {
+        format!("gcp::Brand/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Brand"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListBrandsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsBrandsListArgs> for ListBrandsResponse {
+    fn generate_resource_id(&self, input: &IapProjectsBrandsListArgs) -> String {
+        format!("gcp::ListBrandsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListBrandsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IdentityAwareProxyClient.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsBrandsIdentityAwareProxyClientsCreateArgs>
+    for IdentityAwareProxyClient
+{
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsBrandsIdentityAwareProxyClientsCreateArgs,
+    ) -> String {
+        format!("gcp::IdentityAwareProxyClient/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IdentityAwareProxyClient"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Empty.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsBrandsIdentityAwareProxyClientsDeleteArgs> for Empty {
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsBrandsIdentityAwareProxyClientsDeleteArgs,
+    ) -> String {
+        format!("gcp::Empty/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Empty"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListIdentityAwareProxyClientsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsBrandsIdentityAwareProxyClientsListArgs>
+    for ListIdentityAwareProxyClientsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsBrandsIdentityAwareProxyClientsListArgs,
+    ) -> String {
+        format!(
+            "gcp::ListIdentityAwareProxyClientsResponse/{}",
+            input.parent
+        )
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListIdentityAwareProxyClientsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TunnelDestGroup.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsIapTunnelLocationsDestGroupsCreateArgs> for TunnelDestGroup {
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsIapTunnelLocationsDestGroupsCreateArgs,
+    ) -> String {
+        format!("gcp::TunnelDestGroup/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TunnelDestGroup"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ListTunnelDestGroupsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapProjectsIapTunnelLocationsDestGroupsListArgs>
+    for ListTunnelDestGroupsResponse
+{
+    fn generate_resource_id(
+        &self,
+        input: &IapProjectsIapTunnelLocationsDestGroupsListArgs,
+    ) -> String {
+        format!("gcp::ListTunnelDestGroupsResponse/{}", input.parent)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ListTunnelDestGroupsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for Policy.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapGetIamPolicyArgs> for Policy {
+    fn generate_resource_id(&self, input: &IapGetIamPolicyArgs) -> String {
+        format!("gcp::Policy/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::Policy"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for IapSettings.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapGetIapSettingsArgs> for IapSettings {
+    fn generate_resource_id(&self, input: &IapGetIapSettingsArgs) -> String {
+        format!("gcp::IapSettings/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::IapSettings"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for TestIamPermissionsResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapTestIamPermissionsArgs> for TestIamPermissionsResponse {
+    fn generate_resource_id(&self, input: &IapTestIamPermissionsArgs) -> String {
+        format!("gcp::TestIamPermissionsResponse/{}", input.resource)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::TestIamPermissionsResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
+
+/// ResourceIdentifier implementation for ValidateIapAttributeExpressionResponse.
+///
+/// WHY: Enables automatic state tracking via StoreStateIdentifierTask.
+///
+/// HOW: Computes resource ID from input path parameters.
+impl ResourceIdentifier<IapValidateAttributeExpressionArgs>
+    for ValidateIapAttributeExpressionResponse
+{
+    fn generate_resource_id(&self, input: &IapValidateAttributeExpressionArgs) -> String {
+        format!("gcp::ValidateIapAttributeExpressionResponse/{}", input.name)
+    }
+
+    fn resource_kind(&self) -> &'static str {
+        "gcp::ValidateIapAttributeExpressionResponse"
+    }
+
+    fn provider(&self) -> &'static str {
+        "gcp"
+    }
+}
