@@ -1,0 +1,739 @@
+//! AccessapprovalProvider - State-aware accessapproval API client.
+//!
+//! WHY: Users need state-aware API clients that automatically track
+//!      resource changes in the state store.
+//!
+//! WHAT: Provider wrapping ProviderClient<S> with methods for
+//!       accessapproval API endpoints that auto-store results.
+//!
+//! HOW: Each method wraps the task with StoreStateIdentifierTask
+//!      for automatic state persistence on success.
+
+#![cfg(feature = "gcp")]
+
+use crate::providers::gcp::clients::accessapproval::{
+    accessapproval_folders_delete_access_approval_settings_builder, accessapproval_folders_delete_access_approval_settings_task,
+    accessapproval_folders_update_access_approval_settings_builder, accessapproval_folders_update_access_approval_settings_task,
+    accessapproval_folders_approval_requests_approve_builder, accessapproval_folders_approval_requests_approve_task,
+    accessapproval_folders_approval_requests_dismiss_builder, accessapproval_folders_approval_requests_dismiss_task,
+    accessapproval_folders_approval_requests_invalidate_builder, accessapproval_folders_approval_requests_invalidate_task,
+    accessapproval_organizations_delete_access_approval_settings_builder, accessapproval_organizations_delete_access_approval_settings_task,
+    accessapproval_organizations_update_access_approval_settings_builder, accessapproval_organizations_update_access_approval_settings_task,
+    accessapproval_organizations_approval_requests_approve_builder, accessapproval_organizations_approval_requests_approve_task,
+    accessapproval_organizations_approval_requests_dismiss_builder, accessapproval_organizations_approval_requests_dismiss_task,
+    accessapproval_organizations_approval_requests_invalidate_builder, accessapproval_organizations_approval_requests_invalidate_task,
+    accessapproval_projects_delete_access_approval_settings_builder, accessapproval_projects_delete_access_approval_settings_task,
+    accessapproval_projects_update_access_approval_settings_builder, accessapproval_projects_update_access_approval_settings_task,
+    accessapproval_projects_approval_requests_approve_builder, accessapproval_projects_approval_requests_approve_task,
+    accessapproval_projects_approval_requests_dismiss_builder, accessapproval_projects_approval_requests_dismiss_task,
+    accessapproval_projects_approval_requests_invalidate_builder, accessapproval_projects_approval_requests_invalidate_task,
+};
+use crate::providers::gcp::clients::types::{ApiError, ApiPending};
+use crate::providers::gcp::clients::accessapproval::AccessApprovalSettings;
+use crate::providers::gcp::clients::accessapproval::ApprovalRequest;
+use crate::providers::gcp::clients::accessapproval::Empty;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalFoldersApprovalRequestsApproveArgs;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalFoldersApprovalRequestsDismissArgs;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalFoldersApprovalRequestsInvalidateArgs;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalFoldersDeleteAccessApprovalSettingsArgs;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalFoldersUpdateAccessApprovalSettingsArgs;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalOrganizationsApprovalRequestsApproveArgs;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalOrganizationsApprovalRequestsDismissArgs;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalOrganizationsApprovalRequestsInvalidateArgs;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalOrganizationsDeleteAccessApprovalSettingsArgs;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalOrganizationsUpdateAccessApprovalSettingsArgs;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalProjectsApprovalRequestsApproveArgs;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalProjectsApprovalRequestsDismissArgs;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalProjectsApprovalRequestsInvalidateArgs;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalProjectsDeleteAccessApprovalSettingsArgs;
+use crate::providers::gcp::clients::accessapproval::AccessapprovalProjectsUpdateAccessApprovalSettingsArgs;
+use crate::provider_client::{ProviderClient, ProviderError};
+use foundation_core::valtron::{execute, StreamIterator};
+use foundation_core::wire::simple_http::client::SimpleHttpClient;
+use foundation_db::state::store_state_task::StoreStateIdentifierTask;
+use std::sync::Arc;
+
+/// AccessapprovalProvider with automatic state tracking.
+///
+/// # Type Parameters
+///
+/// * `S` - StateStore implementation (FileStateStore, SqliteStateStore, etc.)
+///
+/// # Example
+///
+/// ```rust
+/// let state_store = FileStateStore::new("/path", "my-project", "dev");
+/// let client = ProviderClient::new("my-project", "dev", state_store);
+/// let http_client = SimpleHttpClient::new(...);
+/// let provider = AccessapprovalProvider::new(client, http_client);
+/// ```
+#[derive(Clone)]
+pub struct AccessapprovalProvider<S>
+where
+    S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+{
+    client: ProviderClient<S>,
+    http_client: Arc<SimpleHttpClient>,
+}
+
+impl<S> AccessapprovalProvider<S>
+where
+    S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
+{
+    /// Create new AccessapprovalProvider.
+    pub fn new(client: ProviderClient<S>, http_client: SimpleHttpClient) -> Self {
+        Self {
+            client,
+            http_client: Arc::new(http_client),
+        }
+    }
+
+    /// Accessapproval folders delete access approval settings.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Empty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_folders_delete_access_approval_settings(
+        &self,
+        args: &AccessapprovalFoldersDeleteAccessApprovalSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Empty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_folders_delete_access_approval_settings_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_folders_delete_access_approval_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accessapproval folders update access approval settings.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the AccessApprovalSettings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_folders_update_access_approval_settings(
+        &self,
+        args: &AccessapprovalFoldersUpdateAccessApprovalSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<AccessApprovalSettings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_folders_update_access_approval_settings_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_folders_update_access_approval_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accessapproval folders approval requests approve.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ApprovalRequest result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_folders_approval_requests_approve(
+        &self,
+        args: &AccessapprovalFoldersApprovalRequestsApproveArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ApprovalRequest, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_folders_approval_requests_approve_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_folders_approval_requests_approve_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accessapproval folders approval requests dismiss.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ApprovalRequest result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_folders_approval_requests_dismiss(
+        &self,
+        args: &AccessapprovalFoldersApprovalRequestsDismissArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ApprovalRequest, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_folders_approval_requests_dismiss_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_folders_approval_requests_dismiss_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accessapproval folders approval requests invalidate.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ApprovalRequest result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_folders_approval_requests_invalidate(
+        &self,
+        args: &AccessapprovalFoldersApprovalRequestsInvalidateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ApprovalRequest, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_folders_approval_requests_invalidate_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_folders_approval_requests_invalidate_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accessapproval organizations delete access approval settings.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Empty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_organizations_delete_access_approval_settings(
+        &self,
+        args: &AccessapprovalOrganizationsDeleteAccessApprovalSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Empty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_organizations_delete_access_approval_settings_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_organizations_delete_access_approval_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accessapproval organizations update access approval settings.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the AccessApprovalSettings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_organizations_update_access_approval_settings(
+        &self,
+        args: &AccessapprovalOrganizationsUpdateAccessApprovalSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<AccessApprovalSettings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_organizations_update_access_approval_settings_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_organizations_update_access_approval_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accessapproval organizations approval requests approve.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ApprovalRequest result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_organizations_approval_requests_approve(
+        &self,
+        args: &AccessapprovalOrganizationsApprovalRequestsApproveArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ApprovalRequest, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_organizations_approval_requests_approve_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_organizations_approval_requests_approve_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accessapproval organizations approval requests dismiss.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ApprovalRequest result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_organizations_approval_requests_dismiss(
+        &self,
+        args: &AccessapprovalOrganizationsApprovalRequestsDismissArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ApprovalRequest, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_organizations_approval_requests_dismiss_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_organizations_approval_requests_dismiss_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accessapproval organizations approval requests invalidate.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ApprovalRequest result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_organizations_approval_requests_invalidate(
+        &self,
+        args: &AccessapprovalOrganizationsApprovalRequestsInvalidateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ApprovalRequest, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_organizations_approval_requests_invalidate_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_organizations_approval_requests_invalidate_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accessapproval projects delete access approval settings.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the Empty result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_projects_delete_access_approval_settings(
+        &self,
+        args: &AccessapprovalProjectsDeleteAccessApprovalSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<Empty, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_projects_delete_access_approval_settings_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_projects_delete_access_approval_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accessapproval projects update access approval settings.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the AccessApprovalSettings result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_projects_update_access_approval_settings(
+        &self,
+        args: &AccessapprovalProjectsUpdateAccessApprovalSettingsArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<AccessApprovalSettings, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_projects_update_access_approval_settings_builder(
+            &self.http_client,
+            &args.name,
+            &args.updateMask,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_projects_update_access_approval_settings_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accessapproval projects approval requests approve.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ApprovalRequest result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_projects_approval_requests_approve(
+        &self,
+        args: &AccessapprovalProjectsApprovalRequestsApproveArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ApprovalRequest, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_projects_approval_requests_approve_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_projects_approval_requests_approve_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accessapproval projects approval requests dismiss.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ApprovalRequest result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_projects_approval_requests_dismiss(
+        &self,
+        args: &AccessapprovalProjectsApprovalRequestsDismissArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ApprovalRequest, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_projects_approval_requests_dismiss_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_projects_approval_requests_dismiss_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+    /// Accessapproval projects approval requests invalidate.
+    ///
+    /// Automatically stores the result in the state store on success.
+    ///
+    /// # Arguments
+    ///
+    /// * `args` - Request arguments
+    ///
+    /// # Returns
+    ///
+    /// StreamIterator yielding the ApprovalRequest result.
+    ///
+    /// # Errors
+    ///
+    /// Returns ProviderError if the API request or state storage fails.
+    pub fn accessapproval_projects_approval_requests_invalidate(
+        &self,
+        args: &AccessapprovalProjectsApprovalRequestsInvalidateArgs,
+    ) -> Result<
+        impl StreamIterator<
+            D = Result<ApprovalRequest, ProviderError<ApiError>>,
+            P = crate::providers::gcp::clients::types::ApiPending,
+        > + Send
+        + 'static,
+        ProviderError<ApiError>,
+    > {
+        let builder = accessapproval_projects_approval_requests_invalidate_builder(
+            &self.http_client,
+            &args.name,
+        )
+        .map_err(ProviderError::Api)?;
+
+        let task = accessapproval_projects_approval_requests_invalidate_task(builder)
+            .map_err(ProviderError::Api)?;
+
+        let state_store = self.client.state_store.clone();
+        let stage = Some(self.client.stage.clone());
+
+        let store_task = StoreStateIdentifierTask::new(task, state_store, args, stage);
+
+        execute(store_task, None).map_err(|e: String| ProviderError::ExecuteFailed(e.to_string()))
+    }
+
+}

@@ -7,6 +7,7 @@
 
 mod clients;
 mod model_descriptors;
+mod provider_wrappers;
 mod provider_specs;
 mod provider_specs_core;
 mod provider_specs_errors;
@@ -109,6 +110,24 @@ pub fn register(cmd: clap::Command) -> clap::Command {
                             .action(clap::ArgAction::SetTrue)
                             .help("Enables debug logs (default: false)"),
                     ),
+            )
+            .subcommand(
+                clap::Command::new("providers")
+                    .about("Generate provider wrapper APIs with automatic state tracking")
+                    .arg(
+                        clap::Arg::new("provider")
+                            .long("provider")
+                            .short('p')
+                            .help("Generate wrappers for only this provider (default: all). Use fly_io for Fly.io.")
+                            .value_name("PROVIDER"),
+                    )
+                    .arg(
+                        clap::Arg::new("output-dir")
+                            .long("output-dir")
+                            .help("Output directory for generated files")
+                            .value_name("DIR")
+                            .default_value("backends/foundation_deployment/src/providers"),
+                    ),
             ),
     )
 }
@@ -162,6 +181,25 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
         }
         Some(("models", sub_matches)) => {
             model_descriptors::run(sub_matches)?;
+            Ok(())
+        }
+        Some(("providers", sub_matches)) => {
+            let provider = sub_matches.get_one::<String>("provider").map(|s| s.as_str());
+            let output_dir = sub_matches
+                .get_one::<String>("output-dir")
+                .map(|s| PathBuf::from(s))
+                .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/src/providers"));
+
+            let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
+
+            let generator = provider_wrappers::ProviderWrapperGenerator::new(artefacts_dir, output_dir);
+
+            if let Some(provider) = provider {
+                generator.generate_for_provider(provider)?;
+            } else {
+                generator.generate_all()?;
+            }
+
             Ok(())
         }
         _ => unreachable!("subcommand_required ensures a subcommand is present"),

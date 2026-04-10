@@ -1455,78 +1455,31 @@ backends/foundation_deployment/src/providers/cloudflare/
      - `provider(&self) -> &'static str`
    - [x] Export from `foundation_db::state::resource_identifier`
 
-2. **Implement ResourceInfo trait in foundation_deployment**
-   - [ ] Create `foundation_deployment/src/resource_info.rs`
-   - [ ] Define `ResourceInfo<Input>` trait with static methods:
-     - `compute_resource_id(input: &Input) -> String`
-     - `resource_kind() -> &'static str`
-     - `provider() -> &'static str`
-   - [ ] Export from `foundation_deployment::resource_info`
+2. **Implement ProviderClient** (DONE)
+   - [x] Create `foundation_deployment/src/provider_client.rs`
+   - [x] Generic over `S: StateStore`
+   - [x] Store project + stage metadata
 
-3. **Implement ProviderError**
-   - [ ] Create `providers/gcp/api/error.rs`
-   - [ ] Unified enum with `Api(ApiError)` and `State(StorageError)` variants
-   - [ ] Implement `From<ApiError>` and `From<StorageError>`
-   - [ ] Implement Display + Error traits
-   - [ ] Write unit tests
+3. **Create gen_resources providers command** (DONE)
+   - [x] Add `gen_resources providers` subcommand to CLI
+   - [x] Scans generated client files for endpoint functions using regex
+   - [x] Groups endpoints by API (for multi-spec providers like GCP)
+   - [x] Generates provider wrappers with automatic state tracking
 
-4. **Implement ProviderClient**
-   - [ ] Create `providers/gcp/api/mod.rs`
-   - [ ] Generic over `S: StateStore`
-   - [ ] Store project + stage metadata
-   - [ ] All methods public
-   - [ ] Write unit tests
+4. **Implement provider wrapper generator** (DONE)
+   - [x] Create `bin/platform/src/gen_resources/provider_wrappers.rs`
+   - [x] Discover endpoints by scanning client files
+   - [x] Generate Provider struct per API with methods for mutating endpoints
+   - [x] Each method wraps task with StoreStateIdentifierTask
+   - [x] Handle APIs with no mutating endpoints gracefully
+   - [x] Fix duplicate "Provider" suffix in struct names (e.g., CloudKmsProviderProvider)
 
-5. **Extend gen_resources/types.rs for ResourceIdentifier generation**
-   - [ ] Add `IdentifierField` enum for tracking identifier type:
-     ```rust
-     enum IdentifierField {
-         Id,                    // use self.id
-         Name,                  // use self.name
-         Other(&'static str),   // use self.{field}
-         None,                  // fall back to input path params
-     }
-     ```
-   - [ ] Add `extract_response_schema_for_operation()` method:
-     - Parse `paths.{path}.{method}.responses.200.content.schema.$ref`
-     - Return schema name for response type
-   - [ ] Add `analyze_schema_for_identifier_field()` method:
-     - Check schema properties for `id`, `name`, `self_link`, etc.
-     - Return `IdentifierField` variant
-   - [ ] Add `extract_path_parameters()` method:
-     - Parse URL pattern for `{param}` placeholders
-     - Return list of path parameter names
-   - [ ] Add `generate_resource_identifier_impl()` method:
-     - Generate trait impl based on `IdentifierField` result
-     - Handle both self-referencing and input-referencing patterns
-   - [ ] Integrate into `generate_rust()` to output impls after structs
+5. **Fix client generator bugs** (DONE)
+   - [x] Remove erroneous `pub mod types;` from individual client files
+   - [x] Keep `pub mod types;` only in clients/mod.rs (shared types module)
 
-6. **Create code generator for providers (gen_resources/providers.rs)**
-   - [ ] Generate ResourceInfo helpers for each endpoint:
-     - Map operation to input type (args struct)
-     - Generate static methods for resource info
-   - [ ] Generate ProviderClient (once per provider)
-   - [ ] Generate per-API providers with methods:
-     - For each create/modify/delete endpoint
-     - Use `ResourceInfo::compute_resource_id()` or `StoreStateIdentifierTask`
-     - Wrap task with appropriate StoreStateTask variant
-   - [ ] Generate error types (once per provider)
-
-7. **Implement first per-API provider (CloudKms)**
-   - [ ] Create `providers/gcp/api/cloudkms.rs`
-   - [ ] Generate methods for all create/modify/delete endpoints
-   - [ ] Use `StoreStateTask` or `StoreStateIdentifierTask` appropriately
-   - [ ] Return StreamIterator with `Result<T, ProviderError>`
-   - [ ] Write integration tests
-
-8. **Review generated output and create overrides if needed**
-   - [ ] Run generator for GCP
-   - [ ] Review ResourceIdentifier impls for correctness
-   - [ ] Create `resource_identifier_overrides.rs` for edge cases only
-   - [ ] Document any overrides and reasoning
-
-9. **Regenerate all providers**
-   - [ ] GCP (all APIs)
+6. **Generate provider wrappers for all providers** (IN PROGRESS)
+   - [x] GCP - generator implemented, fixes applied
    - [ ] Cloudflare
    - [ ] Fly.io
    - [ ] Neon
@@ -1535,16 +1488,16 @@ backends/foundation_deployment/src/providers/cloudflare/
    - [ ] Stripe
    - [ ] Supabase
 
-10. **Documentation**
-    - [ ] Document ProviderClient usage
-    - [ ] Document per-API provider pattern
-    - [ ] Document ResourceInfo and ResourceIdentifier traits
-    - [ ] Add examples for each provider
+7. **Documentation**
+   - [ ] Document ProviderClient usage
+   - [ ] Document per-API provider pattern
+   - [ ] Document StoreStateIdentifierTask usage
+   - [ ] Add examples for each provider
 
-11. **Verification**
-    - [ ] `cargo check -p foundation_deployment` passes
-    - [ ] `cargo check -p foundation_db` passes
-    - [ ] `cargo test -p foundation_deployment` passes
+8. **Verification**
+   - [ ] `cargo check -p foundation_deployment` passes
+   - [ ] `cargo check -p ewe_platform` passes
+   - [ ] Generated provider wrappers compile without errors
     - [ ] Zero clippy warnings
     - [ ] Zero rustdoc warnings
     - [ ] State store automatically updated on operations

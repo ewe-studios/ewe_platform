@@ -32,6 +32,7 @@ pub mod endpoint;
 pub mod type_resolver;
 pub mod extractor;
 pub mod normalizer;
+pub mod api_catalog;
 
 // Re-exports for convenient access
 pub use endpoint::{EndpointInfo, ResponseType};
@@ -42,3 +43,8 @@ pub use normalizer::{
 pub use spec::{OpenApiSpec, Schema, SpecFormat};
 pub use type_resolver::TypeResolver;
 pub use extractor::EndpointExtractor;
+pub use api_catalog::{
+    ApiCatalog, ApiInfo, ApiCatalogBuilder,
+    discover_providers, has_sub_apis,
+    to_pascal_case, to_snake_case, to_sentence_case,
+};
